@@ -1,0 +1,26 @@
+Name:               HSSL
+Version:            0.1
+License:            GPL
+--License-file:       LICENSE
+Author:             Alberto Ruiz
+Maintainer:         aruiz@um.es
+Stability:          provisional
+--Homepage:           http://dis.um.es/~alberto/GSLHaskell
+Package-url:
+Synopsis:           Simple Scientific Library
+Description:
+Category:           Numerical
+tested-with:        GHC ==6.6.1
+Build-Depends:      base, haskell98
+Extensions:         ForeignFunctionInterface
+--                    MultiParamTypeClasses,
+--                    FunctionalDependencies
+--ghc-options:        -Wall
+ghc-options:        -O
+hs-source-dirs:     lib
+Exposed-modules:    Data.Packed.Internal
+Other-modules:
+C-sources:          lib/Data/Packed/aux.c
+extra-libraries:    gsl cblas
+cc-options:         -O4
+ghc-prof-options:   -auto-all

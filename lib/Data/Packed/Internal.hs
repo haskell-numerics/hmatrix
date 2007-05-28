@@ -67,6 +67,15 @@ infixl 0 //
 vec :: Vector a -> (Int -> Ptr b -> t) -> t
 vec v f = f (dim v) (castPtr $ ptr v)
 
+mata :: Matrix a -> (Int-> Int -> Ptr b -> t) -> t
+mata m f = f (rows m) (cols m) (castPtr $ ptr (mat m))
+
+pd2pc :: Ptr Double -> Ptr (Complex (Double))
+pd2pc = castPtr
+
+pc2pd :: Ptr (Complex (Double)) -> Ptr Double
+pc2pd = castPtr
+
 check msg ls f = do
     err <- f
     when (err/=0) (error msg)
@@ -97,6 +106,9 @@ at :: Storable a => Vector a -> Int -> a
 at v n | n >= 0 && n < dim v = at' v n
        | otherwise          = error "vector index out of range"
 
+dsv v = sizeOf (v `at` 0)
+dsm m = (dsv.mat) m
+
 constant :: Storable a => Int -> a -> Vector a
 constant n x = unsafePerformIO $ do
     v <- createVector n
@@ -118,3 +130,18 @@ reshape n v = M { rows = dim v `div` n
                 , trMode = NoTrans
                 , isCOrder = True
                 }
+
+createMatrix r c = do
+    p <- createVector (r*c)
+    return (reshape c p)
+
+type CMat s = Int -> Int -> Ptr Double -> s
+type CVec s = Int -> Ptr Double -> s
+
+foreign import ccall safe "aux.h trans" ctrans :: Int -> CMat (CMat (IO Int))
+
+trans :: Storable a => Matrix a -> Matrix a
+trans m = unsafePerformIO $ do
+    r <- createMatrix (cols m) (rows m)
+    ctrans (dsm m) // mata m // mata r // check "trans" [mat m]
+    return r
