@@ -18,9 +18,11 @@ Extensions:         ForeignFunctionInterface
 --ghc-options:        -Wall
 ghc-options:        -O
 hs-source-dirs:     lib
-Exposed-modules:    Data.Packed.Internal
+Exposed-modules:    Data.Packed.Internal.Vector,
+                    Data.Packed.Internal.Matrix,
+                    Data.Packed.Internal.Tensor
 Other-modules:
-C-sources:          lib/Data/Packed/aux.c
+C-sources:          lib/Data/Packed/Internal/aux.c
 extra-libraries:    gsl cblas
 cc-options:         -O4
 ghc-prof-options:   -auto-all
