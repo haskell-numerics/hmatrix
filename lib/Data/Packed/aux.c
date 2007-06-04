@@ -48,12 +48,12 @@
 
 #define DVVIEW(A) gsl_vector_view A = gsl_vector_view_array(A##p,A##n)
 #define DMVIEW(A) gsl_matrix_view A = gsl_matrix_view_array(A##p,A##r,A##c)
-#define CVVIEW(A) gsl_vector_complex_view A = gsl_vector_complex_view_array(A##p,A##n)
-#define CMVIEW(A) gsl_matrix_complex_view A = gsl_matrix_complex_view_array(A##p,A##r,A##c)
+#define CVVIEW(A) gsl_vector_complex_view A = gsl_vector_complex_view_array((double*)A##p,A##n)
+#define CMVIEW(A) gsl_matrix_complex_view A = gsl_matrix_complex_view_array((double*)A##p,A##r,A##c)
 #define KDVVIEW(A) gsl_vector_const_view A = gsl_vector_const_view_array(A##p,A##n)
 #define KDMVIEW(A) gsl_matrix_const_view A = gsl_matrix_const_view_array(A##p,A##r,A##c)
-#define KCVVIEW(A) gsl_vector_complex_const_view A = gsl_vector_complex_const_view_array(A##p,A##n)
-#define KCMVIEW(A) gsl_matrix_complex_const_view A = gsl_matrix_complex_const_view_array(A##p,A##r,A##c)
+#define KCVVIEW(A) gsl_vector_complex_const_view A = gsl_vector_complex_const_view_array((double*)A##p,A##n)
+#define KCMVIEW(A) gsl_matrix_complex_const_view A = gsl_matrix_complex_const_view_array((double*)A##p,A##r,A##c)
 
 #define V(a) (&a.vector)
 #define M(a) (&a.matrix)
@@ -65,26 +65,80 @@
 #define BAD_CODE 1001
 #define MEM      1002
 #define BAD_FILE 1003
-#define BAD_TYPE 1004
 
 
-int trans(int size,KMAT(x),MAT(t)) {
+
+int transR(KRMAT(x),RMAT(t)) {
     REQUIRES(xr==tc && xc==tr,BAD_SIZE);
-    DEBUGMSG("trans");
-    if(size==8) {
-        DEBUGMSG("trans double");
-        KDMVIEW(x);
-        DMVIEW(t);
-        int res = gsl_matrix_transpose_memcpy(M(t),M(x));
-        CHECK(res,res);
-        OK
-    } else if (size==16) {
-        DEBUGMSG("trans complex double");
-        KCMVIEW(x);
-        CMVIEW(t);
-        int res = gsl_matrix_complex_transpose_memcpy(M(t),M(x));
-        CHECK(res,res);
-        OK
+    DEBUGMSG("transR");
+    KDMVIEW(x);
+    DMVIEW(t);
+    int res = gsl_matrix_transpose_memcpy(M(t),M(x));
+    CHECK(res,res);
+    OK
+}
+
+int transC(KCMAT(x),CMAT(t)) {
+    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
+    DEBUGMSG("transC");
+    KCMVIEW(x);
+    CMVIEW(t);
+    int res = gsl_matrix_complex_transpose_memcpy(M(t),M(x));
+    CHECK(res,res);
+    OK
+}
+
+
+int constantR(double * pval, RVEC(r)) {
+    DEBUGMSG("constantR")
+    int k;
+    double val = *pval;
+    for(k=0;k<rn;k++) {
+        rp[k]=val;
     }
-    return BAD_TYPE;
+    OK
+}
+
+int constantC(gsl_complex* pval, CVEC(r)) {
+    DEBUGMSG("constantC")
+    int k;
+    gsl_complex val = *pval;
+    for(k=0;k<rn;k++) {
+        rp[k]=val;
+    }
+    OK
+}
+
+int multiplyR(int ta, KRMAT(a), int tb, KRMAT(b),RMAT(r)) {
+    //printf("%d %d %d %d %d %d\n",ar,ac,br,bc,rr,rc);
+    //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
+    DEBUGMSG("multiplyR (gsl_blas_dgemm)");
+    KDMVIEW(a);
+    KDMVIEW(b);
+    DMVIEW(r);
+    int res = gsl_blas_dgemm(
+         ta?CblasTrans:CblasNoTrans,
+         tb?CblasTrans:CblasNoTrans,
+         1.0, M(a), M(b),
+         0.0, M(r));
+    CHECK(res,res);
+    OK
+}
+
+int multiplyC(int ta, KCMAT(a), int tb, KCMAT(b),CMAT(r)) {
+    //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
+    DEBUGMSG("multiplyC (gsl_blas_zgemm)");
+    KCMVIEW(a);
+    KCMVIEW(b);
+    CMVIEW(r);
+    gsl_complex alpha, beta;
+    GSL_SET_COMPLEX(&alpha,1.,0.);
+    GSL_SET_COMPLEX(&beta,0.,0.);
+    int res = gsl_blas_zgemm(
+         ta?CblasTrans:CblasNoTrans,
+         tb?CblasTrans:CblasNoTrans,
+         alpha, M(a), M(b),
+         beta, M(r));
+    CHECK(res,res);
+    OK
 }
