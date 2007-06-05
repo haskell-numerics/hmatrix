@@ -119,22 +119,29 @@ subVector' k l (v@V {dim=n, ptr=p, fptr=fp})
     | otherwise = v {dim=l, ptr=advancePtr p k}
 
 
-{-
+
 -- | creates a new Vector by joining a list of Vectors
 join :: Field t => [Vector t] -> Vector t
-join [] = error "joining an empty list"
+join [] = error "joining zero vectors"
 join as = unsafePerformIO $ do
-    let tot = sum (map size as)
-    p <- mallocForeignPtrArray tot
-    withForeignPtr p $ \p ->
-        joiner as tot p
-    return (V tot p)
+    let tot = sum (map dim as)
+    r@V {fptr = p, ptr = p'} <- createVector tot
+    withForeignPtr p $ \_ ->
+        joiner as tot p'
+    return r
   where joiner [] _ _ = return ()
-        joiner (V n b : cs) _ p = do
-            withForeignPtr b  $ \b' -> copyArray p b' n
+        joiner (V {dim = n, fptr = b, ptr = q} : cs) _ p = do
+            withForeignPtr b  $ \_ -> copyArray p q n
             joiner cs 0 (advancePtr p n)
--}
 
+
+-- | transforms a complex vector into a real vector with alternating real and imaginary parts 
+asReal :: Vector (Complex Double) -> Vector Double
+asReal v = V { dim = 2*dim v, fptr =  castForeignPtr (fptr v), ptr = castPtr (ptr v) }
+
+-- | transforms a real vector into a complex vector with alternating real and imaginary parts
+asComplex :: Vector Double -> Vector (Complex Double)
+asComplex v = V { dim = dim v `div` 2, fptr =  castForeignPtr (fptr v), ptr = castPtr (ptr v) }
 
 constantG n x = fromList (replicate n x)
 

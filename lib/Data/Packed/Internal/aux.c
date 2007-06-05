@@ -89,6 +89,19 @@ int transC(KCMAT(x),CMAT(t)) {
 }
 
 
+int submatrixR(int r1, int r2, int c1, int c2, KRMAT(x),RMAT(r)) {
+    REQUIRES(0<=r1 && r1<=r2 && r2<xr && 0<=c1 && c1<=c2 && c2<xc &&
+            rr==r2-r1+1 && rc==c2-c1+1,BAD_SIZE);
+    DEBUGMSG("submatrixR");
+    KDMVIEW(x);
+    DMVIEW(r);
+    gsl_matrix_const_view S = gsl_matrix_const_submatrix(M(x),r1,c1,rr,rc);
+    int res = gsl_matrix_memcpy(M(r),M(S));
+    CHECK(res,res);
+    OK
+}
+
+
 int constantR(double * pval, RVEC(r)) {
     DEBUGMSG("constantR")
     int k;

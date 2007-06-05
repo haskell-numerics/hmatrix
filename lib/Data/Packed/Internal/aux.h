@@ -19,3 +19,5 @@ int constantC(gsl_complex *val, CVEC(r));
 
 int multiplyR(int ta, KRMAT(a), int tb,  KRMAT(b),RMAT(r));
 int multiplyC(int ta, KCMAT(a), int tb, KCMAT(b),CMAT(r));
+
+int submatrixR(int r1, int r2, int c1, int c2, KRMAT(x),RMAT(r));

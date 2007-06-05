@@ -98,6 +98,8 @@ createMatrix order r c = do
     p <- createVector (r*c)
     return (matrixFromVector order c p)
 
+reshape c v = matrixFromVector RowMajor c v
+
 transdataG :: Storable a => Int -> Vector a -> Int -> Vector a 
 transdataG c1 d c2 = fromList . concat . transpose . partit c1 . toList $ d
 
@@ -184,8 +186,41 @@ multiply ColumnMajor a b = trans $ multiplyT ColumnMajor a b
 
 multiplyT order a b = multiplyD order (trans b) (trans a)
 
-multiplyD order a b 
+multiplyD order a b
     | isReal (baseOf.dat) a = scast $ multiplyAux order cmultiplyR (scast a) (scast b)
     | isComp (baseOf.dat) a = scast $ multiplyAux order cmultiplyC (scast a) (scast b)
     | otherwise             = multiplyG a b
 
+----------------------------------------------------------------------
+
+-- | extraction of a submatrix of a real matrix
+subMatrixR :: (Int,Int) -- ^ (r0,c0) starting position 
+           -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
+           -> Matrix Double -> Matrix Double
+subMatrixR (r0,c0) (rt,ct) x = unsafePerformIO $ do
+    r <- createMatrix RowMajor rt ct
+    c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1) // mat cdat x // mat cdat r // check "subMatrixR" [dat r]
+    return r
+foreign import ccall "aux.h submatrixR"
+    c_submatrixR :: Int -> Int -> Int -> Int -> Double ::> Double ::> IO Int
+
+-- | extraction of a submatrix of a complex matrix
+subMatrixC :: (Int,Int) -- ^ (r0,c0) starting position
+           -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
+           -> Matrix (Complex Double) -> Matrix (Complex Double)
+subMatrixC (r0,c0) (rt,ct) x =
+    reshape ct . asComplex . cdat .
+    subMatrixR (r0,2*c0) (rt,2*ct) .
+    reshape (2*cols x) . asReal . cdat $ x
+
+subMatrix :: (Field a) 
+          => (Int,Int) -- ^ (r0,c0) starting position 
+          -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
+          -> Matrix a -> Matrix a
+subMatrix st sz m
+    | isReal (baseOf.dat) m = scast $ subMatrixR st sz (scast m)
+    | isComp (baseOf.dat) m = scast $ subMatrixC st sz (scast m)
+    | otherwise             = subMatrixG st sz m
+
+subMatrixG (r0,c0) (rt,ct) x = reshape ct $ fromList $ concat $ map (subList c0 ct) (subList r0 rt (toLists x))
+    where subList s n = take n . drop s
