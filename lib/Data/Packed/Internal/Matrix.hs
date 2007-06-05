@@ -107,13 +107,17 @@ transdataR = transdataAux ctransR
 transdataC :: Int -> Vector (Complex Double) -> Int -> Vector (Complex Double)
 transdataC = transdataAux ctransC
 
-transdataAux fun c1 d c2 = unsafePerformIO $ do
-    v <- createVector (dim d)
-    let r1 = dim d `div` c1
+transdataAux fun c1 d c2 =
+    if noneed
+        then d
+        else unsafePerformIO $ do
+            v <- createVector (dim d)
+            fun r1 c1 (ptr d) r2 c2 (ptr v) // check "transdataAux" [d]
+            putStrLn "---> transdataAux"
+            return v
+  where r1 = dim d `div` c1
         r2 = dim d `div` c2
-    fun r1 c1 (ptr d) r2 c2 (ptr v) // check "transdataAux" [d]
-    --putStrLn "---> transdataAux"
-    return v
+        noneed = r1 == 1 || c1 == 1
 
 foreign import ccall safe "aux.h transR"
     ctransR :: Double ::> Double ::> IO Int

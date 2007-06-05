@@ -55,24 +55,23 @@ rd = (2><2)
 
 main = do
     print $ r |=| rd
+    print $ foldl part t [("p",1),("q",0),("r",2)]
     print $ foldl part t [("p",1),("r",2),("q",0)]
+    print $ foldl part t $ reverse [("p",1),("r",2),("q",0)]
 
 t = T [(4,(Covariant,"p")),(2,(Covariant,"q")),(3,(Contravariant,"r"))] $ fromList [1..24::Double]
 
 
 findIdx name t = ((d1,d2),m) where
     (d1,d2) = span (\(_,(_,n)) -> n /=name) (dims t)
-    c = product (map fst (tail d2))
+    c = product (map fst d2)
     m = matrixFromVector RowMajor c (ten t)
 
-
-putFirstIdx name t =
-    if null d1
-        then (nd,m)
-        else (nd,m')
+putFirstIdx name t = (nd,m')
     where ((d1,d2),m) = findIdx name t
-          m' = trans $ matrixFromVector RowMajor (fst $ head d2) $ dat m
+          m' = matrixFromVector RowMajor c $ cdat $ trans m
           nd = d2++d1
+          c = dim (ten t) `div` (fst $ head d2)
 
 part t (name,k) = if k<0 || k>=l
                     then error $ "part "++show (name,k)++" out of range in "++show t
@@ -88,8 +87,13 @@ parts t name = map f (toRows m)
 t1 = T [(4,(Covariant,"p")),(4,(Contravariant,"q")),(2,(Covariant,"r"))] $ fromList [1..32::Double]
 t2 = T [(4,(Covariant,"p")),(4,(Contravariant,"q"))] $ fromList [1..16::Double]
 
---contract1 t name1 name2 = map head $ zipWith drop [0..] (map (flip parts name2) (parts t name1))
+contract1 t name1 name2 = map head $ zipWith drop [0..] (map (flip parts name2) (parts t name1))
 
---sumT ls = foldl (zipWith (+)) [0,0..] (map (toList.ten) ls)
+sumT ls = foldl (zipWith (+)) [0,0..] (map (toList.ten) ls)
 
 on f g = \x y -> f (g x) (g y)
+
+contract t1 n1 t2 n2 = T (tail d1++tail d2) (cdat m)
+    where (d1,m1) = putFirstIdx n1 t1
+          (d2,m2) = putFirstIdx n2 t2
+          m = multiply RowMajor (trans m2) m1
