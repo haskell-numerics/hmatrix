@@ -35,6 +35,8 @@ instance (Storable a, RealFloat a) => Storable (Complex a) where    --
     poke p (a :+ b) = pokeArray (castPtr p) [a,b]                   --
 ----------------------------------------------------------------------
 
+on f g = \x y -> f (g x) (g y)
+
 (//) :: x -> (x -> y) -> y
 infixl 0 //
 (//) = flip ($)

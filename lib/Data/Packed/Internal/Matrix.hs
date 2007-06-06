@@ -65,6 +65,15 @@ partit :: Int -> [a] -> [[a]]
 partit _ [] = []
 partit n l  = take n l : partit n (drop n l)
 
+-- | obtains the common value of a property of a list
+common :: (Eq a) => (b->a) -> [b] -> Maybe a
+common f = commonval . map f where
+    commonval :: (Eq a) => [a] -> Maybe a
+    commonval [] = Nothing
+    commonval [a] = Just a
+    commonval (a:b:xs) = if a==b then commonval (b:xs) else Nothing
+
+
 toLists m | fortran m = transpose $ partit (rows m) . toList . dat $ m
           | otherwise = partit (cols m) . toList . dat $ m
 
@@ -115,7 +124,7 @@ transdataAux fun c1 d c2 =
         else unsafePerformIO $ do
             v <- createVector (dim d)
             fun r1 c1 (ptr d) r2 c2 (ptr v) // check "transdataAux" [d]
-            putStrLn "---> transdataAux"
+            --putStrLn "---> transdataAux"
             return v
   where r1 = dim d `div` c1
         r2 = dim d `div` c2
@@ -135,6 +144,12 @@ transdata c1 d c2 | isReal baseOf d = scast $ transdataR c1 (scast d) c2
 --transdata = transdataG
 --{-# RULES "transdataR" transdata=transdataR #-}
 --{-# RULES "transdataC" transdata=transdataC #-}
+
+-- | creates a Matrix from a list of vectors
+fromRows :: Field t => [Vector t] -> Matrix t
+fromRows vs = case common dim vs of
+    Nothing -> error "fromRows applied to [] or to vectors with different sizes"
+    Just c  -> reshape c (join vs)
 
 -- | extracts the rows of a matrix as a list of vectors
 toRows :: Storable t => Matrix t -> [Vector t]
