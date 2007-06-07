@@ -160,6 +160,10 @@ toRows m = toRows' 0 where
     toRows' k | k == r*c  = []
               | otherwise = subVector k c v : toRows' (k+c)
 
+-----------------------------------------------------------------
+
+liftMatrix f m = m { dat = f dat, tdat = f tdat } -- check sizes
+
 ------------------------------------------------------------------
 
 dotL a b = sum (zipWith (*) a b)
@@ -205,6 +209,16 @@ multiplyD order a b
     | isReal (baseOf.dat) a = scast $ multiplyAux order cmultiplyR (scast a) (scast b)
     | isComp (baseOf.dat) a = scast $ multiplyAux order cmultiplyC (scast a) (scast b)
     | otherwise             = multiplyG a b
+
+----------------------------------------------------------------------
+
+outer u v = dat (multiply RowMajor r c)
+    where r = matrixFromVector RowMajor 1 u
+          c = matrixFromVector RowMajor (dim v) v
+
+dot u v = dat (multiply RowMajor r c) `at` 0
+    where r = matrixFromVector RowMajor (dim u) u
+          c = matrixFromVector RowMajor 1 v
 
 ----------------------------------------------------------------------
 

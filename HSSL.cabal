@@ -20,9 +20,12 @@ ghc-options:        -O
 hs-source-dirs:     lib
 Exposed-modules:    Data.Packed.Internal.Vector,
                     Data.Packed.Internal.Matrix,
-                    Data.Packed.Internal.Tensor
+                    Data.Packed.Internal.Tensor,
+                    LAPACK.Internal,
+                    LAPACK
 Other-modules:
-C-sources:          lib/Data/Packed/Internal/aux.c
-extra-libraries:    gsl cblas
+C-sources:          lib/Data/Packed/Internal/aux.c,
+                    lib/LAPACK/lapack-aux.c
+extra-libraries:    gsl cblas lapack
 cc-options:         -O4
 ghc-prof-options:   -auto-all

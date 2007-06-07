@@ -27,10 +27,6 @@ data Tensor t = T { dims   :: [(Int,(IdxTp,String))]
 
 rank = length . dims
 
-outer u v = dat (multiply RowMajor r c)
-    where r = matrixFromVector RowMajor 1 u
-          c = matrixFromVector RowMajor (dim v) v
-
 instance (Show a,Storable a) => Show (Tensor a) where
     show T {dims = [], ten = t} = "scalar "++show (t `at` 0)
     show T {dims = ds, ten = t} = "("++shdims ds ++") "++ show (toList t)

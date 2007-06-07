@@ -4,6 +4,7 @@
 import Data.Packed.Internal.Vector
 import Data.Packed.Internal.Matrix
 import Data.Packed.Internal.Tensor
+import LAPACK
 
 import Complex
 import Numeric(showGFloat)
