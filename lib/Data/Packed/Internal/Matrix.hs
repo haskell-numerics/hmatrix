@@ -315,3 +315,10 @@ diagG v = reshape c $ fromList $ [ l!!(i-1) * delta k i | k <- [1..c], i <- [1..
           l = toList v
           delta i j | i==j      = 1
                     | otherwise = 0
+
+diagRect s r c
+    | dim s < min r c = error "diagRect"
+    | r == c    = diag s
+    | r < c     = joinHoriz [diag s , zeros (r,c-r)]
+    | otherwise = joinVert  [diag s , zeros (r-c,c)]
+    where zeros (r,c) = reshape c $ constant (r*c) 0

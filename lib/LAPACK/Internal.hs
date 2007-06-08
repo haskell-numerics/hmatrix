@@ -31,12 +31,7 @@ foreign import ccall "lapack-aux.h svd_l_R"
 --
 -- @(u,s,v)=svdR m@ so that @m=u \<\> s \<\> 'trans' v@.
 svdR :: Matrix Double -> (Matrix Double, Matrix Double , Matrix Double)
-svdR x@M {rows = r, cols = c} = (u, s, v)
-    where (u,s',v) = svdR' x
-          s | r == c    = diag s'
-            | r < c     = joinHoriz [diag s' , zeros (r,c-r)]
-            | otherwise = joinVert  [diag s' , zeros (r-c,c)]
-          zeros (r,c) = reshape c $ constant (r*c) 0
+svdR x@M {rows = r, cols = c} = (u, diagRect s r c, v) where (u,s,v) = svdR' x
 
 svdR' x@M {rows = r, cols = c} = unsafePerformIO $ do
     u <- createMatrix ColumnMajor r r
@@ -54,6 +49,20 @@ foreign import ccall "lapack-aux.h svd_l_Rdd"
 -- zgesvd
 foreign import ccall "lapack-aux.h svd_l_C"
     zgesvd :: (Complex Double) ::> (Complex Double) ::> (Double :> (Complex Double) ::> IO Int)
+
+-- | Wrapper for LAPACK's /zgesvd/, which computes the full svd decomposition of a complex matrix.
+--
+-- @(u,s,v)=svdC m@ so that @m=u \<\> s \<\> 'trans' v@.
+svdC :: Matrix (Complex Double)
+     -> (Matrix (Complex Double), Matrix Double, Matrix (Complex Double))
+svdC x@M {rows = r, cols = c} = (u, diagRect s r c, v) where (u,s,v) = svdC' x
+
+svdC' x@M {rows = r, cols = c} = unsafePerformIO $ do
+    u <- createMatrix ColumnMajor r r
+    s <- createVector (min r c)
+    v <- createMatrix ColumnMajor c c
+    zgesvd // mat fdat x // mat dat u // vec s // mat dat v // check "svdC" [fdat x]
+    return (u,s,trans v)
 
 -----------------------------------------------------------------------------
 -- zgeev

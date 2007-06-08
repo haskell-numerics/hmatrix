@@ -14,7 +14,7 @@
 
 module LAPACK (
     --module LAPACK.Internal
-    svdR, svdR',
+    svdR, svdR', svdC, svdC',
     eigC,
     linearSolveLSR
 ) where
