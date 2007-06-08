@@ -27,6 +27,24 @@ import Foreign.C.String
 foreign import ccall "lapack-aux.h svd_l_R"
     dgesvd :: Double ::> Double ::> (Double :> Double ::> IO Int)
 
+-- | Wrapper for LAPACK's /dgesvd/, which computes the full svd decomposition of a real matrix.
+--
+-- @(u,s,v)=svdR m@ so that @m=u \<\> s \<\> 'trans' v@.
+svdR :: Matrix Double -> (Matrix Double, Matrix Double , Matrix Double)
+svdR x@M {rows = r, cols = c} = (u, s, v)
+    where (u,s',v) = svdR' x
+          s | r == c    = diag s'
+            | r < c     = joinHoriz [diag s' , zeros (r,c-r)]
+            | otherwise = joinVert  [diag s' , zeros (r-c,c)]
+          zeros (r,c) = reshape c $ constant (r*c) 0
+
+svdR' x@M {rows = r, cols = c} = unsafePerformIO $ do
+    u <- createMatrix ColumnMajor r r
+    s <- createVector (min r c)
+    v <- createMatrix ColumnMajor c c
+    dgesvd // mat fdat x // mat dat u // vec s // mat dat v // check "svdR" [fdat x]
+    return (u,s,trans v)
+
 -----------------------------------------------------------------------------
 -- dgesdd
 foreign import ccall "lapack-aux.h svd_l_Rdd"
@@ -62,10 +80,26 @@ foreign import ccall "lapack-aux.h eig_l_R"
     dgeev :: Double ::> Double ::> ((Complex Double) :> Double ::> IO Int)
 
 -----------------------------------------------------------------------------
-
 -- dsyev
 foreign import ccall "lapack-aux.h eig_l_S"
     dsyev :: Double ::> (Double :> Double ::> IO Int)
+
+-- | Wrapper for LAPACK's /dsyev/, which computes the eigenvalues and right eigenvectors of a symmetric real matrix:
+--
+-- if @(l,v)=eigSl m@ then @m \<\> v = v \<\> diag l@.
+--
+-- The eigenvectors are the columns of v.
+-- The eigenvalues are sorted in descending order (use eigS' for ascending order).
+eigS :: Matrix Double -> (Vector Double, Matrix Double)
+eigS m = (s', fliprl v)
+    where (s,v) = eigS' m
+          s' = fromList . reverse . toList $  s
+
+eigS' (m@M {rows = r}) = unsafePerformIO $ do
+    l <- createVector r
+    v <- createMatrix ColumnMajor r r
+    dsyev // mat fdat m // vec l // mat dat v // check "eigS" [fdat m]
+    return (l,v)
 
 -----------------------------------------------------------------------------
 -- zheev

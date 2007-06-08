@@ -38,7 +38,7 @@ bf = (3>|<4) [7,11,15,8,12,16,9,13,17,10,14,18::Double]
 
 a |=| b = rows a == rows b &&
           cols a == cols b &&
-          toList (dat a) == toList (dat b)
+          toList (cdat a) == toList (cdat b)
 
 mulC a b = multiply RowMajor a b
 mulF a b = multiply ColumnMajor a b
@@ -75,15 +75,14 @@ delta i j | i==j      = 1
 
 e i n = fromList [ delta k i | k <- [1..n]]
 
-ident n = fromRows [ e i n | i <- [1..n]]
+diagl = diag.fromList
 
-diag l = reshape c $ fromList $ [ l!!(i-1) * delta k i | k <- [1..c], i <- [1..c]]
-    where c = length l
+ident n = diag (constant n 1)
 
 tensorFromVector idx v = T {dims = [(dim v,idx)], ten = v}
 tensorFromMatrix idxr idxc m = T {dims = [(rows m,idxr),(cols m,idxc)], ten = cdat m}
 
-td = tensorFromMatrix (Contravariant,"i") (Covariant,"j") $ diag [1..4] :: Tensor Double
+td = tensorFromMatrix (Contravariant,"i") (Covariant,"j") $ diagl [1..4] :: Tensor Double
 
 tn = tensorFromMatrix (Contravariant,"i") (Covariant,"j") $ (2><3) [1..6] :: Tensor Double
 tt = tensorFromMatrix (Contravariant,"i") (Covariant,"j") $ (2><3) [1..6] :: Tensor Double
@@ -114,3 +113,4 @@ names t = sort $ map (snd.snd) (dims t)
 normal t = tridx (names t) t
 
 contractions t1 t2 = [ contraction t1 n1 t2 n2 | n1 <- names t1, n2 <- names t2, compatIdx t1 n1 t2 n2 ]
+

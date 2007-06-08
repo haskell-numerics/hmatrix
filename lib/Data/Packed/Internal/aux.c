@@ -18,18 +18,16 @@
 #define MACRO(B) do {B} while (0)
 #define ERROR(CODE) MACRO(return CODE;)
 #define REQUIRES(COND, CODE) MACRO(if(!(COND)) {ERROR(CODE);})
+#define OK return 0;
 
 #define MIN(A,B) ((A)<(B)?(A):(B))
 #define MAX(A,B) ((A)>(B)?(A):(B))
 
 #ifdef DBG
-#define DEBUGMSG(M) printf("GSL Wrapper "M": "); size_t t0 = time(NULL);
-#define OK MACRO(printf("%ld s\n",time(0)-t0); return 0;);
+#define DEBUGMSG(M) printf("*** calling aux C function: %s\n",M);
 #else
 #define DEBUGMSG(M)
-#define OK return 0;
 #endif
-
 
 #define CHECK(RES,CODE) MACRO(if(RES) return CODE;)
 
@@ -44,7 +42,6 @@
 #else
 #define DEBUGVEC(MSG,X)
 #endif
-
 
 #define DVVIEW(A) gsl_vector_view A = gsl_vector_view_array(A##p,A##n)
 #define DMVIEW(A) gsl_matrix_view A = gsl_matrix_view_array(A##p,A##r,A##c)
@@ -65,8 +62,6 @@
 #define BAD_CODE 1001
 #define MEM      1002
 #define BAD_FILE 1003
-
-
 
 int transR(KRMAT(x),RMAT(t)) {
     REQUIRES(xr==tc && xc==tr,BAD_SIZE);
@@ -122,6 +117,7 @@ int constantC(gsl_complex* pval, CVEC(r)) {
     OK
 }
 
+
 int multiplyR(int ta, KRMAT(a), int tb, KRMAT(b),RMAT(r)) {
     //printf("%d %d %d %d %d %d\n",ar,ac,br,bc,rr,rc);
     //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
@@ -153,5 +149,32 @@ int multiplyC(int ta, KCMAT(a), int tb, KCMAT(b),CMAT(r)) {
          alpha, M(a), M(b),
          beta, M(r));
     CHECK(res,res);
+    OK
+}
+
+
+int diagR(KRVEC(d),RMAT(r)) {
+    REQUIRES(dn==rr && rr==rc,BAD_SIZE);
+    DEBUGMSG("diagR");
+    int i,j;
+    for (i=0;i<rr;i++) {
+        for(j=0;j<rc;j++) {
+            rp[i*rc+j] = i==j?dp[i]:0.;
+        }
+    }
+    OK
+}
+
+int diagC(KCVEC(d),CMAT(r)) {
+    REQUIRES(dn==rr && rr==rc,BAD_SIZE);
+    DEBUGMSG("diagC");
+    int i,j;
+    gsl_complex zero;
+    GSL_SET_COMPLEX(&zero,0.,0.);
+    for (i=0;i<rr;i++) {
+        for(j=0;j<rc;j++) {
+            rp[i*rc+j] = i==j?dp[i]:zero;
+        }
+    }
     OK
 }
