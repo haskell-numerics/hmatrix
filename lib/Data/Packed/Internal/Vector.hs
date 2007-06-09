@@ -145,6 +145,7 @@ asReal v = V { dim = 2*dim v, fptr =  castForeignPtr (fptr v), ptr = castPtr (pt
 asComplex :: Vector Double -> Vector (Complex Double)
 asComplex v = V { dim = dim v `div` 2, fptr =  castForeignPtr (fptr v), ptr = castPtr (ptr v) }
 
+
 constantG n x = fromList (replicate n x)
 
 constantR :: Int -> Double -> Vector Double

@@ -179,6 +179,15 @@ joinVert ms = case common cols ms of
 joinHoriz :: Field t => [Matrix t] -> Matrix t
 joinHoriz ms = trans. joinVert . map trans $ ms
 
+-- | creates a complex vector from vectors with real and imaginary parts
+toComplex :: (Vector Double, Vector Double) ->  Vector (Complex Double)
+toComplex (r,i) = asComplex $ cdat $ fromColumns [r,i]
+
+-- | obtains the complex conjugate of a complex vector
+conj :: Vector (Complex Double) -> Vector (Complex Double)
+conj v = asComplex $ cdat $ reshape 2 (asReal v) `mulC` diag (fromList [1,-1])
+    where mulC = multiply RowMajor
+
 ------------------------------------------------------------------------------
 
 -- | Reverse rows 
@@ -191,7 +200,7 @@ fliprl m = fromColumns . reverse . toColumns $ m
 
 -----------------------------------------------------------------
 
-liftMatrix f m = m { dat = f dat, tdat = f tdat } -- check sizes
+liftMatrix f m = m { dat = f (dat m), tdat = f (tdat m) } -- check sizes
 
 ------------------------------------------------------------------
 
@@ -291,7 +300,7 @@ subMatrixG (r0,c0) (rt,ct) x = reshape ct $ fromList $ concat $ map (subList c0 
 diagAux fun msg (v@V {dim = n}) = unsafePerformIO $ do
     m <- createMatrix RowMajor n n
     fun // vec v // mat dat m // check msg [dat m]
-    return m
+    return m {tdat = dat m}
 
 -- | diagonal matrix from a real vector
 diagR :: Vector Double -> Matrix Double
@@ -319,6 +328,6 @@ diagG v = reshape c $ fromList $ [ l!!(i-1) * delta k i | k <- [1..c], i <- [1..
 diagRect s r c
     | dim s < min r c = error "diagRect"
     | r == c    = diag s
-    | r < c     = joinHoriz [diag s , zeros (r,c-r)]
-    | otherwise = joinVert  [diag s , zeros (r-c,c)]
+    | r < c     = trans $ diagRect s c r
+    | r > c     = joinVert  [diag s , zeros (r-c,c)]
     where zeros (r,c) = reshape c $ constant (r*c) 0
