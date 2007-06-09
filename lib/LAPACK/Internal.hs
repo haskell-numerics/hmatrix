@@ -76,7 +76,9 @@ foreign import ccall "lapack-aux.h eig_l_C"
 -- The eigenvectors are the columns of v.
 -- The eigenvalues are not sorted.
 eigC :: Matrix (Complex Double) -> (Vector (Complex Double), Matrix (Complex Double))
-eigC (m@M {rows = r}) = unsafePerformIO $ do
+eigC (m@M {rows = r}) 
+    | r == 1 = (fromList [cdat m `at` 0], singleton 1)
+    | otherwise = unsafePerformIO $ do
     l <- createVector r
     v <- createMatrix ColumnMajor r r
     dummy <- createMatrix ColumnMajor 1 1

@@ -66,6 +66,8 @@ aproxL fun v1 v2 = sum (zipWith (\a b-> fun (a-b)) v1 v2) / fromIntegral (length
 (|~|) = aprox abs
 (|~~|) = aprox magnitude
 
+v1 ~~ v2 = reshape 1 v1 |~~| reshape 1 v2
+
 eps = 1E-8::Double
 
 asFortran m = (rows m >|< cols m) $ toList (fdat m)
@@ -116,6 +118,15 @@ instance (Num a, Field a, Arbitrary a) => Arbitrary (PairM a) where
         --return $ PairM ((a><b) l1) ((b><c) l2)
     coarbitrary = undefined
 
+data SqM a = SqM (Matrix a) deriving Show
+instance (Field a, Arbitrary a) => Arbitrary (SqM a) where
+    arbitrary = do
+        n <- choose (1,10)
+        l <- vector (n*n)
+        return $ SqM $ (n><n) l
+    coarbitrary = undefined
+
+
 type BaseType = Double
 
 
@@ -133,6 +144,14 @@ svdTestC fun prod m = u <> s' <> (trans v) |~~| m
           (<>) = prod
           s' = liftMatrix comp s
 
+eigTestC fun prod (SqM m) = (m <> v) |~~| (v <> diag s)
+                        && takeDiag ((liftMatrix conj (trans v)) `mulC` v) ~~ constant (rows m) 1
+    where (s,v) = fun m
+          (<>) = prod
+
+takeDiag m = fromList [cdat m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
+
+
 comp v = toComplex (v,constant (dim v) 0)
 
 main = do
@@ -147,3 +166,4 @@ main = do
     quickCheck (svdTestR svdR mulF)
     quickCheck (svdTestC svdC mulC)
     quickCheck (svdTestC svdC mulF)
+    quickCheck (eigTestC eigC mulC)

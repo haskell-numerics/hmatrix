@@ -108,6 +108,8 @@ createMatrix order r c = do
 
 reshape c v = matrixFromVector RowMajor c v
 
+singleton x = reshape 1 (fromList [x])
+
 transdataG :: Storable a => Int -> Vector a -> Int -> Vector a 
 transdataG c1 d c2 = fromList . concat . transpose . partit c1 . toList $ d
 
