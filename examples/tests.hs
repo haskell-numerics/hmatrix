@@ -206,29 +206,63 @@ singular fun m = s1 < prec || s2/s1 < prec
           s1 = maximum s
           s2 = minimum s
 
+{-
+invTest msg m = do
+    assertBool msg $ m <> inv m =~= ident (rows m)
+
+invComplexTest msg m = do
+    assertBool msg $ m <> invC m =~= identC (rows m)
+
+invC m = linearSolveC m (identC (rows m))
+
+identC n = toComplex(ident n, (0::Double) <>ident n)
+-}
+
+--------------------------------------------------------------------
+
+pinvTest f feq m = (m <> f m <> m) `feq` m
+    where (<>) = mulF
+
+pinvR m = linearSolveLSR m (ident (rows m))
+pinvC m = linearSolveLSC m (ident (rows m))
+
+pinvSVDR m = linearSolveSVDR Nothing m (ident (rows m))
+
+pinvSVDC m = linearSolveSVDC Nothing m (ident (rows m))
+
 main = do
+    putStrLn "--------- general -----"
+    quickCheck (\(Sym m) -> m |=| (trans m:: Matrix BaseType))    
     quickCheck $ \l -> null l || (toList . fromList) l == (l :: [BaseType])
+
     quickCheck $ \m -> m |=| asC (m :: Matrix BaseType)
     quickCheck $ \m -> m |=| asFortran (m :: Matrix BaseType)
     quickCheck $ \m -> m |=| (asC . asFortran) (m :: Matrix BaseType)
+    putStrLn "--------- MULTIPLY ----"
     quickCheck $ \(PairM m1 m2) -> mulC m1 m2 |=| mulF m1 (m2 :: Matrix BaseType)
     quickCheck $ \(PairM m1 m2) -> mulC m1 m2 |=| trans (mulF (trans m2) (trans m1 :: Matrix BaseType))
     quickCheck $ \(PairM m1 m2) -> mulC m1 m2 |=| multiplyG m1 (m2 :: Matrix BaseType)
+    putStrLn "--------- SVD ---------"
     quickCheck (svdTestR mulC)
     quickCheck (svdTestR mulF)
     quickCheck (svdTestC mulC)
     quickCheck (svdTestC mulF)
+    putStrLn "--------- EIG ---------"
     quickCheck (eigTestC mulC)
     quickCheck (eigTestC mulF)
     quickCheck (eigTestR mulC)
     quickCheck (eigTestR mulF)
-    quickCheck (\(Sym m) -> m |=| (trans m:: Matrix BaseType))
     quickCheck (eigTestS mulC)
     quickCheck (eigTestS mulF)
     quickCheck (eigTestH mulC)
     quickCheck (eigTestH mulF)
+    putStrLn "--------- SOLVE ---------"
     quickCheck (linearSolveSQTest linearSolveR (|~|) (singular svdR') mulC)
-    quickCheck (linearSolveSQTest linearSolveC (|~~|) (singular svdC') mulC)
+    quickCheck (linearSolveSQTest linearSolveC (|~~|) (singular svdC') mulF)
+    quickCheck (pinvTest pinvR (|~|))
+    quickCheck (pinvTest pinvC (|~~|))
+    quickCheck (pinvTest pinvSVDR (|~|))
+    quickCheck (pinvTest pinvSVDC (|~~|))
 
 kk = (2><2)
  [  1.0, 0.0
