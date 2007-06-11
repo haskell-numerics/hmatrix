@@ -41,9 +41,17 @@ on f g = \x y -> f (g x) (g y)
 infixl 0 //
 (//) = flip ($)
 
+errorCode 1000 = "bad size"
+errorCode 1001 = "bad function code"
+errorCode 1002 = "memory problem"
+errorCode 1003 = "bad file"
+errorCode 1004 = "singular"
+errorCode 1005 = "didn't converge"
+errorCode n    = "code "++show n
+
 check msg ls f = do
     err <- f
-    when (err/=0) (error msg)
+    when (err/=0) (error (msg++": "++errorCode err))
     mapM_ (touchForeignPtr . fptr) ls
     return ()
 

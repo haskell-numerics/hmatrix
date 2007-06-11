@@ -174,10 +174,28 @@ eigH' (m@M {rows = r})
 foreign import ccall "lapack-aux.h linearSolveR_l"
     dgesv :: Double ::> Double ::> Double ::> IO Int
 
+-- | Wrapper for LAPACK's /dgesv/, which solves a general real linear system (for several right-hand sides) internally using the lu decomposition.
+linearSolveR :: Matrix Double -> Matrix Double -> Matrix Double
+linearSolveR  a@(M {rows = n1, cols = n2}) b@(M {rows = r, cols = c})
+    | n1==n2 && n1==r = unsafePerformIO $ do
+        s <- createMatrix ColumnMajor r c
+        dgesv // mat fdat a // mat fdat b // mat dat s // check "linearSolveR" [fdat a, fdat b]
+        return s
+    | otherwise = error "linearSolveR of nonsquare matrix"
+
 -----------------------------------------------------------------------------
 -- zgesv
 foreign import ccall "lapack-aux.h linearSolveC_l"
     zgesv :: (Complex Double) ::> (Complex Double) ::> (Complex Double) ::> IO Int
+
+-- | Wrapper for LAPACK's /zgesv/, which solves a general complex linear system (for several right-hand sides) internally using the lu decomposition.
+linearSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
+linearSolveC  a@(M {rows = n1, cols = n2}) b@(M {rows = r, cols = c})
+    | n1==n2 && n1==r = unsafePerformIO $ do
+        s <- createMatrix ColumnMajor r c
+        zgesv // mat fdat a // mat fdat b // mat dat s // check "linearSolveC" [fdat a, fdat b]
+        return s
+    | otherwise = error "linearSolveC of nonsquare matrix"
 
 -----------------------------------------------------------------------------------
 -- dgels
@@ -198,12 +216,47 @@ linearSolveLSR_l a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafePerformI
 foreign import ccall "lapack-aux.h linearSolveLSC_l"
     zgels :: (Complex Double) ::> (Complex Double) ::> (Complex Double) ::> IO Int
 
+-- | Wrapper for LAPACK's /zgels/, which obtains the least squared error solution of an overconstrained complex linear system or the minimum norm solution of an underdetermined system, for several right-hand sides. For rank deficient systems use 'linearSolveSVDC'.
+linearSolveLSC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
+linearSolveLSC a b = subMatrix (0,0) (cols a, cols b) $ linearSolveLSC_l a b
+
+linearSolveLSC_l a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafePerformIO $ do
+    r <- createMatrix ColumnMajor (max m n) nrhs
+    zgels // mat fdat a // mat fdat b // mat dat r // check "linearSolveLSC" [fdat a, fdat b]
+    return r
+
 -----------------------------------------------------------------------------------
 -- dgelss
 foreign import ccall "lapack-aux.h linearSolveSVDR_l"
     dgelss :: Double -> Double ::> Double ::> Double ::> IO Int
 
+-- | Wrapper for LAPACK's /dgelss/, which obtains the minimum norm solution to a real linear least squares problem Ax=B using the svd, for several right-hand sides. Admits rank deficient systems but it is slower than 'linearSolveLSR'. The effective rank of A is determined by treating as zero those singular valures which are less than rcond times the largest singular value. If rcond == Nothing machine precision is used.
+linearSolveSVDR :: Maybe Double   -- ^ rcond
+                -> Matrix Double  -- ^ coefficient matrix
+                -> Matrix Double  -- ^ right hand sides (as columns)
+                -> Matrix Double  -- ^ solution vectors (as columns)
+linearSolveSVDR (Just rcond) a b = subMatrix (0,0) (cols a, cols b) $ linearSolveSVDR_l rcond a b
+linearSolveSVDR Nothing a b = linearSolveSVDR (Just (-1)) a b
+
+linearSolveSVDR_l rcond a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafePerformIO $ do
+    r <- createMatrix ColumnMajor (max m n) nrhs
+    dgelss rcond // mat fdat a // mat fdat b // mat dat r // check "linearSolveSVDR" [fdat a, fdat b]
+    return r
+
 -----------------------------------------------------------------------------------
 -- zgelss
 foreign import ccall "lapack-aux.h linearSolveSVDC_l"
     zgelss :: Double -> (Complex Double) ::> (Complex Double) ::> (Complex Double) ::> IO Int
+
+-- | Wrapper for LAPACK's /zgelss/, which obtains the minimum norm solution to a complex linear least squares problem Ax=B using the svd, for several right-hand sides. Admits rank deficient systems but it is slower than 'linearSolveLSC'. The effective rank of A is determined by treating as zero those singular valures which are less than rcond times the largest singular value. If rcond == Nothing machine precision is used.
+linearSolveSVDC :: Maybe Double            -- ^ rcond
+                -> Matrix (Complex Double) -- ^ coefficient matrix
+                -> Matrix (Complex Double) -- ^ right hand sides (as columns)
+                -> Matrix (Complex Double) -- ^ solution vectors (as columns)
+linearSolveSVDC (Just rcond) a b = subMatrix (0,0) (cols a, cols b) $ linearSolveSVDC_l rcond a b
+linearSolveSVDC Nothing a b = linearSolveSVDC (Just (-1)) a b
+
+linearSolveSVDC_l rcond  a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafePerformIO $ do
+    r <- createMatrix ColumnMajor (max m n) nrhs
+    zgelss rcond // mat fdat a // mat fdat b // mat dat r // check "linearSolveSVDC" [fdat a, fdat b]
+    return r

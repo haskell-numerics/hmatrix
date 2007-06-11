@@ -13,10 +13,11 @@
 -----------------------------------------------------------------------------
 
 module LAPACK (
-    --module LAPACK.Internal
     svdR, svdR', svdC, svdC',
     eigC, eigR, eigS, eigH,
-    linearSolveLSR
+    linearSolveR, linearSolveC,
+    linearSolveLSR, linearSolveLSC,
+    linearSolveSVDR, linearSolveSVDC,
 ) where
 
 import LAPACK.Internal

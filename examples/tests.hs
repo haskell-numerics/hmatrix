@@ -138,6 +138,18 @@ instance {-(Field a, Arbitrary a, Num a) =>-} Arbitrary Her where
         return $ Her (m `addM` (liftMatrix conj) (trans m))
     coarbitrary = undefined
 
+data PairSM a = PairSM (Matrix a) (Matrix a) deriving Show
+instance (Num a, Field a, Arbitrary a) => Arbitrary (PairSM a) where
+    arbitrary = do
+        a <- choose (1,10)
+        c <- choose (1,10)
+        l1 <- vector (a*a)
+        l2 <- vector (a*c)
+        return $ PairSM ((a><a) (map fromIntegral (l1::[Int]))) ((a><c) (map fromIntegral (l2::[Int])))
+        --return $ PairSM ((a><a) l1) ((a><c) l2)
+    coarbitrary = undefined
+
+
 
 
 addM m1 m2 = liftMatrix2 addV m1 m2
@@ -181,7 +193,18 @@ eigTestH prod (Her m) = (m <> v) |~~| (v <> diag (comp s))
     where (s,v) = eigH m
           (<>) = prod
 
+linearSolveSQTest fun eqfun singu prod (PairSM a b) = singu a || (a <> fun a b) ==== b
+    where (<>) = prod
+          (====) = eqfun
 
+
+prec = 1E-15
+
+singular fun m = s1 < prec || s2/s1 < prec
+    where (_,ss,v) = fun m
+          s = toList ss
+          s1 = maximum s
+          s2 = minimum s
 
 main = do
     quickCheck $ \l -> null l || (toList . fromList) l == (l :: [BaseType])
@@ -204,7 +227,8 @@ main = do
     quickCheck (eigTestS mulF)
     quickCheck (eigTestH mulC)
     quickCheck (eigTestH mulF)
-
+    quickCheck (linearSolveSQTest linearSolveR (|~|) (singular svdR') mulC)
+    quickCheck (linearSolveSQTest linearSolveC (|~~|) (singular svdC') mulC)
 
 kk = (2><2)
  [  1.0, 0.0
