@@ -190,6 +190,8 @@ conj :: Vector (Complex Double) -> Vector (Complex Double)
 conj v = asComplex $ cdat $ reshape 2 (asReal v) `mulC` diag (fromList [1,-1])
     where mulC = multiply RowMajor
 
+comp v = toComplex (v,constant (dim v) 0)
+
 ------------------------------------------------------------------------------
 
 -- | Reverse rows 
@@ -203,6 +205,7 @@ fliprl m = fromColumns . reverse . toColumns $ m
 -----------------------------------------------------------------
 
 liftMatrix f m = m { dat = f (dat m), tdat = f (tdat m) } -- check sizes
+liftMatrix2 f m1 m2 = reshape (cols m1) (f (cdat m1) (cdat m2)) -- check sizes
 
 ------------------------------------------------------------------
 
@@ -333,3 +336,7 @@ diagRect s r c
     | r < c     = trans $ diagRect s c r
     | r > c     = joinVert  [diag s , zeros (r-c,c)]
     where zeros (r,c) = reshape c $ constant (r*c) 0
+
+takeDiag m = fromList [cdat m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
+
+ident n = diag (constant n 1)

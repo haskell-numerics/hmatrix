@@ -81,8 +81,6 @@ cf = mulF af bc
 
 r = mulC cc (trans cf)
 
-ident n = diag (constant n 1)
-
 rd = (2><2)
  [  43492.0,  50572.0
  , 102550.0, 119242.0 :: Double]
@@ -126,33 +124,64 @@ instance (Field a, Arbitrary a) => Arbitrary (SqM a) where
         return $ SqM $ (n><n) l
     coarbitrary = undefined
 
+data Sym a = Sym (Matrix a) deriving Show
+instance (Field a, Arbitrary a, Num a) => Arbitrary (Sym a) where
+    arbitrary = do
+        SqM m <- arbitrary
+        return $ Sym (m `addM` trans m)
+    coarbitrary = undefined
+
+data Her = Her (Matrix (Complex Double)) deriving Show
+instance {-(Field a, Arbitrary a, Num a) =>-} Arbitrary Her where
+    arbitrary = do
+        SqM m <- arbitrary
+        return $ Her (m `addM` (liftMatrix conj) (trans m))
+    coarbitrary = undefined
+
+
+
+addM m1 m2 = liftMatrix2 addV m1 m2
+
+addV v1 v2 = fromList $ zipWith (+) (toList v1) (toList v2)
+
 
 type BaseType = Double
 
-
-svdTestR fun prod m = u <> s <> trans v |~| m
+svdTestR prod m = u <> s <> trans v |~| m
                   && u <> trans u |~| ident (rows m)
                   && v <> trans v |~| ident (cols m)
-    where (u,s,v) = fun m
+    where (u,s,v) = svdR m
           (<>) = prod
 
 
-svdTestC fun prod m = u <> s' <> (trans v) |~~| m
+svdTestC prod m = u <> s' <> (trans v) |~~| m
                   && u <> (liftMatrix conj) (trans u) |~~| ident (rows m)
                   && v <> (liftMatrix conj) (trans v) |~~| ident (cols m)
-    where (u,s,v) = fun m
+    where (u,s,v) = svdC m
           (<>) = prod
           s' = liftMatrix comp s
 
-eigTestC fun prod (SqM m) = (m <> v) |~~| (v <> diag s)
-                        && takeDiag ((liftMatrix conj (trans v)) `mulC` v) ~~ constant (rows m) 1
-    where (s,v) = fun m
+eigTestC prod (SqM m) = (m <> v) |~~| (v <> diag s)
+                        && takeDiag ((liftMatrix conj (trans v)) <> v) ~~ constant (rows m) 1 --normalized
+    where (s,v) = eigC m
           (<>) = prod
 
-takeDiag m = fromList [cdat m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
+eigTestR prod (SqM m) = (liftMatrix comp m <> v) |~~| (v <> diag s)
+                      -- && takeDiag ((liftMatrix conj (trans v)) <> v) ~~ constant (rows m) 1 --normalized ???
+    where (s,v) = eigR m
+          (<>) = prod
+
+eigTestS prod (Sym m) = (m <> v) |~| (v <> diag s)
+                       && v <> trans v |~| ident (cols m)
+    where (s,v) = eigS m
+          (<>) = prod
+
+eigTestH prod (Her m) = (m <> v) |~~| (v <> diag (comp s))
+                        && v <> (liftMatrix conj) (trans v) |~~| ident (cols m)
+    where (s,v) = eigH m
+          (<>) = prod
 
 
-comp v = toComplex (v,constant (dim v) 0)
 
 main = do
     quickCheck $ \l -> null l || (toList . fromList) l == (l :: [BaseType])
@@ -162,8 +191,21 @@ main = do
     quickCheck $ \(PairM m1 m2) -> mulC m1 m2 |=| mulF m1 (m2 :: Matrix BaseType)
     quickCheck $ \(PairM m1 m2) -> mulC m1 m2 |=| trans (mulF (trans m2) (trans m1 :: Matrix BaseType))
     quickCheck $ \(PairM m1 m2) -> mulC m1 m2 |=| multiplyG m1 (m2 :: Matrix BaseType)
-    quickCheck (svdTestR svdR mulC)
-    quickCheck (svdTestR svdR mulF)
-    quickCheck (svdTestC svdC mulC)
-    quickCheck (svdTestC svdC mulF)
-    quickCheck (eigTestC eigC mulC)
+    quickCheck (svdTestR mulC)
+    quickCheck (svdTestR mulF)
+    quickCheck (svdTestC mulC)
+    quickCheck (svdTestC mulF)
+    quickCheck (eigTestC mulC)
+    quickCheck (eigTestC mulF)
+    quickCheck (eigTestR mulC)
+    quickCheck (eigTestR mulF)
+    quickCheck (\(Sym m) -> m |=| (trans m:: Matrix BaseType))
+    quickCheck (eigTestS mulC)
+    quickCheck (eigTestS mulF)
+    quickCheck (eigTestH mulC)
+    quickCheck (eigTestH mulF)
+
+
+kk = (2><2)
+ [  1.0, 0.0
+ , -1.5, 1.0 ::Double]

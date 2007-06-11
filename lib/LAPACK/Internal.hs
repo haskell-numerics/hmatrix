@@ -79,16 +79,47 @@ eigC :: Matrix (Complex Double) -> (Vector (Complex Double), Matrix (Complex Dou
 eigC (m@M {rows = r}) 
     | r == 1 = (fromList [cdat m `at` 0], singleton 1)
     | otherwise = unsafePerformIO $ do
-    l <- createVector r
-    v <- createMatrix ColumnMajor r r
-    dummy <- createMatrix ColumnMajor 1 1
-    zgeev // mat fdat m // mat dat dummy // vec l // mat dat v // check "eigC" [fdat m]
-    return (l,v)
+        l <- createVector r
+        v <- createMatrix ColumnMajor r r
+        dummy <- createMatrix ColumnMajor 1 1
+        zgeev // mat fdat m // mat dat dummy // vec l // mat dat v // check "eigC" [fdat m]
+        return (l,v)
 
 -----------------------------------------------------------------------------
 -- dgeev
 foreign import ccall "lapack-aux.h eig_l_R"
     dgeev :: Double ::> Double ::> ((Complex Double) :> Double ::> IO Int)
+
+-- | Wrapper for LAPACK's /dgeev/, which computes the eigenvalues and right eigenvectors of a general real matrix:
+--
+-- if @(l,v)=eigR m@ then @m \<\> v = v \<\> diag l@.
+--
+-- The eigenvectors are the columns of v.
+-- The eigenvalues are not sorted.
+eigR :: Matrix Double -> (Vector (Complex Double), Matrix (Complex Double))
+eigR (m@M {rows = r}) = (s', v'')
+    where (s,v) = eigRaux m
+          s' = toComplex (subVector 0 r (asReal s), subVector r r (asReal s))
+          v' = toRows $ trans v
+          v'' = fromColumns $ fixeig (toList s') v'
+
+eigRaux :: Matrix Double -> (Vector (Complex Double), Matrix Double)
+eigRaux (m@M {rows = r})
+    | r == 1 = (fromList [(cdat m `at` 0):+0], singleton 1)
+    | otherwise = unsafePerformIO $ do
+        l <- createVector r
+        v <- createMatrix ColumnMajor r r
+        dummy <- createMatrix ColumnMajor 1 1
+        dgeev // mat fdat m // mat dat dummy // vec l // mat dat v // check "eigR" [fdat m]
+        return (l,v)
+
+fixeig  []  _ =  []
+fixeig [r] [v] = [comp v]
+fixeig ((r1:+i1):(r2:+i2):r) (v1:v2:vs)
+    | r1 == r2 && i1 == (-i2) = toComplex (v1,v2) : toComplex (v1,scale (-1) v2) : fixeig r vs
+    | otherwise = comp v1 : fixeig ((r2:+i2):r) (v2:vs)
+
+scale r v = fromList [r] `outer` v
 
 -----------------------------------------------------------------------------
 -- dsyev
@@ -106,16 +137,37 @@ eigS m = (s', fliprl v)
     where (s,v) = eigS' m
           s' = fromList . reverse . toList $  s
 
-eigS' (m@M {rows = r}) = unsafePerformIO $ do
-    l <- createVector r
-    v <- createMatrix ColumnMajor r r
-    dsyev // mat fdat m // vec l // mat dat v // check "eigS" [fdat m]
-    return (l,v)
+eigS' (m@M {rows = r})
+    | r == 1 = (fromList [cdat m `at` 0], singleton 1)
+    | otherwise = unsafePerformIO $ do
+        l <- createVector r
+        v <- createMatrix ColumnMajor r r
+        dsyev // mat fdat m // vec l // mat dat v // check "eigS" [fdat m]
+        return (l,v)
 
 -----------------------------------------------------------------------------
 -- zheev
 foreign import ccall "lapack-aux.h eig_l_H"
     zheev :: (Complex Double) ::> (Double :> (Complex Double) ::> IO Int)
+
+-- | Wrapper for LAPACK's /zheev/, which computes the eigenvalues and right eigenvectors of a hermitian complex matrix:
+--
+-- if @(l,v)=eigH m@ then @m \<\> s v = v \<\> diag l@.
+--
+-- The eigenvectors are the columns of v.
+-- The eigenvalues are sorted in descending order.
+eigH :: Matrix (Complex Double) -> (Vector Double, Matrix (Complex Double))
+eigH m = (s', fliprl v)
+    where (s,v) = eigH' m
+          s' = fromList . reverse . toList $  s
+
+eigH' (m@M {rows = r})
+    | r == 1 = (fromList [realPart (cdat m `at` 0)], singleton 1)
+    | otherwise = unsafePerformIO $ do
+        l <- createVector r
+        v <- createMatrix ColumnMajor r r
+        zheev // mat fdat m // vec l // mat dat v // check "eigH" [fdat m]
+        return (l,v)
 
 -----------------------------------------------------------------------------
 -- dgesv
