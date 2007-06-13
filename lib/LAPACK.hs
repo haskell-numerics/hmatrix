@@ -21,8 +21,11 @@ module LAPACK (
     linearSolveSVDR, linearSolveSVDC,
 ) where
 
+import Data.Packed.Internal
 import Data.Packed.Internal.Vector
 import Data.Packed.Internal.Matrix
+import Data.Packed.Vector
+import Data.Packed.Matrix
 import Complex
 import Foreign
 

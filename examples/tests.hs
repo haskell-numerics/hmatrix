@@ -4,7 +4,9 @@
 
 -----------------------------------------------------------------------------
 
-import Data.Packed.Internal.Vector
+import Data.Packed.Internal
+import Data.Packed.Vector
+import Data.Packed.Matrix
 import Data.Packed.Internal.Matrix
 import LAPACK
 import Test.QuickCheck
@@ -30,18 +32,6 @@ nullspaceProp tol m = cr > 0 ==> m <> nt ~~ zeros
           zeros = create [r,cr] $ replicate (r*cr) 0  
 
 -}
-
-r >< c = f where
-    f l | dim v == r*c = matrixFromVector RowMajor c v
-        | otherwise    = error $ "inconsistent list size = "
-                                 ++show (dim v) ++"in ("++show r++"><"++show c++")"
-        where v = fromList l
-
-r >|< c = f where
-    f l | dim v == r*c = matrixFromVector ColumnMajor c v
-        | otherwise    = error $ "inconsistent list size = "
-                                 ++show (dim v) ++"in ("++show r++"><"++show c++")"
-        where v = fromList l
 
 ac = (2><3) [1 .. 6::Double]
 bc = (3><4) [7 .. 18::Double]
@@ -82,8 +72,8 @@ cf = mulF af bc
 r = mulC cc (trans cf)
 
 rd = (2><2)
- [  43492.0,  50572.0
- , 102550.0, 119242.0 :: Double]
+ [ 27736.0,  65356.0
+ , 65356.0, 154006.0 ::Double]
 
 instance (Arbitrary a, RealFloat a) => Arbitrary (Complex a) where
     arbitrary = do

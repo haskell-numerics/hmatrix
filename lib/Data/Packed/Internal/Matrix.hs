@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts -fallow-undecidable-instances #-}
+{-# OPTIONS_GHC -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Matrix
@@ -15,17 +15,15 @@
 
 module Data.Packed.Internal.Matrix where
 
+import Data.Packed.Internal.Common
 import Data.Packed.Internal.Vector
 
 import Foreign hiding (xor)
 import Complex
 import Control.Monad(when)
-import Debug.Trace
 import Data.List(transpose,intersperse)
 import Data.Typeable
 import Data.Maybe(fromJust)
-
-debug x = trace (show x) x
 
 
 data MatrixOrder = RowMajor | ColumnMajor deriving (Show,Eq)
@@ -39,7 +37,7 @@ data Matrix t = M { rows    :: Int
                   , order   :: MatrixOrder
                   } deriving Typeable
 
-xor a b = a && not b || b && not a
+
 
 fortran m = order m == ColumnMajor
 
@@ -57,24 +55,11 @@ type t ::> s = Mt t s
 
 mat d m f = f (rows m) (cols m) (ptr (d m))
 
+toLists m = partit (cols m) . toList . cdat $ m
+
 instance (Show a, Storable a) => (Show (Matrix a)) where
     show m = (sizes++) . dsp . map (map show) . toLists $ m
         where sizes = "("++show (rows m)++"><"++show (cols m)++")\n"
-
-partit :: Int -> [a] -> [[a]]
-partit _ [] = []
-partit n l  = take n l : partit n (drop n l)
-
--- | obtains the common value of a property of a list
-common :: (Eq a) => (b->a) -> [b] -> Maybe a
-common f = commonval . map f where
-    commonval :: (Eq a) => [a] -> Maybe a
-    commonval [] = Nothing
-    commonval [a] = Just a
-    commonval (a:b:xs) = if a==b then commonval (b:xs) else Nothing
-
-
-toLists m = partit (cols m) . toList . cdat $ m
 
 dsp as = (++" ]") . (" ["++) . init . drop 2 . unlines . map (" , "++) . map unwords' $ transpose mtp
     where
@@ -145,62 +130,6 @@ transdata c1 d c2 | isReal baseOf d = scast $ transdataR c1 (scast d) c2
 --transdata = transdataG
 --{-# RULES "transdataR" transdata=transdataR #-}
 --{-# RULES "transdataC" transdata=transdataC #-}
-
------------------------------------------------------------------------------
-
--- | creates a Matrix from a list of vectors
-fromRows :: Field t => [Vector t] -> Matrix t
-fromRows vs = case common dim vs of
-    Nothing -> error "fromRows applied to [] or to vectors with different sizes"
-    Just c  -> reshape c (join vs)
-
--- | extracts the rows of a matrix as a list of vectors
-toRows :: Storable t => Matrix t -> [Vector t]
-toRows m = toRows' 0 where
-    v = cdat m
-    r = rows m
-    c = cols m
-    toRows' k | k == r*c  = []
-              | otherwise = subVector k c v : toRows' (k+c)
-
--- | Creates a matrix from a list of vectors, as columns
-fromColumns :: Field t => [Vector t] -> Matrix t
-fromColumns m = trans . fromRows $ m
-
--- | Creates a list of vectors from the columns of a matrix
-toColumns :: Field t => Matrix t -> [Vector t]
-toColumns m = toRows . trans $ m
-
--- | creates a matrix from a vertical list of matrices
-joinVert :: Field t => [Matrix t] -> Matrix t
-joinVert ms = case common cols ms of
-    Nothing -> error "joinVert on matrices with different number of columns"
-    Just c  -> reshape c $ join (map cdat ms)
-
--- | creates a matrix from a horizontal list of matrices
-joinHoriz :: Field t => [Matrix t] -> Matrix t
-joinHoriz ms = trans. joinVert . map trans $ ms
-
--- | creates a complex vector from vectors with real and imaginary parts
-toComplex :: (Vector Double, Vector Double) ->  Vector (Complex Double)
-toComplex (r,i) = asComplex $ cdat $ fromColumns [r,i]
-
--- | obtains the complex conjugate of a complex vector
-conj :: Vector (Complex Double) -> Vector (Complex Double)
-conj v = asComplex $ cdat $ reshape 2 (asReal v) `mulC` diag (fromList [1,-1])
-    where mulC = multiply RowMajor
-
-comp v = toComplex (v,constant (dim v) 0)
-
-------------------------------------------------------------------------------
-
--- | Reverse rows 
-flipud :: Field t => Matrix t -> Matrix t
-flipud m = fromRows . reverse . toRows $ m
-
--- | Reverse columns
-fliprl :: Field t => Matrix t -> Matrix t
-fliprl m = fromColumns . reverse . toColumns $ m
 
 -----------------------------------------------------------------
 
@@ -330,13 +259,25 @@ diagG v = reshape c $ fromList $ [ l!!(i-1) * delta k i | k <- [1..c], i <- [1..
           delta i j | i==j      = 1
                     | otherwise = 0
 
-diagRect s r c
-    | dim s < min r c = error "diagRect"
-    | r == c    = diag s
-    | r < c     = trans $ diagRect s c r
-    | r > c     = joinVert  [diag s , zeros (r-c,c)]
-    where zeros (r,c) = reshape c $ constant (r*c) 0
+-- | creates a Matrix from a list of vectors
+fromRows :: Field t => [Vector t] -> Matrix t
+fromRows vs = case common dim vs of
+    Nothing -> error "fromRows applied to [] or to vectors with different sizes"
+    Just c  -> reshape c (join vs)
 
-takeDiag m = fromList [cdat m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
+-- | extracts the rows of a matrix as a list of vectors
+toRows :: Storable t => Matrix t -> [Vector t]
+toRows m = toRows' 0 where
+    v = cdat m
+    r = rows m
+    c = cols m
+    toRows' k | k == r*c  = []
+              | otherwise = subVector k c v : toRows' (k+c)
 
-ident n = diag (constant n 1)
+-- | Creates a matrix from a list of vectors, as columns
+fromColumns :: Field t => [Vector t] -> Matrix t
+fromColumns m = trans . fromRows $ m
+
+-- | Creates a list of vectors from the columns of a matrix
+toColumns :: Field t => Matrix t -> [Vector t]
+toColumns m = toRows . trans $ m

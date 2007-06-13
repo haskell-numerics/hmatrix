@@ -1,4 +1,3 @@
---{-# OPTIONS_GHC -fglasgow-exts -fallow-undecidable-instances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Tensor
@@ -9,15 +8,17 @@
 -- Stability   :  provisional
 -- Portability :  portable (uses FFI)
 --
--- Fundamental types
+-- basic tensor operations
 --
 -----------------------------------------------------------------------------
 
 module Data.Packed.Internal.Tensor where
 
+import Data.Packed.Internal
 import Data.Packed.Internal.Vector
 import Data.Packed.Internal.Matrix
 import Foreign.Storable
+import Data.List(sort)
 
 data IdxTp = Covariant | Contravariant deriving (Show,Eq)
 
@@ -99,3 +100,10 @@ compatIdxAux (n1,(t1,_)) (n2, (t2,_)) = t1 /= t2 && n1 == n2
 compatIdx t1 n1 t2 n2 = compatIdxAux d1 d2 where
     d1 = head $ snd $ fst $ findIdx n1 t1
     d2 = head $ snd $ fst $ findIdx n2 t2
+
+names t = sort $ map (snd.snd) (dims t)
+
+normal t = tridx (names t) t
+
+contractions t1 t2 = [ contraction t1 n1 t2 n2 | n1 <- names t1, n2 <- names t2, compatIdx t1 n1 t2 n2 ]
+

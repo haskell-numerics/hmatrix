@@ -1,9 +1,11 @@
 --{-# OPTIONS_GHC  #-}
 --module Main where
 
+import Data.Packed.Internal
 import Data.Packed.Internal.Vector
 import Data.Packed.Internal.Matrix
 import Data.Packed.Internal.Tensor
+import Data.Packed.Matrix
 import LAPACK
 
 import Complex
@@ -11,17 +13,6 @@ import Numeric(showGFloat)
 import Data.List(transpose,intersperse,sort)
 import Foreign.Storable
 
-r >< c = f where
-    f l | dim v == r*c = matrixFromVector RowMajor c v
-        | otherwise    = error $ "inconsistent list size = "
-                                 ++show (dim v) ++"in ("++show r++"><"++show c++")"
-        where v = fromList l
-
-r >|< c = f where
-    f l | dim v == r*c = matrixFromVector ColumnMajor c v
-        | otherwise    = error $ "inconsistent list size = "
-                                 ++show (dim v) ++"in ("++show r++"><"++show c++")"
-        where v = fromList l
 
 vr = fromList [1..15::Double]
 vc = fromList (map (\x->x :+ (x+1)) [1..15::Double])
@@ -49,8 +40,10 @@ cf = mulF af bc
 r = mulC cc (trans cf)
 
 rd = (2><2)
- [  43492.0,  50572.0
- , 102550.0, 119242.0 ]
+ [ 27736.0,  65356.0
+ , 65356.0, 154006.0 ]
+
+
 
 main = do
     print $ r |=| rd
@@ -77,7 +70,6 @@ e i n = fromList [ delta k i | k <- [1..n]]
 
 diagl = diag.fromList
 
-ident n = diag (constant n 1)
 
 tensorFromVector idx v = T {dims = [(dim v,idx)], ten = v}
 tensorFromMatrix idxr idxc m = T {dims = [(rows m,idxr),(cols m,idxc)], ten = cdat m}
@@ -106,11 +98,4 @@ pru = do
     let t2 = contraction' tq "q" tt "i"
     print $ normal t2
     print $ foldl part t2 [("j'",0),("p",1),("r",1)]
-
-
-names t = sort $ map (snd.snd) (dims t)
-
-normal t = tridx (names t) t
-
-contractions t1 t2 = [ contraction t1 n1 t2 n2 | n1 <- names t1, n2 <- names t2, compatIdx t1 n1 t2 n2 ]
 

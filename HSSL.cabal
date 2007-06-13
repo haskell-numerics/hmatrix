@@ -18,10 +18,10 @@ Extensions:         ForeignFunctionInterface
 --ghc-options:        -Wall
 ghc-options:        -O
 hs-source-dirs:     lib
-Exposed-modules:    Data.Packed.Internal.Vector,
-                    Data.Packed.Internal.Matrix,
+Exposed-modules:    Data.Packed.Internal, Data.Packed.Internal.Common,
+                    Data.Packed.Internal.Vector, Data.Packed.Vector,
+                    Data.Packed.Internal.Matrix, Data.Packed.Matrix,
                     Data.Packed.Internal.Tensor,
-                    LAPACK.Internal,
                     LAPACK
 Other-modules:
 C-sources:          lib/Data/Packed/Internal/aux.c,

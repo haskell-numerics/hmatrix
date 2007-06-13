@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts -fallow-undecidable-instances #-}
+{-# OPTIONS_GHC -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Vector
@@ -9,70 +9,16 @@
 -- Stability   :  provisional
 -- Portability :  portable (uses FFI)
 --
--- Fundamental types
+-- Vector implementation
 --
 -----------------------------------------------------------------------------
 
 module Data.Packed.Internal.Vector where
 
+import Data.Packed.Internal.Common
 import Foreign
 import Complex
 import Control.Monad(when)
-import Debug.Trace
-import Data.List(transpose,intersperse)
-import Data.Typeable
-import Data.Maybe(fromJust)
-
-debug x = trace (show x) x
-
-----------------------------------------------------------------------
-instance (Storable a, RealFloat a) => Storable (Complex a) where    --
-    alignment x = alignment (realPart x)                            --
-    sizeOf x    = 2 * sizeOf (realPart x)                           --
-    peek p = do                                                     --
-        [re,im] <- peekArray 2 (castPtr p)                          --
-        return (re :+ im)                                           --
-    poke p (a :+ b) = pokeArray (castPtr p) [a,b]                   --
-----------------------------------------------------------------------
-
-on f g = \x y -> f (g x) (g y)
-
-(//) :: x -> (x -> y) -> y
-infixl 0 //
-(//) = flip ($)
-
-errorCode 1000 = "bad size"
-errorCode 1001 = "bad function code"
-errorCode 1002 = "memory problem"
-errorCode 1003 = "bad file"
-errorCode 1004 = "singular"
-errorCode 1005 = "didn't converge"
-errorCode n    = "code "++show n
-
-check msg ls f = do
-    err <- f
-    when (err/=0) (error (msg++": "++errorCode err))
-    mapM_ (touchForeignPtr . fptr) ls
-    return ()
-
-class (Storable a, Typeable a) => Field a where
-instance (Storable a, Typeable a) => Field a where
-
-isReal w x   = typeOf (undefined :: Double) == typeOf (w x)
-isComp w x = typeOf (undefined :: Complex Double) == typeOf (w x)
-baseOf v = (v `at` 0)
-
-scast :: forall a . forall b . (Typeable a, Typeable b) => a -> b
-scast = fromJust . cast
-
-
-
-----------------------------------------------------------------------
-
-data Vector t = V { dim  :: Int
-                  , fptr :: ForeignPtr t
-                  , ptr  :: Ptr t
-                  } deriving Typeable
 
 type Vc t s = Int -> Ptr t -> s
 infixr 5 :>
@@ -80,6 +26,8 @@ type t :> s = Vc t s
 
 vec :: Vector t -> (Vc t s) -> s
 vec v f = f (dim v) (ptr v)
+
+baseOf v = (v `at` 0)
 
 createVector :: Storable a => Int -> IO (Vector a)
 createVector n = do
