@@ -159,10 +159,10 @@ addV v1 v2 = fromList $ zipWith (+) (toList v1) (toList v2)
 
 type BaseType = Double
 
-svdTestR prod m = u <> s <> trans v |~| m
+svdTestR fun prod m = u <> s <> trans v |~| m
                   && u <> trans u |~| ident (rows m)
                   && v <> trans v |~| ident (cols m)
-    where (u,s,v) = svdR m
+    where (u,s,v) = fun m
           (<>) = prod
 
 
@@ -243,8 +243,10 @@ main = do
     quickCheck $ \(PairM m1 m2) -> mulC m1 m2 |=| trans (mulF (trans m2) (trans m1 :: Matrix BaseType))
     quickCheck $ \(PairM m1 m2) -> mulC m1 m2 |=| multiplyG m1 (m2 :: Matrix BaseType)
     putStrLn "--------- SVD ---------"
-    quickCheck (svdTestR mulC)
-    quickCheck (svdTestR mulF)
+    quickCheck (svdTestR svdR mulC)
+    quickCheck (svdTestR svdR mulF)
+    quickCheck (svdTestR svdRdd mulC)
+    quickCheck (svdTestR svdRdd mulF)
     quickCheck (svdTestC mulC)
     quickCheck (svdTestC mulF)
     putStrLn "--------- EIG ---------"
