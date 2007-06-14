@@ -6,6 +6,7 @@ import Data.Packed.Internal.Vector
 import Data.Packed.Internal.Matrix
 import Data.Packed.Internal.Tensor
 import Data.Packed.Matrix
+import GSL.Vector
 import LAPACK
 
 import Complex
