@@ -281,3 +281,11 @@ fromColumns m = trans . fromRows $ m
 -- | Creates a list of vectors from the columns of a matrix
 toColumns :: Field t => Matrix t -> [Vector t]
 toColumns m = toRows . trans $ m
+
+
+-- | Reads a matrix position.
+(@@>) :: Field t => Matrix t -> (Int,Int) -> t
+infixl 9 @@>
+m@M {rows = r, cols = c} @@> (i,j)
+    | i<0 || i>=r || j<0 || j>=c = error "matrix indexing out of range"
+    | otherwise   = cdat m `at` (i*c+j)

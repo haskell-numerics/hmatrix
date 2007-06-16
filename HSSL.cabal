@@ -24,9 +24,11 @@ Exposed-modules:    Data.Packed.Internal, Data.Packed.Internal.Common,
                     Data.Packed.Internal.Tensor,
                     LAPACK,
                     GSL.Vector,
-                    GSL.Differentiation,
-                    GSL.Integration,
-                    GSL.Special
+                    GSL.Differentiation, GSL.Integration,
+                    GSL.Special,
+                    GSL.Fourier,
+                    GSL.Polynomials,
+                    GSL.Minimization
 Other-modules:
 C-sources:          lib/Data/Packed/Internal/aux.c,
                     lib/LAPACK/lapack-aux.c,

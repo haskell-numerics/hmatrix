@@ -12,10 +12,13 @@ import GSL.Vector
 import GSL.Integration
 import GSL.Differentiation
 import GSL.Special
+import GSL.Fourier
+import GSL.Polynomials
 import LAPACK
 import Test.QuickCheck
 import Test.HUnit
 import Complex
+
 
 {-
 -- Bravo por quickCheck!    
@@ -244,6 +247,29 @@ pinvSVDR m = linearSolveSVDR Nothing m (ident (rows m))
 
 pinvSVDC m = linearSolveSVDC Nothing m (ident (rows m))
 
+--------------------------------------------------------------------
+
+polyEval cs x = foldr (\c ac->ac*x+c) 0 cs
+
+polySolveTest' p = length p <2 || last p == 0|| 1E-8 > maximum (map magnitude $ map (polyEval (map (:+0) p)) (polySolve p))
+    where l1 |~~| l2 = eps > aproxL magnitude l1 l2
+
+polySolveTest = assertBool "polySolve" (polySolveTest' [1,2,3,4])
+
+---------------------------------------------------------------------
+
+quad f a b = fst $ integrateQAGS 1E-9 100 f a b  
+
+-- A multiple integral can be easily defined using partial application
+quad2 f a b g1 g2 = quad h a b
+    where h x = quad (f x) (g1 x) (g2 x)
+
+volSphere r = 8 * quad2 (\x y -> sqrt (r*r-x*x-y*y)) 
+                        0 r (const 0) (\x->sqrt (r*r-x*x))
+
+integrateTest = assertBool "integrate" (abs (volSphere 2.5 - 4/3*pi*2.5^3) < eps)
+
+
 ---------------------------------------------------------------------
 
 arit1 u = vectorMapValR PowVS 2 (vectorMapR Sin u)
@@ -271,6 +297,8 @@ exponentialTest = do
 tests = TestList
     [ TestCase $ besselTest
     , TestCase $ exponentialTest
+    , TestCase $ polySolveTest
+    , TestCase $ integrateTest
     ]
 
 ----------------------------------------------------------------------
@@ -315,9 +343,12 @@ main = do
     quickCheck arit2
     putStrLn "--------- GSL ------"
     runTestTT tests
+    quickCheck $ \v -> ifft (fft v) ~~ v
 
 kk = (2><2)
  [  1.0, 0.0
  , -1.5, 1.0 ::Double]
 
 v = 11 # [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0::Double]
+
+pol =  [14.125,-7.666666666666667,-14.3,-13.0,-7.0,-9.6,4.666666666666666,13.0,0.5]
