@@ -82,3 +82,7 @@ isComp w x = typeOf (undefined :: Complex Double) == typeOf (w x)
 
 scast :: forall a . forall b . (Typeable a, Typeable b) => a -> b
 scast = fromJust . cast
+
+{- | conversion of Haskell functions into function pointers that can be used in the C side
+-}
+foreign import ccall "wrapper" mkfun:: (Double -> Ptr() -> Double) -> IO( FunPtr (Double -> Ptr() -> Double)) 

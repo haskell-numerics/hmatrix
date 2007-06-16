@@ -8,8 +8,13 @@ import Data.Packed.Internal
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import Data.Packed.Internal.Matrix
+import GSL.Vector
+import GSL.Integration
+import GSL.Differentiation
+import GSL.Special
 import LAPACK
 import Test.QuickCheck
+import Test.HUnit
 import Complex
 
 {-
@@ -53,10 +58,17 @@ aprox fun a b = rows a == rows b &&
 
 aproxL fun v1 v2 = sum (zipWith (\a b-> fun (a-b)) v1 v2) / fromIntegral (length v1)
 
-(|~|) = aprox abs
+normVR a b = toScalarR AbsSum (vectorZipR Sub a b)
+
+a |~| b = rows a == rows b && cols a == cols b && eps > normVR (t a) (t b)
+    where t = if (order a == RowMajor) `xor` isTrans a then cdat else fdat
+
 (|~~|) = aprox magnitude
 
 v1 ~~ v2 = reshape 1 v1 |~~| reshape 1 v2
+
+u ~|~ v = normVR u v < eps
+
 
 eps = 1E-8::Double
 
@@ -139,12 +151,24 @@ instance (Num a, Field a, Arbitrary a) => Arbitrary (PairSM a) where
         --return $ PairSM ((a><a) l1) ((a><c) l2)
     coarbitrary = undefined
 
+instance (Field a, Arbitrary a) => Arbitrary (Vector a) where 
+   arbitrary = do --m <- sized $ \max -> choose (1,1+3*max)
+                  m <- choose (1,100)
+                  l <- vector m
+                  return $ fromList l
+   coarbitrary = undefined
+
+data PairV a = PairV (Vector a) (Vector a)
+instance (Field a, Arbitrary a) => Arbitrary (PairV a) where 
+   arbitrary = do --m <- sized $ \max -> choose (1,1+3*max)
+                  m <- choose (1,100)
+                  l1 <- vector m
+                  l2 <- vector m
+                  return $ PairV (fromList l1) (fromList l2)
+   coarbitrary = undefined
 
 
-
-addM m1 m2 = liftMatrix2 addV m1 m2
-
-addV v1 v2 = fromList $ zipWith (+) (toList v1) (toList v2)
+addM m1 m2 = liftMatrix2 add m1 m2
 
 
 type BaseType = Double
@@ -220,6 +244,37 @@ pinvSVDR m = linearSolveSVDR Nothing m (ident (rows m))
 
 pinvSVDC m = linearSolveSVDC Nothing m (ident (rows m))
 
+---------------------------------------------------------------------
+
+arit1 u = vectorMapValR PowVS 2 (vectorMapR Sin u)
+          `add` vectorMapValR PowVS 2 (vectorMapR Cos u)
+          ~|~ constant (dim u) 1
+
+arit2 u = (vectorMapR Cos u) `mul` (vectorMapR Tan u)
+          ~|~ vectorMapR Sin u
+
+
+--arit3 (PairV u v) = vectorMap Sin . VectorMap Cos
+
+---------------------------------------------------------------------
+
+besselTest = do
+    let (r,e) = bessel_J0_e 5.0
+    let expected = -0.17759677131433830434739701
+    assertBool "bessel_J0_e" ( abs (r-expected) < e ) 
+
+exponentialTest = do
+    let (v,e,err) = exp_e10_e 30.0
+    let expected = exp 30.0
+    assertBool "exp_e10_e" ( abs (v*10^e - expected) < 4E-2 ) 
+
+tests = TestList
+    [ TestCase $ besselTest
+    , TestCase $ exponentialTest
+    ]
+
+----------------------------------------------------------------------
+
 main = do
     putStrLn "--------- general -----"
     quickCheck (\(Sym m) -> m |=| (trans m:: Matrix BaseType))    
@@ -255,7 +310,14 @@ main = do
     quickCheck (pinvTest pinvC (|~~|))
     quickCheck (pinvTest pinvSVDR (|~|))
     quickCheck (pinvTest pinvSVDC (|~~|))
+    putStrLn "--------- VEC OPER ------"
+    quickCheck arit1
+    quickCheck arit2
+    putStrLn "--------- GSL ------"
+    runTestTT tests
 
 kk = (2><2)
  [  1.0, 0.0
  , -1.5, 1.0 ::Double]
+
+v = 11 # [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0::Double]

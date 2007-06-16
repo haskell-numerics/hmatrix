@@ -23,7 +23,10 @@ Exposed-modules:    Data.Packed.Internal, Data.Packed.Internal.Common,
                     Data.Packed.Internal.Matrix, Data.Packed.Matrix,
                     Data.Packed.Internal.Tensor,
                     LAPACK,
-                    GSL.Vector
+                    GSL.Vector,
+                    GSL.Differentiation,
+                    GSL.Integration,
+                    GSL.Special
 Other-modules:
 C-sources:          lib/Data/Packed/Internal/aux.c,
                     lib/LAPACK/lapack-aux.c,
