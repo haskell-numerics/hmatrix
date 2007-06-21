@@ -280,7 +280,7 @@ arit2 u = (vectorMapR Cos u) `mul` (vectorMapR Tan u)
           ~|~ vectorMapR Sin u
 
 
---arit3 (PairV u v) = vectorMap Sin . VectorMap Cos
+-- arit3 (PairV u v) =
 
 ---------------------------------------------------------------------
 

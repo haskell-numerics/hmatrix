@@ -74,8 +74,8 @@ check msg ls f = do
     mapM_ (touchForeignPtr . fptr) ls
     return ()
 
-class (Storable a, Typeable a) => Field a where
-instance (Storable a, Typeable a) => Field a where
+class (Storable a, Typeable a) => Field a
+instance (Storable a, Typeable a) => Field a
 
 isReal w x   = typeOf (undefined :: Double) == typeOf (w x)
 isComp w x = typeOf (undefined :: Complex Double) == typeOf (w x)

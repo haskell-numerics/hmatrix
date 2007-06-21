@@ -18,7 +18,7 @@ import Data.Packed.Internal
 import Data.Packed.Internal.Vector
 import Data.Packed.Internal.Matrix
 import Foreign.Storable
-import Data.List(sort)
+import Data.List(sort,elemIndex,nub)
 
 data IdxTp = Covariant | Contravariant deriving (Show,Eq)
 
@@ -107,3 +107,18 @@ normal t = tridx (names t) t
 
 contractions t1 t2 = [ contraction t1 n1 t2 n2 | n1 <- names t1, n2 <- names t2, compatIdx t1 n1 t2 n2 ]
 
+-- sent to Haskell-Cafe by Sebastian Sylvan
+perms [x] = [[x]]
+perms xs = [y:ps | (y,ys) <- selections xs , ps <- perms ys]
+selections []     = []
+selections (x:xs) = (x,xs) : [(y,x:ys) | (y,ys) <- selections xs]
+
+
+interchanges ls = sum (map (count ls) ls)
+    where count l p = n
+              where Just pel = elemIndex p l
+                    n = length $ filter (>p) $ take pel l
+
+signature l | length (nub l) < length l =  0
+            | even (interchanges l)     =  1
+            | otherwise                 = -1
