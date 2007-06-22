@@ -40,6 +40,7 @@ instance (Storable a, RealFloat a) => Storable (Complex a) where    --
     poke p (a :+ b) = pokeArray (castPtr p) [a,b]                   --
 ----------------------------------------------------------------------
 
+on :: (a -> a -> b) -> (t -> a) -> t -> t -> b
 on f g = \x y -> f (g x) (g y)
 
 partit :: Int -> [a] -> [[a]]
@@ -54,12 +55,14 @@ common f = commonval . map f where
     commonval [a] = Just a
     commonval (a:b:xs) = if a==b then commonval (b:xs) else Nothing
 
+xor :: Bool -> Bool -> Bool
 xor a b = a && not b || b && not a
 
 (//) :: x -> (x -> y) -> y
 infixl 0 //
 (//) = flip ($)
 
+errorCode :: Int -> String
 errorCode 1000 = "bad size"
 errorCode 1001 = "bad function code"
 errorCode 1002 = "memory problem"
@@ -68,6 +71,7 @@ errorCode 1004 = "singular"
 errorCode 1005 = "didn't converge"
 errorCode n    = "code "++show n
 
+check :: String -> [Vector a] -> IO Int -> IO ()
 check msg ls f = do
     err <- f
     when (err/=0) (error (msg++": "++errorCode err))
@@ -77,7 +81,10 @@ check msg ls f = do
 class (Storable a, Typeable a) => Field a
 instance (Storable a, Typeable a) => Field a
 
+isReal :: (Data.Typeable.Typeable a) => (t -> a) -> t -> Bool
 isReal w x   = typeOf (undefined :: Double) == typeOf (w x)
+
+isComp :: (Data.Typeable.Typeable a) => (t -> a) -> t -> Bool
 isComp w x = typeOf (undefined :: Complex Double) == typeOf (w x)
 
 scast :: forall a . forall b . (Typeable a, Typeable b) => a -> b

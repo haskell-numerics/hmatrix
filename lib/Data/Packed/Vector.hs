@@ -20,7 +20,8 @@ module Data.Packed.Vector (
     constant,
     toComplex, comp,
     conj,
-    dot
+    dot,
+    linspace
 ) where
 
 import Data.Packed.Internal
@@ -35,6 +36,14 @@ conj :: Vector (Complex Double) -> Vector (Complex Double)
 conj v = asComplex $ cdat $ reshape 2 (asReal v) `mulC` diag (fromList [1,-1])
     where mulC = multiply RowMajor
 
-comp v = toComplex (v,constant (dim v) 0)
+comp v = toComplex (v,constant 0 (dim v))
 
+{- | Creates a real vector containing a range of values:
 
+> > linspace 10 (-2,2)
+>-2. -1.556 -1.111 -0.667 -0.222 0.222 0.667 1.111 1.556 2.
+
+-}
+linspace :: Int -> (Double, Double) -> Vector Double
+linspace n (a,b) = fromList [a::Double,a+delta .. b]
+    where delta = (b-a)/(fromIntegral n -1)

@@ -194,7 +194,9 @@ multiplyD order a b
 
 ----------------------------------------------------------------------
 
-outer u v = dat (multiply RowMajor r c)
+outer' u v = dat (outer u v)
+
+outer u v = multiply RowMajor r c
     where r = matrixFromVector RowMajor 1 u
           c = matrixFromVector RowMajor (dim v) v
 
@@ -212,8 +214,7 @@ subMatrixR (r0,c0) (rt,ct) x = unsafePerformIO $ do
     r <- createMatrix RowMajor rt ct
     c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1) // mat cdat x // mat cdat r // check "subMatrixR" [dat r]
     return r
-foreign import ccall "aux.h submatrixR"
-    c_submatrixR :: Int -> Int -> Int -> Int -> TMM
+foreign import ccall "aux.h submatrixR" c_submatrixR :: Int -> Int -> Int -> Int -> TMM
 
 -- | extraction of a submatrix of a complex matrix
 subMatrixC :: (Int,Int) -- ^ (r0,c0) starting position

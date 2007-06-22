@@ -29,7 +29,7 @@ genfft code v = unsafePerformIO $ do
     c_fft code // vec v // vec r // check "fft" [v]
     return r
 
-foreign import ccall "gsl-aux.h fft" c_fft ::  Int -> TCVCV -- Complex Double :> Complex Double :>  IO Int
+foreign import ccall "gsl-aux.h fft" c_fft ::  Int -> TCVCV
 
 
 {- | Fast 1D Fourier transform of a 'Vector' @(@'Complex' 'Double'@)@ using /gsl_fft_complex_forward/. It uses the same scaling conventions as GNU Octave.

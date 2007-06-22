@@ -26,13 +26,12 @@ import Data.Packed.Internal.Vector
 import Data.Packed.Internal.Matrix
 import Data.Packed.Vector
 import Data.Packed.Matrix
+import GSL.Vector(scale)
 import Complex
 import Foreign
 
 -----------------------------------------------------------------------------
--- dgesvd
-foreign import ccall "LAPACK/lapack-aux.h svd_l_R"
-    dgesvd :: TMMVM -- Double ::> Double ::> (Double :> Double ::> IO Int)
+foreign import ccall "LAPACK/lapack-aux.h svd_l_R" dgesvd :: TMMVM
 
 -- | Wrapper for LAPACK's /dgesvd/, which computes the full svd decomposition of a real matrix.
 --
@@ -48,9 +47,7 @@ svdR' x@M {rows = r, cols = c} = unsafePerformIO $ do
     return (u,s,trans v)
 
 -----------------------------------------------------------------------------
--- dgesdd
-foreign import ccall "LAPACK/lapack-aux.h svd_l_Rdd"
-    dgesdd :: TMMVM --Double ::> Double ::> (Double :> Double ::> IO Int)
+foreign import ccall "LAPACK/lapack-aux.h svd_l_Rdd" dgesdd :: TMMVM
 
 -- | Wrapper for LAPACK's /dgesvd/, which computes the full svd decomposition of a real matrix.
 --
@@ -66,9 +63,7 @@ svdRdd' x@M {rows = r, cols = c} = unsafePerformIO $ do
     return (u,s,trans v)
 
 -----------------------------------------------------------------------------
--- zgesvd
-foreign import ccall "LAPACK/lapack-aux.h svd_l_C"
-    zgesvd :: TCMCMVCM -- (Complex Double) ::> (Complex Double) ::> (Double :> (Complex Double) ::> IO Int)
+foreign import ccall "LAPACK/lapack-aux.h svd_l_C" zgesvd :: TCMCMVCM
 
 -- | Wrapper for LAPACK's /zgesvd/, which computes the full svd decomposition of a complex matrix.
 --
@@ -85,9 +80,7 @@ svdC' x@M {rows = r, cols = c} = unsafePerformIO $ do
     return (u,s,trans v)
 
 -----------------------------------------------------------------------------
--- zgeev
-foreign import ccall "LAPACK/lapack-aux.h eig_l_C"
-    zgeev :: TCMCMCVCM -- (Complex Double) ::> (Complex Double) ::> ((Complex Double) :> (Complex Double) ::> IO Int)
+foreign import ccall "LAPACK/lapack-aux.h eig_l_C" zgeev :: TCMCMCVCM
 
 -- | Wrapper for LAPACK's /zgeev/, which computes the eigenvalues and right eigenvectors of a general complex matrix:
 --
@@ -106,9 +99,7 @@ eigC (m@M {rows = r})
         return (l,v)
 
 -----------------------------------------------------------------------------
--- dgeev
-foreign import ccall "LAPACK/lapack-aux.h eig_l_R"
-    dgeev :: TMMCVM -- Double ::> Double ::> ((Complex Double) :> Double ::> IO Int)
+foreign import ccall "LAPACK/lapack-aux.h eig_l_R" dgeev :: TMMCVM
 
 -- | Wrapper for LAPACK's /dgeev/, which computes the eigenvalues and right eigenvectors of a general real matrix:
 --
@@ -139,12 +130,10 @@ fixeig ((r1:+i1):(r2:+i2):r) (v1:v2:vs)
     | r1 == r2 && i1 == (-i2) = toComplex (v1,v2) : toComplex (v1,scale (-1) v2) : fixeig r vs
     | otherwise = comp v1 : fixeig ((r2:+i2):r) (v2:vs)
 
-scale r v = fromList [r] `outer` v
+-- scale r v = fromList [r] `outer` v
 
 -----------------------------------------------------------------------------
--- dsyev
-foreign import ccall "LAPACK/lapack-aux.h eig_l_S"
-    dsyev :: TMVM -- Double ::> (Double :> Double ::> IO Int)
+foreign import ccall "LAPACK/lapack-aux.h eig_l_S" dsyev :: TMVM
 
 -- | Wrapper for LAPACK's /dsyev/, which computes the eigenvalues and right eigenvectors of a symmetric real matrix:
 --
@@ -166,9 +155,7 @@ eigS' (m@M {rows = r})
         return (l,v)
 
 -----------------------------------------------------------------------------
--- zheev
-foreign import ccall "LAPACK/lapack-aux.h eig_l_H"
-    zheev :: TCMVCM -- (Complex Double) ::> (Double :> (Complex Double) ::> IO Int)
+foreign import ccall "LAPACK/lapack-aux.h eig_l_H" zheev :: TCMVCM
 
 -- | Wrapper for LAPACK's /zheev/, which computes the eigenvalues and right eigenvectors of a hermitian complex matrix:
 --
@@ -190,9 +177,7 @@ eigH' (m@M {rows = r})
         return (l,v)
 
 -----------------------------------------------------------------------------
--- dgesv
-foreign import ccall "LAPACK/lapack-aux.h linearSolveR_l"
-    dgesv :: TMMM -- Double ::> Double ::> Double ::> IO Int
+foreign import ccall "LAPACK/lapack-aux.h linearSolveR_l" dgesv :: TMMM
 
 -- | Wrapper for LAPACK's /dgesv/, which solves a general real linear system (for several right-hand sides) internally using the lu decomposition.
 linearSolveR :: Matrix Double -> Matrix Double -> Matrix Double
@@ -204,9 +189,7 @@ linearSolveR  a@(M {rows = n1, cols = n2}) b@(M {rows = r, cols = c})
     | otherwise = error "linearSolveR of nonsquare matrix"
 
 -----------------------------------------------------------------------------
--- zgesv
-foreign import ccall "LAPACK/lapack-aux.h linearSolveC_l"
-    zgesv :: TCMCMCM -- (Complex Double) ::> (Complex Double) ::> (Complex Double) ::> IO Int
+foreign import ccall "LAPACK/lapack-aux.h linearSolveC_l" zgesv :: TCMCMCM
 
 -- | Wrapper for LAPACK's /zgesv/, which solves a general complex linear system (for several right-hand sides) internally using the lu decomposition.
 linearSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
@@ -218,9 +201,7 @@ linearSolveC  a@(M {rows = n1, cols = n2}) b@(M {rows = r, cols = c})
     | otherwise = error "linearSolveC of nonsquare matrix"
 
 -----------------------------------------------------------------------------------
--- dgels
-foreign import ccall "LAPACK/lapack-aux.h linearSolveLSR_l"
-    dgels :: TMMM -- Double ::> Double ::> Double ::> IO Int
+foreign import ccall "LAPACK/lapack-aux.h linearSolveLSR_l" dgels :: TMMM
 
 -- | Wrapper for LAPACK's /dgels/, which obtains the least squared error solution of an overconstrained real linear system or the minimum norm solution of an underdetermined system, for several right-hand sides. For rank deficient systems use 'linearSolveSVDR'.
 linearSolveLSR :: Matrix Double -> Matrix Double -> Matrix Double
@@ -232,9 +213,7 @@ linearSolveLSR_l a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafePerformI
     return r
 
 -----------------------------------------------------------------------------------
--- zgels
-foreign import ccall "LAPACK/lapack-aux.h linearSolveLSC_l"
-    zgels :: TCMCMCM -- (Complex Double) ::> (Complex Double) ::> (Complex Double) ::> IO Int
+foreign import ccall "LAPACK/lapack-aux.h linearSolveLSC_l" zgels :: TCMCMCM
 
 -- | Wrapper for LAPACK's /zgels/, which obtains the least squared error solution of an overconstrained complex linear system or the minimum norm solution of an underdetermined system, for several right-hand sides. For rank deficient systems use 'linearSolveSVDC'.
 linearSolveLSC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
@@ -246,9 +225,7 @@ linearSolveLSC_l a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafePerformI
     return r
 
 -----------------------------------------------------------------------------------
--- dgelss
-foreign import ccall "LAPACK/lapack-aux.h linearSolveSVDR_l"
-    dgelss :: Double -> TMMM -- Double ::> Double ::> Double ::> IO Int
+foreign import ccall "LAPACK/lapack-aux.h linearSolveSVDR_l" dgelss :: Double -> TMMM
 
 -- | Wrapper for LAPACK's /dgelss/, which obtains the minimum norm solution to a real linear least squares problem Ax=B using the svd, for several right-hand sides. Admits rank deficient systems but it is slower than 'linearSolveLSR'. The effective rank of A is determined by treating as zero those singular valures which are less than rcond times the largest singular value. If rcond == Nothing machine precision is used.
 linearSolveSVDR :: Maybe Double   -- ^ rcond
@@ -264,9 +241,7 @@ linearSolveSVDR_l rcond a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafeP
     return r
 
 -----------------------------------------------------------------------------------
--- zgelss
-foreign import ccall "LAPACK/lapack-aux.h linearSolveSVDC_l"
-    zgelss :: Double -> TCMCMCM -- (Complex Double) ::> (Complex Double) ::> (Complex Double) ::> IO Int
+foreign import ccall "LAPACK/lapack-aux.h linearSolveSVDC_l" zgelss :: Double -> TCMCMCM
 
 -- | Wrapper for LAPACK's /zgelss/, which obtains the minimum norm solution to a complex linear least squares problem Ax=B using the svd, for several right-hand sides. Admits rank deficient systems but it is slower than 'linearSolveLSC'. The effective rank of A is determined by treating as zero those singular valures which are less than rcond times the largest singular value. If rcond == Nothing machine precision is used.
 linearSolveSVDC :: Maybe Double            -- ^ rcond

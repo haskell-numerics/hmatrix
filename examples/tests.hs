@@ -191,12 +191,12 @@ svdTestC prod m = u <> s' <> (trans v) |~~| m
           s' = liftMatrix comp s
 
 eigTestC prod (SqM m) = (m <> v) |~~| (v <> diag s)
-                        && takeDiag ((liftMatrix conj (trans v)) <> v) ~~ constant (rows m) 1 --normalized
+                        && takeDiag ((liftMatrix conj (trans v)) <> v) ~~ constant 1 (rows m) --normalized
     where (s,v) = eigC m
           (<>) = prod
 
 eigTestR prod (SqM m) = (liftMatrix comp m <> v) |~~| (v <> diag s)
-                      -- && takeDiag ((liftMatrix conj (trans v)) <> v) ~~ constant (rows m) 1 --normalized ???
+                      -- && takeDiag ((liftMatrix conj (trans v)) <> v) ~~ constant 1 (rows m) --normalized ???
     where (s,v) = eigR m
           (<>) = prod
 
@@ -274,7 +274,7 @@ integrateTest = assertBool "integrate" (abs (volSphere 2.5 - 4/3*pi*2.5^3) < eps
 
 arit1 u = vectorMapValR PowVS 2 (vectorMapR Sin u)
           `add` vectorMapValR PowVS 2 (vectorMapR Cos u)
-          ~|~ constant (dim u) 1
+          ~|~ constant 1 (dim u)
 
 arit2 u = (vectorMapR Cos u) `mul` (vectorMapR Tan u)
           ~|~ vectorMapR Sin u

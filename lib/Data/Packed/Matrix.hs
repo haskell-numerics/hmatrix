@@ -16,12 +16,13 @@ module Data.Packed.Matrix (
     Matrix(rows,cols), Field,
     toLists, (><), (>|<), (@@>),
     trans,
-    reshape,
+    reshape, flatten,
     fromRows, toRows, fromColumns, toColumns,
     joinVert, joinHoriz,
     flipud, fliprl,
     liftMatrix, liftMatrix2,
     multiply,
+    outer,
     subMatrix,
     takeRows, dropRows, takeColumns, dropColumns,
     diag, takeDiag, diagRect, ident
@@ -54,11 +55,11 @@ diagRect s r c
     | r == c    = diag s
     | r < c     = trans $ diagRect s c r
     | r > c     = joinVert  [diag s , zeros (r-c,c)]
-    where zeros (r,c) = reshape c $ constant (r*c) 0
+    where zeros (r,c) = reshape c $ constant 0 (r*c)
 
 takeDiag m = fromList [cdat m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
 
-ident n = diag (constant n 1)
+ident n = diag (constant 1 n)
 
 r >< c = f where
     f l | dim v == r*c = matrixFromVector RowMajor c v
@@ -88,3 +89,5 @@ dropColumns :: Field t => Int -> Matrix t -> Matrix t
 dropColumns n mat = subMatrix (0,n) (rows mat, cols mat - n) mat
 
 ----------------------------------------------------------------
+
+flatten = cdat

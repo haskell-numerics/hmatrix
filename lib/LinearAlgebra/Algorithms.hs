@@ -1,0 +1,17 @@
+-----------------------------------------------------------------------------
+{- |
+Module      :  LinearAlgebra.Algorithms
+Copyright   :  (c) Alberto Ruiz 2006-7
+License     :  GPL-style
+
+Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+Stability   :  provisional
+Portability :  uses ffi
+
+
+-}
+-----------------------------------------------------------------------------
+
+module LinearAlgebra.Algorithms (
+
+) where

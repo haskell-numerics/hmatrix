@@ -18,17 +18,23 @@ Extensions:         ForeignFunctionInterface
 --ghc-options:        -Wall
 ghc-options:        -O
 hs-source-dirs:     lib
-Exposed-modules:    Data.Packed.Internal, Data.Packed.Internal.Common,
+Exposed-modules:    Data.Packed.Internal,
+                    Data.Packed.Internal.Common,
                     Data.Packed.Internal.Vector, Data.Packed.Vector,
                     Data.Packed.Internal.Matrix, Data.Packed.Matrix,
-                    Data.Packed.Internal.Tensor,
+                    Data.Packed.Internal.Tensor, Data.Packed.Tensor,
+                    Data.Packed.Plot
+                    -- Data.Packed.Instances
                     LAPACK,
-                    GSL.Vector,
+                    GSL.Vector, 
+                    --GSL.Matrix
                     GSL.Differentiation, GSL.Integration,
                     GSL.Special,
                     GSL.Fourier,
                     GSL.Polynomials,
-                    GSL.Minimization
+                    GSL.Minimization,
+                    LinearAlgebra, LinearAlgebra.Algorithms,
+                    GSL, HSSL
 Other-modules:
 C-sources:          lib/Data/Packed/Internal/aux.c,
                     lib/LAPACK/lapack-aux.c,

@@ -103,15 +103,15 @@ asComplex :: Vector Double -> Vector (Complex Double)
 asComplex v = V { dim = dim v `div` 2, fptr =  castForeignPtr (fptr v), ptr = castPtr (ptr v) }
 
 
-constantG n x = fromList (replicate n x)
+constantG x n = fromList (replicate n x)
 
-constantR :: Int -> Double -> Vector Double
+constantR :: Double -> Int -> Vector Double
 constantR = constantAux cconstantR
 
-constantC :: Int -> Complex Double -> Vector (Complex Double)
+constantC :: Complex Double -> Int -> Vector (Complex Double)
 constantC = constantAux cconstantC
 
-constantAux fun n x = unsafePerformIO $ do
+constantAux fun x n = unsafePerformIO $ do
     v <- createVector n
     px <- newArray [x]
     fun px // vec v // check "constantAux" []
@@ -124,8 +124,8 @@ foreign import ccall safe "aux.h constantR"
 foreign import ccall safe "aux.h constantC"
     cconstantC :: Ptr (Complex Double) -> TCV -- Complex Double :> IO Int
 
-constant :: Field a => Int -> a -> Vector a
-constant n x | isReal id x = scast $ constantR n (scast x)
-             | isComp id x = scast $ constantC n (scast x)
-             | otherwise   = constantG n x
+constant :: Field a => a -> Int -> Vector a
+constant x n | isReal id x = scast $ constantR (scast x) n
+             | isComp id x = scast $ constantC (scast x) n
+             | otherwise   = constantG x n
 
