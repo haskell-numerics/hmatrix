@@ -97,7 +97,7 @@ minimizeNMSimplex f xi sz tol maxit = unsafePerformIO $ do
 
 foreign import ccall "gsl-aux.h minimize"
     c_minimizeNMSimplex:: FunPtr (Int -> Ptr Double -> Double) -> Double -> Int
-                       -> Double :> Double :> Double ::> IO Int
+                       -> TVVM -- Double :> Double :> Double ::> IO Int
 
 ----------------------------------------------------------------------------------
 
@@ -164,8 +164,8 @@ minimizeConjugateGradient istep minimpar tol maxit f df xi = unsafePerformIO $ d
 foreign import ccall "gsl-aux.h minimizeWithDeriv"
     c_minimizeConjugateGradient :: FunPtr (Int -> Ptr Double -> Double)
                                 -> FunPtr (Int -> Ptr Double -> Ptr Double -> IO ())
-                                -> Double -> Double -> Double -> Int 
-                                -> Double :> Double ::> IO Int
+                                -> Double -> Double -> Double -> Int
+                                -> TVM -- Double :> Double ::> IO Int
 
 ---------------------------------------------------------------------
 iv :: (Vector Double -> Double) -> (Int -> Ptr Double -> Double)

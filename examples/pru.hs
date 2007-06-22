@@ -164,7 +164,7 @@ contractionF t1 t2 = contraction t1 n1 t2 n2
           fn = snd . snd . head . dims
 
 
-dual vs = foldl' contractionF (leviCivita n) vs
+dualV vs = foldl' contractionF (leviCivita n) vs
     where n = fst . head . dims . head $ vs
 
 
@@ -176,3 +176,52 @@ contract1b t (n1,n2) = contract1 t n1 n2
 
 dual1' = prod (foldl' contract1b ((leviCivita 3) <*> (u /\ v)) [("1","p'"),("2'","q''")]) (scalar (recip $ fact 2))
 dual2' = prod (foldl' contract1b ((leviCivita 3) <*> (u /\ v /\ w)) [("1","p'"),("2'","q''"),("3'","r''")]) (scalar (recip $ fact 3))
+
+
+x1 = vector "p" [0,0,1]
+x2 = vector "q" [2,2,2]
+x3 = vector "r" [-3,-1,-1]
+x4 = vector "s" [12,0,3]
+
+raise (T d v) = T (map raise' d) v
+    where raise' (n,(Covariant,s)) = (n,(Contravariant,s))
+          raise' (n,(Contravariant,s)) = (n,(Covariant,s))
+
+dualMV t = prod (foldl' contract1b (lc <*> t) ds) (scalar (recip $ fromIntegral $ fact (length ds)))
+    where
+        lc = leviCivita n
+        nms1 = map (snd.snd) (dims lc)
+        nms2 = map ((++"'").snd.snd) (dims t)
+        ds = zip nms1 nms2
+        n = fst . head . dims $ t
+
+-- intersection of two lines :-)
+-- > raise $ dualMV $ raise $ dualMV (x1/\x2) /\ dualV [x3,x4]
+--(3'^[3]) [24.0,24.0,12.0]
+
+y1 = vector "p" [0,0,0,1]
+y2 = vector "q" [2,2,0,2]
+y3 = vector "r" [-3,-1,0,-1]
+y4 = vector "s" [12,0,0,3]
+
+-- why not in R^4? 
+-- > raise $ dualMV $ raise $ dualMV (y1/\y2) /\ dualV [y3,y4]
+-- scalar 0.0
+-- it seems that the sum of ranks must be greater than n :(
+
+asBase r n = filter (\x-> (x==nub x && x==sort x)) $ sequence $ replicate r [1..n]
+
+partF t i = part t (name,i) where name = snd . snd . head . dims $ t
+
+--partL = foldl' partF
+
+niceAS t = filter ((/=0.0).fst) $ zip vals base
+    where vals = map ((`at` 0).ten.foldl' partF t) (map (map pred) base)
+          base = asBase r n
+          r = length (dims t)
+          n = fst . head . dims $ t
+
+z1 = vector "p" [0,0,0,1]
+z2 = vector "q" [1,0,0,1]
+z3 = vector "r" [0,1,0,1]
+z4 = vector "s" [0,0,1,1]

@@ -86,3 +86,42 @@ scast = fromJust . cast
 {- | conversion of Haskell functions into function pointers that can be used in the C side
 -}
 foreign import ccall "wrapper" mkfun:: (Double -> Ptr() -> Double) -> IO( FunPtr (Double -> Ptr() -> Double)) 
+
+---------------------------------------------------
+-- ugly, but my haddock version doesn't understand
+-- yet infix type constructors
+---------------------------------------------------
+---------- signatures of the C functions -------
+------------------------------------------------
+type PD = Ptr Double                          --
+type PC = Ptr (Complex Double)                --
+type TV = Int -> PD -> IO Int                 --
+type TVV = Int -> PD -> TV                    --
+type TVVV = Int -> PD -> TVV                  --
+type TM = Int -> Int -> PD -> IO Int          --
+type TMM =  Int -> Int -> PD -> TM            --
+type TMMM =  Int -> Int -> PD -> TMM          --
+type TVM = Int -> PD -> TM                    --
+type TVVM = Int -> PD -> TVM                  --
+type TMV = Int -> Int -> PD -> TV             --
+type TMVM = Int -> Int -> PD -> TVM           --
+type TMMVM = Int -> Int -> PD -> TMVM         --
+type TCM = Int -> Int -> PC -> IO Int         --
+type TCVCM = Int -> PC -> TCM                 --
+type TCMCVCM = Int -> Int -> PC -> TCVCM      --
+type TMCMCVCM = Int -> Int -> PD -> TCMCVCM   --
+type TCMCMCVCM = Int -> Int -> PC -> TCMCVCM  --
+type TCMCM = Int -> Int -> PC -> TCM          --
+type TVCM = Int -> PD -> TCM                  --
+type TCMVCM = Int -> Int -> PC -> TVCM        --
+type TCMCMVCM = Int -> Int -> PC -> TCMVCM    --
+type TCMCMCM = Int -> Int -> PC -> TCMCM      --
+type TCV = Int -> PC -> IO Int                --
+type TCVCV = Int -> PC -> TCV                 --
+type TCVCVCV = Int -> PC -> TCVCV             --
+type TCMCV = Int -> Int -> PC -> TCV          --
+type TVCV = Int -> PD -> TCV                  --
+type TCVM = Int -> PC -> TM                   --
+type TMCVM = Int -> Int -> PD -> TCVM         --
+type TMMCVM = Int -> Int -> PD -> TMCVM       --
+------------------------------------------------

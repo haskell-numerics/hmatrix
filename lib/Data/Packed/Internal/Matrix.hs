@@ -50,8 +50,9 @@ trans m = m { rows = cols m
             }
 
 type Mt t s = Int -> Int -> Ptr t -> s
-infixr 6 ::>
-type t ::> s = Mt t s
+-- not yet admitted by my haddock version
+-- infixr 6 ::>
+-- type t ::> s = Mt t s
 
 mat d m f = f (rows m) (cols m) (ptr (d m))
 
@@ -117,9 +118,9 @@ transdataAux fun c1 d c2 =
         noneed = r1 == 1 || c1 == 1
 
 foreign import ccall safe "aux.h transR"
-    ctransR :: Double ::> Double ::> IO Int
+    ctransR :: TMM -- Double ::> Double ::> IO Int
 foreign import ccall safe "aux.h transC"
-    ctransC :: Complex Double ::> Complex Double ::> IO Int
+    ctransC :: TCMCM -- Complex Double ::> Complex Double ::> IO Int
 
 transdata :: Field a => Int -> Vector a -> Int -> Vector a
 transdata c1 d c2 | isReal baseOf d = scast $ transdataR c1 (scast d) c2
@@ -170,10 +171,16 @@ multiplyAux order fun a b = unsafePerformIO $ do
     return r
 
 foreign import ccall safe "aux.h multiplyR"
-    cmultiplyR :: Int -> Double ::> (Int -> Double ::> (Double ::> IO Int))
+    cmultiplyR :: Int -> Int -> Int -> Ptr Double
+               -> Int -> Int -> Int -> Ptr Double
+               -> Int -> Int -> Ptr Double
+               -> IO Int
 
 foreign import ccall safe "aux.h multiplyC"
-    cmultiplyC :: Int -> Complex Double ::> (Int -> Complex Double ::> (Complex Double ::> IO Int))
+    cmultiplyC :: Int -> Int -> Int -> Ptr (Complex Double)
+               -> Int -> Int -> Int -> Ptr (Complex Double)
+               -> Int -> Int -> Ptr (Complex Double)
+               -> IO Int
 
 multiply :: (Num a, Field a) => MatrixOrder -> Matrix a -> Matrix a -> Matrix a
 multiply RowMajor a b    = multiplyD RowMajor a b
@@ -206,7 +213,7 @@ subMatrixR (r0,c0) (rt,ct) x = unsafePerformIO $ do
     c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1) // mat cdat x // mat cdat r // check "subMatrixR" [dat r]
     return r
 foreign import ccall "aux.h submatrixR"
-    c_submatrixR :: Int -> Int -> Int -> Int -> Double ::> Double ::> IO Int
+    c_submatrixR :: Int -> Int -> Int -> Int -> TMM
 
 -- | extraction of a submatrix of a complex matrix
 subMatrixC :: (Int,Int) -- ^ (r0,c0) starting position
@@ -239,12 +246,12 @@ diagAux fun msg (v@V {dim = n}) = unsafePerformIO $ do
 -- | diagonal matrix from a real vector
 diagR :: Vector Double -> Matrix Double
 diagR = diagAux c_diagR "diagR"
-foreign import ccall "aux.h diagR" c_diagR :: Double :> Double ::> IO Int
+foreign import ccall "aux.h diagR" c_diagR :: TVM
 
 -- | diagonal matrix from a real vector
 diagC :: Vector (Complex Double) -> Matrix (Complex Double)
 diagC = diagAux c_diagC "diagC"
-foreign import ccall "aux.h diagC" c_diagC :: (Complex Double) :> (Complex Double) ::> IO Int
+foreign import ccall "aux.h diagC" c_diagC :: TCVCM
 
 -- | diagonal matrix from a vector
 diag :: (Num a, Field a) => Vector a -> Matrix a

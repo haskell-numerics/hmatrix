@@ -122,7 +122,7 @@ toScalarR :: FunCodeS -> Vector Double -> Double
 toScalarR oper =  toScalarAux c_toScalarR (fromEnum oper)
 
 foreign import ccall safe "gsl-aux.h toScalarR"
-    c_toScalarR :: Int -> Double :> Double :> IO Int
+    c_toScalarR :: Int -> TVV -- Double :> Double :> IO Int
 
 ------------------------------------------------------------------
 
@@ -131,14 +131,14 @@ vectorMapR :: FunCodeV -> Vector Double -> Vector Double
 vectorMapR = vectorMapAux c_vectorMapR
 
 foreign import ccall safe "gsl-aux.h mapR"
-    c_vectorMapR :: Int -> Double :> Double :> IO Int
+    c_vectorMapR :: Int -> TVV -- Double :> Double :> IO Int
 
 -- | map of complex vectors with given function
 vectorMapC :: FunCodeV -> Vector (Complex Double) -> Vector (Complex Double)
 vectorMapC oper = vectorMapAux c_vectorMapC (fromEnum oper)
 
 foreign import ccall safe "gsl-aux.h mapC"
-    c_vectorMapC :: Int -> Complex Double :> Complex Double :> IO Int
+    c_vectorMapC :: Int -> TCVCV -- Complex Double :> Complex Double :> IO Int
 
 -------------------------------------------------------------------
 
@@ -147,14 +147,14 @@ vectorMapValR :: FunCodeSV -> Double -> Vector Double -> Vector Double
 vectorMapValR oper = vectorMapValAux c_vectorMapValR (fromEnum oper)
 
 foreign import ccall safe "gsl-aux.h mapValR"
-    c_vectorMapValR :: Int -> Ptr Double -> Double :> Double :> IO Int
+    c_vectorMapValR :: Int -> Ptr Double -> TVV -- Double :> Double :> IO Int
 
 -- | map of complex vectors with given function
 vectorMapValC :: FunCodeSV -> Complex Double -> Vector (Complex Double) -> Vector (Complex Double)
 vectorMapValC = vectorMapValAux c_vectorMapValC
 
 foreign import ccall safe "gsl-aux.h mapValC"
-    c_vectorMapValC :: Int -> Ptr (Complex Double) -> Complex Double :> Complex Double :> IO Int
+    c_vectorMapValC :: Int -> Ptr (Complex Double) -> TCVCV -- Complex Double :> Complex Double :> IO Int
 
 -------------------------------------------------------------------
 
@@ -163,13 +163,13 @@ vectorZipR :: FunCodeVV -> Vector Double -> Vector Double -> Vector Double
 vectorZipR = vectorZipAux c_vectorZipR
 
 foreign import ccall safe "gsl-aux.h zipR"
-    c_vectorZipR :: Int -> Double :> Double :> Double :> IO Int
+    c_vectorZipR :: Int -> TVVV -- Double :> Double :> Double :> IO Int
 
 -- | elementwise operation on complex vectors
 vectorZipC :: FunCodeVV -> Vector (Complex Double) -> Vector (Complex Double) -> Vector (Complex Double)
 vectorZipC = vectorZipAux c_vectorZipC
 
 foreign import ccall safe "gsl-aux.h zipC"
-    c_vectorZipC :: Int -> Complex Double :> Complex Double :> Complex Double :> IO Int
+    c_vectorZipC :: Int -> TCVCVCV -- Complex Double :> Complex Double :> Complex Double :> IO Int
 
 

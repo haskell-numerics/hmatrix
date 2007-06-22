@@ -32,7 +32,7 @@ import Foreign
 -----------------------------------------------------------------------------
 -- dgesvd
 foreign import ccall "LAPACK/lapack-aux.h svd_l_R"
-    dgesvd :: Double ::> Double ::> (Double :> Double ::> IO Int)
+    dgesvd :: TMMVM -- Double ::> Double ::> (Double :> Double ::> IO Int)
 
 -- | Wrapper for LAPACK's /dgesvd/, which computes the full svd decomposition of a real matrix.
 --
@@ -50,7 +50,7 @@ svdR' x@M {rows = r, cols = c} = unsafePerformIO $ do
 -----------------------------------------------------------------------------
 -- dgesdd
 foreign import ccall "LAPACK/lapack-aux.h svd_l_Rdd"
-    dgesdd :: Double ::> Double ::> (Double :> Double ::> IO Int)
+    dgesdd :: TMMVM --Double ::> Double ::> (Double :> Double ::> IO Int)
 
 -- | Wrapper for LAPACK's /dgesvd/, which computes the full svd decomposition of a real matrix.
 --
@@ -68,7 +68,7 @@ svdRdd' x@M {rows = r, cols = c} = unsafePerformIO $ do
 -----------------------------------------------------------------------------
 -- zgesvd
 foreign import ccall "LAPACK/lapack-aux.h svd_l_C"
-    zgesvd :: (Complex Double) ::> (Complex Double) ::> (Double :> (Complex Double) ::> IO Int)
+    zgesvd :: TCMCMVCM -- (Complex Double) ::> (Complex Double) ::> (Double :> (Complex Double) ::> IO Int)
 
 -- | Wrapper for LAPACK's /zgesvd/, which computes the full svd decomposition of a complex matrix.
 --
@@ -87,7 +87,7 @@ svdC' x@M {rows = r, cols = c} = unsafePerformIO $ do
 -----------------------------------------------------------------------------
 -- zgeev
 foreign import ccall "LAPACK/lapack-aux.h eig_l_C"
-    zgeev :: (Complex Double) ::> (Complex Double) ::> ((Complex Double) :> (Complex Double) ::> IO Int)
+    zgeev :: TCMCMCVCM -- (Complex Double) ::> (Complex Double) ::> ((Complex Double) :> (Complex Double) ::> IO Int)
 
 -- | Wrapper for LAPACK's /zgeev/, which computes the eigenvalues and right eigenvectors of a general complex matrix:
 --
@@ -108,7 +108,7 @@ eigC (m@M {rows = r})
 -----------------------------------------------------------------------------
 -- dgeev
 foreign import ccall "LAPACK/lapack-aux.h eig_l_R"
-    dgeev :: Double ::> Double ::> ((Complex Double) :> Double ::> IO Int)
+    dgeev :: TMMCVM -- Double ::> Double ::> ((Complex Double) :> Double ::> IO Int)
 
 -- | Wrapper for LAPACK's /dgeev/, which computes the eigenvalues and right eigenvectors of a general real matrix:
 --
@@ -144,7 +144,7 @@ scale r v = fromList [r] `outer` v
 -----------------------------------------------------------------------------
 -- dsyev
 foreign import ccall "LAPACK/lapack-aux.h eig_l_S"
-    dsyev :: Double ::> (Double :> Double ::> IO Int)
+    dsyev :: TMVM -- Double ::> (Double :> Double ::> IO Int)
 
 -- | Wrapper for LAPACK's /dsyev/, which computes the eigenvalues and right eigenvectors of a symmetric real matrix:
 --
@@ -168,7 +168,7 @@ eigS' (m@M {rows = r})
 -----------------------------------------------------------------------------
 -- zheev
 foreign import ccall "LAPACK/lapack-aux.h eig_l_H"
-    zheev :: (Complex Double) ::> (Double :> (Complex Double) ::> IO Int)
+    zheev :: TCMVCM -- (Complex Double) ::> (Double :> (Complex Double) ::> IO Int)
 
 -- | Wrapper for LAPACK's /zheev/, which computes the eigenvalues and right eigenvectors of a hermitian complex matrix:
 --
@@ -192,7 +192,7 @@ eigH' (m@M {rows = r})
 -----------------------------------------------------------------------------
 -- dgesv
 foreign import ccall "LAPACK/lapack-aux.h linearSolveR_l"
-    dgesv :: Double ::> Double ::> Double ::> IO Int
+    dgesv :: TMMM -- Double ::> Double ::> Double ::> IO Int
 
 -- | Wrapper for LAPACK's /dgesv/, which solves a general real linear system (for several right-hand sides) internally using the lu decomposition.
 linearSolveR :: Matrix Double -> Matrix Double -> Matrix Double
@@ -206,7 +206,7 @@ linearSolveR  a@(M {rows = n1, cols = n2}) b@(M {rows = r, cols = c})
 -----------------------------------------------------------------------------
 -- zgesv
 foreign import ccall "LAPACK/lapack-aux.h linearSolveC_l"
-    zgesv :: (Complex Double) ::> (Complex Double) ::> (Complex Double) ::> IO Int
+    zgesv :: TCMCMCM -- (Complex Double) ::> (Complex Double) ::> (Complex Double) ::> IO Int
 
 -- | Wrapper for LAPACK's /zgesv/, which solves a general complex linear system (for several right-hand sides) internally using the lu decomposition.
 linearSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
@@ -220,7 +220,7 @@ linearSolveC  a@(M {rows = n1, cols = n2}) b@(M {rows = r, cols = c})
 -----------------------------------------------------------------------------------
 -- dgels
 foreign import ccall "LAPACK/lapack-aux.h linearSolveLSR_l"
-    dgels :: Double ::> Double ::> Double ::> IO Int
+    dgels :: TMMM -- Double ::> Double ::> Double ::> IO Int
 
 -- | Wrapper for LAPACK's /dgels/, which obtains the least squared error solution of an overconstrained real linear system or the minimum norm solution of an underdetermined system, for several right-hand sides. For rank deficient systems use 'linearSolveSVDR'.
 linearSolveLSR :: Matrix Double -> Matrix Double -> Matrix Double
@@ -234,7 +234,7 @@ linearSolveLSR_l a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafePerformI
 -----------------------------------------------------------------------------------
 -- zgels
 foreign import ccall "LAPACK/lapack-aux.h linearSolveLSC_l"
-    zgels :: (Complex Double) ::> (Complex Double) ::> (Complex Double) ::> IO Int
+    zgels :: TCMCMCM -- (Complex Double) ::> (Complex Double) ::> (Complex Double) ::> IO Int
 
 -- | Wrapper for LAPACK's /zgels/, which obtains the least squared error solution of an overconstrained complex linear system or the minimum norm solution of an underdetermined system, for several right-hand sides. For rank deficient systems use 'linearSolveSVDC'.
 linearSolveLSC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
@@ -248,7 +248,7 @@ linearSolveLSC_l a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafePerformI
 -----------------------------------------------------------------------------------
 -- dgelss
 foreign import ccall "LAPACK/lapack-aux.h linearSolveSVDR_l"
-    dgelss :: Double -> Double ::> Double ::> Double ::> IO Int
+    dgelss :: Double -> TMMM -- Double ::> Double ::> Double ::> IO Int
 
 -- | Wrapper for LAPACK's /dgelss/, which obtains the minimum norm solution to a real linear least squares problem Ax=B using the svd, for several right-hand sides. Admits rank deficient systems but it is slower than 'linearSolveLSR'. The effective rank of A is determined by treating as zero those singular valures which are less than rcond times the largest singular value. If rcond == Nothing machine precision is used.
 linearSolveSVDR :: Maybe Double   -- ^ rcond
@@ -266,7 +266,7 @@ linearSolveSVDR_l rcond a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafeP
 -----------------------------------------------------------------------------------
 -- zgelss
 foreign import ccall "LAPACK/lapack-aux.h linearSolveSVDC_l"
-    zgelss :: Double -> (Complex Double) ::> (Complex Double) ::> (Complex Double) ::> IO Int
+    zgelss :: Double -> TCMCMCM -- (Complex Double) ::> (Complex Double) ::> (Complex Double) ::> IO Int
 
 -- | Wrapper for LAPACK's /zgelss/, which obtains the minimum norm solution to a complex linear least squares problem Ax=B using the svd, for several right-hand sides. Admits rank deficient systems but it is slower than 'linearSolveLSC'. The effective rank of A is determined by treating as zero those singular valures which are less than rcond times the largest singular value. If rcond == Nothing machine precision is used.
 linearSolveSVDC :: Maybe Double            -- ^ rcond

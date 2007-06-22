@@ -21,8 +21,9 @@ import Complex
 import Control.Monad(when)
 
 type Vc t s = Int -> Ptr t -> s
-infixr 5 :>
-type t :> s = Vc t s
+-- not yet admitted by my haddock version
+-- infixr 5 :>
+-- type t :> s = Vc t s
 
 vec :: Vector t -> (Vc t s) -> s
 vec v f = f (dim v) (ptr v)
@@ -118,10 +119,10 @@ constantAux fun n x = unsafePerformIO $ do
     return v
 
 foreign import ccall safe "aux.h constantR"
-    cconstantR :: Ptr Double -> Double :> IO Int
+    cconstantR :: Ptr Double -> TV -- Double :> IO Int
 
 foreign import ccall safe "aux.h constantC"
-    cconstantC :: Ptr (Complex Double) -> Complex Double :> IO Int
+    cconstantC :: Ptr (Complex Double) -> TCV -- Complex Double :> IO Int
 
 constant :: Field a => Int -> a -> Vector a
 constant n x | isReal id x = scast $ constantR n (scast x)

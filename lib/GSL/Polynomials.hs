@@ -51,4 +51,4 @@ polySolve' v | dim v > 1 = unsafePerformIO $ do
     return r
              | otherwise = error "polySolve on a polynomial of degree zero"
 
-foreign import ccall "gsl-aux.h polySolve" c_polySolve:: Double :> Complex Double :> IO Int
+foreign import ccall "gsl-aux.h polySolve" c_polySolve:: TVCV -- Double :> Complex Double :> IO Int
