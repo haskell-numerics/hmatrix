@@ -36,6 +36,7 @@ conj :: Vector (Complex Double) -> Vector (Complex Double)
 conj v = asComplex $ cdat $ reshape 2 (asReal v) `mulC` diag (fromList [1,-1])
     where mulC = multiply RowMajor
 
+comp :: Vector Double -> Vector (Complex Double)
 comp v = toComplex (v,constant 0 (dim v))
 
 {- | Creates a real vector containing a range of values:

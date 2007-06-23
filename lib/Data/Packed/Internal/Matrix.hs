@@ -28,7 +28,6 @@ import Data.Maybe(fromJust)
 
 data MatrixOrder = RowMajor | ColumnMajor deriving (Show,Eq)
 
--- | 2D array
 data Matrix t = M { rows    :: Int
                   , cols    :: Int
                   , dat     :: Vector t
@@ -44,6 +43,7 @@ fortran m = order m == ColumnMajor
 cdat m = if fortran m `xor` isTrans m then tdat m else dat m
 fdat m = if fortran m `xor` isTrans m then dat m else tdat m
 
+trans :: Matrix t -> Matrix t
 trans m = m { rows = cols m
             , cols = rows m
             , isTrans = not (isTrans m)
@@ -56,6 +56,7 @@ type Mt t s = Int -> Int -> Ptr t -> s
 
 mat d m f = f (rows m) (cols m) (ptr (d m))
 
+toLists :: (Storable t) => Matrix t -> [[t]]
 toLists m = partit (cols m) . toList . cdat $ m
 
 instance (Show a, Storable a) => (Show (Matrix a)) where
@@ -92,6 +93,7 @@ createMatrix order r c = do
     p <- createVector (r*c)
     return (matrixFromVector order c p)
 
+reshape :: (Field t) => Int -> Vector t -> Matrix t
 reshape c v = matrixFromVector RowMajor c v
 
 singleton x = reshape 1 (fromList [x])
@@ -133,8 +135,10 @@ transdata c1 d c2 | isReal baseOf d = scast $ transdataR c1 (scast d) c2
 --{-# RULES "transdataC" transdata=transdataC #-}
 
 -----------------------------------------------------------------
-
+liftMatrix :: (Vector a -> Vector b) -> Matrix a -> Matrix b
 liftMatrix f m = m { dat = f (dat m), tdat = f (tdat m) } -- check sizes
+
+liftMatrix2 :: (Field t) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
 liftMatrix2 f m1 m2 = reshape (cols m1) (f (cdat m1) (cdat m2)) -- check sizes
 
 ------------------------------------------------------------------
@@ -196,10 +200,12 @@ multiplyD order a b
 
 outer' u v = dat (outer u v)
 
+outer :: (Num t, Field t) => Vector t -> Vector t -> Matrix t
 outer u v = multiply RowMajor r c
     where r = matrixFromVector RowMajor 1 u
           c = matrixFromVector RowMajor (dim v) v
 
+dot :: (Field t, Num t) => Vector t -> Vector t -> t
 dot u v = dat (multiply RowMajor r c) `at` 0
     where r = matrixFromVector RowMajor (dim u) u
           c = matrixFromVector RowMajor 1 v

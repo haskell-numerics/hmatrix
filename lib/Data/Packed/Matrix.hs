@@ -14,8 +14,8 @@
 
 module Data.Packed.Matrix (
     Matrix(rows,cols), Field,
-    toLists, (><), (>|<), (@@>),
-    trans,
+    fromLists, toLists, (><), (>|<), (@@>),
+    trans, conjTrans,
     reshape, flatten,
     fromRows, toRows, fromColumns, toColumns,
     joinVert, joinHoriz,
@@ -29,6 +29,9 @@ module Data.Packed.Matrix (
 ) where
 
 import Data.Packed.Internal
+import Foreign(Storable)
+import Complex
+import Data.Packed.Vector
 
 -- | creates a matrix from a vertical list of matrices
 joinVert :: Field t => [Matrix t] -> Matrix t
@@ -50,6 +53,7 @@ fliprl m = fromColumns . reverse . toColumns $ m
 
 ------------------------------------------------------------
 
+diagRect :: (Field t, Num t) => Vector t -> Int -> Int -> Matrix t
 diagRect s r c
     | dim s < min r c = error "diagRect"
     | r == c    = diag s
@@ -57,16 +61,20 @@ diagRect s r c
     | r > c     = joinVert  [diag s , zeros (r-c,c)]
     where zeros (r,c) = reshape c $ constant 0 (r*c)
 
+takeDiag :: (Storable t) => Matrix t -> Vector t
 takeDiag m = fromList [cdat m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
 
+ident :: (Num t, Field t) => Int -> Matrix t
 ident n = diag (constant 1 n)
 
+(><) :: (Field a) => Int -> Int -> [a] -> Matrix a
 r >< c = f where
     f l | dim v == r*c = matrixFromVector RowMajor c v
         | otherwise    = error $ "inconsistent list size = "
                                  ++show (dim v) ++"in ("++show r++"><"++show c++")"
         where v = fromList l
 
+(>|<) :: (Field a) => Int -> Int -> [a] -> Matrix a
 r >|< c = f where
     f l | dim v == r*c = matrixFromVector ColumnMajor c v
         | otherwise    = error $ "inconsistent list size = "
@@ -90,4 +98,12 @@ dropColumns n mat = subMatrix (0,n) (rows mat, cols mat - n) mat
 
 ----------------------------------------------------------------
 
+flatten :: Matrix t -> Vector t
 flatten = cdat
+
+-- | Creates a 'Matrix' from a list of lists (considered as rows).
+fromLists :: Field t => [[t]] -> Matrix t
+fromLists = fromRows . map fromList
+
+conjTrans :: Matrix (Complex Double) -> Matrix (Complex Double)
+conjTrans = trans . liftMatrix conj

@@ -27,7 +27,7 @@ Exposed-modules:    Data.Packed.Internal,
                     -- Data.Packed.Instances
                     LAPACK,
                     GSL.Vector, 
-                    --GSL.Matrix
+                    GSL.Matrix
                     GSL.Differentiation, GSL.Integration,
                     GSL.Special,
                     GSL.Fourier,

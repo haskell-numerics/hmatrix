@@ -51,7 +51,7 @@ toFile filename matrix = writeFile filename (unlines . map unwords. map (map sho
 meshdom :: Vector Double -> Vector Double -> (Matrix Double , Matrix Double)
 meshdom r1 r2 = (outer r1 (constant 1 (size r2)), outer (constant 1 (size r1)) r2)
 
-
+gnuplotX :: String -> IO ()
 gnuplotX command = do {system cmdstr; return()} where
     cmdstr = "echo \""++command++"\" | gnuplot -persist"
 
@@ -72,6 +72,7 @@ mesh m = gnuplotX (command++dat) where
     command = "splot "++datafollows++" matrix with lines\n"
     dat = prep $ toLists $ m
 
+mesh' :: Matrix Double -> IO ()
 mesh' m = do
     writeFile "splot-gnu-command" "splot \"splot-tmp.txt\" matrix with lines; pause -1"; 
     toFile "splot-tmp.txt" m
