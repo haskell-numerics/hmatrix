@@ -20,7 +20,7 @@ import Test.HUnit hiding ((~:))
 import Complex
 import LinearAlgebra.Algorithms
 import GSL.Matrix
-import Data.Packed.Instances hiding ((<>))
+import GSL.Compat hiding ((<>))
 
 dist :: (Normed t, Num t) => t -> t -> Double
 dist a b = norm (a-b)

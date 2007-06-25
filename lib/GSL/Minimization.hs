@@ -150,9 +150,11 @@ minimizeConjugateGradient istep minimpar tol maxit f df xi = unsafePerformIO $ d
         df' = (fromList . df . toList)
     fp <- mkVecfun (iv f')
     dfp <- mkVecVecfun (aux_vTov df')
+    print "entro"
     rawpath <- createMIO maxit (n+2)
                          (c_minimizeConjugateGradient fp dfp istep minimpar tol maxit // vec xiv)
                          "minimizeDerivV" [xiv]
+    print "salgo"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
         sol = toList $ cdat $ dropColumns 2 $ dropRows (it-1) path
@@ -186,12 +188,12 @@ foreign import ccall "wrapper"
 
 aux_vTov :: (Vector Double -> Vector Double) -> (Int -> Ptr Double -> Ptr Double -> IO())
 aux_vTov f n p r = g where
-    V {fptr = pr, ptr = p} = f x
+    V {fptr = pr, ptr = t} = f x
     x = createV n copy "aux_vTov" []
-    copy n q = do 
+    copy n q = do
         copyArray q p n
         return 0
-    g = withForeignPtr pr $ \_ -> copyArray r p n
+    g = withForeignPtr pr $ \_ -> copyArray r t n
 
 --------------------------------------------------------------------
 

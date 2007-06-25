@@ -129,5 +129,8 @@ constant x n | isReal id x = scast $ constantR (scast x) n
              | isComp id x = scast $ constantC (scast x) n
              | otherwise   = constantG x n
 
+liftVector :: (Storable a, Storable b) => (a-> b) -> Vector a -> Vector b
 liftVector  f = fromList . map f . toList
+
+liftVector2 :: (Storable a, Storable b, Storable c) => (a-> b -> c) -> Vector a -> Vector b -> Vector c
 liftVector2 f u v = fromList $ zipWith f (toList u) (toList v)
