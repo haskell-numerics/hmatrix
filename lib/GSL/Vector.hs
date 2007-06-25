@@ -18,7 +18,7 @@ module GSL.Vector (
     FunCodeV(..), vectorMapR, vectorMapC,
     FunCodeSV(..), vectorMapValR, vectorMapValC,
     FunCodeVV(..), vectorZipR, vectorZipC,
-    scale, addConstant, add, mul,
+    scale, addConstant, add, sub, mul,
 ) where
 
 import Data.Packed.Internal
@@ -83,6 +83,11 @@ add :: (Num a, Field a) => Vector a -> Vector a -> Vector a
 add u v | isReal baseOf v = scast $ vectorZipR Add (scast u) (scast v)
                 | isComp baseOf v = scast $ vectorZipC Add (scast u) (scast v)
                 | otherwise   = fromList $ zipWith (+) (toList u) (toList v)
+
+sub :: (Num a, Field a) => Vector a -> Vector a -> Vector a
+sub u v | isReal baseOf v = scast $ vectorZipR Sub (scast u) (scast v)
+                | isComp baseOf v = scast $ vectorZipC Sub (scast u) (scast v)
+                | otherwise   = fromList $ zipWith (-) (toList u) (toList v)
 
 mul :: (Num a, Field a) => Vector a -> Vector a -> Vector a
 mul u v | isReal baseOf v = scast $ vectorZipR Mul (scast u) (scast v)

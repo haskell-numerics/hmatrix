@@ -15,3 +15,4 @@ Some linear algebra algorithms, implemented by means of BLAS, LAPACK or GSL.
 module LinearAlgebra (
 
 ) where
+

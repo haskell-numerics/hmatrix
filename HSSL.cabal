@@ -24,7 +24,7 @@ Exposed-modules:    Data.Packed.Internal,
                     Data.Packed.Internal.Matrix, Data.Packed.Matrix,
                     Data.Packed.Internal.Tensor, Data.Packed.Tensor,
                     Data.Packed.Plot
-                    -- Data.Packed.Instances
+                    Data.Packed.Instances
                     LAPACK,
                     GSL.Vector, 
                     GSL.Matrix

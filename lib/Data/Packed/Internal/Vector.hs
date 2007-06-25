@@ -48,7 +48,7 @@ fromList l = unsafePerformIO $ do
 toList :: Storable a => Vector a -> [a]
 toList v = unsafePerformIO $ peekArray (dim v) (ptr v)
 
-n # l = if length l == n then fromList l else error "# with wrong size"
+n |> l = if length l == n then fromList l else error "|> with wrong size"
 
 at' :: Storable a => Vector a -> Int -> a
 at' v n = unsafePerformIO $ peekElemOff (ptr v) n
@@ -58,7 +58,7 @@ at v n | n >= 0 && n < dim v = at' v n
        | otherwise          = error "vector index out of range"
 
 instance (Show a, Storable a) => (Show (Vector a)) where
-    show v = (show (dim v))++" # " ++ show (toList v)
+    show v = (show (dim v))++" |> " ++ show (toList v)
 
 -- | creates a Vector taking a number of consecutive toList from another Vector
 subVector :: Storable t => Int       -- ^ index of the starting element
@@ -129,3 +129,5 @@ constant x n | isReal id x = scast $ constantR (scast x) n
              | isComp id x = scast $ constantC (scast x) n
              | otherwise   = constantG x n
 
+liftVector  f = fromList . map f . toList
+liftVector2 f u v = fromList $ zipWith f (toList u) (toList v)

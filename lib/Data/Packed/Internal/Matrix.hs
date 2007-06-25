@@ -93,6 +93,15 @@ createMatrix order r c = do
     p <- createVector (r*c)
     return (matrixFromVector order c p)
 
+{- | Creates a matrix from a vector by grouping the elements in rows with the desired number of columns.
+
+@\> reshape 4 ('fromList' [1..12])
+(3><4)
+ [ 1.0,  2.0,  3.0,  4.0
+ , 5.0,  6.0,  7.0,  8.0
+ , 9.0, 10.0, 11.0, 12.0 ]@
+
+-}
 reshape :: (Field t) => Int -> Vector t -> Matrix t
 reshape c v = matrixFromVector RowMajor c v
 
@@ -140,7 +149,6 @@ liftMatrix f m = m { dat = f (dat m), tdat = f (tdat m) } -- check sizes
 
 liftMatrix2 :: (Field t) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
 liftMatrix2 f m1 m2 = reshape (cols m1) (f (cdat m1) (cdat m2)) -- check sizes
-
 ------------------------------------------------------------------
 
 dotL a b = sum (zipWith (*) a b)
@@ -200,6 +208,14 @@ multiplyD order a b
 
 outer' u v = dat (outer u v)
 
+{- | Outer product of two vectors.
+
+@\> 'fromList' [1,2,3] \`outer\` 'fromList' [5,2,3]
+(3><3)
+ [  5.0, 2.0, 3.0
+ , 10.0, 4.0, 6.0
+ , 15.0, 6.0, 9.0 ]@
+-}
 outer :: (Num t, Field t) => Vector t -> Vector t -> Matrix t
 outer u v = multiply RowMajor r c
     where r = matrixFromVector RowMajor 1 u

@@ -13,11 +13,11 @@
 -----------------------------------------------------------------------------
 
 module Data.Packed.Matrix (
-    Matrix(rows,cols), Field,
+    Matrix(rows,cols),
     fromLists, toLists, (><), (>|<), (@@>),
     trans, conjTrans,
-    reshape, flatten,
-    fromRows, toRows, fromColumns, toColumns,
+    reshape, flatten, asRow, asColumn,
+    fromRows, toRows, fromColumns, toColumns, fromBlocks,
     joinVert, joinHoriz,
     flipud, fliprl,
     liftMatrix, liftMatrix2,
@@ -42,6 +42,22 @@ joinVert ms = case common cols ms of
 -- | creates a matrix from a horizontal list of matrices
 joinHoriz :: Field t => [Matrix t] -> Matrix t
 joinHoriz ms = trans. joinVert . map trans $ ms
+
+{- | Creates a matrix from blocks given as a list of lists of matrices:
+
+@\> let a = 'diag' $ 'fromList' [5,7,2]
+\> let b = 'reshape' 4 $ 'constant' (-1) 12
+\> fromBlocks [[a,b],[b,a]]
+(6><7)
+ [  5.0,  0.0,  0.0, -1.0, -1.0, -1.0, -1.0
+ ,  0.0,  7.0,  0.0, -1.0, -1.0, -1.0, -1.0
+ ,  0.0,  0.0,  2.0, -1.0, -1.0, -1.0, -1.0
+ , -1.0, -1.0, -1.0, -1.0,  5.0,  0.0,  0.0
+ , -1.0, -1.0, -1.0, -1.0,  0.0,  7.0,  0.0
+ , -1.0, -1.0, -1.0, -1.0,  0.0,  0.0,  2.0 ]@
+-}
+fromBlocks :: Field t => [[Matrix t]] -> Matrix t
+fromBlocks = joinVert . map joinHoriz 
 
 -- | Reverse rows 
 flipud :: Field t => Matrix t -> Matrix t
@@ -98,6 +114,11 @@ dropColumns n mat = subMatrix (0,n) (rows mat, cols mat - n) mat
 
 ----------------------------------------------------------------
 
+{- | Creates a vector by concatenation of rows
+
+@\> flatten ('ident' 3)
+9 # [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]@
+-}
 flatten :: Matrix t -> Vector t
 flatten = cdat
 
@@ -107,3 +128,9 @@ fromLists = fromRows . map fromList
 
 conjTrans :: Matrix (Complex Double) -> Matrix (Complex Double)
 conjTrans = trans . liftMatrix conj
+
+asRow :: Field a => Vector a -> Matrix a
+asRow v = reshape (dim v) v
+
+asColumn :: Field a => Vector a -> Matrix a
+asColumn v = reshape 1 v

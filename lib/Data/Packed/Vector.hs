@@ -15,7 +15,7 @@
 module Data.Packed.Vector (
     Vector(dim), Field,
     fromList, toList,
-    at,
+    (@>),
     subVector, join,
     constant,
     toComplex, comp,
@@ -26,6 +26,7 @@ module Data.Packed.Vector (
 
 import Data.Packed.Internal
 import Complex
+import GSL.Vector
 
 -- | creates a complex vector from vectors with real and imaginary parts
 toComplex :: (Vector Double, Vector Double) ->  Vector (Complex Double)
@@ -41,10 +42,14 @@ comp v = toComplex (v,constant 0 (dim v))
 
 {- | Creates a real vector containing a range of values:
 
-> > linspace 10 (-2,2)
->-2. -1.556 -1.111 -0.667 -0.222 0.222 0.667 1.111 1.556 2.
-
+@\> linspace 5 (-3,7)
+5 |> [-3.0,-0.5,2.0,4.5,7.0]@
 -}
 linspace :: Int -> (Double, Double) -> Vector Double
 linspace n (a,b) = fromList [a::Double,a+delta .. b]
     where delta = (b-a)/(fromIntegral n -1)
+
+-- | Reads a vector position.
+(@>) :: Field t => Vector t -> Int -> t
+infixl 9 @>
+(@>) = at
