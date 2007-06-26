@@ -144,12 +144,16 @@ transdata c1 d c2 | isReal baseOf d = scast $ transdataR c1 (scast d) c2
 --{-# RULES "transdataC" transdata=transdataC #-}
 
 -----------------------------------------------------------------
-liftMatrix :: (Vector a -> Vector b) -> Matrix a -> Matrix b
-liftMatrix f m = m { dat = f (dat m), tdat = f (tdat m) } -- check sizes
+liftMatrix :: (Field a, Field b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
+liftMatrix f m = reshape (cols m) (f (cdat m))
 
 liftMatrix2 :: (Field t) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
-liftMatrix2 f m1 m2 = reshape (cols m1) (f (cdat m1) (cdat m2)) -- check sizes
+liftMatrix2 f m1 m2 | compat m1 m2 = reshape (cols m1) (f (cdat m1) (cdat m2))
+                    | otherwise    = error "nonconformant matrices in liftMatrix2"
 ------------------------------------------------------------------
+
+compat :: Matrix a -> Matrix b -> Bool
+compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
 
 dotL a b = sum (zipWith (*) a b)
 

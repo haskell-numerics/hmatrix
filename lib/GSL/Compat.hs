@@ -15,7 +15,8 @@ Creates reasonable numeric instances for Vectors and Matrices. In the context of
 -----------------------------------------------------------------------------
 
 module GSL.Compat(
-  Mul,(<>), fromFile, readMatrix, size, dispR, dispC, format, gmap
+  Mul,(<>), readMatrix, size, dispR, dispC, format, gmap, Joinable, (<|>),(<->), GSL.Compat.constant,
+  vectorMax, vectorMin, fromArray2D, fromComplex, GSL.Compat.pnorm, scale
 ) where
 
 import Data.Packed.Internal hiding (dsp)
@@ -27,12 +28,23 @@ import LinearAlgebra.Algorithms
 import Complex
 import Numeric(showGFloat)
 import Data.List(transpose,intersperse)
+import Foreign(Storable)
+import Data.Array
 
 
 adaptScalar f1 f2 f3 x y
     | dim x == 1 = f1   (x@>0) y
     | dim y == 1 = f3 x (y@>0)
     | otherwise = f2 x y
+
+liftMatrix2' :: (Field t) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
+liftMatrix2' f m1 m2 | compat' m1 m2 = reshape (max (cols m1) (cols m2)) (f (cdat m1) (cdat m2))
+                     | otherwise    = error "nonconformant matrices in liftMatrix2'"
+
+compat' :: Matrix a -> Matrix b -> Bool
+compat' m1 m2 = rows m1 == 1 && cols m1 == 1
+             || rows m2 == 1 && cols m2 == 1
+             || rows m1 == rows m2 && cols m1 == cols m2
 
 instance (Eq a, Field a) => Eq (Vector a) where
     a == b = dim a == dim b && toList a == toList b
@@ -49,9 +61,9 @@ instance (Eq a, Field a) => Eq (Matrix a) where
     a == b = rows a == rows b && cols a == cols b && cdat a == cdat b && fdat a == fdat b
 
 instance (Num a, Field a) => Num (Matrix a) where
-    (+) = liftMatrix2 (+)
+    (+) = liftMatrix2' (+)
     negate = liftMatrix negate
-    (*) = liftMatrix2 (*)
+    (*) = liftMatrix2' (*)
     signum = liftMatrix signum
     abs = liftMatrix abs
     fromInteger = (1><1) . return . fromInteger
@@ -76,13 +88,13 @@ instance Fractional (Vector (Complex Double)) where
 
 instance Fractional (Matrix Double) where
     fromRational n = (1><1) [fromRational n]
-    (/) = liftMatrix2 (/)
+    (/) = liftMatrix2' (/)
 
 -------------------------------------------------------
 
 instance Fractional (Matrix (Complex Double)) where
     fromRational n = (1><1) [fromRational n]
-    (/) = liftMatrix2 (/)
+    (/) = liftMatrix2' (/)
 
 ---------------------------------------------------------
 
@@ -122,7 +134,7 @@ instance Floating (Matrix Double) where
     atanh = liftMatrix atanh
     exp   = liftMatrix exp
     log   = liftMatrix log
-    (**)  = liftMatrix2 (**)
+    (**)  = liftMatrix2' (**)
     sqrt  = liftMatrix sqrt
     pi    = (1><1) [pi]
 -------------------------------------------------------------
@@ -163,7 +175,7 @@ instance Floating (Matrix (Complex Double)) where
     atanh = liftMatrix atanh
     exp   = liftMatrix exp
     log   = liftMatrix log
-    (**)  = liftMatrix2 (**)
+    (**)  = liftMatrix2' (**)
     sqrt  = liftMatrix sqrt
     pi    = (1><1) [pi]
 
@@ -330,8 +342,11 @@ instance Mul (Matrix Double) (Complex Double) (Matrix (Complex Double)) where
 size :: Vector a -> Int
 size = dim
 
+gmap :: (Storable a, Storable b) => (a->b) -> Vector a -> Vector b
 gmap f v = liftVector f v
 
+constant :: Double -> Int -> Vector Double
+constant = constantR
 
 -- shows a Double with n digits after the decimal point    
 shf :: (RealFloat a) => Int -> a -> String     
@@ -368,3 +383,87 @@ dispC d m = disp m (shfc d)
 -- | creates a matrix from a table of numbers.
 readMatrix :: String -> Matrix Double
 readMatrix = fromLists . map (map read). map words . filter (not.null) . lines
+
+-------------------------------------------------------------
+
+class Joinable a b c | a b -> c where
+    joinH :: a -> b -> c
+    joinV :: a -> b -> c
+
+instance Joinable (Matrix Double) (Vector Double) (Matrix Double) where
+    joinH m v = fromBlocks [[m,reshape 1 v]]
+    joinV m v = fromBlocks [[m],[reshape (size v) v]]
+
+instance Joinable (Vector Double) (Matrix Double) (Matrix Double) where
+    joinH v m = fromBlocks [[reshape 1 v,m]]
+    joinV v m = fromBlocks [[reshape (size v) v],[m]]
+
+instance Joinable (Matrix Double) (Matrix Double) (Matrix Double) where
+    joinH m1 m2 = fromBlocks [[m1,m2]]
+    joinV m1 m2 = fromBlocks [[m1],[m2]]
+
+instance Joinable (Matrix (Complex Double)) (Vector (Complex Double)) (Matrix (Complex Double)) where
+    joinH m v = fromBlocks [[m,reshape 1 v]]
+    joinV m v = fromBlocks [[m],[reshape (size v) v]]
+
+instance Joinable (Vector (Complex Double)) (Matrix (Complex Double)) (Matrix (Complex Double)) where
+    joinH v m = fromBlocks [[reshape 1 v,m]]
+    joinV v m = fromBlocks [[reshape (size v) v],[m]]
+
+instance Joinable (Matrix (Complex Double)) (Matrix (Complex Double)) (Matrix (Complex Double)) where
+    joinH m1 m2 = fromBlocks [[m1,m2]]
+    joinV m1 m2 = fromBlocks [[m1],[m2]]
+
+infixl 3 <|>, <->
+
+{- | Horizontal concatenation of matrices and vectors:
+
+@\> 'ident' 3 \<-\> i\<\>'ident' 3 \<|\> 'fromList' [1..6]
+ 1.   0.   0.  1.
+ 0.   1.   0.  2.
+ 0.   0.   1.  3.
+1.i   0.   0.  4.
+ 0.  1.i   0.  5.
+ 0.   0.  1.i  6.@
+-}
+(<|>) :: (Joinable a b c) => a -> b -> c
+a <|> b = joinH a b
+
+-- | Vertical concatenation of matrices and vectors.
+(<->) :: (Joinable a b c) => a -> b -> c
+a <-> b = joinV a b
+
+----------------------------------------------------------
+
+vectorMax = toScalarR Max
+
+vectorMin = toScalarR Min
+
+fromArray2D m = (r><c) (elems m)
+    where ((r0,c0),(r1,c1)) = bounds m
+          r = r1-r0+1
+          c = c1-c0+1
+
+-- | creates a complex vector from vectors with real and imaginary parts
+toComplexV :: (Vector Double, Vector Double) ->  Vector (Complex Double)
+toComplexV (r,i) = asComplex $ flatten $ fromColumns [r,i]
+
+-- | extracts the real and imaginary parts of a complex vector
+fromComplexV :: Vector (Complex Double) -> (Vector Double, Vector Double)
+fromComplexV m = (a,b) where [a,b] = toColumns $ reshape 2 $ asReal m
+
+-- | creates a complex matrix from matrices with real and imaginary parts
+toComplexM :: (Matrix Double, Matrix Double) ->  Matrix (Complex Double)
+toComplexM (r,i) = reshape (cols r) $ asComplex $ flatten $ fromColumns [flatten r, flatten i]
+
+-- | extracts the real and imaginary parts of a complex matrix
+fromComplexM :: Matrix (Complex Double) -> (Matrix Double, Matrix Double)
+fromComplexM m = (reshape c a, reshape c b)
+    where c = cols m
+          [a,b] = toColumns $ reshape 2 $ asReal $ flatten m
+
+fromComplex = fromComplexM
+
+pnorm 0 = LinearAlgebra.Algorithms.pnorm Infinity
+pnorm 1 = LinearAlgebra.Algorithms.pnorm PNorm1
+pnorm 2 = LinearAlgebra.Algorithms.pnorm PNorm2

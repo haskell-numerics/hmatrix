@@ -19,7 +19,7 @@ module GSL.Matrix(
     chol,
     luSolveR, luSolveC,
     luR, luC,
-    fromFile
+    fromFile, extractRows
 ) where
 
 import Data.Packed.Internal

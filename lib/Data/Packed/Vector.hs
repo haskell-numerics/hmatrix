@@ -21,7 +21,8 @@ module Data.Packed.Vector (
     toComplex, comp,
     conj,
     dot,
-    linspace
+    linspace,
+    liftVector, liftVector2
 ) where
 
 import Data.Packed.Internal

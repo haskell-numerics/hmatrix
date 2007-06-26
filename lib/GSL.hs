@@ -25,15 +25,16 @@ module GSL.Special,
 module GSL.Fourier,
 module GSL.Polynomials,
 module GSL.Minimization,
-module Data.Packed.Plot,
-module GSL.Compat
+module GSL.Matrix,
+module GSL.Compat,
+module Data.Packed.Plot
 
 ) where
 
-import Data.Packed.Vector
+import Data.Packed.Vector hiding (constant)
 import Data.Packed.Matrix
 import Data.Packed.Tensor
-import LinearAlgebra.Algorithms
+import LinearAlgebra.Algorithms hiding (pnorm)
 import LAPACK
 import GSL.Integration
 import GSL.Differentiation
@@ -41,5 +42,6 @@ import GSL.Special
 import GSL.Fourier
 import GSL.Polynomials
 import GSL.Minimization
-import Data.Packed.Plot
+import GSL.Matrix
 import GSL.Compat
+import Data.Packed.Plot
