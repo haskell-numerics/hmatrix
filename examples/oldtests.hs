@@ -10,7 +10,7 @@ realVector = fromList ::  [Double] -> Vector Double
 toComplexM = uncurry $ liftMatrix2 (curry toComplex)
 
 infixl 2 =~=
-a =~= b = pnorm PNorm1 (flatten (a - b)) < 1E-6
+a =~= b = pnorm 1 (flatten (a - b)) < 1E-6
 
 randomMatrix seed (n,m) = reshape m $ realVector $ take (n*m) $ randomRs (-100,100) $ mkStdGen seed 
 

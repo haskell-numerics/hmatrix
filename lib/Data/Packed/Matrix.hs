@@ -87,14 +87,14 @@ ident n = diag (constant 1 n)
 r >< c = f where
     f l | dim v == r*c = matrixFromVector RowMajor c v
         | otherwise    = error $ "inconsistent list size = "
-                                 ++show (dim v) ++"in ("++show r++"><"++show c++")"
+                                 ++show (dim v) ++" in ("++show r++"><"++show c++")"
         where v = fromList l
 
 (>|<) :: (Field a) => Int -> Int -> [a] -> Matrix a
 r >|< c = f where
     f l | dim v == r*c = matrixFromVector ColumnMajor c v
         | otherwise    = error $ "inconsistent list size = "
-                                 ++show (dim v) ++"in ("++show r++"><"++show c++")"
+                                 ++show (dim v) ++" in ("++show r++"><"++show c++")"
         where v = fromList l
 
 ----------------------------------------------------------------

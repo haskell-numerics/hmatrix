@@ -21,7 +21,9 @@ module GSL.Vector (
     scale, addConstant, add, sub, mul,
 ) where
 
-import Data.Packed.Internal
+import Data.Packed.Internal.Common
+import Data.Packed.Internal.Vector
+
 import Complex
 import Foreign
 

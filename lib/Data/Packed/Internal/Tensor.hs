@@ -18,7 +18,8 @@ import Data.Packed.Internal.Common
 import Data.Packed.Internal.Vector
 import Data.Packed.Internal.Matrix
 import Foreign.Storable
-import Data.List(sort,elemIndex,nub)
+import Data.List(sort,elemIndex,nub,foldl1')
+import GSL.Vector
 
 data IdxType = Covariant | Contravariant deriving (Show,Eq)
 
@@ -79,10 +80,10 @@ concatRename l1 l2 = l1 ++ map ren l2 where
     ren idx = if {- s `elem` fs -} True then idx {idxName = idxName idx ++ "'"} else idx
     fs = map idxName l1
 
-prod :: (Field t, Num t) => Tensor t -> Tensor t -> Tensor t
+--prod :: (Field t, Num t) => Tensor t -> Tensor t -> Tensor t
 prod (T d1 v1) (T d2 v2) = T (concatRename d1 d2) (outer' v1 v2)
 
-contraction :: (Field t, Num t) => Tensor t -> IdxName -> Tensor t -> IdxName -> Tensor t
+--contraction :: (Field t, Num t) => Tensor t -> IdxName -> Tensor t -> IdxName -> Tensor t
 contraction t1 n1 t2 n2 =
     if compatIdx t1 n1 t2 n2
         then T (concatRename (tail d1) (tail d2)) (cdat m)
@@ -91,16 +92,27 @@ contraction t1 n1 t2 n2 =
         (d2,m2) = putFirstIdx n2 t2
         m = multiply RowMajor (trans m1) m2
 
-sumT :: (Storable t, Enum t, Num t) => [Tensor t] -> [t]
-sumT ls = foldl (zipWith (+)) [0,0..] (map (toList.ten) ls)
+--sumT :: (Storable t, Enum t, Num t) => [Tensor t] -> [t]
+--sumT ls = foldl (zipWith (+)) [0,0..] (map (toList.ten) ls)
+--addT ts = T (dims (head ts)) (fromList $ sumT ts)
 
-contract1 :: (Num t, Enum t, Field t) => Tensor t -> IdxName -> IdxName -> Tensor t
-contract1 t name1 name2 = T d $ fromList $ sumT y
+liftTensor f (T d v) = T d (f v)
+
+liftTensor2 f (T d1 v1) (T d2 v2) | compat d1 d2 = T d1 (f v1 v2)
+                                  | otherwise = error "liftTensor2 with incompatible tensors"
+    where compat a b = length a == length b
+
+
+a |+| b = liftTensor2 add a b
+addT l = foldl1' (|+|) l
+
+--contract1 :: (Num t, Field t) => Tensor t -> IdxName -> IdxName -> Tensor t
+contract1 t name1 name2 = addT y
     where d = dims (head y)
           x = (map (flip parts name2) (parts t name1))
           y = map head $ zipWith drop [0..] x
 
-contraction' :: (Field t, Enum t, Num t) => Tensor t -> IdxName -> Tensor t -> IdxName -> Tensor t
+--contraction' :: (Field t, Enum t, Num t) => Tensor t -> IdxName -> Tensor t -> IdxName -> Tensor t
 contraction' t1 n1 t2 n2 =
     if compatIdx t1 n1 t2 n2
         then contract1 (prod t1 t2) n1 (n2++"'")
@@ -130,8 +142,8 @@ names t = sort $ map idxName (dims t)
 normal :: (Field t) => Tensor t -> Tensor t
 normal t = tridx (names t) t
 
-contractions :: (Num t, Field t) => Tensor t -> Tensor t -> [Tensor t]
-contractions t1 t2 = [ contraction t1 n1 t2 n2 | n1 <- names t1, n2 <- names t2, compatIdx t1 n1 t2 n2 ]
+possibleContractions :: (Num t, Field t) => Tensor t -> Tensor t -> [Tensor t]
+possibleContractions t1 t2 = [ contraction t1 n1 t2 n2 | n1 <- names t1, n2 <- names t2, compatIdx t1 n1 t2 n2 ]
 
 -- sent to Haskell-Cafe by Sebastian Sylvan
 perms :: [t] -> [[t]]
