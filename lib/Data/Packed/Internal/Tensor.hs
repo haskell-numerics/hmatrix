@@ -168,10 +168,7 @@ compatIdx t1 n1 t2 n2 = compatIdxAux d1 d2 where
     d2 = head $ snd $ fst $ findIdx n2 t2
 
 names :: Tensor t -> [IdxName]
-names t = sort $ map idxName (dims t)
-
-normal :: (Field t) => Tensor t -> Tensor t
-normal t = tridx (names t) t
+names t = map idxName (dims t)
 
 
 -- sent to Haskell-Cafe by Sebastian Sylvan
@@ -192,34 +189,22 @@ signature l | length (nub l) < length l =  0
             | otherwise                 = -1
 
 scalar x = T [] (fromList [x])
-tensorFromVector (tp,nm) v = T {dims = [IdxDesc (dim v) tp nm]
-                                       , ten = v}
-tensorFromMatrix (tpr,nmr) (tpc,nmc) m = T {dims = [IdxDesc (rows m) tpr nmr,IdxDesc (cols m) tpc nmc]
-                                           , ten = cdat m}
+tensorFromVector tp v = T {dims = [IdxDesc (dim v) tp "1"], ten = v}
+tensorFromMatrix tpr tpc m = T {dims = [IdxDesc (rows m) tpr "1",IdxDesc (cols m) tpc "2"]
+                               , ten = cdat m}
 
-tvector n v = tensorFromVector (Contravariant,n) v
-tcovector n v = tensorFromVector (Covariant,n) v
+tvector v = tensorFromVector Contravariant v
+tcovector v = tensorFromVector Covariant v
 
-
-antisym t = T (dims t) (ten (antisym' (auxrename t)))
-    where
-        scsig t = scalar (signature (nms t)) `rawProduct` t
-            where nms = map idxName . dims
-
-        antisym' t = addT $ map (scsig . flip tridx t) (perms (names t))
-
-        auxrename (T d v) = T d' v
-            where d' = [IdxDesc n c (show (pos q)) | IdxDesc n c q <- d]
-                  pos n = i where Just i = elemIndex n nms
-                  nms = map idxName d
-
+antisym t = T (dims t) (ten (antisym' (withIdx t seqind)))
+    where antisym' t = addT $ map (scsig . flip tridx t) (perms (names t))
+          scsig t = scalar (signature (nms t)) `rawProduct` t
+              where nms = map idxName . dims
 
 norper t = rawProduct t (scalar (recip $ fromIntegral $ fact (rank t)))
 antinorper t = rawProduct t (scalar (fromIntegral $ fact (rank t)))
 
 wedge a b = antisym (rawProduct (norper a) (norper b))
-
-a /\ b = wedge a b
 
 normAT t = sqrt $ innerAT t t
 
@@ -227,7 +212,11 @@ innerAT t1 t2 = dot (ten t1) (ten t2) / fromIntegral (fact $ rank t1)
 
 fact n = product [1..n]
 
-leviCivita n = antisym $ foldl1 rawProduct $ zipWith tcovector (map show [1,2..]) (toRows (ident n))
+seqind' = map return seqind
+seqind = map show [1..]
+
+leviCivita n = antisym $ foldl1 rawProduct $ zipWith withIdx auxbase seqind'
+    where auxbase = map tcovector (toRows (ident n))
 
 -- | obtains de dual of the exterior product of a list of X?
 dualV vs = foldl' contractionF (leviCivita n) vs
@@ -240,17 +229,15 @@ raise (T d v) = T (map raise' d) v
 -- | raises or lowers all the indices of a tensor with a given an (inverse) metric
 raiseWith = undefined
 
--- | obtains the dual of a multivector
-dualMV t = rawProduct (contractions lct ds) x
-    where
-        lc = leviCivita n
-        lct = rawProduct lc t
-        nms1 = map idxName (dims lc)
-        nms2 = map idxName (dims t)
-        ds = zip nms1 nms2
-        n = idxDim . head . dims $ t
-        x = scalar (recip $ fromIntegral $ fact (rank t))
+dualg f t = f (leviCivita n) `okContract` withIdx t seqind `rawProduct` x
+    where n = idxDim . head . dims $ t
+          x = scalar (recip $ fromIntegral $ fact (rank t))
 
+-- | obtains the dual of a multivector
+dual t = dualg id t
+
+-- | obtains the dual of a multicovector (with euclidean metric)
+codual t = dualg raise t
 
 -- | shows only the relevant components of an antisymmetric tensor
 niceAS t = filter ((/=0.0).fst) $ zip vals base
