@@ -16,7 +16,7 @@ Creates reasonable numeric instances for Vectors and Matrices. In the context of
 
 module GSL.Compat(
   Mul,(<>), readMatrix, size, dispR, dispC, format, gmap, Joinable, (<|>),(<->), GSL.Compat.constant,
-  vectorMax, vectorMin, fromArray2D, fromComplex, GSL.Compat.pnorm, scale
+  vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex, fromArray2D, fromComplex, GSL.Compat.pnorm, scale
 ) where
 
 import Data.Packed.Internal hiding (dsp)
@@ -435,10 +435,19 @@ a <-> b = joinV a b
 
 ----------------------------------------------------------
 
+vectorMax :: Vector Double -> Double
 vectorMax = toScalarR Max
 
+vectorMin :: Vector Double -> Double
 vectorMin = toScalarR Min
 
+vectorMaxIndex :: Vector Double -> Int
+vectorMaxIndex = round . toScalarR MaxIdx
+
+vectorMinIndex :: Vector Double -> Int
+vectorMinIndex = round . toScalarR MinIdx
+
+fromArray2D :: (Field e) => Array (Int, Int) e -> Matrix e
 fromArray2D m = (r><c) (elems m)
     where ((r0,c0),(r1,c1)) = bounds m
           r = r1-r0+1
@@ -462,8 +471,11 @@ fromComplexM m = (reshape c a, reshape c b)
     where c = cols m
           [a,b] = toColumns $ reshape 2 $ asReal $ flatten m
 
+fromComplex :: Matrix (Complex Double) -> (Matrix Double, Matrix Double)
 fromComplex = fromComplexM
 
+
+pnorm :: (Normed t1, Num t) => t -> t1 -> Double
 pnorm 0 = LinearAlgebra.Algorithms.pnorm Infinity
 pnorm 1 = LinearAlgebra.Algorithms.pnorm PNorm1
 pnorm 2 = LinearAlgebra.Algorithms.pnorm PNorm2

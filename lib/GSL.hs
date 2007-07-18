@@ -27,12 +27,13 @@ module GSL.Polynomials,
 module GSL.Minimization,
 module GSL.Matrix,
 module GSL.Compat,
-module Data.Packed.Plot
+module Data.Packed.Plot,
+module Complex
 
 ) where
 
 import Data.Packed.Vector hiding (constant)
-import Data.Packed.Matrix
+import Data.Packed.Matrix hiding ((><))
 import Data.Packed.Tensor
 import LinearAlgebra.Algorithms hiding (pnorm)
 import LAPACK
@@ -45,3 +46,4 @@ import GSL.Minimization
 import GSL.Matrix
 import GSL.Compat
 import Data.Packed.Plot
+import Complex
