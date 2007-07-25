@@ -19,6 +19,8 @@ module LinearAlgebra.Algorithms (
     pinv,
     pinvTol,
     pinvTolg,
+    nullspacePrec,
+    nullVector,
     Normed(..), NormType(..),
     det,
     eps, i
@@ -240,3 +242,20 @@ instance Normed (Matrix Double) where
 
 instance Normed (Matrix (Complex Double)) where
     pnorm = pnormCM
+
+-----------------------------------------------------------------------
+
+-- | The nullspace of a real matrix from its SVD decomposition.
+nullspacePrec :: Double          -- ^ relative tolerance in 'eps' units
+              -> Matrix Double   -- ^ input matrix
+              -> [Vector Double] -- ^ list of unitary vectors spanning the nullspace
+nullspacePrec t m = ns where
+    (_,s,v) = svdR' m
+    sl@(g:_) = toList s
+    tol = (fromIntegral (max (rows m) (cols m)) * g * t * eps)
+    rank = length (filter (> g*tol) sl)
+    ns = drop rank (toColumns v)
+
+-- | The nullspace of a real matrix, assumed to be one-dimensional, with default tolerance (shortcut for @last . nullspacePrec 1@).
+nullVector :: Matrix Double -> Vector Double
+nullVector = last . nullspacePrec 1
