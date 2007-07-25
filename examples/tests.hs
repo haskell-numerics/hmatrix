@@ -298,9 +298,13 @@ exponentialTest = do
     let expected = exp 30.0
     assertBool "exp_e10_e" ( abs (v*10^e - expected) < 4E-2 ) 
 
+gammaTest = do
+    assertBool "gamma" (gamma 5 == 24.0)
+
 tests = TestList
     [ TestCase $ besselTest
     , TestCase $ exponentialTest
+    , TestCase $ gammaTest
     , TestCase $ polySolveTest
     , TestCase $ integrateTest
     ]

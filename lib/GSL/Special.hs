@@ -19,7 +19,8 @@ module GSL.Special (
     erf,
     erf_Z,
     bessel_J0_e,
-    exp_e10_e
+    exp_e10_e,
+    gamma
 )
 where
 
@@ -44,6 +45,14 @@ foreign import ccall "gsl-aux.h gsl_sf_erf" erf :: Double -> Double
 
 -}
 foreign import ccall "gsl-aux.h gsl_sf_erf_Z" erf_Z :: Double -> Double
+
+{- | The gamma function (/gsl_sf_gamma/), described in <http://www.gnu.org/software/gsl/manual/html_node/Gamma-Functions.html>
+
+>> gamma 5
+>24.0
+
+-}
+foreign import ccall "gsl-aux.h gsl_sf_gamma" gamma :: Double -> Double
 
 ----------------------------------------------------------------
 -- the sf_result struct is equivalent to an array of two doubles
