@@ -8,7 +8,7 @@
 -- Stability   :  provisional
 -- Portability :  portable (uses FFI)
 --
--- basic tensor operations
+-- support for basic tensor operations
 --
 -----------------------------------------------------------------------------
 
@@ -26,28 +26,83 @@ type IdxName = String
 
 data IdxDesc = IdxDesc { idxDim  :: Int,
                          idxType :: IdxType,
-                         idxName :: IdxName } deriving Show
+                         idxName :: IdxName } deriving Eq
+
+instance Show IdxDesc where
+    show (IdxDesc n t name) = name ++ sym t ++"["++show n++"]"
+        where sym Covariant     = "_"
+              sym Contravariant = "^"
+
 
 data Tensor t = T { dims   :: [IdxDesc]
                   , ten    :: Vector t
                   }
 
--- | tensor rank (number of indices)
-rank :: Tensor t -> Int
-rank = length . dims
+-- | returns the coordinates of a tensor in row - major order
+coords :: Tensor t -> Vector t
+coords = ten
 
-instance (Show a,Storable a) => Show (Tensor a) where
+instance (Show a, Field a) => Show (Tensor a) where
     show T {dims = [], ten = t} = "scalar "++show (t `at` 0)
-    show T {dims = ds, ten = t} = "("++shdims ds ++") "++ show (toList t)
+    show t = "("++shdims (dims t) ++") "++ showdt t
+
+asMatrix t = reshape (idxDim $ dims t!!1) (ten t)
+
+showdt t | rank t == 1 = show (toList (ten t))
+         | rank t == 2 = ('\n':) . dsp . map (map show) . toLists $ asMatrix $ t
+         | otherwise = concatMap showdt $ parts t (head (names t))
 
 -- | a nice description of the tensor structure
 shdims :: [IdxDesc] -> String
 shdims [] = ""
-shdims [d] = shdim d 
-shdims (d:ds) = shdim d ++ "><"++ shdims ds
-shdim (IdxDesc n t name) = name ++ sym t ++"["++show n++"]"
-    where sym Covariant     = "_"
-          sym Contravariant = "^"
+shdims [d] = show d 
+shdims (d:ds) = show d ++ "><"++ shdims ds
+
+-- | tensor rank (number of indices)
+rank :: Tensor t -> Int
+rank = length . dims
+
+names :: Tensor t -> [IdxName]
+names t = map idxName (dims t)
+
+-- | number of contravariant and covariant indices
+structure :: Tensor t -> (Int,Int)
+structure t = (rank t - n, n) where
+    n = length $ filter isCov (dims t)
+    isCov d = idxType d == Covariant
+
+-- | creates a rank-zero tensor from a scalar
+scalar :: Storable t => t -> Tensor t
+scalar x = T [] (fromList [x])
+
+-- | Creates a tensor from a signed list of dimensions (positive = contravariant, negative = covariant) and a Vector containing the coordinates in row major order.
+tensor :: [Int] -> Vector a -> Tensor a
+tensor dssig vec = T d v `withIdx` seqind where
+    n = product (map abs dssig)
+    v = if dim vec == n then vec else error "wrong arguments for tensor"
+    d = map cr dssig
+    cr n | n > 0 = IdxDesc {idxName = "", idxDim =  n, idxType = Contravariant}
+         | n < 0 = IdxDesc {idxName = "", idxDim = -n, idxType = Covariant    }
+
+
+tensorFromVector :: IdxType -> Vector t -> Tensor t
+tensorFromVector tp v = T {dims = [IdxDesc (dim v) tp "1"], ten = v}
+
+tensorFromMatrix :: IdxType -> IdxType -> Matrix t -> Tensor t
+tensorFromMatrix tpr tpc m = T {dims = [IdxDesc (rows m) tpr "1",IdxDesc (cols m) tpc "2"]
+                               , ten = cdat m}
+
+
+liftTensor :: (Vector a -> Vector b) -> Tensor a -> Tensor b
+liftTensor f (T d v) = T d (f v)
+
+liftTensor2 :: (Vector a -> Vector b -> Vector c) -> Tensor a -> Tensor b -> Tensor c
+liftTensor2 f (T d1 v1) (T d2 v2) | compat d1 d2 = T d1 (f v1 v2)
+                                  | otherwise = error "liftTensor2 with incompatible tensors"
+    where compat a b = length a == length b
+
+
+
 
 -- | express the tensor as a matrix with the given index in columns
 findIdx :: (Field t) => IdxName -> Tensor t
@@ -65,6 +120,32 @@ putFirstIdx name t = (nd,m')
           nd = d2++d1
           c = dim (ten t) `div` (idxDim $ head d2)
 
+
+-- | renames all the indices in the current order (repeated indices may get different names)
+withIdx :: Tensor t -> [IdxName] -> Tensor t
+withIdx (T d v) l = T d' v
+    where d' = zipWith f d l
+          f i n = i {idxName=n}
+
+
+-- | raises or lowers all the indices of a tensor (with euclidean metric)
+raise :: Tensor t -> Tensor t
+raise (T d v) = T (map raise' d) v
+    where raise' idx@IdxDesc {idxType = Covariant } = idx {idxType = Contravariant}
+          raise' idx@IdxDesc {idxType = Contravariant } = idx {idxType = Covariant}
+
+
+-- | index transposition to a desired order. You can specify only a subset of the indices, which will be moved to the front of indices list
+tridx :: (Field t) => [IdxName] -> Tensor t -> Tensor t
+tridx [] t = t
+tridx (name:rest) t = T (d:ds) (join ts) where
+    ((_,d:_),_) = findIdx name t
+    ps = map (tridx rest) (parts t name)
+    ts = map ten ps
+    ds = dims (head ps)
+
+
+
 -- | extracts a given part of a tensor
 part :: (Field t) => Tensor t -> (IdxName, Int) -> Tensor t
 part t (name,k) = if k<0 || k>=l
@@ -79,6 +160,17 @@ parts t name = map f (toRows m)
     where (d:ds,m) = putFirstIdx name t
           l = idxDim d
           f t = T {dims=ds, ten=t}
+
+
+compatIdx :: (Field t1, Field t) => Tensor t1 -> IdxName -> Tensor t -> IdxName -> Bool
+compatIdx t1 n1 t2 n2 = compatIdxAux d1 d2 where
+    d1 = head $ snd $ fst $ findIdx n1 t1
+    d2 = head $ snd $ fst $ findIdx n2 t2
+    compatIdxAux IdxDesc {idxDim = n1, idxType = t1}
+                 IdxDesc {idxDim = n2, idxType = t2}
+        = t1 /= t2 && n1 == n2
+
+
 
 -- | tensor product without without any contractions
 rawProduct :: (Field t, Num t) => Tensor t -> Tensor t -> Tensor t
@@ -98,7 +190,7 @@ contraction2 t1 n1 t2 n2 =
 contraction1 :: (Field t, Num t) => Tensor t -> IdxName -> IdxName -> Tensor t
 contraction1 t name1 name2 =
     if compatIdx t name1 t name2
-        then addT y
+        then sumT y
         else error $ "wrong contraction1: "++(shdims$dims$t)++" "++name1++" "++name2
     where d = dims (head y)
           x = (map (flip parts name2) (parts t name1))
@@ -120,14 +212,17 @@ contraction2' t1 n1 t2 n2 =
         else error "wrong contraction'"
 
 -- | applies a sequence of contractions
+contractions :: (Field t, Num t) => Tensor t -> [(IdxName, IdxName)] -> Tensor t
 contractions t pairs = foldl' contract1b t pairs
     where contract1b t (n1,n2) = contraction1 t n1 n2
 
 -- | applies a sequence of contractions of same index
+contractionsC :: (Field t, Num t) => Tensor t -> [IdxName] -> Tensor t
 contractionsC t is = foldl' contraction1c t is
 
 
 -- | applies a contraction on the first indices of the tensors
+contractionF :: (Field t, Num t) => Tensor t -> Tensor t -> Tensor t
 contractionF t1 t2 = contraction2 t1 n1 t2 n2
     where n1 = fn t1
           n2 = fn t2
@@ -138,45 +233,42 @@ possibleContractions :: (Num t, Field t) => Tensor t -> Tensor t -> [Tensor t]
 possibleContractions t1 t2 = [ contraction2 t1 n1 t2 n2 | n1 <- names t1, n2 <- names t2, compatIdx t1 n1 t2 n2 ]
 
 
-liftTensor f (T d v) = T d (f v)
 
-liftTensor2 f (T d1 v1) (T d2 v2) | compat d1 d2 = T d1 (f v1 v2)
-                                  | otherwise = error "liftTensor2 with incompatible tensors"
-    where compat a b = length a == length b
+desiredContractions2 :: Tensor t -> Tensor t1 -> [(IdxName, IdxName)]
+desiredContractions2 t1 t2 = [ (n1,n2) | n1 <- names t1, n2 <- names t2, n1==n2]
 
+desiredContractions1 :: Tensor t -> [IdxName]
+desiredContractions1 t = [ n1 | (a,n1) <- x , (b,n2) <- x, a/=b, n1==n2]
+    where x = zip [0..] (names t)
 
-a |+| b = liftTensor2 add a b
-addT l = foldl1' (|+|) l
+-- | tensor product with the convention that repeated indices are contracted.
+mulT :: (Field t, Num t) => Tensor t -> Tensor t -> Tensor t
+mulT t1 t2 = r where
+    t1r = contractionsC t1 (desiredContractions1 t1)
+    t2r = contractionsC t2 (desiredContractions1 t2)
+    cs = desiredContractions2 t1r t2r
+    r = case cs of
+        [] -> rawProduct t1r t2r
+        (n1,n2):as -> contractionsC (contraction2 t1r n1 t2r n2) (map fst as)
 
--- | index transposition to a desired order. You can specify only a subset of the indices, which will be moved to the front of indices list
-tridx :: (Field t) => [IdxName] -> Tensor t -> Tensor t
-tridx [] t = t
-tridx (name:rest) t = T (d:ds) (join ts) where
-    ((_,d:_),_) = findIdx name t
-    ps = map (tridx rest) (parts t name)
-    ts = map ten ps
-    ds = dims (head ps)
+-----------------------------------------------------------------
 
-compatIdxAux :: IdxDesc -> IdxDesc -> Bool
-compatIdxAux IdxDesc {idxDim = n1, idxType = t1}
-             IdxDesc {idxDim = n2, idxType = t2}
-    = t1 /= t2 && n1 == n2
+-- | tensor addition (for tensors with the same structure)
+addT :: (Num a, Field a) => Tensor a -> Tensor a -> Tensor a
+addT a b = liftTensor2 add a b
 
-compatIdx :: (Field t1, Field t) => Tensor t1 -> IdxName -> Tensor t -> IdxName -> Bool
-compatIdx t1 n1 t2 n2 = compatIdxAux d1 d2 where
-    d1 = head $ snd $ fst $ findIdx n1 t1
-    d2 = head $ snd $ fst $ findIdx n2 t2
+sumT :: (Field a, Num a) => [Tensor a] -> Tensor a
+sumT l = foldl1' addT l
 
-names :: Tensor t -> [IdxName]
-names t = map idxName (dims t)
-
+-----------------------------------------------------------------
 
 -- sent to Haskell-Cafe by Sebastian Sylvan
 perms :: [t] -> [[t]]
 perms [x] = [[x]]
 perms xs = [y:ps | (y,ys) <- selections xs , ps <- perms ys]
-selections []     = []
-selections (x:xs) = (x,xs) : [(y,x:ys) | (y,ys) <- selections xs]
+    where
+        selections []     = []
+        selections (x:xs) = (x,xs) : [(y,x:ys) | (y,ys) <- selections xs]
 
 interchanges :: (Ord a) => [a] -> Int
 interchanges ls = sum (map (count ls) ls)
@@ -188,58 +280,59 @@ signature l | length (nub l) < length l =  0
             | even (interchanges l)     =  1
             | otherwise                 = -1
 
-scalar x = T [] (fromList [x])
-tensorFromVector tp v = T {dims = [IdxDesc (dim v) tp "1"], ten = v}
-tensorFromMatrix tpr tpc m = T {dims = [IdxDesc (rows m) tpr "1",IdxDesc (cols m) tpc "2"]
-                               , ten = cdat m}
 
-tvector v = tensorFromVector Contravariant v
-tcovector v = tensorFromVector Covariant v
+sym :: (Field t, Num t) => Tensor t -> Tensor t
+sym t = T (dims t) (ten (sym' (withIdx t seqind)))
+    where sym' t = sumT $ map (flip tridx t) (perms (names t))
+              where nms = map idxName . dims
 
+antisym :: (Field t, Num t) => Tensor t -> Tensor t
 antisym t = T (dims t) (ten (antisym' (withIdx t seqind)))
-    where antisym' t = addT $ map (scsig . flip tridx t) (perms (names t))
+    where antisym' t = sumT $ map (scsig . flip tridx t) (perms (names t))
           scsig t = scalar (signature (nms t)) `rawProduct` t
               where nms = map idxName . dims
 
-norper t = rawProduct t (scalar (recip $ fromIntegral $ fact (rank t)))
-antinorper t = rawProduct t (scalar (fromIntegral $ fact (rank t)))
-
+-- | the wedge product of two tensors (implemented as the antisymmetrization of the ordinary tensor product).
+wedge :: (Field t, Fractional t) => Tensor t -> Tensor t -> Tensor t
 wedge a b = antisym (rawProduct (norper a) (norper b))
+    where norper t = rawProduct t (scalar (recip $ fromIntegral $ fact (rank t)))
 
-normAT t = sqrt $ innerAT t t
+-- antinorper t = rawProduct t (scalar (fromIntegral $ fact (rank t)))
 
+-- | The euclidean inner product of two completely antisymmetric tensors
+innerAT :: (Fractional t, Field t) => Tensor t -> Tensor t -> t
 innerAT t1 t2 = dot (ten t1) (ten t2) / fromIntegral (fact $ rank t1)
 
+fact :: (Num t, Enum t) => t -> t
 fact n = product [1..n]
 
+seqind' :: [[String]]
 seqind' = map return seqind
+
+seqind :: [String]
 seqind = map show [1..]
 
+-- | completely antisymmetric covariant tensor of dimension n
+leviCivita :: (Field t, Num t) => Int -> Tensor t
 leviCivita n = antisym $ foldl1 rawProduct $ zipWith withIdx auxbase seqind'
-    where auxbase = map tcovector (toRows (ident n))
+    where auxbase = map tc (toRows (ident n))
+          tc = tensorFromVector Covariant
 
--- | obtains de dual of the exterior product of a list of X?
-dualV vs = foldl' contractionF (leviCivita n) vs
+-- | contraction of leviCivita with a list of vectors (and raise with euclidean metric)
+innerLevi :: (Num t, Field t) => [Tensor t] -> Tensor t
+innerLevi vs = raise $ foldl' contractionF (leviCivita n) vs
     where n = idxDim . head . dims . head $ vs
 
--- | raises or lowers all the indices of a tensor (with euclidean metric)
-raise (T d v) = T (map raise' d) v
-    where raise' idx@IdxDesc {idxType = Covariant } = idx {idxType = Contravariant}
-          raise' idx@IdxDesc {idxType = Contravariant } = idx {idxType = Covariant}
--- | raises or lowers all the indices of a tensor with a given an (inverse) metric
-raiseWith = undefined
 
-dualg f t = f (leviCivita n) `okContract` withIdx t seqind `rawProduct` x
+-- | obtains the dual of a multivector (with euclidean metric)
+dual :: (Field t, Fractional t) => Tensor t -> Tensor t
+dual t = raise $ leviCivita n `mulT` withIdx t seqind `rawProduct` x
     where n = idxDim . head . dims $ t
           x = scalar (recip $ fromIntegral $ fact (rank t))
 
--- | obtains the dual of a multivector
-dual t = dualg id t
-
--- | obtains the dual of a multicovector (with euclidean metric)
-codual t = dualg raise t
 
 -- | shows only the relevant components of an antisymmetric tensor
+niceAS :: (Field t, Fractional t) => Tensor t -> [(t, [Int])]
 niceAS t = filter ((/=0.0).fst) $ zip vals base
     where vals = map ((`at` 0).ten.foldl' partF t) (map (map pred) base)
           base = asBase r n
@@ -247,27 +340,3 @@ niceAS t = filter ((/=0.0).fst) $ zip vals base
           n = idxDim . head . dims $ t
           partF t i = part t (name,i) where name = idxName . head . dims $ t
           asBase r n = filter (\x-> (x==nub x && x==sort x)) $ sequence $ replicate r [1..n]
-
--- | renames specified indices of a tensor (repeated indices get the same name)
-idxRename (T d v) l = T (map (ir l) d) v
-    where ir l i = case lookup (idxName i) l of
-                       Nothing -> i
-                       Just r  -> i {idxName = r}
-
--- | renames all the indices in the current order (repeated indices may get different names)
-withIdx (T d v) l = T d' v
-    where d' = zipWith f d l
-          f i n = i {idxName=n}
-
-desiredContractions2 t1 t2 = [ (n1,n2) | n1 <- names t1, n2 <- names t2, n1==n2]
-
-desiredContractions1 t = [ n1 | (a,n1) <- x , (b,n2) <- x, a/=b, n1==n2]
-    where x = zip [0..] (names t)
-
-okContract t1 t2 = r where
-    t1r = contractionsC t1 (desiredContractions1 t1)
-    t2r = contractionsC t2 (desiredContractions1 t2)
-    cs = desiredContractions2 t1r t2r
-    r = case cs of
-        [] -> rawProduct t1r t2r
-        (n1,n2):as -> contractionsC (contraction2 t1r n1 t2r n2) (map fst as)

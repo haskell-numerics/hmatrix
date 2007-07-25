@@ -5,12 +5,27 @@
 -- License     :  GPL-style
 --
 -- Maintainer  :  Alberto Ruiz <aruiz@um.es>
--- Stability   :  provisional
+-- Stability   :  experimental
 -- Portability :  portable
 --
--- Tensors
+-- Basic tensor operations
 --
 -----------------------------------------------------------------------------
 
-module Data.Packed.Tensor where
+module Data.Packed.Tensor (
+    -- * Construction
+    Tensor, tensor, scalar,
+    -- * Manipulation
+    IdxName, IdxType(..), IdxDesc(..), structure, dims, coords, parts,
+    tridx, withIdx, raise,
+    -- * Operations
+    addT, mulT,
+    -- * Exterior Algebra
+    wedge, dual, leviCivita, innerLevi, innerAT, niceAS,
+    -- * Misc
+    liftTensor, liftTensor2
+) where
+
+
+import Data.Packed.Internal.Tensor
 
