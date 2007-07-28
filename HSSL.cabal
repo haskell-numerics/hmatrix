@@ -28,13 +28,15 @@ Exposed-modules:    Data.Packed.Internal,
                     GSL.Vector, 
                     GSL.Matrix
                     GSL.Differentiation, GSL.Integration,
-                    GSL.Special,
+                    GSL.Special, GSL.Special.Internal,
+                    GSL.Special.Gamma, GSL.Special.Erf,
+                    GSL.Special.Airy,
                     GSL.Fourier,
                     GSL.Polynomials,
                     GSL.Minimization,
-                    LinearAlgebra, LinearAlgebra.Algorithms,
                     GSL.Compat,
-                    GSL, HSSL
+                    GSL,
+                    LinearAlgebra, LinearAlgebra.Algorithms
 Other-modules:
 C-sources:          lib/Data/Packed/Internal/aux.c,
                     lib/LAPACK/lapack-aux.c,

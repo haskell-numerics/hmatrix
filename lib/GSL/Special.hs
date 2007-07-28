@@ -9,25 +9,27 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses ffi
 
-Special functions.
+Wrappers for a few special functions.
 
 <http://www.gnu.org/software/gsl/manual/html_node/Special-Functions.html#Special-Functions>
 -}
 -----------------------------------------------------------------------------
 
 module GSL.Special (
-    erf,
-    erf_Z,
+    module GSL.Special.Airy,
+    module GSL.Special.Erf,
+    module GSL.Special.Gamma,
     bessel_J0_e,
-    exp_e10_e,
-    gamma
+    exp_e10_e
 )
 where
 
 import Foreign
-import Data.Packed.Internal.Common(check,(//))
+import GSL.Special.Internal
+import GSL.Special.Gamma
+import GSL.Special.Erf
+import GSL.Special.Airy
 
-----------------------------------------------------------------
 -------------------- simple functions --------------------------
 
 {- | The error function (/gsl_sf_erf/), defined as 2\/ \\sqrt \\pi * \int\_0\^t \\exp -t\^2 dt.
@@ -46,24 +48,6 @@ foreign import ccall "gsl-aux.h gsl_sf_erf" erf :: Double -> Double
 -}
 foreign import ccall "gsl-aux.h gsl_sf_erf_Z" erf_Z :: Double -> Double
 
-{- | The gamma function (/gsl_sf_gamma/), described in <http://www.gnu.org/software/gsl/manual/html_node/Gamma-Functions.html>
-
->> gamma 5
->24.0
-
--}
-foreign import ccall "gsl-aux.h gsl_sf_gamma" gamma :: Double -> Double
-
-----------------------------------------------------------------
--- the sf_result struct is equivalent to an array of two doubles
-
-createSFR s f = unsafePerformIO $ do
-    p <- mallocArray 2
-    f p // check "createSFR" []
-    [val,err] <- peekArray 2 p
-    free p
-    return (val,err)
-
 -------------------- functions returning sf_result -------------
 
 {- | The regular cylindrical Bessel function of zeroth order, J_0(x). This is
@@ -77,20 +61,6 @@ createSFR s f = unsafePerformIO $ do
 bessel_J0_e :: Double -> (Double,Double)
 bessel_J0_e x = createSFR "bessel_J0_e" (gsl_sf_bessel_J0_e x)
 foreign import ccall "gsl-aux.h gsl_sf_bessel_J0_e" gsl_sf_bessel_J0_e :: Double -> Ptr Double -> IO Int
-
----------------------------------------------------------------------
--- the sf_result_e10 contains two doubles and the exponent
-
-createSFR_E10 s f = unsafePerformIO $ do
-    let sd = sizeOf (0::Double)
-    let si = sizeOf (0::Int)
-    p <- mallocBytes (2*sd + si)
-    f p // check "createSFR_E10" []
-    val <- peekByteOff p 0
-    err <- peekByteOff p sd
-    expo <- peekByteOff p (2*sd) 
-    free p
-    return (val,expo,err)
 
 -------------------- functions returning sf_result_e10 -------------
 

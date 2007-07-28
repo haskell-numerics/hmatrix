@@ -1,0 +1,12 @@
+int gsl_sf_erfc_e(double x,double* result);
+double gsl_sf_erfc(double x);
+int gsl_sf_log_erfc_e(double x,double* result);
+double gsl_sf_log_erfc(double x);
+int gsl_sf_erf_e(double x,double* result);
+double gsl_sf_erf(double x);
+int gsl_sf_erf_Z_e(double x,double* result);
+int gsl_sf_erf_Q_e(double x,double* result);
+double gsl_sf_erf_Z(double x);
+double gsl_sf_erf_Q(double x);
+int gsl_sf_hazard_e(double x,double* result);
+double gsl_sf_hazard(double x);
