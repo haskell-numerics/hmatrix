@@ -9,7 +9,7 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses ffi
 
-Wrappers for a few special functions.
+Wrappers for selected special functions.
 
 <http://www.gnu.org/software/gsl/manual/html_node/Special-Functions.html#Special-Functions>
 -}
@@ -18,9 +18,8 @@ Wrappers for a few special functions.
 module GSL.Special (
     module GSL.Special.Airy,
     module GSL.Special.Erf,
-    module GSL.Special.Gamma,
-    bessel_J0_e,
-    exp_e10_e
+    module GSL.Special.Exp,
+    module GSL.Special.Gamma
 )
 where
 
@@ -28,6 +27,7 @@ import Foreign
 import GSL.Special.Internal
 import GSL.Special.Gamma
 import GSL.Special.Erf
+import GSL.Special.Exp
 import GSL.Special.Airy
 
 -------------------- simple functions --------------------------

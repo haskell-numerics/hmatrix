@@ -33,11 +33,12 @@ safe (Header _ _ args) =  all ok args
     where ok ((Normal s),_) | s `elem` ["double","float","int","gsl_mode_t"] = True
           ok _ = False
           kn ((Pointer "gsl_sf_result"),_) = True
+          kn ((Pointer "gsl_sf_result_e10"),_) = True
           kn _ = False
 
 
 
-fixC s = rep ("gsl_mode_t","int") $ rep ("gsl_sf_result","double") $ s
+fixC s = rep ("gsl_mode_t","int") $ rep ("gsl_sf_result","double") $ rep ("gsl_sf_result_e10","double") $ s
 
 main = do
     args <- getArgs
@@ -154,6 +155,7 @@ t2 = do
     return (Pointer t,n)
 
 pure (Header _ _ args) | fst (last args) == Pointer "gsl_sf_result" = False
+                       | fst (last args) == Pointer "gsl_sf_result_e10" = False
                        | otherwise = True
 
 showC (Header t n args) = showCt t ++ " " ++ n ++ "("  ++ (concat $ intersperse "," $ map showCa args) ++ ");"
@@ -169,6 +171,7 @@ showH hc h@(Header t n args) = "foreign import ccall \""++hc++" "++n++"\" "++n++
 
 showHt (Normal (s:ss)) = toUpper s : ss
 showHt (Pointer "gsl_sf_result") = "Ptr Double"
+showHt (Pointer "gsl_sf_result_e10") = "Ptr ()"
 showHt (Pointer (s:ss)) = "Ptr "++toUpper s : ss
 
 showHa (t,a) = showHt t
@@ -179,6 +182,7 @@ fixmd1 = rep ("Gsl_mode_t","Precision")
 fixmd2 = rep ("mode"," (precCode mode)")
 
 boiler h@(Header t n args) | fst (last args) == Pointer "gsl_sf_result" = boilerResult h
+                           | fst (last args) == Pointer "gsl_sf_result_e10" = boilerResultE10 h
                            | any isMode args = boilerMode h
                            | otherwise = boilerBasic h
 
@@ -190,6 +194,11 @@ boilerResult h@(Header t n args) =
     drop 7 n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$ map showHa (init args)) ++" -> " ++ "(Double,Double)\n" ++
      drop 7 n ++ " "++(unwords (map snd (init args)))++
        " = createSFR \""++ drop 7 n ++"\" $ " ++ n ++ " "++(fixmd2 $ unwords (map snd (init args)))
+
+boilerResultE10 h@(Header t n args) =
+    drop 7 n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$ map showHa (init args)) ++" -> " ++ "(Double,Int,Double)\n" ++
+     drop 7 n ++ " "++(unwords (map snd (init args)))++
+       " = createSFR_E10 \""++ drop 7 n ++"\" $ " ++ n ++ " "++(fixmd2 $ unwords (map snd (init args)))
 
 boilerBasic h@(Header t n args) = 
     drop 7 n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$map showHa args) ++" -> " ++showHt t ++ "\n" ++
