@@ -17,6 +17,7 @@ Wrappers for selected special functions.
 
 module GSL.Special (
     module GSL.Special.Airy,
+    module GSL.Special.Bessel,
     module GSL.Special.Erf,
     module GSL.Special.Exp,
     module GSL.Special.Gamma
@@ -29,6 +30,7 @@ import GSL.Special.Gamma
 import GSL.Special.Erf
 import GSL.Special.Exp
 import GSL.Special.Airy
+import GSL.Special.Bessel
 
 -------------------- simple functions --------------------------
 
