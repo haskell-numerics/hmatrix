@@ -1,0 +1,14 @@
+int gsl_sf_zeta_int_e(int n,double* result);
+double gsl_sf_zeta_int(int n);
+int gsl_sf_zeta_e(double s,double* result);
+double gsl_sf_zeta(double s);
+int gsl_sf_zetam1_e(double s,double* result);
+double gsl_sf_zetam1(double s);
+int gsl_sf_zetam1_int_e(int s,double* result);
+double gsl_sf_zetam1_int(int s);
+int gsl_sf_hzeta_e(double s,double q,double* result);
+double gsl_sf_hzeta(double s,double q);
+int gsl_sf_eta_int_e(int n,double* result);
+double gsl_sf_eta_int(int n);
+int gsl_sf_eta_e(double s,double* result);
+double gsl_sf_eta(double s);

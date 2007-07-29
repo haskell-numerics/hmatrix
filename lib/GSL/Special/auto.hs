@@ -3,7 +3,7 @@
 import Text.ParserCombinators.Parsec
 import System
 import Data.List(intersperse, isPrefixOf)
-import Data.Char(toUpper)
+import Data.Char(toUpper,isUpper,toLower)
 
 data Type = Normal Ident | Pointer Ident deriving (Eq, Show)
 
@@ -53,7 +53,7 @@ main = do
     --mapM (\(Header _ n _) -> putStrLn (drop 7 n ++",")) parsed
     --putStrLn ""
     --mapM_ (putStrLn.showFull (name ++".h")) parsed
-    let exports = rep (")",") where") $ rep ("(\n","(\n  ") $ rep (",\n",", ") $ unlines $ ["("]++intersperse "," (map (\(Header _ n _) -> drop 7 n) (filter safe parsed))++[")"]
+    let exports = rep (")",") where") $ rep ("(\n","(\n  ") $ rep (",\n",", ") $ unlines $ ["("]++intersperse "," (map (\(Header _ n _) -> hName n) (filter safe parsed))++[")"]
     let defs = unlines $ map (showFull (name ++".h")) parsed
     let imports = "\nimport Foreign(Ptr)\nimport GSL.Special.Internal\n"
     let mod = modhead name ++ "module GSL.Special."++ upperFirst name++exports++imports++defs
@@ -189,22 +189,31 @@ boiler h@(Header t n args) | fst (last args) == Pointer "gsl_sf_result" = boiler
 isMode (Normal "gsl_mode_t",_) = True
 isMode _ = False
 
+hName n = f $ drop 7 n
+    where f (s:ss) = toLower s : ss
+
 
 boilerResult h@(Header t n args) =
-    drop 7 n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$ map showHa (init args)) ++" -> " ++ "(Double,Double)\n" ++
-     drop 7 n ++ " "++(unwords (map snd (init args)))++
-       " = createSFR \""++ drop 7 n ++"\" $ " ++ n ++ " "++(fixmd2 $ unwords (map snd (init args)))
+    hName n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$ map showHa (init args)) ++" -> " ++ "(Double,Double)\n" ++
+     hName n ++ " "++ initArgs args ++
+       " = createSFR \""++ hName n ++"\" $ " ++ n ++ " "++ (fixmd2 $ initArgs args)
 
 boilerResultE10 h@(Header t n args) =
-    drop 7 n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$ map showHa (init args)) ++" -> " ++ "(Double,Int,Double)\n" ++
-     drop 7 n ++ " "++(unwords (map snd (init args)))++
-       " = createSFR_E10 \""++ drop 7 n ++"\" $ " ++ n ++ " "++(fixmd2 $ unwords (map snd (init args)))
+    hName n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$ map showHa (init args)) ++" -> " ++ "(Double,Int,Double)\n" ++
+     hName n ++ " "++ initArgs args ++
+       " = createSFR_E10 \""++ hName n ++"\" $ " ++ n ++ " "++ (fixmd2 $ initArgs args)
 
 boilerBasic h@(Header t n args) = 
-    drop 7 n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$map showHa args) ++" -> " ++showHt t ++ "\n" ++
-      drop 7 n ++ " = " ++fixmd2 n
+    hName n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$map showHa args) ++" -> " ++showHt t ++ "\n" ++
+      hName n ++ " = " ++fixmd2 n
 
 boilerMode h@(Header t n args) =
-    drop 7 n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$ map showHa args) ++" -> " ++ showHt t++"\n" ++
-     drop 7 n ++ " "++(unwords (map snd args))++
-       " = " ++ n ++ " "++(fixmd2 $ unwords (map snd args))
+    hName n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$ map showHa args) ++" -> " ++ showHt t++"\n" ++
+     hName n ++ " "++ allArgs args ++
+       " = " ++ n ++ " "++ (fixmd2 $ allArgs args)
+
+cVar (v:vs) | isUpper v = toLower v : v : vs
+            | otherwise = v:vs
+
+allArgs args =  unwords (map (cVar.snd) args)
+initArgs args = unwords (map (cVar.snd) (init args))

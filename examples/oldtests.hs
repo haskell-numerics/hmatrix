@@ -1,6 +1,6 @@
 import Test.HUnit
 
-import GSL
+import GSL hiding (exp)
 import GSL.Matrix
 import System.Random(randomRs,mkStdGen)
 

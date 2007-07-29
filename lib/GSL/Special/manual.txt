@@ -1,0 +1,10 @@
+Airy.hs
+  include Precision (..) in the export list
+Exp.hs
+  remove extern inline definition, qualify name
+Coupling
+  remove deprecated INCORRECT
+Trig.hs
+  qualify names
+Log.hs
+  remove extern inline, qualify name

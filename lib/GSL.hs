@@ -33,7 +33,7 @@ module Complex
 ) where
 
 import Data.Packed.Vector hiding (constant)
-import Data.Packed.Matrix hiding ((><))
+import Data.Packed.Matrix hiding ((><), multiply)
 import Data.Packed.Tensor
 import LinearAlgebra.Algorithms hiding (pnorm)
 import LAPACK

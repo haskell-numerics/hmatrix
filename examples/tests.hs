@@ -11,7 +11,7 @@ import Data.Packed.Internal.Matrix
 import GSL.Vector
 import GSL.Integration
 import GSL.Differentiation
-import GSL.Special hiding (choose)
+import GSL.Special hiding (choose, multiply, exp)
 import GSL.Fourier
 import GSL.Polynomials
 import LAPACK
