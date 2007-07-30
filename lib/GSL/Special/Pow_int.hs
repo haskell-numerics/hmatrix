@@ -7,7 +7,9 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses ffi
 
+Wrappers for selected functions described at:
 
+<http://www.gnu.org/software/gsl/manual/html_node/Power-Function.html>
 
 -}
 ------------------------------------------------------------

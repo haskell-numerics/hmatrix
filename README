@@ -1,1 +1,53 @@
- 
+REQUIREMENTS
+
+1) GNU Scientific Library (http://www.gnu.org/software/gsl) development packages
+   for your system (typically "gsl" and "gsl-devel").
+
+2) ATLAS BLAS AND LAPACK (http://www.netlib.org/lapack). Usually included with GNU-Octave.
+
+INSTALLATION
+
+(More detailed information is included in the "tutorial",
+available in the web page of the project.)
+
+$ runhaskell Setup.hs configure --prefix=$HOME
+$ runhaskell Setup.hs build
+$ runhaskell Setup.hs haddock
+$ runhaskell Setup.hs install --user
+
+USING ATLAS
+
+$ ln -s /usr/lib/atlas/libblas.so.3.0 $HOME/lib/HSSL-0.1/ghc-6.6.1/libcblas.so
+$ ln -s /usr/lib/atlas/liblapack.so.3.0 $HOME/lib/HSSL-0.1/ghc-6.6.1/liblapack.so
+
+TESTS
+
+$ runhaskell examples/tests.hs
+
+EXAMPLES
+
+$ ghci
+Prelude> :m + GSL
+Prelude GSL> let quad = integrateQNG 1E-10
+Prelude GSL> quad (^2) 0 1
+(0.3333333333333333,3.700743415417188e-15)
+Prelude GSL> :q
+Leaving GHCi.
+
+--------------------------------------------------------------------------------------
+ACKNOWLEDGEMENTS
+
+I thank Henning Thielemann and all the people in the Haskell mailing lists for their help.
+
+- Nico Mahlo discovered a bug in the eigendecomposition wrapper.
+
+- Frederik Eaton discovered a bug in the design of the wrappers.
+
+- Eric Kidd has created a wiki page explaining the installation on MacOS X:
+  http://www.haskell.org/haskellwiki/GSLHaskell_on_MacOS_X
+
+- Fawzi Mohamed discovered a portability bug in the lapack wrappers.
+
+- Pedro E. López de Teruel fixed the interface to lapack.
+
+- Antti Siira discovered a bug in the plotting functions.

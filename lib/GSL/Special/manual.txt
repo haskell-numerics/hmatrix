@@ -6,5 +6,7 @@ Coupling
   remove deprecated INCORRECT
 Trig.hs
   qualify names
+Legendre.hs
+  remove extern inline
 Log.hs
   remove extern inline, qualify name
