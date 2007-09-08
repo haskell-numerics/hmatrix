@@ -28,7 +28,7 @@ debug x = trace (show x) x
 data Vector t = V { dim  :: Int
                   , fptr :: ForeignPtr t
                   , ptr  :: Ptr t
-                  } deriving Typeable
+                  } -- deriving Typeable
 
 ----------------------------------------------------------------------
 instance (Storable a, RealFloat a) => Storable (Complex a) where    --
@@ -78,17 +78,17 @@ check msg ls f = do
     mapM_ (touchForeignPtr . fptr) ls
     return ()
 
-class (Storable a, Typeable a) => Field a
-instance (Storable a, Typeable a) => Field a
+--class (Storable a, Typeable a) => Field a
+--instance (Storable a, Typeable a) => Field a
 
-isReal :: (Data.Typeable.Typeable a) => (t -> a) -> t -> Bool
-isReal w x   = typeOf (undefined :: Double) == typeOf (w x)
+--isReal :: (Data.Typeable.Typeable a) => (t -> a) -> t -> Bool
+--isReal w x   = typeOf (undefined :: Double) == typeOf (w x)
 
-isComp :: (Data.Typeable.Typeable a) => (t -> a) -> t -> Bool
-isComp w x = typeOf (undefined :: Complex Double) == typeOf (w x)
+--isComp :: (Data.Typeable.Typeable a) => (t -> a) -> t -> Bool
+--isComp w x = typeOf (undefined :: Complex Double) == typeOf (w x)
 
-scast :: forall a . forall b . (Typeable a, Typeable b) => a -> b
-scast = fromJust . cast
+--scast :: forall a . forall b . (Typeable a, Typeable b) => a -> b
+--scast = fromJust . cast
 
 {- | conversion of Haskell functions into function pointers that can be used in the C side
 -}

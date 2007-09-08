@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# OPTIONS_GHC -fglasgow-exts -fallow-undecidable-instances #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  GSL.Compat
@@ -23,6 +23,7 @@ import Data.Packed.Internal hiding (dsp)
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import GSL.Vector
+import LinearAlgebra.Linear
 import GSL.Matrix
 import LinearAlgebra.Algorithms
 import Complex
@@ -49,7 +50,7 @@ compat' m1 m2 = rows m1 == 1 && cols m1 == 1
 instance (Eq a, Field a) => Eq (Vector a) where
     a == b = dim a == dim b && toList a == toList b
 
-instance (Num a, Field a) => Num (Vector a) where
+instance (Linear Vector a) => Num (Vector a) where
     (+) = adaptScalar addConstant add (flip addConstant)
     negate = scale (-1)
     (*) = adaptScalar scale mul (flip scale)
@@ -60,7 +61,7 @@ instance (Num a, Field a) => Num (Vector a) where
 instance (Eq a, Field a) => Eq (Matrix a) where
     a == b = rows a == rows b && cols a == cols b && cdat a == cdat b && fdat a == fdat b
 
-instance (Num a, Field a) => Num (Matrix a) where
+instance (Field a, Linear Vector a) => Num (Matrix a) where
     (+) = liftMatrix2' (+)
     negate = liftMatrix negate
     (*) = liftMatrix2' (*)

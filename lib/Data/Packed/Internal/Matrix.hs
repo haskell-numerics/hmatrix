@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# OPTIONS_GHC -fglasgow-exts -fallow-overlapping-instances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Matrix
@@ -22,8 +22,64 @@ import Foreign hiding (xor)
 import Complex
 import Control.Monad(when)
 import Data.List(transpose,intersperse)
-import Data.Typeable
+--import Data.Typeable
 import Data.Maybe(fromJust)
+
+----------------------------------------------------------------
+
+class Storable a => Field a where
+    constant :: a -> Int -> Vector a
+    transdata :: Int -> Vector a -> Int -> Vector a
+    multiplyD :: MatrixOrder -> Matrix a -> Matrix a -> Matrix a
+    subMatrix :: (Int,Int) -- ^ (r0,c0) starting position 
+              -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
+              -> Matrix a -> Matrix a
+    diag :: Vector a -> Matrix a
+
+
+instance Field Double where
+    constant  = constantR
+    transdata = transdataR
+    multiplyD = multiplyR
+    subMatrix = subMatrixR
+    diag      = diagR
+
+instance Field (Complex Double) where
+    constant  = constantC
+    transdata = transdataC
+    multiplyD = multiplyC
+    subMatrix = subMatrixC
+    diag      = diagC
+
+-----------------------------------------------------------------
+
+transdataR :: Int -> Vector Double -> Int -> Vector Double
+transdataR = transdataAux ctransR
+
+transdataC :: Int -> Vector (Complex Double) -> Int -> Vector (Complex Double)
+transdataC = transdataAux ctransC
+
+transdataAux fun c1 d c2 =
+    if noneed
+        then d
+        else unsafePerformIO $ do
+            v <- createVector (dim d)
+            fun r1 c1 (ptr d) r2 c2 (ptr v) // check "transdataAux" [d]
+            --putStrLn "---> transdataAux"
+            return v
+  where r1 = dim d `div` c1
+        r2 = dim d `div` c2
+        noneed = r1 == 1 || c1 == 1
+
+foreign import ccall safe "aux.h transR"
+    ctransR :: TMM -- Double ::> Double ::> IO Int
+foreign import ccall safe "aux.h transC"
+    ctransC :: TCMCM -- Complex Double ::> Complex Double ::> IO Int
+
+transdataG c1 d c2 = fromList . concat . transpose . partit c1 . toList $ d
+
+
+
 
 
 data MatrixOrder = RowMajor | ColumnMajor deriving (Show,Eq)
@@ -34,9 +90,18 @@ data Matrix t = M { rows    :: Int
                   , tdat    :: Vector t
                   , isTrans :: Bool
                   , order   :: MatrixOrder
-                  } deriving Typeable
+                  } -- deriving Typeable
 
 
+data NMat t = MC { rws, cls :: Int, dtc :: Vector t}
+            | MF { rws, cls :: Int, dtf :: Vector t}
+            | Tr (NMat t)
+
+ntrans (Tr m) = m
+ntrans m = Tr m
+
+viewC m@MC{} = m
+viewF m@MF{} = m
 
 fortran m = order m == ColumnMajor
 
@@ -78,7 +143,11 @@ matrixFromVector RowMajor c v =
       , tdat = transdata c v r
       , order = RowMajor
       , isTrans = False
-      } where r = dim v `div` c -- TODO check mod=0
+      } where (d,m) = dim v `divMod` c
+              r | m==0 = d
+                | otherwise = error "matrixFromVector"
+
+-- r = dim v `div` c -- TODO check mod=0
 
 matrixFromVector ColumnMajor c v =
     M { rows = r
@@ -87,7 +156,9 @@ matrixFromVector ColumnMajor c v =
       , tdat = transdata r v c
       , order = ColumnMajor
       , isTrans = False
-      } where r = dim v `div` c -- TODO check mod=0
+      } where (d,m) = dim v `divMod` c
+              r | m==0 = d
+                | otherwise = error "matrixFromVector"
 
 createMatrix order r c = do
     p <- createVector (r*c)
@@ -102,48 +173,11 @@ createMatrix order r c = do
  , 9.0, 10.0, 11.0, 12.0 ]@
 
 -}
-reshape :: (Field t) => Int -> Vector t -> Matrix t
+reshape :: Field t => Int -> Vector t -> Matrix t
 reshape c v = matrixFromVector RowMajor c v
 
 singleton x = reshape 1 (fromList [x])
 
-transdataG :: Storable a => Int -> Vector a -> Int -> Vector a 
-transdataG c1 d c2 = fromList . concat . transpose . partit c1 . toList $ d
-
-transdataR :: Int -> Vector Double -> Int -> Vector Double
-transdataR = transdataAux ctransR
-
-transdataC :: Int -> Vector (Complex Double) -> Int -> Vector (Complex Double)
-transdataC = transdataAux ctransC
-
-transdataAux fun c1 d c2 =
-    if noneed
-        then d
-        else unsafePerformIO $ do
-            v <- createVector (dim d)
-            fun r1 c1 (ptr d) r2 c2 (ptr v) // check "transdataAux" [d]
-            --putStrLn "---> transdataAux"
-            return v
-  where r1 = dim d `div` c1
-        r2 = dim d `div` c2
-        noneed = r1 == 1 || c1 == 1
-
-foreign import ccall safe "aux.h transR"
-    ctransR :: TMM -- Double ::> Double ::> IO Int
-foreign import ccall safe "aux.h transC"
-    ctransC :: TCMCM -- Complex Double ::> Complex Double ::> IO Int
-
-transdata :: Field a => Int -> Vector a -> Int -> Vector a
-transdata c1 d c2 | isReal baseOf d = scast $ transdataR c1 (scast d) c2
-                  | isComp baseOf d = scast $ transdataC c1 (scast d) c2
-                  | otherwise       = transdataG c1 d c2
-
---transdata :: Storable a => Int -> Vector a -> Int -> Vector a 
---transdata = transdataG
---{-# RULES "transdataR" transdata=transdataR #-}
---{-# RULES "transdataC" transdata=transdataC #-}
-
------------------------------------------------------------------
 liftMatrix :: (Field a, Field b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
 liftMatrix f m = reshape (cols m) (f (cdat m))
 
@@ -163,7 +197,7 @@ multiplyL a b | ok = [[dotL x y | y <- transpose b] | x <- a]
                    Nothing -> False
                    Just c  -> c == length b
 
-transL m = matrixFromVector RowMajor (rows m) $ transdataG (cols m) (cdat m) (rows m)
+transL m = matrixFromVector RowMajor (rows m) $ transdata (cols m) (cdat m) (rows m)
 
 multiplyG a b = matrixFromVector RowMajor (cols b) $ fromList $ concat $ multiplyL (toLists a) (toLists b)
 
@@ -179,7 +213,7 @@ gmatC m f | fortran m =
                     else f 0 (rows m) (cols m) (ptr (dat m))
 
 
-multiplyAux order fun a b = unsafePerformIO $ do
+multiplyAux fun order a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $ "inconsistent dimensions in contraction "++
                                       show (rows a,cols a) ++ " x " ++ show (rows b, cols b)
     r <- createMatrix order (rows a) (cols b)
@@ -198,37 +232,14 @@ foreign import ccall safe "aux.h multiplyC"
                -> Int -> Int -> Ptr (Complex Double)
                -> IO Int
 
-multiply :: (Num a, Field a) => MatrixOrder -> Matrix a -> Matrix a -> Matrix a
+multiply :: (Field a) => MatrixOrder -> Matrix a -> Matrix a -> Matrix a
 multiply RowMajor a b    = multiplyD RowMajor a b
 multiply ColumnMajor a b = m {rows = cols m, cols = rows m, order = ColumnMajor}
     where m = multiplyD RowMajor (trans b) (trans a)
 
-multiplyD order a b
-    | isReal (baseOf.dat) a = scast $ multiplyAux order cmultiplyR (scast a) (scast b)
-    | isComp (baseOf.dat) a = scast $ multiplyAux order cmultiplyC (scast a) (scast b)
-    | otherwise             = multiplyG a b
 
-----------------------------------------------------------------------
-
-outer' u v = dat (outer u v)
-
-{- | Outer product of two vectors.
-
-@\> 'fromList' [1,2,3] \`outer\` 'fromList' [5,2,3]
-(3><3)
- [  5.0, 2.0, 3.0
- , 10.0, 4.0, 6.0
- , 15.0, 6.0, 9.0 ]@
--}
-outer :: (Num t, Field t) => Vector t -> Vector t -> Matrix t
-outer u v = multiply RowMajor r c
-    where r = matrixFromVector RowMajor 1 u
-          c = matrixFromVector RowMajor (dim v) v
-
-dot :: (Field t, Num t) => Vector t -> Vector t -> t
-dot u v = dat (multiply RowMajor r c) `at` 0
-    where r = matrixFromVector RowMajor (dim u) u
-          c = matrixFromVector RowMajor 1 v
+multiplyR = multiplyAux cmultiplyR
+multiplyC = multiplyAux cmultiplyC
 
 ----------------------------------------------------------------------
 
@@ -251,14 +262,14 @@ subMatrixC (r0,c0) (rt,ct) x =
     subMatrixR (r0,2*c0) (rt,2*ct) .
     reshape (2*cols x) . asReal . cdat $ x
 
-subMatrix :: (Field a) 
-          => (Int,Int) -- ^ (r0,c0) starting position 
-          -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
-          -> Matrix a -> Matrix a
-subMatrix st sz m
-    | isReal (baseOf.dat) m = scast $ subMatrixR st sz (scast m)
-    | isComp (baseOf.dat) m = scast $ subMatrixC st sz (scast m)
-    | otherwise             = subMatrixG st sz m
+--subMatrix :: (Field a) 
+--          => (Int,Int) -- ^ (r0,c0) starting position 
+--          -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
+--          -> Matrix a -> Matrix a
+--subMatrix st sz m
+--    | isReal (baseOf.dat) m = scast $ subMatrixR st sz (scast m)
+--    | isComp (baseOf.dat) m = scast $ subMatrixC st sz (scast m)
+--    | otherwise             = subMatrixG st sz m
 
 subMatrixG (r0,c0) (rt,ct) x = reshape ct $ fromList $ concat $ map (subList c0 ct) (subList r0 rt (toLists x))
     where subList s n = take n . drop s
@@ -281,11 +292,11 @@ diagC = diagAux c_diagC "diagC"
 foreign import ccall "aux.h diagC" c_diagC :: TCVCM
 
 -- | diagonal matrix from a vector
-diag :: (Num a, Field a) => Vector a -> Matrix a
-diag v
-    | isReal (baseOf) v = scast $ diagR (scast v)
-    | isComp (baseOf) v = scast $ diagC (scast v)
-    | otherwise             = diagG v
+--diag :: (Num a, Field a) => Vector a -> Matrix a
+--diag v
+--    | isReal (baseOf) v = scast $ diagR (scast v)
+--    | isComp (baseOf) v = scast $ diagC (scast v)
+--    | otherwise             = diagG v
 
 diagG v = reshape c $ fromList $ [ l!!(i-1) * delta k i | k <- [1..c], i <- [1..c]]
     where c = dim v
@@ -313,13 +324,34 @@ fromColumns :: Field t => [Vector t] -> Matrix t
 fromColumns m = trans . fromRows $ m
 
 -- | Creates a list of vectors from the columns of a matrix
-toColumns :: Field t => Matrix t -> [Vector t]
+toColumns :: Storable t => Matrix t -> [Vector t]
 toColumns m = toRows . trans $ m
 
 
 -- | Reads a matrix position.
-(@@>) :: Field t => Matrix t -> (Int,Int) -> t
+(@@>) :: Storable t => Matrix t -> (Int,Int) -> t
 infixl 9 @@>
 m@M {rows = r, cols = c} @@> (i,j)
     | i<0 || i>=r || j<0 || j>=c = error "matrix indexing out of range"
     | otherwise   = cdat m `at` (i*c+j)
+
+------------------------------------------------------------------
+
+constantR :: Double -> Int -> Vector Double
+constantR = constantAux cconstantR
+
+constantC :: Complex Double -> Int -> Vector (Complex Double)
+constantC = constantAux cconstantC
+
+constantAux fun x n = unsafePerformIO $ do
+    v <- createVector n
+    px <- newArray [x]
+    fun px // vec v // check "constantAux" []
+    free px
+    return v
+
+foreign import ccall safe "aux.h constantR"
+    cconstantR :: Ptr Double -> TV -- Double :> IO Int
+
+foreign import ccall safe "aux.h constantC"
+    cconstantC :: Ptr (Complex Double) -> TCV -- Complex Double :> IO Int

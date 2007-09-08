@@ -26,7 +26,7 @@ import Data.Packed.Internal.Vector
 import Data.Packed.Internal.Matrix
 import Data.Packed.Vector
 import Data.Packed.Matrix
-import GSL.Vector(scale)
+import LinearAlgebra.Linear(scale)
 import Complex
 import Foreign
 

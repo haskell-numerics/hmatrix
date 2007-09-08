@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# OPTIONS_GHC -fglasgow-exts -fallow-undecidable-instances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Vector
@@ -19,6 +19,8 @@ import Data.Packed.Internal.Common
 import Foreign
 import Complex
 import Control.Monad(when)
+import Data.List(transpose)
+import Debug.Trace(trace)
 
 type Vc t s = Int -> Ptr t -> s
 -- not yet admitted by my haddock version
@@ -28,7 +30,7 @@ type Vc t s = Int -> Ptr t -> s
 vec :: Vector t -> (Vc t s) -> s
 vec v f = f (dim v) (ptr v)
 
-baseOf v = (v `at` 0)
+--baseOf v = (v `at` 0)
 
 createVector :: Storable a => Int -> IO (Vector a)
 createVector n = do
@@ -78,9 +80,16 @@ subVector' k l (v@V {dim=n, ptr=p, fptr=fp})
     | otherwise = v {dim=l, ptr=advancePtr p k}
 
 
+-- | Reads a vector position.
+(@>) :: Storable t => Vector t -> Int -> t
+infixl 9 @>
+(@>) = at
+
+
+
 
 -- | creates a new Vector by joining a list of Vectors
-join :: Field t => [Vector t] -> Vector t
+join :: Storable t => [Vector t] -> Vector t
 join [] = error "joining zero vectors"
 join as = unsafePerformIO $ do
     let tot = sum (map dim as)
@@ -103,34 +112,11 @@ asComplex :: Vector Double -> Vector (Complex Double)
 asComplex v = V { dim = dim v `div` 2, fptr =  castForeignPtr (fptr v), ptr = castPtr (ptr v) }
 
 
-constantG x n = fromList (replicate n x)
-
-constantR :: Double -> Int -> Vector Double
-constantR = constantAux cconstantR
-
-constantC :: Complex Double -> Int -> Vector (Complex Double)
-constantC = constantAux cconstantC
-
-constantAux fun x n = unsafePerformIO $ do
-    v <- createVector n
-    px <- newArray [x]
-    fun px // vec v // check "constantAux" []
-    free px
-    return v
-
-foreign import ccall safe "aux.h constantR"
-    cconstantR :: Ptr Double -> TV -- Double :> IO Int
-
-foreign import ccall safe "aux.h constantC"
-    cconstantC :: Ptr (Complex Double) -> TCV -- Complex Double :> IO Int
-
-constant :: Field a => a -> Int -> Vector a
-constant x n | isReal id x = scast $ constantR (scast x) n
-             | isComp id x = scast $ constantC (scast x) n
-             | otherwise   = constantG x n
+----------------------------------------------------------------
 
 liftVector :: (Storable a, Storable b) => (a-> b) -> Vector a -> Vector b
 liftVector  f = fromList . map f . toList
 
 liftVector2 :: (Storable a, Storable b, Storable c) => (a-> b -> c) -> Vector a -> Vector b -> Vector c
 liftVector2 f u v = fromList $ zipWith f (toList u) (toList v)
+

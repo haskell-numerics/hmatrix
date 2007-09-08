@@ -134,3 +134,18 @@ asRow v = reshape (dim v) v
 
 asColumn :: Field a => Vector a -> Matrix a
 asColumn v = reshape 1 v
+
+------------------------------------------------
+
+{- | Outer product of two vectors.
+
+@\> 'fromList' [1,2,3] \`outer\` 'fromList' [5,2,3]
+(3><3)
+ [  5.0, 2.0, 3.0
+ , 10.0, 4.0, 6.0
+ , 15.0, 6.0, 9.0 ]@
+-}
+outer :: (Num t, Field t) => Vector t -> Vector t -> Matrix t
+outer u v = multiply RowMajor r c
+    where r = matrixFromVector RowMajor 1 u
+          c = matrixFromVector RowMajor (dim v) v

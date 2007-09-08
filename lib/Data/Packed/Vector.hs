@@ -27,7 +27,7 @@ module Data.Packed.Vector (
 
 import Data.Packed.Internal
 import Complex
-import GSL.Vector
+--import GSL.Vector
 
 -- | creates a complex vector from vectors with real and imaginary parts
 toComplex :: (Vector Double, Vector Double) ->  Vector (Complex Double)
@@ -50,7 +50,9 @@ linspace :: Int -> (Double, Double) -> Vector Double
 linspace n (a,b) = fromList [a::Double,a+delta .. b]
     where delta = (b-a)/(fromIntegral n -1)
 
--- | Reads a vector position.
-(@>) :: Field t => Vector t -> Int -> t
-infixl 9 @>
-(@>) = at
+
+dot :: (Field t) => Vector t -> Vector t -> t
+dot u v = dat (multiply RowMajor r c) `at` 0
+    where r = matrixFromVector RowMajor (dim u) u
+          c = matrixFromVector RowMajor 1 v
+

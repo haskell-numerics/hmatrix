@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fglasgow-exts -fallow-undecidable-instances #-}
+
 --
 -- QuickCheck tests
 --
@@ -19,6 +21,7 @@ import Test.QuickCheck
 import Test.HUnit hiding ((~:))
 import Complex
 import LinearAlgebra.Algorithms
+import LinearAlgebra.Linear
 import GSL.Matrix
 import GSL.Compat hiding ((<>),constant)
 
@@ -144,7 +147,7 @@ instance (Field a, Arbitrary a) => Arbitrary (SqM a) where
     coarbitrary = undefined
 
 data Sym a = Sym (Matrix a) deriving Show
-instance (Field a, Arbitrary a, Num a) => Arbitrary (Sym a) where
+instance (Linear Vector a, Arbitrary a) => Arbitrary (Sym a) where
     arbitrary = do
         SqM m <- arbitrary
         return $ Sym (m + trans m)

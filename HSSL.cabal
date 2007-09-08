@@ -1,4 +1,4 @@
-Name:               HSSL
+Name:               HSSL2
 Version:            0.1
 License:            GPL
 --License-file:       LICENSE
@@ -18,15 +18,19 @@ Extensions:         ForeignFunctionInterface
 --ghc-options:        -Wall
 ghc-options:        -O
 hs-source-dirs:     lib
-Exposed-modules:    Data.Packed.Internal,
+Exposed-modules:
+                    Data.Packed.Internal,
                     Data.Packed.Internal.Common,
-                    Data.Packed.Internal.Vector, Data.Packed.Vector,
-                    Data.Packed.Internal.Matrix, Data.Packed.Matrix,
-                    Data.Packed.Internal.Tensor, Data.Packed.Tensor,
-                    Data.Packed.Plot
+                    Data.Packed.Internal.Vector,
+                    Data.Packed.Vector,
+                    Data.Packed.Internal.Matrix, 
+                    Data.Packed.Matrix,
+                    GSL.Vector,
+                    LinearAlgebra.Linear,
+                    Data.Packed.Internal.Tensor, Data.Packed.Tensor
+                    Data.Packed.Plot,
                     LAPACK,
-                    GSL.Vector, 
-                    GSL.Matrix
+                    GSL.Matrix,
                     GSL.Differentiation, GSL.Integration,
                     GSL.Special, GSL.Special.Internal,
                     GSL.Special.Gamma, GSL.Special.Erf,

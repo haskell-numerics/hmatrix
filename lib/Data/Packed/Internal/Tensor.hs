@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fglasgow-exts #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Tensor
@@ -19,6 +21,8 @@ import Foreign.Storable
 import Data.List(sort,elemIndex,nub,foldl1',foldl')
 import GSL.Vector
 import Data.Packed.Matrix
+import Data.Packed.Vector
+import LinearAlgebra.Linear
 
 data IdxType = Covariant | Contravariant deriving (Show,Eq)
 
@@ -171,6 +175,7 @@ compatIdx t1 n1 t2 n2 = compatIdxAux d1 d2 where
         = t1 /= t2 && n1 == n2
 
 
+outer' u v = dat (outer u v)
 
 -- | tensor product without without any contractions
 rawProduct :: (Field t, Num t) => Tensor t -> Tensor t -> Tensor t
@@ -187,7 +192,7 @@ contraction2 t1 n1 t2 n2 =
         m = multiply RowMajor (trans m1) m2
 
 -- | contraction of a tensor along two given indices
-contraction1 :: (Field t, Num t) => Tensor t -> IdxName -> IdxName -> Tensor t
+contraction1 :: (Linear Vector t) => Tensor t -> IdxName -> IdxName -> Tensor t
 contraction1 t name1 name2 =
     if compatIdx t name1 t name2
         then sumT y
@@ -197,7 +202,7 @@ contraction1 t name1 name2 =
           y = map head $ zipWith drop [0..] x
 
 -- | contraction of a tensor along a repeated index
-contraction1c :: (Field t, Num t) => Tensor t -> IdxName -> Tensor t
+contraction1c :: (Linear Vector t) => Tensor t -> IdxName -> Tensor t
 contraction1c t n = contraction1 renamed n' n
     where n' = n++"'" -- hmmm
           renamed = withIdx t auxnames
@@ -205,31 +210,31 @@ contraction1c t n = contraction1 renamed n' n
           (h,_:r) = break (==n) (map idxName (dims t))
 
 -- | alternative and inefficient version of contraction2
-contraction2' :: (Field t, Enum t, Num t) => Tensor t -> IdxName -> Tensor t -> IdxName -> Tensor t
+contraction2' :: (Linear Vector t) => Tensor t -> IdxName -> Tensor t -> IdxName -> Tensor t
 contraction2' t1 n1 t2 n2 =
     if compatIdx t1 n1 t2 n2
         then contraction1 (rawProduct t1 t2) n1 n2
         else error "wrong contraction'"
 
 -- | applies a sequence of contractions
-contractions :: (Field t, Num t) => Tensor t -> [(IdxName, IdxName)] -> Tensor t
+contractions :: (Linear Vector t) => Tensor t -> [(IdxName, IdxName)] -> Tensor t
 contractions t pairs = foldl' contract1b t pairs
     where contract1b t (n1,n2) = contraction1 t n1 n2
 
 -- | applies a sequence of contractions of same index
-contractionsC :: (Field t, Num t) => Tensor t -> [IdxName] -> Tensor t
+contractionsC :: (Linear Vector t) => Tensor t -> [IdxName] -> Tensor t
 contractionsC t is = foldl' contraction1c t is
 
 
 -- | applies a contraction on the first indices of the tensors
-contractionF :: (Field t, Num t) => Tensor t -> Tensor t -> Tensor t
+contractionF :: (Linear Vector t) => Tensor t -> Tensor t -> Tensor t
 contractionF t1 t2 = contraction2 t1 n1 t2 n2
     where n1 = fn t1
           n2 = fn t2
           fn = idxName . head . dims
 
 -- | computes all compatible contractions of the product of two tensors that would arise if the index names were equal
-possibleContractions :: (Num t, Field t) => Tensor t -> Tensor t -> [Tensor t]
+possibleContractions :: (Linear Vector t) => Tensor t -> Tensor t -> [Tensor t]
 possibleContractions t1 t2 = [ contraction2 t1 n1 t2 n2 | n1 <- names t1, n2 <- names t2, compatIdx t1 n1 t2 n2 ]
 
 
@@ -242,7 +247,7 @@ desiredContractions1 t = [ n1 | (a,n1) <- x , (b,n2) <- x, a/=b, n1==n2]
     where x = zip [0..] (names t)
 
 -- | tensor product with the convention that repeated indices are contracted.
-mulT :: (Field t, Num t) => Tensor t -> Tensor t -> Tensor t
+mulT :: (Linear Vector t) => Tensor t -> Tensor t -> Tensor t
 mulT t1 t2 = r where
     t1r = contractionsC t1 (desiredContractions1 t1)
     t2r = contractionsC t2 (desiredContractions1 t2)
@@ -254,10 +259,10 @@ mulT t1 t2 = r where
 -----------------------------------------------------------------
 
 -- | tensor addition (for tensors with the same structure)
-addT :: (Num a, Field a) => Tensor a -> Tensor a -> Tensor a
+addT :: (Linear Vector a) => Tensor a -> Tensor a -> Tensor a
 addT a b = liftTensor2 add a b
 
-sumT :: (Field a, Num a) => [Tensor a] -> Tensor a
+sumT :: (Linear Vector a) => [Tensor a] -> Tensor a
 sumT l = foldl1' addT l
 
 -----------------------------------------------------------------
@@ -281,19 +286,19 @@ signature l | length (nub l) < length l =  0
             | otherwise                 = -1
 
 
-sym :: (Field t, Num t) => Tensor t -> Tensor t
+sym :: (Linear Vector t) => Tensor t -> Tensor t
 sym t = T (dims t) (ten (sym' (withIdx t seqind)))
     where sym' t = sumT $ map (flip tridx t) (perms (names t))
               where nms = map idxName . dims
 
-antisym :: (Field t, Num t) => Tensor t -> Tensor t
+antisym :: (Linear Vector t) => Tensor t -> Tensor t
 antisym t = T (dims t) (ten (antisym' (withIdx t seqind)))
     where antisym' t = sumT $ map (scsig . flip tridx t) (perms (names t))
           scsig t = scalar (signature (nms t)) `rawProduct` t
               where nms = map idxName . dims
 
 -- | the wedge product of two tensors (implemented as the antisymmetrization of the ordinary tensor product).
-wedge :: (Field t, Fractional t) => Tensor t -> Tensor t -> Tensor t
+wedge :: (Linear Vector t, Fractional t) => Tensor t -> Tensor t -> Tensor t
 wedge a b = antisym (rawProduct (norper a) (norper b))
     where norper t = rawProduct t (scalar (recip $ fromIntegral $ fact (rank t)))
 
@@ -313,19 +318,19 @@ seqind :: [String]
 seqind = map show [1..]
 
 -- | completely antisymmetric covariant tensor of dimension n
-leviCivita :: (Field t, Num t) => Int -> Tensor t
+leviCivita :: (Linear Vector t) => Int -> Tensor t
 leviCivita n = antisym $ foldl1 rawProduct $ zipWith withIdx auxbase seqind'
     where auxbase = map tc (toRows (ident n))
           tc = tensorFromVector Covariant
 
 -- | contraction of leviCivita with a list of vectors (and raise with euclidean metric)
-innerLevi :: (Num t, Field t) => [Tensor t] -> Tensor t
+innerLevi :: (Linear Vector t) => [Tensor t] -> Tensor t
 innerLevi vs = raise $ foldl' contractionF (leviCivita n) vs
     where n = idxDim . head . dims . head $ vs
 
 
 -- | obtains the dual of a multivector (with euclidean metric)
-dual :: (Field t, Fractional t) => Tensor t -> Tensor t
+dual :: (Linear Vector t, Fractional t) => Tensor t -> Tensor t
 dual t = raise $ leviCivita n `mulT` withIdx t seqind `rawProduct` x
     where n = idxDim . head . dims $ t
           x = scalar (recip $ fromIntegral $ fact (rank t))
