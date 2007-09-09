@@ -27,6 +27,10 @@ import Data.Maybe(fromJust)
 
 ----------------------------------------------------------------
 
+-- the condition Storable a => Field a means that we can only put
+-- in Field types that are in Storable, and therefore Storable a
+-- is not required in signatures if we have a Field a.
+
 class Storable a => Field a where
     constant :: a -> Int -> Vector a
     transdata :: Int -> Vector a -> Int -> Vector a
@@ -35,7 +39,6 @@ class Storable a => Field a where
               -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
               -> Matrix a -> Matrix a
     diag :: Vector a -> Matrix a
-
 
 instance Field Double where
     constant  = constantR
@@ -78,11 +81,39 @@ foreign import ccall safe "aux.h transC"
 
 transdataG c1 d c2 = fromList . concat . transpose . partit c1 . toList $ d
 
+{- Design considerations for the Matrix Type
+   -----------------------------------------
 
+- we must easily handle both row major and column major order,
+  for bindings to LAPACK and GSL/C
 
+- we'd like to simplify redundant matrix transposes:
+   - Some of them arise from the order requirements of some functions
+   - some functions (matrix product) admit transposed arguments
 
+- maybe we don't really need this kind of simplification:
+   - more complex code
+   - some computational overhead
+   - only appreciable gain in code with a lot of redundant transpositions
+     and cheap matrix computations
+
+- we could carry both the matrix and its (lazily computed) transpose.
+  This may save some transpositions, but it is necessary to keep track of the
+  data which is actually computed to be used by functions like the matrix product
+  which admit both orders. Therefore, maybe it is better to have something like
+  viewC and viewF, which may actually perform a transpose if required.
+
+- but if we need the transposed data and it is not in the structure, we must make
+  sure that we touch the same foreignptr that is used in the computation. Access
+  to such pointer cannot be made by creating a new vector.
+
+-}
 
 data MatrixOrder = RowMajor | ColumnMajor deriving (Show,Eq)
+
+{-
+
+
 
 data Matrix t = M { rows    :: Int
                   , cols    :: Int
@@ -91,28 +122,26 @@ data Matrix t = M { rows    :: Int
                   , isTrans :: Bool
                   , order   :: MatrixOrder
                   } -- deriving Typeable
+-}
 
+data Matrix t = MC { rows :: Int, cols :: Int, dat :: Vector t } -- row major order
+              | MF { rows :: Int, cols :: Int, dat :: Vector t } -- column major order
 
-data NMat t = MC { rws, cls :: Int, dtc :: Vector t}
-            | MF { rws, cls :: Int, dtf :: Vector t}
-            | Tr (NMat t)
-
-ntrans (Tr m) = m
-ntrans m = Tr m
+-- transposition just changes the data order
+trans :: Matrix t -> Matrix t
+trans MC {rows = r, cols = c, dat = d} = MF {rows = c, cols = r, dat = d}
+trans MF {rows = r, cols = c, dat = d} = MC {rows = c, cols = r, dat = d}
 
 viewC m@MC{} = m
+viewC MF {rows = r, cols = c, dat = d} = MC {rows = r, cols = c, dat = transdata r d c}
+
 viewF m@MF{} = m
+viewF MC {rows = r, cols = c, dat = d} = MF {rows = r, cols = c, dat = transdata c d r}
 
-fortran m = order m == ColumnMajor
+--fortran m = order m == ColumnMajor
 
-cdat m = if fortran m `xor` isTrans m then tdat m else dat m
-fdat m = if fortran m `xor` isTrans m then dat m else tdat m
-
-trans :: Matrix t -> Matrix t
-trans m = m { rows = cols m
-            , cols = rows m
-            , isTrans = not (isTrans m)
-            }
+cdat m = dat (viewC m)
+fdat m = dat (viewF m)
 
 type Mt t s = Int -> Int -> Ptr t -> s
 -- not yet admitted by my haddock version
@@ -120,11 +149,14 @@ type Mt t s = Int -> Int -> Ptr t -> s
 -- type t ::> s = Mt t s
 
 mat d m f = f (rows m) (cols m) (ptr (d m))
+--mat m f = f (rows m) (cols m) (ptr (dat m))
+--matC m f = f (rows m) (cols m) (ptr (cdat m))
 
-toLists :: (Storable t) => Matrix t -> [[t]]
+
+--toLists :: (Storable t) => Matrix t -> [[t]]
 toLists m = partit (cols m) . toList . cdat $ m
 
-instance (Show a, Storable a) => (Show (Matrix a)) where
+instance (Show a, Field a) => (Show (Matrix a)) where
     show m = (sizes++) . dsp . map (map show) . toLists $ m
         where sizes = "("++show (rows m)++"><"++show (cols m)++")\n"
 
@@ -136,6 +168,7 @@ dsp as = (++" ]") . (" ["++) . init . drop 2 . unlines . map (" , "++) . map unw
         pad n str = replicate (n - length str) ' ' ++ str
         unwords' = concat . intersperse ", "
 
+{-
 matrixFromVector RowMajor c v =
     M { rows = r
       , cols = c
@@ -147,8 +180,6 @@ matrixFromVector RowMajor c v =
               r | m==0 = d
                 | otherwise = error "matrixFromVector"
 
--- r = dim v `div` c -- TODO check mod=0
-
 matrixFromVector ColumnMajor c v =
     M { rows = r
       , cols = c
@@ -159,6 +190,23 @@ matrixFromVector ColumnMajor c v =
       } where (d,m) = dim v `divMod` c
               r | m==0 = d
                 | otherwise = error "matrixFromVector"
+
+-}
+
+matrixFromVector RowMajor c v = MC { rows = r, cols = c, dat = v}
+    where (d,m) = dim v `divMod` c
+          r | m==0 = d
+            | otherwise = error "matrixFromVector"
+
+matrixFromVector ColumnMajor c v = MF { rows = r, cols = c, dat = v}
+    where (d,m) = dim v `divMod` c
+          r | m==0 = d
+            | otherwise = error "matrixFromVector"
+
+
+
+
+
 
 createMatrix order r c = do
     p <- createVector (r*c)
@@ -178,10 +226,10 @@ reshape c v = matrixFromVector RowMajor c v
 
 singleton x = reshape 1 (fromList [x])
 
-liftMatrix :: (Field a, Field b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
+--liftMatrix :: (Field a, Field b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
 liftMatrix f m = reshape (cols m) (f (cdat m))
 
-liftMatrix2 :: (Field t) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
+--liftMatrix2 :: (Field t) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
 liftMatrix2 f m1 m2 | compat m1 m2 = reshape (cols m1) (f (cdat m1) (cdat m2))
                     | otherwise    = error "nonconformant matrices in liftMatrix2"
 ------------------------------------------------------------------
@@ -203,6 +251,7 @@ multiplyG a b = matrixFromVector RowMajor (cols b) $ fromList $ concat $ multipl
 
 ------------------------------------------------------------------
 
+{-
 gmatC m f | fortran m =
                 if (isTrans m)
                     then f 0 (rows m) (cols m) (ptr (dat m))
@@ -211,7 +260,11 @@ gmatC m f | fortran m =
                 if isTrans m
                     then f 1 (cols m) (rows m) (ptr (dat m))
                     else f 0 (rows m) (cols m) (ptr (dat m))
+-}
 
+gmatC MF {rows = r, cols = c, dat = d} f = f 1 c r (ptr d)
+gmatC MC {rows = r, cols = c, dat = d} f = f 0 r c (ptr d)
+{-# INLINE gmatC #-}
 
 multiplyAux fun order a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $ "inconsistent dimensions in contraction "++
@@ -219,6 +272,7 @@ multiplyAux fun order a b = unsafePerformIO $ do
     r <- createMatrix order (rows a) (cols b)
     fun // gmatC a // gmatC b // mat dat r // check "multiplyAux" [dat a, dat b]
     return r
+{-# INLINE multiplyAux #-}
 
 foreign import ccall safe "aux.h multiplyR"
     cmultiplyR :: Int -> Int -> Int -> Ptr Double
@@ -234,12 +288,14 @@ foreign import ccall safe "aux.h multiplyC"
 
 multiply :: (Field a) => MatrixOrder -> Matrix a -> Matrix a -> Matrix a
 multiply RowMajor a b    = multiplyD RowMajor a b
-multiply ColumnMajor a b = m {rows = cols m, cols = rows m, order = ColumnMajor}
-    where m = multiplyD RowMajor (trans b) (trans a)
+multiply ColumnMajor a b = MF {rows = c, cols = r, dat = d}
+    where MC {rows = r, cols = c, dat = d } = multiplyD RowMajor (trans b) (trans a)
 
 
-multiplyR = multiplyAux cmultiplyR
+multiplyR = multiplyAux cmultiplyR'
 multiplyC = multiplyAux cmultiplyC
+
+cmultiplyR' p1 p2 p3 p4 q1 q2 q3 q4 r1 r2 r3 = {-# SCC "mulR" #-} cmultiplyR p1 p2 p3 p4 q1 q2 q3 q4 r1 r2 r3
 
 ----------------------------------------------------------------------
 
@@ -249,7 +305,7 @@ subMatrixR :: (Int,Int) -- ^ (r0,c0) starting position
            -> Matrix Double -> Matrix Double
 subMatrixR (r0,c0) (rt,ct) x = unsafePerformIO $ do
     r <- createMatrix RowMajor rt ct
-    c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1) // mat cdat x // mat cdat r // check "subMatrixR" [dat r]
+    c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1) // mat cdat x // mat dat r // check "subMatrixR" [dat r]
     return r
 foreign import ccall "aux.h submatrixR" c_submatrixR :: Int -> Int -> Int -> Int -> TMM
 
@@ -278,8 +334,8 @@ subMatrixG (r0,c0) (rt,ct) x = reshape ct $ fromList $ concat $ map (subList c0 
 
 diagAux fun msg (v@V {dim = n}) = unsafePerformIO $ do
     m <- createMatrix RowMajor n n
-    fun // vec v // mat dat m // check msg [dat m]
-    return m {tdat = dat m}
+    fun // vec v // mat cdat m // check msg [dat m]
+    return m -- {tdat = dat m}
 
 -- | diagonal matrix from a real vector
 diagR :: Vector Double -> Matrix Double
@@ -305,13 +361,13 @@ diagG v = reshape c $ fromList $ [ l!!(i-1) * delta k i | k <- [1..c], i <- [1..
                     | otherwise = 0
 
 -- | creates a Matrix from a list of vectors
-fromRows :: Field t => [Vector t] -> Matrix t
+--fromRows :: Field t => [Vector t] -> Matrix t
 fromRows vs = case common dim vs of
     Nothing -> error "fromRows applied to [] or to vectors with different sizes"
     Just c  -> reshape c (join vs)
 
 -- | extracts the rows of a matrix as a list of vectors
-toRows :: Storable t => Matrix t -> [Vector t]
+--toRows :: Storable t => Matrix t -> [Vector t]
 toRows m = toRows' 0 where
     v = cdat m
     r = rows m
@@ -324,16 +380,25 @@ fromColumns :: Field t => [Vector t] -> Matrix t
 fromColumns m = trans . fromRows $ m
 
 -- | Creates a list of vectors from the columns of a matrix
-toColumns :: Storable t => Matrix t -> [Vector t]
+toColumns :: Field t => Matrix t -> [Vector t]
 toColumns m = toRows . trans $ m
 
 
 -- | Reads a matrix position.
 (@@>) :: Storable t => Matrix t -> (Int,Int) -> t
 infixl 9 @@>
-m@M {rows = r, cols = c} @@> (i,j)
+--m@M {rows = r, cols = c} @@> (i,j)
+--    | i<0 || i>=r || j<0 || j>=c = error "matrix indexing out of range"
+--    | otherwise   = cdat m `at` (i*c+j)
+
+MC {rows = r, cols = c, dat = v} @@> (i,j)
     | i<0 || i>=r || j<0 || j>=c = error "matrix indexing out of range"
-    | otherwise   = cdat m `at` (i*c+j)
+    | otherwise                  = v `at` (i*c+j)
+
+MF {rows = r, cols = c, dat = v} @@> (i,j)
+    | i<0 || i>=r || j<0 || j>=c = error "matrix indexing out of range"
+    | otherwise                  = v `at` (j*r+i)
+
 
 ------------------------------------------------------------------
 

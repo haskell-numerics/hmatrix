@@ -189,7 +189,7 @@ instance (Field a, Arbitrary a) => Arbitrary (PairV a) where
 
 
 
-type BaseType = Double
+type BaseType = Complex Double
 
 svdTestR fun m = u <> s <> trans v |~| m
                && u <> trans u |~| ident (rows m)

@@ -46,13 +46,14 @@ import Foreign.C.String
 
 -}
 eigSg :: Matrix Double -> (Vector Double, Matrix Double)
-eigSg (m@M {rows = r})
+eigSg m
     | r == 1 = (fromList [cdat m `at` 0], singleton 1)
     | otherwise = unsafePerformIO $ do
         l <- createVector r
         v <- createMatrix RowMajor r r
         c_eigS // mat cdat m // vec l // mat dat v // check "eigSg" [cdat m]
         return (l,v)
+  where r = rows m
 foreign import ccall "gsl-aux.h eigensystemR" c_eigS :: TMVM
 
 ------------------------------------------------------------------
@@ -76,13 +77,14 @@ foreign import ccall "gsl-aux.h eigensystemR" c_eigS :: TMVM
 
 -}
 eigHg :: Matrix (Complex Double)-> (Vector Double, Matrix (Complex Double))
-eigHg (m@M {rows = r})
+eigHg m
     | r == 1 = (fromList [realPart $ cdat m `at` 0], singleton 1)
     | otherwise = unsafePerformIO $ do
         l <- createVector r
         v <- createMatrix RowMajor r r
         c_eigH // mat cdat m // vec l // mat dat v // check "eigHg" [cdat m]
         return (l,v)
+  where r = rows m
 foreign import ccall "gsl-aux.h eigensystemC" c_eigH :: TCMVCM
 
 
@@ -108,16 +110,18 @@ foreign import ccall "gsl-aux.h eigensystemC" c_eigH :: TCMVCM
 
 -}
 svdg :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
-svdg x@M {rows = r, cols = c} = if r>=c
+svdg x = if rows x >= cols x
     then svd' x
     else (v, s, u) where (u,s,v) = svd' (trans x)
 
-svd' x@M {rows = r, cols = c} = unsafePerformIO $ do
+svd' x = unsafePerformIO $ do
     u <- createMatrix RowMajor r c
     s <- createVector c
     v <- createMatrix RowMajor c c
     c_svd // mat cdat x // mat dat u // vec s // mat dat v // check "svdg" [cdat x]
     return (u,s,v)
+  where r = rows x
+        c = cols x
 foreign import ccall "gsl-aux.h svd" c_svd :: TMMVM
 
 {- | QR decomposition of a real matrix using /gsl_linalg_QR_decomp/ and /gsl_linalg_QR_unpack/.
@@ -138,11 +142,13 @@ foreign import ccall "gsl-aux.h svd" c_svd :: TMMVM
 
 -}
 qr :: Matrix Double -> (Matrix Double, Matrix Double)
-qr x@M {rows = r, cols = c} = unsafePerformIO $ do
+qr x = unsafePerformIO $ do
     q <- createMatrix RowMajor r r
     rot <- createMatrix RowMajor r c
     c_qr // mat cdat x // mat dat q // mat dat rot // check "qr" [cdat x]
     return (q,rot)
+  where r = rows x
+        c = cols x
 foreign import ccall "gsl-aux.h QR" c_qr :: TMMM
 
 {- | Cholesky decomposition of a symmetric positive definite real matrix using /gsl_linalg_cholesky_decomp/.
@@ -159,11 +165,11 @@ foreign import ccall "gsl-aux.h QR" c_qr :: TMMM
 
 -}
 chol :: Matrix Double -> Matrix Double
---chol x@(M r _ p) = createM [p] "chol" r r $ m c_chol x
-chol x@M {rows = r} = unsafePerformIO $ do
+chol x = unsafePerformIO $ do
     res <- createMatrix RowMajor r r
     c_chol // mat cdat x // mat dat res // check "chol" [cdat x]
     return res
+  where r = rows x
 foreign import ccall "gsl-aux.h chol" c_chol :: TMM
 
 --------------------------------------------------------
@@ -171,43 +177,53 @@ foreign import ccall "gsl-aux.h chol" c_chol :: TMM
 {- -| efficient multiplication by the inverse of a matrix (for real matrices)
 -}
 luSolveR :: Matrix Double -> Matrix Double -> Matrix Double
-luSolveR  a@(M {rows = n1, cols = n2}) b@(M {rows = r, cols = c})
+luSolveR a b
     | n1==n2 && n1==r = unsafePerformIO $ do
         s <- createMatrix RowMajor r c
         c_luSolveR // mat cdat a // mat cdat b // mat dat s // check "luSolveR" [cdat a, cdat b]
         return s
     | otherwise = error "luSolveR of nonsquare matrix"
-
+  where n1 = rows a
+        n2 = cols a
+        r  = rows b
+        c  = cols b
 foreign import ccall "gsl-aux.h luSolveR" c_luSolveR ::  TMMM
 
 {- -| efficient multiplication by the inverse of a matrix (for complex matrices). 
 -}
 luSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
-luSolveC  a@(M {rows = n1, cols = n2}) b@(M {rows = r, cols = c})
+luSolveC a b
     | n1==n2 && n1==r = unsafePerformIO $ do
         s <- createMatrix RowMajor r c
         c_luSolveC // mat cdat a // mat cdat b // mat dat s // check "luSolveC" [cdat a, cdat b]
         return s
     | otherwise = error "luSolveC of nonsquare matrix"
-
+  where n1 = rows a
+        n2 = cols a
+        r  = rows b
+        c  = cols b
 foreign import ccall "gsl-aux.h luSolveC" c_luSolveC ::  TCMCMCM
 
 {- | lu decomposition of real matrix (packed as a vector including l, u, the permutation and sign)
 -}
 luRaux  :: Matrix Double -> Vector Double
-luRaux x@M {rows = r, cols = c} = unsafePerformIO $ do
+luRaux x = unsafePerformIO $ do
     res <- createVector (r*r+r+1)
     c_luRaux // mat cdat x // vec res // check "luRaux" [cdat x]
     return res
+  where r = rows x
+        c = cols x
 foreign import ccall "gsl-aux.h luRaux" c_luRaux :: TMV
 
 {- | lu decomposition of complex matrix (packed as a vector including l, u, the permutation and sign)
 -}
 luCaux  :: Matrix (Complex Double) -> Vector (Complex Double)
-luCaux x@M {rows = r, cols = c} = unsafePerformIO $ do
+luCaux x = unsafePerformIO $ do
     res <- createVector (r*r+r+1)
     c_luCaux // mat cdat x // vec res // check "luCaux" [cdat x]
     return res
+  where r = rows x
+        c = cols x
 foreign import ccall "gsl-aux.h luCaux" c_luCaux :: TCMCV
 
 {- | The LU decomposition of a square matrix. Is based on /gsl_linalg_LU_decomp/ and  /gsl_linalg_complex_LU_decomp/ as described in <http://www.gnu.org/software/gsl/manual/gsl-ref_13.html#SEC223>.

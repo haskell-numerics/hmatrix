@@ -77,7 +77,7 @@ diagRect s r c
     | r > c     = joinVert  [diag s , zeros (r-c,c)]
     where zeros (r,c) = reshape c $ constant 0 (r*c)
 
-takeDiag :: (Storable t) => Matrix t -> Vector t
+takeDiag :: (Field t) => Matrix t -> Vector t
 takeDiag m = fromList [cdat m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
 
 ident :: (Num t, Field t) => Int -> Matrix t
@@ -119,7 +119,7 @@ dropColumns n mat = subMatrix (0,n) (rows mat, cols mat - n) mat
 @\> flatten ('ident' 3)
 9 # [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]@
 -}
-flatten :: Matrix t -> Vector t
+flatten :: Field t => Matrix t -> Vector t
 flatten = cdat
 
 -- | Creates a 'Matrix' from a list of lists (considered as rows).

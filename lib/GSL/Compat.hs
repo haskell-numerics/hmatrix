@@ -38,7 +38,7 @@ adaptScalar f1 f2 f3 x y
     | dim y == 1 = f3 x (y@>0)
     | otherwise = f2 x y
 
-liftMatrix2' :: (Field t) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
+liftMatrix2' :: (Field t, Field a, Field b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
 liftMatrix2' f m1 m2 | compat' m1 m2 = reshape (max (cols m1) (cols m2)) (f (cdat m1) (cdat m2))
                      | otherwise    = error "nonconformant matrices in liftMatrix2'"
 
@@ -63,6 +63,7 @@ instance (Eq a, Field a) => Eq (Matrix a) where
 
 instance (Field a, Linear Vector a) => Num (Matrix a) where
     (+) = liftMatrix2' (+)
+    (-) = liftMatrix2' (-)
     negate = liftMatrix negate
     (*) = liftMatrix2' (*)
     signum = liftMatrix signum

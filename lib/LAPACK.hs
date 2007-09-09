@@ -37,16 +37,19 @@ foreign import ccall "LAPACK/lapack-aux.h svd_l_R" dgesvd :: TMMVM
 --
 -- @(u,s,v)=svdR m@ so that @m=u \<\> s \<\> 'trans' v@.
 svdR :: Matrix Double -> (Matrix Double, Matrix Double, Matrix Double)
-svdR x@M {rows = r, cols = c} = (u, diagRect s r c, v) where (u,s,v) = svdR' x
+svdR x = (u, diagRect s r c, v) where (u,s,v) = svdR' x
+                                      r = rows x
+                                      c = cols x
 
 svdR' :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
-svdR' x@M {rows = r, cols = c} = unsafePerformIO $ do
+svdR' x = unsafePerformIO $ do
     u <- createMatrix ColumnMajor r r
     s <- createVector (min r c)
     v <- createMatrix ColumnMajor c c
     dgesvd // mat fdat x // mat dat u // vec s // mat dat v // check "svdR" [fdat x]
     return (u,s,trans v)
-
+  where r = rows x
+        c = cols x
 -----------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h svd_l_Rdd" dgesdd :: TMMVM
 
@@ -54,15 +57,19 @@ foreign import ccall "LAPACK/lapack-aux.h svd_l_Rdd" dgesdd :: TMMVM
 --
 -- @(u,s,v)=svdRdd m@ so that @m=u \<\> s \<\> 'trans' v@.
 svdRdd :: Matrix Double -> (Matrix Double, Matrix Double , Matrix Double)
-svdRdd x@M {rows = r, cols = c} = (u, diagRect s r c, v) where (u,s,v) = svdRdd' x
+svdRdd x = (u, diagRect s r c, v) where (u,s,v) = svdRdd' x
+                                        r = rows x
+                                        c = cols x
 
 svdRdd' :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
-svdRdd' x@M {rows = r, cols = c} = unsafePerformIO $ do
+svdRdd' x = unsafePerformIO $ do
     u <- createMatrix ColumnMajor r r
     s <- createVector (min r c)
     v <- createMatrix ColumnMajor c c
     dgesdd // mat fdat x // mat dat u // vec s // mat dat v // check "svdRdd" [fdat x]
     return (u,s,trans v)
+  where r = rows x
+        c = cols x
 
 -----------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h svd_l_C" zgesvd :: TCMCMVCM
@@ -71,15 +78,20 @@ foreign import ccall "LAPACK/lapack-aux.h svd_l_C" zgesvd :: TCMCMVCM
 --
 -- @(u,s,v)=svdC m@ so that @m=u \<\> s \<\> 'trans' v@.
 svdC :: Matrix (Complex Double) -> (Matrix (Complex Double), Matrix Double, Matrix (Complex Double))
-svdC x@M {rows = r, cols = c} = (u, diagRect s r c, v) where (u,s,v) = svdC' x
+svdC x = (u, diagRect s r c, v) where (u,s,v) = svdC' x
+                                      r = rows x
+                                      c = cols x
 
 svdC' :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector Double, Matrix (Complex Double))
-svdC' x@M {rows = r, cols = c} = unsafePerformIO $ do
+svdC' x = unsafePerformIO $ do
     u <- createMatrix ColumnMajor r r
     s <- createVector (min r c)
     v <- createMatrix ColumnMajor c c
     zgesvd // mat fdat x // mat dat u // vec s // mat dat v // check "svdC" [fdat x]
     return (u,s,trans v)
+  where r = rows x
+        c = cols x
+
 
 -----------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h eig_l_C" zgeev :: TCMCMCVCM
@@ -91,7 +103,7 @@ foreign import ccall "LAPACK/lapack-aux.h eig_l_C" zgeev :: TCMCMCVCM
 -- The eigenvectors are the columns of v.
 -- The eigenvalues are not sorted.
 eigC :: Matrix (Complex Double) -> (Vector (Complex Double), Matrix (Complex Double))
-eigC (m@M {rows = r}) 
+eigC m
     | r == 1 = (fromList [cdat m `at` 0], singleton 1)
     | otherwise = unsafePerformIO $ do
         l <- createVector r
@@ -99,6 +111,7 @@ eigC (m@M {rows = r})
         dummy <- createMatrix ColumnMajor 1 1
         zgeev // mat fdat m // mat dat dummy // vec l // mat dat v // check "eigC" [fdat m]
         return (l,v)
+  where r = rows m
 
 -----------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h eig_l_R" dgeev :: TMMCVM
@@ -110,14 +123,15 @@ foreign import ccall "LAPACK/lapack-aux.h eig_l_R" dgeev :: TMMCVM
 -- The eigenvectors are the columns of v.
 -- The eigenvalues are not sorted.
 eigR :: Matrix Double -> (Vector (Complex Double), Matrix (Complex Double))
-eigR (m@M {rows = r}) = (s', v'')
+eigR m = (s', v'')
     where (s,v) = eigRaux m
           s' = toComplex (subVector 0 r (asReal s), subVector r r (asReal s))
           v' = toRows $ trans v
           v'' = fromColumns $ fixeig (toList s') v'
+          r = rows m
 
 eigRaux :: Matrix Double -> (Vector (Complex Double), Matrix Double)
-eigRaux (m@M {rows = r})
+eigRaux m
     | r == 1 = (fromList [(cdat m `at` 0):+0], singleton 1)
     | otherwise = unsafePerformIO $ do
         l <- createVector r
@@ -125,6 +139,7 @@ eigRaux (m@M {rows = r})
         dummy <- createMatrix ColumnMajor 1 1
         dgeev // mat fdat m // mat dat dummy // vec l // mat dat v // check "eigR" [fdat m]
         return (l,v)
+  where r = rows m
 
 fixeig  []  _ =  []
 fixeig [r] [v] = [comp v]
@@ -148,13 +163,14 @@ eigS m = (s', fliprl v)
     where (s,v) = eigS' m
           s' = fromList . reverse . toList $  s
 
-eigS' (m@M {rows = r})
+eigS' m
     | r == 1 = (fromList [cdat m `at` 0], singleton 1)
     | otherwise = unsafePerformIO $ do
         l <- createVector r
         v <- createMatrix ColumnMajor r r
         dsyev // mat fdat m // vec l // mat dat v // check "eigS" [fdat m]
         return (l,v)
+  where r = rows m
 
 -----------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h eig_l_H" zheev :: TCMVCM
@@ -170,37 +186,46 @@ eigH m = (s', fliprl v)
     where (s,v) = eigH' m
           s' = fromList . reverse . toList $  s
 
-eigH' (m@M {rows = r})
+eigH' m
     | r == 1 = (fromList [realPart (cdat m `at` 0)], singleton 1)
     | otherwise = unsafePerformIO $ do
         l <- createVector r
         v <- createMatrix ColumnMajor r r
         zheev // mat fdat m // vec l // mat dat v // check "eigH" [fdat m]
         return (l,v)
+  where r = rows m
 
 -----------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h linearSolveR_l" dgesv :: TMMM
 
 -- | Wrapper for LAPACK's /dgesv/, which solves a general real linear system (for several right-hand sides) internally using the lu decomposition.
 linearSolveR :: Matrix Double -> Matrix Double -> Matrix Double
-linearSolveR  a@(M {rows = n1, cols = n2}) b@(M {rows = r, cols = c})
+linearSolveR  a b
     | n1==n2 && n1==r = unsafePerformIO $ do
         s <- createMatrix ColumnMajor r c
         dgesv // mat fdat a // mat fdat b // mat dat s // check "linearSolveR" [fdat a, fdat b]
         return s
     | otherwise = error "linearSolveR of nonsquare matrix"
+  where n1 = rows a
+        n2 = cols a
+        r  = rows b
+        c  = cols b
 
 -----------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h linearSolveC_l" zgesv :: TCMCMCM
 
 -- | Wrapper for LAPACK's /zgesv/, which solves a general complex linear system (for several right-hand sides) internally using the lu decomposition.
 linearSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
-linearSolveC  a@(M {rows = n1, cols = n2}) b@(M {rows = r, cols = c})
+linearSolveC  a b
     | n1==n2 && n1==r = unsafePerformIO $ do
         s <- createMatrix ColumnMajor r c
         zgesv // mat fdat a // mat fdat b // mat dat s // check "linearSolveC" [fdat a, fdat b]
         return s
     | otherwise = error "linearSolveC of nonsquare matrix"
+  where n1 = rows a
+        n2 = cols a
+        r  = rows b
+        c  = cols b
 
 -----------------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h linearSolveLSR_l" dgels :: TMMM
@@ -209,10 +234,13 @@ foreign import ccall "LAPACK/lapack-aux.h linearSolveLSR_l" dgels :: TMMM
 linearSolveLSR :: Matrix Double -> Matrix Double -> Matrix Double
 linearSolveLSR a b = subMatrix (0,0) (cols a, cols b) $ linearSolveLSR_l a b
 
-linearSolveLSR_l a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafePerformIO $ do
+linearSolveLSR_l a b = unsafePerformIO $ do
     r <- createMatrix ColumnMajor (max m n) nrhs
     dgels // mat fdat a // mat fdat b // mat dat r // check "linearSolveLSR" [fdat a, fdat b]
     return r
+  where m = rows a
+        n = cols a
+        nrhs = cols b
 
 -----------------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h linearSolveLSC_l" zgels :: TCMCMCM
@@ -221,10 +249,13 @@ foreign import ccall "LAPACK/lapack-aux.h linearSolveLSC_l" zgels :: TCMCMCM
 linearSolveLSC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
 linearSolveLSC a b = subMatrix (0,0) (cols a, cols b) $ linearSolveLSC_l a b
 
-linearSolveLSC_l a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafePerformIO $ do
+linearSolveLSC_l a b = unsafePerformIO $ do
     r <- createMatrix ColumnMajor (max m n) nrhs
     zgels // mat fdat a // mat fdat b // mat dat r // check "linearSolveLSC" [fdat a, fdat b]
     return r
+  where m = rows a
+        n = cols a
+        nrhs = cols b
 
 -----------------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h linearSolveSVDR_l" dgelss :: Double -> TMMM
@@ -237,10 +268,13 @@ linearSolveSVDR :: Maybe Double   -- ^ rcond
 linearSolveSVDR (Just rcond) a b = subMatrix (0,0) (cols a, cols b) $ linearSolveSVDR_l rcond a b
 linearSolveSVDR Nothing a b = linearSolveSVDR (Just (-1)) a b
 
-linearSolveSVDR_l rcond a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafePerformIO $ do
+linearSolveSVDR_l rcond a b = unsafePerformIO $ do
     r <- createMatrix ColumnMajor (max m n) nrhs
     dgelss rcond // mat fdat a // mat fdat b // mat dat r // check "linearSolveSVDR" [fdat a, fdat b]
     return r
+  where m = rows a
+        n = cols a
+        nrhs = cols b
 
 -----------------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h linearSolveSVDC_l" zgelss :: Double -> TCMCMCM
@@ -253,8 +287,11 @@ linearSolveSVDC :: Maybe Double            -- ^ rcond
 linearSolveSVDC (Just rcond) a b = subMatrix (0,0) (cols a, cols b) $ linearSolveSVDC_l rcond a b
 linearSolveSVDC Nothing a b = linearSolveSVDC (Just (-1)) a b
 
-linearSolveSVDC_l rcond  a@(M {rows = m, cols = n}) b@(M {cols = nrhs}) = unsafePerformIO $ do
+linearSolveSVDC_l rcond  a b = unsafePerformIO $ do
     r <- createMatrix ColumnMajor (max m n) nrhs
     zgelss rcond // mat fdat a // mat fdat b // mat dat r // check "linearSolveSVDC" [fdat a, fdat b]
     return r
+  where m = rows a
+        n = cols a
+        nrhs = cols b
 

@@ -92,7 +92,7 @@ tensor dssig vec = T d v `withIdx` seqind where
 tensorFromVector :: IdxType -> Vector t -> Tensor t
 tensorFromVector tp v = T {dims = [IdxDesc (dim v) tp "1"], ten = v}
 
-tensorFromMatrix :: IdxType -> IdxType -> Matrix t -> Tensor t
+tensorFromMatrix :: Field t => IdxType -> IdxType -> Matrix t -> Tensor t
 tensorFromMatrix tpr tpc m = T {dims = [IdxDesc (rows m) tpr "1",IdxDesc (cols m) tpc "2"]
                                , ten = cdat m}
 
