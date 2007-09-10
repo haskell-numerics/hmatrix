@@ -26,7 +26,8 @@ import Data.Packed.Internal.Vector
 import Data.Packed.Internal.Matrix
 import Data.Packed.Vector
 import Data.Packed.Matrix
-import LinearAlgebra.Linear(scale)
+--import LinearAlgebra.Linear(scale)
+import GSL.Vector(vectorMapValR, FunCodeSV(Scale))
 import Complex
 import Foreign
 
@@ -146,8 +147,7 @@ fixeig [r] [v] = [comp v]
 fixeig ((r1:+i1):(r2:+i2):r) (v1:v2:vs)
     | r1 == r2 && i1 == (-i2) = toComplex (v1,v2) : toComplex (v1,scale (-1) v2) : fixeig r vs
     | otherwise = comp v1 : fixeig ((r2:+i2):r) (v2:vs)
-
--- scale r v = fromList [r] `outer` v
+  where scale = vectorMapValR Scale
 
 -----------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h eig_l_S" dsyev :: TMVM
