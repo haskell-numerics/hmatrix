@@ -21,20 +21,20 @@ module LinearAlgebra.Algorithms,
 module LAPACK,
 module GSL.Integration,
 module GSL.Differentiation,
---module GSL.Special,
 module GSL.Fourier,
 module GSL.Polynomials,
 module GSL.Minimization,
 module GSL.Matrix,
 module GSL.Compat,
 module Data.Packed.Plot,
-module Complex
+module Complex,
+
+setErrorHandlerOff
 
 ) where
 
 import Data.Packed.Vector hiding (constant)
 import Data.Packed.Matrix hiding ((><), multiply)
---import Data.Packed.Tensor
 import LinearAlgebra.Algorithms hiding (pnorm)
 import LAPACK
 import GSL.Integration
@@ -47,3 +47,4 @@ import GSL.Matrix
 import GSL.Compat
 import Data.Packed.Plot
 import Complex
+import GSL.Special(setErrorHandlerOff)

@@ -64,6 +64,11 @@
 #define BAD_FILE 1003
 
 
+void no_abort_on_error() {
+    gsl_set_error_handler_off();
+}
+
+
 int toScalarR(int code, KRVEC(x), RVEC(r)) { 
     REQUIRES(rn==1,BAD_SIZE);
     DEBUGMSG("toScalarR");

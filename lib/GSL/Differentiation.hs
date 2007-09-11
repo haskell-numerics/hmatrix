@@ -23,7 +23,7 @@ module GSL.Differentiation (
 ) where
 
 import Foreign
-import Data.Packed.Internal.Common(mkfun,check,(//))
+import Data.Packed.Internal(mkfun,check,(//))
 
 derivGen ::
     Int                   -- ^ type: 0 central, 1 forward, 2 backward

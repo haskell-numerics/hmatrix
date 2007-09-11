@@ -21,6 +21,28 @@ import Complex
 import Control.Monad(when)
 import Data.List(transpose)
 import Debug.Trace(trace)
+import Foreign.C.String(peekCString)
+import Foreign.C.Types
+
+
+data Vector t = V { dim  :: Int
+                  , fptr :: ForeignPtr t
+                  , ptr  :: Ptr t
+                  }
+
+check :: String -> [Vector a] -> IO Int -> IO ()
+check msg ls f = do
+    err <- f
+    when (err/=0) $ if err > 999 -- FIXME, it should be 1024
+                      then (error (msg++": "++errorCode err))
+                      else do
+                        ps <- gsl_strerror err
+                        s <- peekCString ps
+                        error (msg++": "++s)
+    mapM_ (touchForeignPtr . fptr) ls
+    return ()
+
+foreign import ccall "aux.h gsl_strerror" gsl_strerror :: Int -> IO (Ptr CChar)
 
 type Vc t s = Int -> Ptr t -> s
 -- not yet admitted by my haddock version
@@ -29,8 +51,6 @@ type Vc t s = Int -> Ptr t -> s
 
 vec :: Vector t -> (Vc t s) -> s
 vec v f = f (dim v) (ptr v)
-
---baseOf v = (v `at` 0)
 
 createVector :: Storable a => Int -> IO (Vector a)
 createVector n = do
@@ -86,8 +106,6 @@ infixl 9 @>
 (@>) = at
 
 
-
-
 -- | creates a new Vector by joining a list of Vectors
 join :: Storable t => [Vector t] -> Vector t
 join [] = error "joining zero vectors"
@@ -110,7 +128,6 @@ asReal v = V { dim = 2*dim v, fptr =  castForeignPtr (fptr v), ptr = castPtr (pt
 -- | transforms a real vector into a complex vector with alternating real and imaginary parts
 asComplex :: Vector Double -> Vector (Complex Double)
 asComplex v = V { dim = dim v `div` 2, fptr =  castForeignPtr (fptr v), ptr = castPtr (ptr v) }
-
 
 ----------------------------------------------------------------
 

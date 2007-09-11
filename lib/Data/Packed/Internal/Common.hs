@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts -fallow-undecidable-instances #-}
+{-# OPTIONS_GHC -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Common
@@ -23,13 +23,6 @@ import Data.List(transpose,intersperse)
 import Data.Typeable
 import Data.Maybe(fromJust)
 
-debug x = trace (show x) x
-
-data Vector t = V { dim  :: Int
-                  , fptr :: ForeignPtr t
-                  , ptr  :: Ptr t
-                  } -- deriving Typeable
-
 ----------------------------------------------------------------------
 instance (Storable a, RealFloat a) => Storable (Complex a) where    --
     alignment x = alignment (realPart x)                            --
@@ -39,6 +32,8 @@ instance (Storable a, RealFloat a) => Storable (Complex a) where    --
         return (re :+ im)                                           --
     poke p (a :+ b) = pokeArray (castPtr p) [a,b]                   --
 ----------------------------------------------------------------------
+
+debug x = trace (show x) x
 
 on :: (a -> a -> b) -> (t -> a) -> t -> t -> b
 on f g = \x y -> f (g x) (g y)
@@ -55,12 +50,11 @@ common f = commonval . map f where
     commonval [a] = Just a
     commonval (a:b:xs) = if a==b then commonval (b:xs) else Nothing
 
-xor :: Bool -> Bool -> Bool
-xor a b = a && not b || b && not a
-
 (//) :: x -> (x -> y) -> y
 infixl 0 //
 (//) = flip ($)
+
+-- our codes should start from 1024
 
 errorCode :: Int -> String
 errorCode 1000 = "bad size"
@@ -70,25 +64,6 @@ errorCode 1003 = "bad file"
 errorCode 1004 = "singular"
 errorCode 1005 = "didn't converge"
 errorCode n    = "code "++show n
-
-check :: String -> [Vector a] -> IO Int -> IO ()
-check msg ls f = do
-    err <- f
-    when (err/=0) (error (msg++": "++errorCode err))
-    mapM_ (touchForeignPtr . fptr) ls
-    return ()
-
---class (Storable a, Typeable a) => Field a
---instance (Storable a, Typeable a) => Field a
-
---isReal :: (Data.Typeable.Typeable a) => (t -> a) -> t -> Bool
---isReal w x   = typeOf (undefined :: Double) == typeOf (w x)
-
---isComp :: (Data.Typeable.Typeable a) => (t -> a) -> t -> Bool
---isComp w x = typeOf (undefined :: Complex Double) == typeOf (w x)
-
---scast :: forall a . forall b . (Typeable a, Typeable b) => a -> b
---scast = fromJust . cast
 
 {- | conversion of Haskell functions into function pointers that can be used in the C side
 -}

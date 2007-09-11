@@ -10,6 +10,8 @@
 #define KCVEC(A) int A##n, const gsl_complex*A##p
 #define KCMAT(A) int A##r, int A##c, const gsl_complex* A##p
 
+void no_abort_on_error();
+
 int toScalarR(int code, KRVEC(x), RVEC(r));
 /* norm2, absdif, maximum, posmax, etc. */
 
@@ -58,10 +60,3 @@ int minimizeWithDeriv(double f(int, double*), void df(int, double*, double*),
                       KRVEC(xi), RMAT(sol));
 
 int deriv(int code, double f(double, void*), double x, double h, double * result, double * abserr);
-
-double gsl_sf_erf(double);
-double gsl_sf_erf_Z(double);
-double gsl_sf_gamma(double);
-
-int gsl_sf_bessel_J0_e(double, double*); // hmmm...
-int gsl_sf_exp_e10_e(double, double*);   // HMMMMM...

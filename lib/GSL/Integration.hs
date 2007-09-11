@@ -21,7 +21,7 @@ module GSL.Integration (
 ) where
 
 import Foreign
-import Data.Packed.Internal.Common(mkfun,check,(//))
+import Data.Packed.Internal(mkfun,check,(//))
 
 
 --------------------------------------------------------------------
