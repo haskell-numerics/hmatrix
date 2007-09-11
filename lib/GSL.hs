@@ -16,7 +16,7 @@ module GSL (
 
 module Data.Packed.Vector,
 module Data.Packed.Matrix,
-module Data.Packed.Tensor,
+--module Data.Packed.Tensor,
 module LinearAlgebra.Algorithms,
 module LAPACK,
 module GSL.Integration,
@@ -34,7 +34,7 @@ module Complex
 
 import Data.Packed.Vector hiding (constant)
 import Data.Packed.Matrix hiding ((><), multiply)
-import Data.Packed.Tensor
+--import Data.Packed.Tensor
 import LinearAlgebra.Algorithms hiding (pnorm)
 import LAPACK
 import GSL.Integration

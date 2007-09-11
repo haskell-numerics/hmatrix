@@ -9,9 +9,10 @@
 -- Stability   :  provisional
 -- Portability :  portable (uses FFI)
 --
--- Fundamental types
+-- Internal matrix representation
 --
 -----------------------------------------------------------------------------
+-- --#hide
 
 module Data.Packed.Internal.Matrix where
 
@@ -74,7 +75,7 @@ type Mt t s = Int -> Int -> Ptr t -> s
 -- infixr 6 ::>
 -- type t ::> s = Mt t s
 
--- | the inverse of 'fromLists'
+-- | the inverse of 'Data.Packed.Matrix.fromLists'
 toLists :: (Field t) => Matrix t -> [[t]]
 toLists m = partit (cols m) . toList . cdat $ m
 

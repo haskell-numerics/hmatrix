@@ -1,7 +1,7 @@
 Name:               HSSL
 Version:            0.1
 License:            GPL
---License-file:       LICENSE
+License-file:       LICENSE
 Author:             Alberto Ruiz
 Maintainer:         aruiz@um.es
 Stability:          provisional
@@ -27,7 +27,6 @@ Exposed-modules:
                     Data.Packed.Matrix,
                     GSL.Vector,
                     LinearAlgebra.Linear,
-                    Data.Packed.Internal.Tensor, Data.Packed.Tensor
                     Data.Packed.Plot,
                     LAPACK,
                     GSL.Matrix,
