@@ -234,10 +234,10 @@ instance Mul (Complex Double) (Complex Double) (Complex Double) where
 --------------------------------- matrix matrix
 
 instance Mul (Matrix Double) (Matrix Double) (Matrix Double) where
- (<>) = mXm
+ (<>) = multiply
 
 instance Mul (Matrix (Complex Double)) (Matrix (Complex Double)) (Matrix (Complex Double)) where
- (<>) = mXm
+ (<>) = multiply
 
 instance Mul (Matrix (Complex Double)) (Matrix Double) (Matrix (Complex Double)) where
  c <> r = c <> liftMatrix comp r

@@ -14,7 +14,7 @@ Portability :  uses ffi
 -----------------------------------------------------------------------------
 
 module LinearAlgebra.Algorithms (
-    mXm, mXv, vXm,
+    mXv, vXm,
     inv,
     pinv,
     pinvTol,
@@ -59,7 +59,7 @@ i = 0:+1
 
 -- | matrix product
 mXm :: (Num t, Field t) => Matrix t -> Matrix t -> Matrix t
-mXm = multiply RowMajor
+mXm = multiply
 
 -- | matrix - vector product
 mXv :: (Num t, Field t) => Matrix t -> Vector t -> Vector t

@@ -16,14 +16,13 @@ Extensions:         ForeignFunctionInterface
 --                    MultiParamTypeClasses,
 --                    FunctionalDependencies
 --ghc-options:        -Wall
-ghc-options:        -O
+ghc-options:        -O0
 hs-source-dirs:     lib
-Exposed-modules:
-                    Data.Packed.Internal,
+Exposed-modules:    Data.Packed.Internal,
                     Data.Packed.Internal.Common,
-                    Data.Packed.Internal.Vector,
+                    Data.Packed.Internal.Vector
+                    Data.Packed.Internal.Matrix,
                     Data.Packed.Vector,
-                    Data.Packed.Internal.Matrix, 
                     Data.Packed.Matrix,
                     GSL.Vector,
                     LinearAlgebra.Linear,

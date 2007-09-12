@@ -34,7 +34,7 @@ setErrorHandlerOff
 ) where
 
 import Data.Packed.Vector hiding (constant)
-import Data.Packed.Matrix hiding ((><), multiply)
+import Data.Packed.Matrix hiding ((><))
 import LinearAlgebra.Algorithms hiding (pnorm)
 import LAPACK
 import GSL.Integration

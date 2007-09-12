@@ -14,11 +14,15 @@ Portability :  uses ffi
 -----------------------------------------------------------------------------
 
 module LinearAlgebra.Linear (
-    Linear(..)
+    Linear(..),
+    toComplex, comp,
+    conj,
+    multiply, dot, outer
 ) where
 
 
 import Data.Packed.Internal
+import Data.Packed.Matrix
 import GSL.Vector
 import Complex
 
@@ -43,3 +47,26 @@ instance Linear Vector (Complex Double) where
     add = vectorZipC Add
     sub = vectorZipC Sub
     mul = vectorZipC Mul
+
+--------------------------------------------------
+
+
+-- | euclidean inner product
+dot :: (Field t) => Vector t -> Vector t -> t
+dot u v = dat (multiply r c) `at` 0
+    where r = asRow u
+          c = asColumn v
+
+
+
+
+{- | Outer product of two vectors.
+
+@\> 'fromList' [1,2,3] \`outer\` 'fromList' [5,2,3]
+(3><3)
+ [  5.0, 2.0, 3.0
+ , 10.0, 4.0, 6.0
+ , 15.0, 6.0, 9.0 ]@
+-}
+outer :: (Num t, Field t) => Vector t -> Vector t -> Matrix t
+outer u v = asColumn u `multiply` asRow v

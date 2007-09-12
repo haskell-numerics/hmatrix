@@ -12,7 +12,7 @@
 -- Internal matrix representation
 --
 -----------------------------------------------------------------------------
--- --#hide
+-- #hide
 
 module Data.Packed.Internal.Matrix where
 
@@ -57,10 +57,14 @@ import Data.Maybe(fromJust)
 
 data MatrixOrder = RowMajor | ColumnMajor deriving (Show,Eq)
 
+-- | Matrix representation suitable for GSL and LAPACK computations.
 data Matrix t = MC { rows :: Int, cols :: Int, cdat :: Vector t, fdat :: Vector t }
               | MF { rows :: Int, cols :: Int, fdat :: Vector t, cdat :: Vector t }
 
--- transposition just changes the data order
+-- MC: preferred by C, fdat may require a transposition
+-- MF: preferred by LAPACK, cdat may require a transposition
+
+-- | matrix transpose
 trans :: Matrix t -> Matrix t
 trans MC {rows = r, cols = c, cdat = d, fdat = dt } = MF {rows = c, cols = r, fdat = d, cdat = dt }
 trans MF {rows = r, cols = c, fdat = d, cdat = dt } = MC {rows = c, cols = r, cdat = d, fdat = dt }
@@ -166,32 +170,29 @@ compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
 
 ----------------------------------------------------------------
 
--- | element types for which optimized matrix computations are provided
+-- | Optimized matrix computations are provided for elements in the Field class.
 class Storable a => Field a where
-    -- | @constant val n@ creates a vector with @n@ elements, all equal to @val@.
-    constant :: a -> Int -> Vector a
+    constantD :: a -> Int -> Vector a
     transdata :: Int -> Vector a -> Int -> Vector a
-    multiplyD :: MatrixOrder -> Matrix a -> Matrix a -> Matrix a
-    -- | extracts a submatrix froma a matrix
-    subMatrix :: (Int,Int) -- ^ (r0,c0) starting position 
-              -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
-              -> Matrix a -> Matrix a
-    -- | creates a square matrix with the given diagonal
-    diag :: Vector a -> Matrix a
+    multiplyD :: Matrix a -> Matrix a -> Matrix a
+    subMatrixD :: (Int,Int) -- ^ (r0,c0) starting position 
+               -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
+               -> Matrix a -> Matrix a
+    diagD :: Vector a -> Matrix a
 
 instance Field Double where
-    constant  = constantR
+    constantD  = constantR
     transdata = transdataR
-    multiplyD = multiplyR
-    subMatrix = subMatrixR
-    diag      = diagR
+    multiplyD  = multiplyR
+    subMatrixD = subMatrixR
+    diagD      = diagR
 
 instance Field (Complex Double) where
-    constant  = constantC
-    transdata = transdataC
-    multiplyD = multiplyC
-    subMatrix = subMatrixC
-    diag      = diagC
+    constantD  = constantC
+    transdata  = transdataC
+    multiplyD  = multiplyC
+    subMatrixD = subMatrixC
+    diagD      = diagC
 
 ------------------------------------------------------------------
 
@@ -208,6 +209,15 @@ dsp as = (++" ]") . (" ["++) . init . drop 2 . unlines . map (" , "++) . map unw
         unwords' = concat . intersperse ", "
 
 ------------------------------------------------------------------
+
+(>|<) :: (Field a) => Int -> Int -> [a] -> Matrix a
+r >|< c = f where
+    f l | dim v == r*c = matrixFromVector ColumnMajor c v
+        | otherwise    = error $ "inconsistent list size = "
+                                 ++show (dim v) ++" in ("++show r++"><"++show c++")"
+        where v = fromList l
+
+-------------------------------------------------------------------
 
 transdataR :: Int -> Vector Double -> Int -> Vector Double
 transdataR = transdataAux ctransR
@@ -237,10 +247,10 @@ foreign import ccall safe "aux.h transC"
 gmatC MF {rows = r, cols = c, fdat = d} f = f 1 c r (ptr d)
 gmatC MC {rows = r, cols = c, cdat = d} f = f 0 r c (ptr d)
 
-multiplyAux fun order a b = unsafePerformIO $ do
+multiplyAux fun a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $ "inconsistent dimensions in contraction "++
                                       show (rows a,cols a) ++ " x " ++ show (rows b, cols b)
-    r <- createMatrix order (rows a) (cols b)
+    r <- createMatrix RowMajor (rows a) (cols b)
     fun // gmatC a // gmatC b // mat dat r // check "multiplyAux" [dat a, dat b]
     return r
 
@@ -258,32 +268,40 @@ foreign import ccall safe "aux.h multiplyC"
                -> Int -> Int -> Ptr (Complex Double)
                -> IO Int
 
-multiply :: (Field a) => MatrixOrder -> Matrix a -> Matrix a -> Matrix a
-multiply RowMajor a b    = multiplyD RowMajor a b
-multiply ColumnMajor a b = MF {rows = c, cols = r, fdat = d, cdat = dt }
-    where MC {rows = r, cols = c, cdat = d, fdat = dt } = multiplyD RowMajor (trans b) (trans a)
--- FIXME using MatrixFromVector
+multiply' :: (Field a) => MatrixOrder -> Matrix a -> Matrix a -> Matrix a
+multiply' RowMajor a b    = multiplyD a b
+multiply' ColumnMajor a b = trans $ multiplyD (trans b) (trans a)
+
+
+-- | matrix product
+multiply :: (Field a) => Matrix a -> Matrix a -> Matrix a
+multiply = multiplyD
 
 ----------------------------------------------------------------------
 
--- | extraction of a submatrix of a real matrix
-subMatrixR :: (Int,Int) -- ^ (r0,c0) starting position 
-           -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
-           -> Matrix Double -> Matrix Double
+-- | extraction of a submatrix from a real matrix
+subMatrixR :: (Int,Int) -> (Int,Int) -> Matrix Double -> Matrix Double
 subMatrixR (r0,c0) (rt,ct) x = unsafePerformIO $ do
     r <- createMatrix RowMajor rt ct
     c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1) // mat cdat x // mat dat r // check "subMatrixR" [dat r]
     return r
 foreign import ccall "aux.h submatrixR" c_submatrixR :: Int -> Int -> Int -> Int -> TMM
 
--- | extraction of a submatrix of a complex matrix
-subMatrixC :: (Int,Int) -- ^ (r0,c0) starting position
-           -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
-           -> Matrix (Complex Double) -> Matrix (Complex Double)
+-- | extraction of a submatrix from a complex matrix
+subMatrixC :: (Int,Int) -> (Int,Int) -> Matrix (Complex Double) -> Matrix (Complex Double)
 subMatrixC (r0,c0) (rt,ct) x =
     reshape ct . asComplex . cdat .
     subMatrixR (r0,2*c0) (rt,2*ct) .
     reshape (2*cols x) . asReal . cdat $ x
+
+-- | Extracts a submatrix from a matrix.
+subMatrix :: Field a
+          => (Int,Int) -- ^ (r0,c0) starting position 
+          -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
+          -> Matrix a -- ^ input matrix
+          -> Matrix a -- ^ result
+subMatrix = subMatrixD
+
 
 ---------------------------------------------------------------------
 
@@ -301,6 +319,10 @@ foreign import ccall "aux.h diagR" c_diagR :: TVM
 diagC :: Vector (Complex Double) -> Matrix (Complex Double)
 diagC = diagAux c_diagC "diagC"
 foreign import ccall "aux.h diagC" c_diagC :: TCVCM
+
+-- | creates a square matrix with the given diagonal
+diag :: Field a => Vector a -> Matrix a
+diag = diagD
 
 ------------------------------------------------------------------------
 
@@ -320,6 +342,28 @@ constantC :: Complex Double -> Int -> Vector (Complex Double)
 constantC = constantAux cconstantC
 foreign import ccall safe "aux.h constantC"
     cconstantC :: Ptr (Complex Double) -> TCV -- Complex Double :> IO Int
+
+{- | creates a vector with a given number of equal components:
+
+@> constant 2 7
+7 |> [2.0,2.0,2.0,2.0,2.0,2.0,2.0]@
+-}
+constant :: Field a => a -> Int -> Vector a
+constant = constantD
+
+--------------------------------------------------------------------------
+
+-- | obtains the complex conjugate of a complex vector
+conj :: Vector (Complex Double) -> Vector (Complex Double)
+conj v = asComplex $ cdat $ reshape 2 (asReal v) `multiply` diag (fromList [1,-1])
+
+-- | creates a complex vector from vectors with real and imaginary parts
+toComplex :: (Vector Double, Vector Double) ->  Vector (Complex Double)
+toComplex (r,i) = asComplex $ cdat $ fromColumns [r,i]
+
+-- | converts a real vector into a complex representation (with zero imaginary parts)
+comp :: Vector Double -> Vector (Complex Double)
+comp v = toComplex (v,constant 0 (dim v))
 
 -------------------------------------------------------------------------
 

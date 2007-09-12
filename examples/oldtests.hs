@@ -3,6 +3,7 @@ import Test.HUnit
 import GSL
 import GSL.Special hiding (exp)
 import GSL.Matrix
+import LinearAlgebra.Linear
 import System.Random(randomRs,mkStdGen)
 
 realMatrix = fromLists :: [[Double]] -> Matrix Double

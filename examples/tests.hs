@@ -92,8 +92,8 @@ epsTol = 1E-8::Double
 asFortran m = (rows m >|< cols m) $ toList (fdat m)
 asC m = (rows m >< cols m) $ toList (cdat m)
 
-mulC a b = multiply RowMajor a b
-mulF a b = multiply ColumnMajor a b
+mulC a b = multiply' RowMajor a b
+mulF a b = multiply' ColumnMajor a b
 
 infixl 7 <>
 a <> b = mulF a b

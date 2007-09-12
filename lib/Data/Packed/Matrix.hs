@@ -13,19 +13,19 @@
 -----------------------------------------------------------------------------
 
 module Data.Packed.Matrix (
-    Matrix(rows,cols),
-    fromLists, toLists, (><), (>|<), (@@>),
+    Field,
+    Matrix,rows,cols,
+    (><), reshape, flatten,
+    fromLists, toLists,
+    (@@>),
     trans, conjTrans,
-    reshape, flatten, asRow, asColumn,
-    fromRows, toRows, fromColumns, toColumns, fromBlocks,
-    joinVert, joinHoriz,
+    asRow, asColumn,
+    fromRows, toRows, fromColumns, toColumns,
+    fromBlocks, joinVert, joinHoriz,
     flipud, fliprl,
+    subMatrix, takeRows, dropRows, takeColumns, dropColumns,
+    diag, takeDiag, diagRect, ident,
     liftMatrix, liftMatrix2,
-    multiply,
-    outer,
-    subMatrix,
-    takeRows, dropRows, takeColumns, dropColumns,
-    diag, takeDiag, diagRect, ident
 ) where
 
 import Data.Packed.Internal
@@ -83,16 +83,21 @@ takeDiag m = fromList [cdat m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols 
 ident :: (Num t, Field t) => Int -> Matrix t
 ident n = diag (constant 1 n)
 
+------------------------------------------------------------
+
+{- | An easy way to create a matrix:
+
+@\> (2><3)[1..6]
+(2><3)
+ [ 1.0, 2.0, 3.0
+ , 4.0, 5.0, 6.0 ]@
+
+This is the format produced by the instances of Show (Matrix a), which
+can also be used for input.
+-}
 (><) :: (Field a) => Int -> Int -> [a] -> Matrix a
 r >< c = f where
     f l | dim v == r*c = matrixFromVector RowMajor c v
-        | otherwise    = error $ "inconsistent list size = "
-                                 ++show (dim v) ++" in ("++show r++"><"++show c++")"
-        where v = fromList l
-
-(>|<) :: (Field a) => Int -> Int -> [a] -> Matrix a
-r >|< c = f where
-    f l | dim v == r*c = matrixFromVector ColumnMajor c v
         | otherwise    = error $ "inconsistent list size = "
                                  ++show (dim v) ++" in ("++show r++"><"++show c++")"
         where v = fromList l
@@ -117,12 +122,19 @@ dropColumns n mat = subMatrix (0,n) (rows mat, cols mat - n) mat
 {- | Creates a vector by concatenation of rows
 
 @\> flatten ('ident' 3)
-9 # [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]@
+9 |> [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]@
 -}
 flatten :: Field t => Matrix t -> Vector t
 flatten = cdat
 
--- | Creates a 'Matrix' from a list of lists (considered as rows).
+{- | Creates a 'Matrix' from a list of lists (considered as rows).
+
+@\> fromLists [[1,2],[3,4],[5,6]]
+(3><2)
+ [ 1.0, 2.0
+ , 3.0, 4.0
+ , 5.0, 6.0 ]@
+-}
 fromLists :: Field t => [[t]] -> Matrix t
 fromLists = fromRows . map fromList
 
@@ -137,15 +149,3 @@ asColumn v = reshape 1 v
 
 ------------------------------------------------
 
-{- | Outer product of two vectors.
-
-@\> 'fromList' [1,2,3] \`outer\` 'fromList' [5,2,3]
-(3><3)
- [  5.0, 2.0, 3.0
- , 10.0, 4.0, 6.0
- , 15.0, 6.0, 9.0 ]@
--}
-outer :: (Num t, Field t) => Vector t -> Vector t -> Matrix t
-outer u v = multiply RowMajor r c
-    where r = matrixFromVector RowMajor 1 u
-          c = matrixFromVector RowMajor (dim v) v

@@ -26,6 +26,7 @@ module Data.Packed.Plot(
 
 import Data.Packed.Vector
 import Data.Packed.Matrix
+import LinearAlgebra.Linear(outer)
 import GSL.Vector(FunCodeS(Max,Min),toScalarR)
 import Data.List(intersperse)
 import System

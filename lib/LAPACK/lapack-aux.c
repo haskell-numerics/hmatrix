@@ -22,12 +22,12 @@
 
 #define CHECK(RES,CODE) MACRO(if(RES) return CODE;)
 
-#define BAD_SIZE 1000
-#define BAD_CODE 1001
-#define MEM      1002
-#define BAD_FILE 1003
-#define SINGULAR 1004
-#define NOCONVER 1005
+#define BAD_SIZE 2000
+#define BAD_CODE 2001
+#define MEM      2002
+#define BAD_FILE 2003
+#define SINGULAR 2004
+#define NOCONVER 2005
 
 //////////////////// real svd ////////////////////////////////////
 

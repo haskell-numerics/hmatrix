@@ -58,10 +58,10 @@
 #define GCVEC(A) int A##n, gsl_complex*A##p
 #define KGCVEC(A) int A##n, const gsl_complex*A##p
 
-#define BAD_SIZE 1000
-#define BAD_CODE 1001
-#define MEM      1002
-#define BAD_FILE 1003
+#define BAD_SIZE 2000
+#define BAD_CODE 2001
+#define MEM      2002
+#define BAD_FILE 2003
 
 int transR(KRMAT(x),RMAT(t)) {
     REQUIRES(xr==tc && xc==tr,BAD_SIZE);

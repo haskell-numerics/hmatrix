@@ -9,9 +9,10 @@
 -- Stability   :  provisional
 -- Portability :  portable (uses FFI)
 --
--- Common tools
+-- Development utilities.
 --
 -----------------------------------------------------------------------------
+-- #hide
 
 module Data.Packed.Internal.Common where
 
@@ -33,11 +34,15 @@ instance (Storable a, RealFloat a) => Storable (Complex a) where    --
     poke p (a :+ b) = pokeArray (castPtr p) [a,b]                   --
 ----------------------------------------------------------------------
 
+-- | @debug x = trace (show x) x@
+debug :: (Show a) => a -> a
 debug x = trace (show x) x
 
+-- | useful for expressions like @sortBy (compare \`on\` length)@
 on :: (a -> a -> b) -> (t -> a) -> t -> t -> b
 on f g = \x y -> f (g x) (g y)
 
+-- | @partit 3 [1..9] == [[1,2,3],[4,5,6],[7,8,9]]@
 partit :: Int -> [a] -> [[a]]
 partit _ [] = []
 partit n l  = take n l : partit n (drop n l)
@@ -50,19 +55,20 @@ common f = commonval . map f where
     commonval [a] = Just a
     commonval (a:b:xs) = if a==b then commonval (b:xs) else Nothing
 
+-- | postfix function application (@flip ($)@)
 (//) :: x -> (x -> y) -> y
 infixl 0 //
 (//) = flip ($)
 
--- our codes should start from 1024
-
+-- GSL error codes are <= 1024
+-- | error codes for the auxiliary functions required by the wrappers
 errorCode :: Int -> String
-errorCode 1000 = "bad size"
-errorCode 1001 = "bad function code"
-errorCode 1002 = "memory problem"
-errorCode 1003 = "bad file"
-errorCode 1004 = "singular"
-errorCode 1005 = "didn't converge"
+errorCode 2000 = "bad size"
+errorCode 2001 = "bad function code"
+errorCode 2002 = "memory problem"
+errorCode 2003 = "bad file"
+errorCode 2004 = "singular"
+errorCode 2005 = "didn't converge"
 errorCode n    = "code "++show n
 
 {- | conversion of Haskell functions into function pointers that can be used in the C side
