@@ -20,6 +20,7 @@ module GSL.Special.Internal (
     createSFR_E10,
     Precision(..),
     Gsl_mode_t,
+    Size_t,
     precCode
 )
 where
@@ -36,6 +37,8 @@ precCode PrecSingle = 1
 precCode PrecApprox = 2
 
 type Gsl_mode_t = Int
+
+type Size_t = Int
 
 ----------------------------------------------------------------
 -- | access to a sf_result

@@ -42,9 +42,14 @@ fixC s = rep ("gsl_mode_t","int") $ rep ("gsl_sf_result","double") $ rep ("gsl_s
 
 main = do
     args <- getArgs
-    file <- readFile (args!!1)
     let name = args!!0
-    putStrLn (args!!1)
+        headerfile =
+            case args of
+                [n] -> "/usr/include/gsl/gsl_sf_"++n++".h"
+                [_,f] -> f
+    file <- readFile headerfile
+
+    putStrLn headerfile
     --mapM_ print (headers $ fixlong file)
     let parsed = (headers $ fixlong file)
     writeFile (name ++".h") (fixC $ unlines $ map showC parsed) 
@@ -60,6 +65,10 @@ main = do
     writeFile (upperFirst name ++ ".hs") mod
 
 
+google name = "<http://www.google.com/search?q="
+               ++name
+               ++"&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>"
+
 modhead name = replicate 60 '-' ++ "\n"
              ++"{- |\n"
              ++"Module      :  GSL.Special."++upperFirst name++"\n"
@@ -68,7 +77,9 @@ modhead name = replicate 60 '-' ++ "\n"
              ++"Maintainer  :  Alberto Ruiz (aruiz at um dot es)\n"
              ++"Stability   :  provisional\n"
              ++"Portability :  uses ffi\n"
-             ++"\n\n\n-}\n"
+             ++"\nWrappers for selected functions described at:\n\n"
+             ++ google ( "gsl_sf_"++name++".h")
+             ++"\n\n-}\n"
              ++ replicate 60 '-' ++ "\n\n"
 
 upperFirst (x:xs) = toUpper x : xs
@@ -176,7 +187,10 @@ showHt (Pointer (s:ss)) = "Ptr "++toUpper s : ss
 
 showHa (t,a) = showHt t
 
-showFull hc h@(Header t n args) = "\n-- | wrapper for "++showC h++"\n"++ boiler h ++"\n" ++showH hc h 
+showFull hc h@(Header t n args) = "\n-- | wrapper for "++showC h
+                                ++"\n--\n--   "++google n ++"\n"
+                                ++ boiler h ++"\n" 
+                                ++showH hc h 
 
 fixmd1 = rep ("Gsl_mode_t","Precision")
 fixmd2 = rep ("mode"," (precCode mode)")

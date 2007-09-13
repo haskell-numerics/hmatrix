@@ -81,6 +81,7 @@ int gsl_sf_bessel_Jnu_e(double nu,double x,double* result);
 double gsl_sf_bessel_Jnu(double nu,double x);
 int gsl_sf_bessel_Ynu_e(double nu,double x,double* result);
 double gsl_sf_bessel_Ynu(double nu,double x);
+int gsl_sf_bessel_sequence_Jnu_e(double nu,int mode,size_t size,double* v);
 int gsl_sf_bessel_Inu_scaled_e(double nu,double x,double* result);
 double gsl_sf_bessel_Inu_scaled(double nu,double x);
 int gsl_sf_bessel_Inu_e(double nu,double x,double* result);

@@ -9,7 +9,7 @@ Portability :  uses ffi
 
 Wrappers for selected functions described at:
 
-<http://www.gnu.org/software/gsl/manual/html_node/Clausen-Functions.html>
+<http://www.google.com/search?q=gsl_sf_clausen.h&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 
 -}
 ------------------------------------------------------------
@@ -23,11 +23,15 @@ import Foreign(Ptr)
 import GSL.Special.Internal
 
 -- | wrapper for int gsl_sf_clausen_e(double x,gsl_sf_result* result);
+--
+--   <http://www.google.com/search?q=gsl_sf_clausen_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 clausen_e :: Double -> (Double,Double)
 clausen_e x = createSFR "clausen_e" $ gsl_sf_clausen_e x
 foreign import ccall "clausen.h gsl_sf_clausen_e" gsl_sf_clausen_e :: Double -> Ptr Double -> IO(Int)
 
 -- | wrapper for double gsl_sf_clausen(double x);
+--
+--   <http://www.google.com/search?q=gsl_sf_clausen&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 clausen :: Double -> Double
 clausen = gsl_sf_clausen
 foreign import ccall "clausen.h gsl_sf_clausen" gsl_sf_clausen :: Double -> Double

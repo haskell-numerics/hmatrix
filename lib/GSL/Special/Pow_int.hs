@@ -9,7 +9,7 @@ Portability :  uses ffi
 
 Wrappers for selected functions described at:
 
-<http://www.gnu.org/software/gsl/manual/html_node/Power-Function.html>
+<http://www.google.com/search?q=gsl_sf_pow_int.h&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 
 -}
 ------------------------------------------------------------
@@ -23,11 +23,15 @@ import Foreign(Ptr)
 import GSL.Special.Internal
 
 -- | wrapper for int gsl_sf_pow_int_e(double x,int n,gsl_sf_result* result);
+--
+--   <http://www.google.com/search?q=gsl_sf_pow_int_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 pow_int_e :: Double -> Int -> (Double,Double)
 pow_int_e x n = createSFR "pow_int_e" $ gsl_sf_pow_int_e x n
 foreign import ccall "pow_int.h gsl_sf_pow_int_e" gsl_sf_pow_int_e :: Double -> Int -> Ptr Double -> IO(Int)
 
 -- | wrapper for double gsl_sf_pow_int(double x,int n);
+--
+--   <http://www.google.com/search?q=gsl_sf_pow_int&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 pow_int :: Double -> Int -> Double
 pow_int = gsl_sf_pow_int
 foreign import ccall "pow_int.h gsl_sf_pow_int" gsl_sf_pow_int :: Double -> Int -> Double
