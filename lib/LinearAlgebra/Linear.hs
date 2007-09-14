@@ -27,7 +27,7 @@ import GSL.Vector
 import Complex
 
 
-class (Num e, Field e) => Linear c e where
+class (Field e) => Linear c e where
     scale       :: e -> c e -> c e
     addConstant :: e -> c e -> c e
     add         :: c e -> c e -> c e
@@ -68,5 +68,5 @@ dot u v = dat (multiply r c) `at` 0
  , 10.0, 4.0, 6.0
  , 15.0, 6.0, 9.0 ]@
 -}
-outer :: (Num t, Field t) => Vector t -> Vector t -> Matrix t
+outer :: (Field t) => Vector t -> Vector t -> Matrix t
 outer u v = asColumn u `multiply` asRow v

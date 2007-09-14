@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Packed.Plot
+-- Module      :  Graphics.Plot
 -- Copyright   :  (c) Alberto Ruiz 2005
 -- License     :  GPL-style
 -- 
@@ -12,7 +12,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Data.Packed.Plot(
+module Graphics.Plot(
 
     gnuplotX, mplot,
 

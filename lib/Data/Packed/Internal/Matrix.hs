@@ -171,7 +171,7 @@ compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
 ----------------------------------------------------------------
 
 -- | Optimized matrix computations are provided for elements in the Field class.
-class Storable a => Field a where
+class (Storable a, Num a) => Field a where
     constantD :: a -> Int -> Vector a
     transdata :: Int -> Vector a -> Int -> Vector a
     multiplyD :: Matrix a -> Matrix a -> Matrix a

@@ -18,12 +18,13 @@ module Data.Packed.Vector (
     dim, (@>),
     subVector, join,
     constant, linspace,
-
+    vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex,
     liftVector, liftVector2
 ) where
 
 import Data.Packed.Internal
 import Complex
+import GSL.Vector
 
 {- | Creates a real vector containing a range of values:
 
@@ -33,3 +34,15 @@ import Complex
 linspace :: Int -> (Double, Double) -> Vector Double
 linspace n (a,b) = fromList [a, a+delta .. b]
     where delta = (b-a)/(fromIntegral n -1)
+
+vectorMax :: Vector Double -> Double
+vectorMax = toScalarR Max
+
+vectorMin :: Vector Double -> Double
+vectorMin = toScalarR Min
+
+vectorMaxIndex :: Vector Double -> Int
+vectorMaxIndex = round . toScalarR MaxIdx
+
+vectorMinIndex :: Vector Double -> Int
+vectorMinIndex = round . toScalarR MinIdx

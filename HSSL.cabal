@@ -13,10 +13,8 @@ Category:           Numerical
 tested-with:        GHC ==6.6.1
 Build-Depends:      base, haskell98
 Extensions:         ForeignFunctionInterface
---                    MultiParamTypeClasses,
---                    FunctionalDependencies
 --ghc-options:        -Wall
-ghc-options:        -O0
+ghc-options:        -O
 hs-source-dirs:     lib
 Exposed-modules:    Data.Packed.Internal,
                     Data.Packed.Internal.Common,
@@ -25,11 +23,12 @@ Exposed-modules:    Data.Packed.Internal,
                     Data.Packed.Vector,
                     Data.Packed.Matrix,
                     GSL.Vector,
-                    LinearAlgebra.Linear,
-                    Data.Packed.Plot,
-                    LAPACK,
                     GSL.Matrix,
-                    GSL.Differentiation, GSL.Integration,
+                    GSL.Differentiation,
+                    GSL.Integration,
+                    GSL.Fourier,
+                    GSL.Polynomials,
+                    GSL.Minimization,
                     GSL.Special, GSL.Special.Internal,
                     GSL.Special.Gamma, GSL.Special.Erf,
                     GSL.Special.Airy, GSL.Special.Exp,
@@ -45,12 +44,12 @@ Exposed-modules:    Data.Packed.Internal,
                     GSL.Special.Synchrotron, GSL.Special.Trig,
                     GSL.Special.Zeta, GSL.Special.Log,
                     GSL.Special.Legendre,
-                    GSL.Fourier,
-                    GSL.Polynomials,
-                    GSL.Minimization,
-                    GSL.Compat,
                     GSL,
-                    LinearAlgebra, LinearAlgebra.Algorithms
+                    LAPACK,
+                    LinearAlgebra,
+                    LinearAlgebra.Linear,
+                    LinearAlgebra.Algorithms
+                    , GSLHaskell, Graphics.Plot
 Other-modules:
 C-sources:          lib/Data/Packed/Internal/aux.c,
                     lib/LAPACK/lapack-aux.c,

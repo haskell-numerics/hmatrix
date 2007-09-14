@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fglasgow-exts -fallow-undecidable-instances #-}
 -----------------------------------------------------------------------------
 {- |
-Module      :  GSL.Compat
+Module      :  GSLHaskell
 Copyright   :  (c) Alberto Ruiz 2006
 License     :  GPL-style
 
@@ -9,23 +9,53 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses -fffi and -fglasgow-exts
 
-Creates reasonable numeric instances for Vectors and Matrices. In the context of the standard numeric operators, one-component vectors and matrices automatically expand to match the dimensions of the other operand.
+GSLHaskell interface, with reasonable numeric instances for Vectors and Matrices. In the context of the standard numeric operators, one-component vectors and matrices automatically expand to match the dimensions of the other operand.
 
 -}
 -----------------------------------------------------------------------------
 
-module GSL.Compat(
-  Mul,(<>), readMatrix, size, dispR, dispC, format, gmap, Joinable, (<|>),(<->), GSL.Compat.constant,
-  vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex, fromArray2D, fromComplex, GSL.Compat.pnorm, scale
+module GSLHaskell(
+    module Data.Packed.Vector,
+    module Data.Packed.Matrix,
+    module LinearAlgebra.Algorithms,
+    module LAPACK,
+    module GSL.Integration,
+    module GSL.Differentiation,
+    module GSL.Fourier,
+    module GSL.Polynomials,
+    module GSL.Minimization,
+    module GSL.Matrix,
+    module GSL.Special,
+    module Graphics.Plot,
+    module Complex,
+    Mul,(<>), readMatrix, size, dispR, dispC, format, gmap, Joinable, (<|>),(<->), GSLHaskell.constant,
+    fromArray2D, fromComplex, toComplex, GSLHaskell.pnorm, scale, outer
 ) where
 
+
+import LAPACK
+import GSL.Integration
+import GSL.Differentiation
+import GSL.Fourier
+import GSL.Polynomials
+import GSL.Minimization
+import GSL.Matrix
+import Graphics.Plot
+import Complex
+import GSL.Special(setErrorHandlerOff,
+    erf,
+    erf_Z,
+    bessel_J0_e,
+    exp_e10_e,
+    gamma)
 import Data.Packed.Internal hiding (dsp)
-import Data.Packed.Vector
+import Data.Packed.Vector hiding (constant)
 import Data.Packed.Matrix
+import Data.Packed.Matrix hiding ((><))
 import GSL.Vector
 import LinearAlgebra.Linear
-import GSL.Matrix
-import LinearAlgebra.Algorithms
+import qualified LinearAlgebra.Algorithms
+import LinearAlgebra.Algorithms hiding (pnorm)
 import Complex
 import Numeric(showGFloat)
 import Data.List(transpose,intersperse)
@@ -436,18 +466,6 @@ a <|> b = joinH a b
 a <-> b = joinV a b
 
 ----------------------------------------------------------
-
-vectorMax :: Vector Double -> Double
-vectorMax = toScalarR Max
-
-vectorMin :: Vector Double -> Double
-vectorMin = toScalarR Min
-
-vectorMaxIndex :: Vector Double -> Int
-vectorMaxIndex = round . toScalarR MaxIdx
-
-vectorMinIndex :: Vector Double -> Int
-vectorMinIndex = round . toScalarR MinIdx
 
 fromArray2D :: (Field e) => Array (Int, Int) e -> Matrix e
 fromArray2D m = (r><c) (elems m)

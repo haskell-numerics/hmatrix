@@ -23,7 +23,7 @@ import Complex
 import LinearAlgebra.Algorithms
 import LinearAlgebra.Linear
 import GSL.Matrix
-import GSL.Compat hiding ((<>),constant)
+import GSLHaskell hiding ((<>),constant)
 
 dist :: (Normed t, Num t) => t -> t -> Double
 dist a b = norm (a-b)
