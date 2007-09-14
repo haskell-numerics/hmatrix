@@ -13,6 +13,19 @@ Some linear algebra algorithms, implemented by means of BLAS, LAPACK or GSL.
 -}
 -----------------------------------------------------------------------------
 module LinearAlgebra (
-
+    module Data.Packed.Vector,
+    module Data.Packed.Matrix,
+    module LinearAlgebra.Linear,
+    module LAPACK,
+    module GSL.Matrix,
+    module LinearAlgebra.Algorithms,
+    module Complex
 ) where
 
+import LinearAlgebra.Linear
+import LinearAlgebra.Algorithms
+import LAPACK
+import GSL.Matrix
+import Data.Packed.Matrix
+import Data.Packed.Vector
+import Complex

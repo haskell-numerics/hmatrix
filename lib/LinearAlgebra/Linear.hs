@@ -15,8 +15,6 @@ Portability :  uses ffi
 
 module LinearAlgebra.Linear (
     Linear(..),
-    toComplex, comp,
-    conj,
     multiply, dot, outer
 ) where
 
@@ -33,6 +31,10 @@ class (Field e) => Linear c e where
     add         :: c e -> c e -> c e
     sub         :: c e -> c e -> c e
     mul         :: c e -> c e -> c e
+    toComplex   :: RealFloat e => (c e, c e) -> c (Complex e)
+    fromComplex :: RealFloat e => c (Complex e) -> (c e, c e)
+    comp        :: RealFloat e => c e -> c (Complex e)
+    conj        :: RealFloat e => c (Complex e) -> c (Complex e)
 
 instance Linear Vector Double where
     scale = vectorMapValR Scale
@@ -40,6 +42,10 @@ instance Linear Vector Double where
     add = vectorZipR Add
     sub = vectorZipR Sub
     mul = vectorZipR Mul
+    toComplex = Data.Packed.Internal.toComplex
+    fromComplex = Data.Packed.Internal.fromComplex
+    comp = Data.Packed.Internal.comp
+    conj = Data.Packed.Internal.conj
 
 instance Linear Vector (Complex Double) where
     scale = vectorMapValC Scale
@@ -47,6 +53,34 @@ instance Linear Vector (Complex Double) where
     add = vectorZipC Add
     sub = vectorZipC Sub
     mul = vectorZipC Mul
+    toComplex = undefined -- can't match
+    fromComplex = undefined
+    comp = undefined
+    conj = undefined
+
+instance Linear Matrix Double where
+    scale x = liftMatrix (scale x)
+    addConstant x = liftMatrix (addConstant x)
+    add = liftMatrix2 add
+    sub = liftMatrix2 sub
+    mul = liftMatrix2 mul
+    toComplex = uncurry $ liftMatrix2 $ curry LinearAlgebra.Linear.toComplex
+    fromComplex z = (reshape c r, reshape c i)
+        where (r,i) = LinearAlgebra.Linear.fromComplex (cdat z)
+              c = cols z
+    comp = liftMatrix Data.Packed.Internal.comp
+    conj = liftMatrix Data.Packed.Internal.conj
+
+instance Linear Matrix (Complex Double) where
+    scale x = liftMatrix (scale x)
+    addConstant x = liftMatrix (addConstant x)
+    add = liftMatrix2 add
+    sub = liftMatrix2 sub
+    mul = liftMatrix2 mul
+    toComplex = undefined
+    fromComplex = undefined
+    comp = undefined
+    conj = undefined
 
 --------------------------------------------------
 
@@ -56,8 +90,6 @@ dot :: (Field t) => Vector t -> Vector t -> t
 dot u v = dat (multiply r c) `at` 0
     where r = asRow u
           c = asColumn v
-
-
 
 
 {- | Outer product of two vectors.

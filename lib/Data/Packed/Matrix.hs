@@ -75,12 +75,12 @@ diagRect s r c
     | r == c    = diag s
     | r < c     = trans $ diagRect s c r
     | r > c     = joinVert  [diag s , zeros (r-c,c)]
-    where zeros (r,c) = reshape c $ constant 0 (r*c)
+    where zeros (r,c) = reshape c $ constantD 0 (r*c)
 
 takeDiag :: (Field t) => Matrix t -> Vector t
 takeDiag m = fromList [cdat m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
 
-ident :: (Num t, Field t) => Int -> Matrix t
+ident :: Int -> Matrix Double
 ident n = diag (constant 1 n)
 
 ------------------------------------------------------------

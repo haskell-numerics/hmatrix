@@ -14,7 +14,7 @@ tested-with:        GHC ==6.6.1
 Build-Depends:      base, haskell98
 Extensions:         ForeignFunctionInterface
 --ghc-options:        -Wall
-ghc-options:        -O
+ghc-options:        -O0
 hs-source-dirs:     lib
 Exposed-modules:    Data.Packed.Internal,
                     Data.Packed.Internal.Common,

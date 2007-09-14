@@ -348,7 +348,7 @@ foreign import ccall safe "aux.h constantC"
 @> constant 2 7
 7 |> [2.0,2.0,2.0,2.0,2.0,2.0,2.0]@
 -}
-constant :: Field a => a -> Int -> Vector a
+constant :: Double -> Int -> Vector Double
 constant = constantD
 
 --------------------------------------------------------------------------
@@ -360,6 +360,11 @@ conj v = asComplex $ cdat $ reshape 2 (asReal v) `multiply` diag (fromList [1,-1
 -- | creates a complex vector from vectors with real and imaginary parts
 toComplex :: (Vector Double, Vector Double) ->  Vector (Complex Double)
 toComplex (r,i) = asComplex $ cdat $ fromColumns [r,i]
+
+-- | the inverse of 'toComplex'
+fromComplex :: Vector (Complex Double) -> (Vector Double, Vector Double)
+fromComplex z = (r,i) where
+    [r,i] = toColumns $ reshape 2 $ asReal z
 
 -- | converts a real vector into a complex representation (with zero imaginary parts)
 comp :: Vector Double -> Vector (Complex Double)

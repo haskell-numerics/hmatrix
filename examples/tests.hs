@@ -6,10 +6,9 @@
 
 -----------------------------------------------------------------------------
 
-import Data.Packed.Internal
+import Data.Packed.Internal((>|<), fdat, cdat, multiply', multiplyG, MatrixOrder(..))
 import Data.Packed.Vector
 import Data.Packed.Matrix
-import Data.Packed.Internal.Matrix
 import GSL.Vector
 import GSL.Integration
 import GSL.Differentiation
@@ -94,6 +93,8 @@ asC m = (rows m >< cols m) $ toList (cdat m)
 
 mulC a b = multiply' RowMajor a b
 mulF a b = multiply' ColumnMajor a b
+
+identC = comp . ident
 
 infixl 7 <>
 a <> b = mulF a b
@@ -198,15 +199,15 @@ svdTestR fun m = u <> s <> trans v |~| m
 
 
 svdTestC m = u <> s' <> (trans v) |~| m
-                  && u <> conjTrans u |~| ident (rows m)
-                  && v <> conjTrans v |~| ident (cols m)
+                  && u <> conjTrans u |~| identC (rows m)
+                  && v <> conjTrans v |~| identC (cols m)
     where (u,s,v) = svdC m
           s' = liftMatrix comp s
 
 --svdg' m = (u,s',v) where 
 
 eigTestC (SqM m) = (m <> v) |~| (v <> diag s)
-                        && takeDiag (conjTrans v <> v) |~| constant 1 (rows m) --normalized
+                        && takeDiag (conjTrans v <> v) |~| comp (constant 1 (rows m)) --normalized
     where (s,v) = eigC m
 
 eigTestR (SqM m) = (liftMatrix comp m <> v) |~| (v <> diag s)
@@ -218,7 +219,7 @@ eigTestS (Sym m) = (m <> v) |~| (v <> diag s)
     where (s,v) = eigS m
 
 eigTestH (Her m) = (m <> v) |~| (v <> diag (comp s))
-                        && v <> conjTrans v |~| ident (cols m)
+                        && v <> conjTrans v |~| identC (cols m)
     where (s,v) = eigH m
 
 linearSolveSQTest fun singu (PairSM a b) = singu a || (a <> fun a b) |~| b
@@ -248,11 +249,11 @@ identC n = toComplex(ident n, (0::Double) <>ident n)
 pinvTest f m = (m <> f m <> m) |~| m
 
 pinvR m = linearSolveLSR m (ident (rows m))
-pinvC m = linearSolveLSC m (ident (rows m))
+pinvC m = linearSolveLSC m (identC (rows m))
 
 pinvSVDR m = linearSolveSVDR Nothing m (ident (rows m))
 
-pinvSVDC m = linearSolveSVDC Nothing m (ident (rows m))
+pinvSVDC m = linearSolveSVDC Nothing m (identC (rows m))
 
 --------------------------------------------------------------------
 

@@ -18,6 +18,7 @@ module GSLHaskell(
     module Data.Packed.Vector,
     module Data.Packed.Matrix,
     module LinearAlgebra.Algorithms,
+    module LinearAlgebra.Linear,
     module LAPACK,
     module GSL.Integration,
     module GSL.Differentiation,
@@ -28,18 +29,15 @@ module GSLHaskell(
     module GSL.Special,
     module Graphics.Plot,
     module Complex,
-    Mul,(<>), readMatrix, size, dispR, dispC, format, gmap, Joinable, (<|>),(<->), GSLHaskell.constant,
-    fromArray2D, fromComplex, toComplex, GSLHaskell.pnorm, scale, outer
+    Mul,(<>), readMatrix, size, dispR, dispC, format, gmap, Joinable, (<|>),(<->),
+    fromArray2D, GSLHaskell.pnorm,
 ) where
 
-
-import LAPACK
 import GSL.Integration
 import GSL.Differentiation
 import GSL.Fourier
 import GSL.Polynomials
 import GSL.Minimization
-import GSL.Matrix
 import Graphics.Plot
 import Complex
 import GSL.Special(setErrorHandlerOff,
@@ -48,14 +46,16 @@ import GSL.Special(setErrorHandlerOff,
     bessel_J0_e,
     exp_e10_e,
     gamma)
-import Data.Packed.Internal hiding (dsp)
-import Data.Packed.Vector hiding (constant)
+--import Data.Packed.Internal hiding (dsp,comp)
+import Data.Packed.Vector
 import Data.Packed.Matrix
 import Data.Packed.Matrix hiding ((><))
 import GSL.Vector
-import LinearAlgebra.Linear
 import qualified LinearAlgebra.Algorithms
+import LAPACK
+import GSL.Matrix
 import LinearAlgebra.Algorithms hiding (pnorm)
+import LinearAlgebra.Linear
 import Complex
 import Numeric(showGFloat)
 import Data.List(transpose,intersperse)
@@ -69,7 +69,7 @@ adaptScalar f1 f2 f3 x y
     | otherwise = f2 x y
 
 liftMatrix2' :: (Field t, Field a, Field b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
-liftMatrix2' f m1 m2 | compat' m1 m2 = reshape (max (cols m1) (cols m2)) (f (cdat m1) (cdat m2))
+liftMatrix2' f m1 m2 | compat' m1 m2 = reshape (max (cols m1) (cols m2)) (f (flatten m1) (flatten m2))
                      | otherwise    = error "nonconformant matrices in liftMatrix2'"
 
 compat' :: Matrix a -> Matrix b -> Bool
@@ -89,7 +89,7 @@ instance (Linear Vector a) => Num (Vector a) where
     fromInteger = fromList . return . fromInteger
 
 instance (Eq a, Field a) => Eq (Matrix a) where
-    a == b = rows a == rows b && cols a == cols b && cdat a == cdat b && fdat a == fdat b
+    a == b = cols a == cols b && flatten a == flatten b
 
 instance (Field a, Linear Vector a) => Num (Matrix a) where
     (+) = liftMatrix2' (+)
@@ -377,9 +377,6 @@ size = dim
 gmap :: (Storable a, Storable b) => (a->b) -> Vector a -> Vector b
 gmap f v = liftVector f v
 
-constant :: Double -> Int -> Vector Double
-constant = constantR
-
 -- shows a Double with n digits after the decimal point    
 shf :: (RealFloat a) => Int -> a -> String     
 shf dec n | abs n < 1e-10 = "0."
@@ -472,27 +469,6 @@ fromArray2D m = (r><c) (elems m)
     where ((r0,c0),(r1,c1)) = bounds m
           r = r1-r0+1
           c = c1-c0+1
-
--- | creates a complex vector from vectors with real and imaginary parts
-toComplexV :: (Vector Double, Vector Double) ->  Vector (Complex Double)
-toComplexV (r,i) = asComplex $ flatten $ fromColumns [r,i]
-
--- | extracts the real and imaginary parts of a complex vector
-fromComplexV :: Vector (Complex Double) -> (Vector Double, Vector Double)
-fromComplexV m = (a,b) where [a,b] = toColumns $ reshape 2 $ asReal m
-
--- | creates a complex matrix from matrices with real and imaginary parts
-toComplexM :: (Matrix Double, Matrix Double) ->  Matrix (Complex Double)
-toComplexM (r,i) = reshape (cols r) $ asComplex $ flatten $ fromColumns [flatten r, flatten i]
-
--- | extracts the real and imaginary parts of a complex matrix
-fromComplexM :: Matrix (Complex Double) -> (Matrix Double, Matrix Double)
-fromComplexM m = (reshape c a, reshape c b)
-    where c = cols m
-          [a,b] = toColumns $ reshape 2 $ asReal $ flatten m
-
-fromComplex :: Matrix (Complex Double) -> (Matrix Double, Matrix Double)
-fromComplex = fromComplexM
 
 
 pnorm :: (Normed t1, Num t) => t -> t1 -> Double

@@ -5,14 +5,14 @@ import System.Random(randomRs,mkStdGen)
 realMatrix = fromLists :: [[Double]] -> Matrix Double
 realVector = fromList ::  [Double] -> Vector Double
 
-toComplexM = uncurry $ liftMatrix2 (curry toComplex)
+
 
 infixl 2 =~=
 a =~= b = pnorm 1 (flatten (a - b)) < 1E-6
 
 randomMatrix seed (n,m) = reshape m $ realVector $ take (n*m) $ randomRs (-100,100) $ mkStdGen seed 
 
-randomMatrixC seed (n,m) = toComplexM (randomMatrix seed (n,m), randomMatrix (seed+1) (n,m))
+randomMatrixC seed (n,m) = toComplex (randomMatrix seed (n,m), randomMatrix (seed+1) (n,m))
 
 besselTest = do
     let (r,e) = bessel_J0_e 5.0
@@ -31,7 +31,7 @@ ms = realMatrix [[1,2,3]
 
 ms' = randomMatrix 27 (50,100)
 
-ms'' = toComplexM (randomMatrix 100 (50,100),randomMatrix 101 (50,100))
+ms'' = toComplex (randomMatrix 100 (50,100),randomMatrix 101 (50,100))
 
 fullsvdTest method mat msg = do
     let (u,s,vt) = method mat
@@ -43,7 +43,7 @@ full_svd_Rd = svdRdd
 
 --------------------------------------------------------------------
 
-mcu = toComplexM (randomMatrix 33 (20,20),randomMatrix 34 (20,20))
+mcu = toComplex (randomMatrix 33 (20,20),randomMatrix 34 (20,20))
 
 mcur = randomMatrix 35 (40,40)
 
@@ -53,7 +53,7 @@ eigTest method m msg = do
     assertBool msg $ m <> v =~= v <> diag s
 
 bigmat = m + trans m where m = randomMatrix 18 (1000,1000)
-bigmatc = mc + conjTrans mc where mc = toComplexM(m,m)
+bigmatc = mc + conjTrans mc where mc = toComplex(m,m)
                                   m = randomMatrix 19 (1000,1000)
 
 --------------------------------------------------------------------
@@ -62,22 +62,22 @@ invTest msg m = do
     assertBool msg $ m <> inv m =~= ident (rows m)
 
 invComplexTest msg m = do
-    assertBool msg $ m <> invC m =~= ident (rows m)
+    assertBool msg $ m <> invC m =~= identC (rows m)
 
-invC m = linearSolveC m (ident (rows m))
+invC m = linearSolveC m (identC (rows m))
 
---identC n = toComplexM(ident n, (0::Double) <>ident n)
+identC = comp . ident
 
 --------------------------------------------------------------------
 
 pinvTest f msg m = do
     assertBool msg $ m <> f m <> m =~= m
 
-pinvC m = linearSolveLSC m (ident (rows m))
+pinvC m = linearSolveLSC m (identC (rows m))
 
 pinvSVDR m = linearSolveSVDR Nothing m (ident (rows m))
 
-pinvSVDC m = linearSolveSVDC Nothing m (ident (rows m))
+pinvSVDC m = linearSolveSVDC Nothing m (identC (rows m))
 
 --------------------------------------------------------------------
 

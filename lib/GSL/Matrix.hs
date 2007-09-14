@@ -289,7 +289,7 @@ luC m = (l,u,p, fromIntegral s') where
     lu = reshape r $ subVector 0 (r*r) v
     s':p = map (round.realPart) . toList . subVector (r*r) (r+1) $ v
     u = triang r r 0 1 `mul` lu
-    l = (triang r r 0 0 `mul` lu) `add` ident r
+    l = (triang r r 0 0 `mul` lu) `add` liftMatrix comp (ident r)
     add = liftMatrix2 $ vectorZipC Add
     mul = liftMatrix2 $ vectorZipC Mul
 
