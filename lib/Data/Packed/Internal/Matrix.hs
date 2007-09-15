@@ -152,11 +152,12 @@ reshape c v = matrixFromVector RowMajor c v
 
 singleton x = reshape 1 (fromList [x])
 
+-- | application of a vector function on the flattened matrix elements
 liftMatrix :: (Field a, Field b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
 liftMatrix f MC { cols = c, cdat = d } = matrixFromVector RowMajor    c (f d)
 liftMatrix f MF { cols = c, fdat = d } = matrixFromVector ColumnMajor c (f d)
 
-
+-- | application of a vector function on the flattened matrices elements
 liftMatrix2 :: (Field t, Field a, Field b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
 liftMatrix2 f m1 m2
     | not (compat m1 m2) = error "nonconformant matrices in liftMatrix2"

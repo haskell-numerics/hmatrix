@@ -24,7 +24,7 @@ module Data.Packed.Matrix (
     fromBlocks, joinVert, joinHoriz,
     flipud, fliprl,
     subMatrix, takeRows, dropRows, takeColumns, dropColumns,
-    diag, takeDiag, diagRect, ident,
+    ident, diag, diagRect, takeDiag,
     liftMatrix, liftMatrix2,
 ) where
 
@@ -69,6 +69,14 @@ fliprl m = fromColumns . reverse . toColumns $ m
 
 ------------------------------------------------------------
 
+{- | creates a rectangular diagonal matrix
+
+@> diagRect (constant 5 3) 3 4
+(3><4)
+ [ 5.0, 0.0, 0.0, 0.0
+ , 0.0, 5.0, 0.0, 0.0
+ , 0.0, 0.0, 5.0, 0.0 ]@
+-}
 diagRect :: (Field t, Num t) => Vector t -> Int -> Int -> Matrix t
 diagRect s r c
     | dim s < min r c = error "diagRect"
@@ -77,9 +85,11 @@ diagRect s r c
     | r > c     = joinVert  [diag s , zeros (r-c,c)]
     where zeros (r,c) = reshape c $ constantD 0 (r*c)
 
+-- | extracts the diagonal from a rectangular matrix
 takeDiag :: (Field t) => Matrix t -> Vector t
 takeDiag m = fromList [cdat m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
 
+-- | creates the identity matrix of given dimension
 ident :: Int -> Matrix Double
 ident n = diag (constant 1 n)
 
@@ -138,12 +148,15 @@ flatten = cdat
 fromLists :: Field t => [[t]] -> Matrix t
 fromLists = fromRows . map fromList
 
+-- | conjugate transpose
 conjTrans :: Matrix (Complex Double) -> Matrix (Complex Double)
 conjTrans = trans . liftMatrix conj
 
+-- | creates a 1-row matrix from a vector
 asRow :: Field a => Vector a -> Matrix a
 asRow v = reshape (dim v) v
 
+-- | creates a 1-column matrix from a vector
 asColumn :: Field a => Vector a -> Matrix a
 asColumn v = reshape 1 v
 
