@@ -20,7 +20,7 @@ import Test.QuickCheck
 import Test.HUnit hiding ((~:))
 import Complex
 import LinearAlgebra.Algorithms
-import LinearAlgebra.Linear
+import LinearAlgebra.Linear hiding ((<>))
 import GSL.Matrix
 import GSLHaskell hiding ((<>),constant)
 

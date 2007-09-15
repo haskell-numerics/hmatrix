@@ -48,8 +48,10 @@ Exposed-modules:    Data.Packed.Internal,
                     LAPACK,
                     LinearAlgebra,
                     LinearAlgebra.Linear,
+                    LinearAlgebra.Instances,
                     LinearAlgebra.Algorithms
-                    , GSLHaskell, Graphics.Plot
+                    , Graphics.Plot
+--                    , GSLHaskell
 Other-modules:
 C-sources:          lib/Data/Packed/Internal/aux.c,
                     lib/LAPACK/lapack-aux.c,
