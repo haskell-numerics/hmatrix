@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Matrix
@@ -21,17 +22,21 @@ module Data.Packed.Matrix (
     trans, conjTrans,
     asRow, asColumn,
     fromRows, toRows, fromColumns, toColumns,
-    fromBlocks, joinVert, joinHoriz,
+    fromBlocks,
     flipud, fliprl,
     subMatrix, takeRows, dropRows, takeColumns, dropColumns,
     ident, diag, diagRect, takeDiag,
     liftMatrix, liftMatrix2,
+    dispR, readMatrix, fromArray2D
 ) where
 
 import Data.Packed.Internal
 import Foreign(Storable)
 import Complex
 import Data.Packed.Vector
+import Numeric(showGFloat)
+import Data.List(transpose,intersperse)
+import Data.Array
 
 -- | creates a matrix from a vertical list of matrices
 joinVert :: Field t => [Matrix t] -> Matrix t
@@ -160,5 +165,47 @@ asRow v = reshape (dim v) v
 asColumn :: Field a => Vector a -> Matrix a
 asColumn v = reshape 1 v
 
-------------------------------------------------
+-----------------------------------------------------
 
+fromArray2D :: (Field e) => Array (Int, Int) e -> Matrix e
+fromArray2D m = (r><c) (elems m)
+    where ((r0,c0),(r1,c1)) = bounds m
+          r = r1-r0+1
+          c = c1-c0+1
+
+------------------------------------------------------
+-- shows a Double with n digits after the decimal point    
+shf :: (RealFloat a) => Int -> a -> String     
+shf dec n | abs n < 1e-10 = "0."
+          | abs (n - (fromIntegral.round $ n)) < 1e-10 = show (round n) ++"."
+          | otherwise = showGFloat (Just dec) n ""    
+-- shows a Complex Double as a pair, with n digits after the decimal point    
+shfc n z@ (a:+b) 
+    | magnitude z <1e-10 = "0."
+    | abs b < 1e-10 = shf n a
+    | abs a < 1e-10 = shf n b ++"i"
+    | b > 0         = shf n a ++"+"++shf n b ++"i"
+    | otherwise     = shf n a ++shf n b ++"i"         
+
+dsp' :: String -> [[String]] -> String
+dsp' sep as = unlines . map unwords' $ transpose mtp where 
+    mt = transpose as
+    longs = map (maximum . map length) mt
+    mtp = zipWith (\a b -> map (pad a) b) longs mt
+    pad n str = replicate (n - length str) ' ' ++ str
+    unwords' = concat . intersperse sep
+
+format :: (Field t) => String -> (t -> String) -> Matrix t -> String
+format sep f m = dsp' sep . map (map f) . toLists $ m
+
+disp m f = putStrLn $ "matrix ("++show (rows m) ++"x"++ show (cols m) ++")\n"++format " | " f m
+
+dispR :: Int -> Matrix Double -> IO ()
+dispR d m = disp m (shf d)
+
+dispC :: Int -> Matrix (Complex Double) -> IO ()
+dispC d m = disp m (shfc d)
+
+-- | creates a matrix from a table of numbers.
+readMatrix :: String -> Matrix Double
+readMatrix = fromLists . map (map read). map words . filter (not.null) . lines

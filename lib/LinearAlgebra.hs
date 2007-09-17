@@ -16,6 +16,8 @@ module LinearAlgebra (
     module Data.Packed.Vector,
     module Data.Packed.Matrix,
     module LinearAlgebra.Linear,
+    module LinearAlgebra.Instances,
+    module LinearAlgebra.Interface,
     module LAPACK,
     module GSL.Matrix,
     module LinearAlgebra.Algorithms,
@@ -23,6 +25,8 @@ module LinearAlgebra (
 ) where
 
 import LinearAlgebra.Linear
+import LinearAlgebra.Instances
+import LinearAlgebra.Interface
 import LinearAlgebra.Algorithms
 import LAPACK
 import GSL.Matrix

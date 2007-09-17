@@ -14,7 +14,7 @@ Portability :  uses ffi
 -----------------------------------------------------------------------------
 
 module LinearAlgebra.Algorithms (
-    mXv, vXm,
+    -- mXv, vXm,
     inv,
     pinv,
     pinvTol,

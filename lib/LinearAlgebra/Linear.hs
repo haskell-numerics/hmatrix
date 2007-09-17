@@ -15,8 +15,7 @@ Portability :  uses ffi
 
 module LinearAlgebra.Linear (
     Linear(..),
-    dot, outer,
-    Mul(..)
+    multiply, dot, outer
 ) where
 
 
@@ -95,7 +94,6 @@ instance Linear Matrix (Complex Double) where
 
 --------------------------------------------------
 
-
 -- | euclidean inner product
 dot :: (Field t) => Vector t -> Vector t -> t
 dot u v = dat (multiply r c) `at` 0
@@ -113,19 +111,3 @@ dot u v = dat (multiply r c) `at` 0
 -}
 outer :: (Field t) => Vector t -> Vector t -> Matrix t
 outer u v = asColumn u `multiply` asRow v
-
-
-class Mul a b c | a b -> c where
- infixl 7 <>
- -- | matrix product
- (<>) :: Field t => a t -> b t -> c t
-
-instance Mul Matrix Matrix Matrix where
-    (<>) = multiply
-
-instance Mul Matrix Vector Vector where
-    (<>) m v = flatten $ m <> (asColumn v)
-
-instance Mul Vector Matrix Vector where
-    (<>) v m = flatten $ (asRow v) <> m
-

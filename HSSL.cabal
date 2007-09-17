@@ -49,6 +49,7 @@ Exposed-modules:    Data.Packed.Internal,
                     LinearAlgebra,
                     LinearAlgebra.Linear,
                     LinearAlgebra.Instances,
+                    LinearAlgebra.Interface,
                     LinearAlgebra.Algorithms
                     , Graphics.Plot
 --                    , GSLHaskell
