@@ -27,7 +27,7 @@ module Data.Packed.Matrix (
     subMatrix, takeRows, dropRows, takeColumns, dropColumns,
     ident, diag, diagRect, takeDiag,
     liftMatrix, liftMatrix2,
-    dispR, readMatrix, fromArray2D
+    format, dispR, readMatrix, fromArray2D
 ) where
 
 import Data.Packed.Internal
@@ -95,7 +95,7 @@ takeDiag :: (Field t) => Matrix t -> Vector t
 takeDiag m = fromList [cdat m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
 
 -- | creates the identity matrix of given dimension
-ident :: Int -> Matrix Double
+ident :: Field a => Int -> Matrix a
 ident n = diag (constant 1 n)
 
 ------------------------------------------------------------

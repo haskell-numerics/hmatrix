@@ -229,7 +229,7 @@ int mapValCAux(int code, gsl_complex* pval, KGCVEC(x), GCVEC(r)) {
         OPV(2,gsl_complex_add(val,xp[k]))
         OPV(3,gsl_complex_sub(val,xp[k]))
         OPV(4,gsl_complex_pow(val,xp[k]))
-        OPV(5,gsl_complex_pow(val,xp[k]))
+        OPV(5,gsl_complex_pow(xp[k],val))
         default: ERROR(BAD_CODE);
     }
 }

@@ -47,7 +47,7 @@ infixl 7 <.>
 
 ----------------------------------------------------
 
--- | @x .* a = scale (recip x) v@
+-- | @x .* a = scale x a@
 (.*) :: (Linear c a) => a -> c a -> c a
 infixl 7 .*
 a .* x = scale a x

@@ -7,25 +7,14 @@
 -----------------------------------------------------------------------------
 
 import Data.Packed.Internal((>|<), fdat, cdat, multiply', multiplyG, MatrixOrder(..))
-import Data.Packed.Vector
-import Data.Packed.Matrix
-import GSL.Vector
-import GSL.Integration
-import GSL.Differentiation
-import GSL.Special hiding (choose, multiply, exp)
-import GSL.Fourier
-import GSL.Polynomials
-import LAPACK
+import GSL hiding (sin,cos,exp,choose)
+import LinearAlgebra hiding ((<>))
 import Test.QuickCheck
 import Test.HUnit hiding ((~:))
-import Complex
-import LinearAlgebra.Algorithms
-import LinearAlgebra.Linear hiding ((<>))
-import GSL.Matrix
-import GSLHaskell hiding ((<>),constant)
+
 
 dist :: (Normed t, Num t) => t -> t -> Double
-dist a b = norm (a-b)
+dist a b = pnorm Infinity (a-b)
 
 infixl 4 |~|
 a |~| b = a :~8~: b
@@ -280,15 +269,17 @@ integrateTest = assertBool "integrate" (abs (volSphere 2.5 - 4/3*pi*2.5^3) < eps
 
 ---------------------------------------------------------------------
 
-arit1 u = vectorMapValR PowVS 2 (vectorMapR Sin u)
-          `add` vectorMapValR PowVS 2 (vectorMapR Cos u)
-          |~| constant 1 (dim u)
+arit1 u = sin u ^ 2 + cos u ^ 2 |~| 1
+    where _ = u :: Vector Double
 
-arit2 u = (vectorMapR Cos u) `mul` (vectorMapR Tan u)
-          |~| vectorMapR Sin u
+arit2 u = sin u ** 2 + cos u ** 2 |~| 1
+    where _ = u :: Vector Double
 
+arit3 u = cos u * tan u |~| sin u
+    where _ = u :: Vector Double
 
--- arit3 (PairV u v) =
+arit4 u = (cos u * tan u) :~6~: sin u
+    where _ = u :: Vector (Complex Double)
 
 ---------------------------------------------------------------------
 
@@ -347,6 +338,8 @@ main = do
     putStrLn "--------- VEC OPER ------"
     quickCheck arit1
     quickCheck arit2
+    quickCheck arit3
+    quickCheck arit4
     putStrLn "--------- GSL ------"
     runTestTT tests
     quickCheck $ \v -> ifft (fft v) |~| v

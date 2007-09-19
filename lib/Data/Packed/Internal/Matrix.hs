@@ -349,7 +349,7 @@ foreign import ccall safe "aux.h constantC"
 @> constant 2 7
 7 |> [2.0,2.0,2.0,2.0,2.0,2.0,2.0]@
 -}
-constant :: Double -> Int -> Vector Double
+constant :: Field a => a -> Int -> Vector a
 constant = constantD
 
 --------------------------------------------------------------------------
