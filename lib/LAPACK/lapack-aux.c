@@ -164,7 +164,7 @@ int svd_l_C(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
 
 int eig_l_C(KCMAT(a),CMAT(u), CVEC(s),CMAT(v)) {
     integer n = ar;
-    REQUIRES(n>=2 && (ur==1 || (ur==n && uc==n)) && sn==n && (vr==1 || (vr==n && vc==n)),BAD_SIZE);
+    REQUIRES(n>=2 && ac==n && (ur==1 || (ur==n && uc==n)) && sn==n && (vr==1 || (vr==n && vc==n)),BAD_SIZE);
     DEBUGMSG("eig_l_C");
     double *B = (double*)malloc(2*n*n*sizeof(double));
     CHECK(!B,MEM);
@@ -213,7 +213,7 @@ int eig_l_C(KCMAT(a),CMAT(u), CVEC(s),CMAT(v)) {
 
 int eig_l_R(KDMAT(a),DMAT(u), CVEC(s),DMAT(v)) {
     integer n = ar;
-    REQUIRES(n>=2 && (ur==1 || (ur==n && uc==n)) && sn==n && (vr==1 || (vr==n && vc==n)),BAD_SIZE);
+    REQUIRES(n>=2 && ac == n && (ur==1 || (ur==n && uc==n)) && sn==n && (vr==1 || (vr==n && vc==n)),BAD_SIZE);
     DEBUGMSG("eig_l_R");
     double *B = (double*)malloc(n*n*sizeof(double));
     CHECK(!B,MEM);
@@ -256,7 +256,7 @@ int eig_l_R(KDMAT(a),DMAT(u), CVEC(s),DMAT(v)) {
 
 int eig_l_S(KDMAT(a),DVEC(s),DMAT(v)) {
     integer n = ar;
-    REQUIRES(n>=2 && sn==n && (vr==1 || (vr==n && vc==n)),BAD_SIZE);
+    REQUIRES(n>=2 && ac == n && sn==n && (vr==1 || (vr==n && vc==n)),BAD_SIZE);
     DEBUGMSG("eig_l_S");
     memcpy(vp,ap,n*n*sizeof(double));
     integer lwork = -1;
@@ -289,7 +289,7 @@ int eig_l_S(KDMAT(a),DVEC(s),DMAT(v)) {
 
 int eig_l_H(KCMAT(a),DVEC(s),CMAT(v)) {
     integer n = ar;
-    REQUIRES(n>=2 && sn==n && (vr==1 || (vr==n && vc==n)),BAD_SIZE);
+    REQUIRES(n>=2 && ac==n && sn==n && (vr==1 || (vr==n && vc==n)),BAD_SIZE);
     DEBUGMSG("eig_l_H");
     memcpy(vp,ap,2*n*n*sizeof(double));
     double *rwork = (double*) malloc((3*n-2)*sizeof(double));
