@@ -37,6 +37,8 @@ class (Field e) => Linear c e where
     fromComplex :: RealFloat e => c (Complex e) -> (c e, c e)
     comp        :: RealFloat e => c e -> c (Complex e)
     conj        :: RealFloat e => c (Complex e) -> c (Complex e)
+    real        :: c Double -> c e
+    complex     :: c e -> c (Complex Double)
 
 instance Linear Vector Double where
     scale = vectorMapValR Scale
@@ -50,6 +52,8 @@ instance Linear Vector Double where
     fromComplex = Data.Packed.Internal.fromComplex
     comp = Data.Packed.Internal.comp
     conj = Data.Packed.Internal.conj
+    real = id
+    complex = LinearAlgebra.Linear.comp
 
 instance Linear Vector (Complex Double) where
     scale = vectorMapValC Scale
@@ -63,6 +67,8 @@ instance Linear Vector (Complex Double) where
     fromComplex = undefined
     comp = undefined
     conj = undefined
+    real = LinearAlgebra.Linear.comp
+    complex = id
 
 instance Linear Matrix Double where
     scale x = liftMatrix (scale x)
@@ -78,6 +84,8 @@ instance Linear Matrix Double where
               c = cols z
     comp = liftMatrix Data.Packed.Internal.comp
     conj = liftMatrix Data.Packed.Internal.conj
+    real = id
+    complex = LinearAlgebra.Linear.comp
 
 instance Linear Matrix (Complex Double) where
     scale x = liftMatrix (scale x)
@@ -91,6 +99,8 @@ instance Linear Matrix (Complex Double) where
     fromComplex = undefined
     comp = undefined
     conj = undefined
+    real = LinearAlgebra.Linear.comp
+    complex = id
 
 --------------------------------------------------
 

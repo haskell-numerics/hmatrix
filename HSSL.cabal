@@ -14,7 +14,7 @@ tested-with:        GHC ==6.6.1
 Build-Depends:      base, haskell98
 Extensions:         ForeignFunctionInterface
 --ghc-options:        -Wall
-ghc-options:        -O0
+ghc-options:        -O
 hs-source-dirs:     lib
 Exposed-modules:    Data.Packed.Internal,
                     Data.Packed.Internal.Common,
@@ -51,6 +51,7 @@ Exposed-modules:    Data.Packed.Internal,
                     LinearAlgebra.Instances,
                     LinearAlgebra.Interface,
                     LinearAlgebra.Algorithms
+--                    , LinearAlgebra.Tests
                     , Graphics.Plot
 --                    , GSLHaskell
 Other-modules:

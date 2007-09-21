@@ -24,6 +24,7 @@ import Data.List(transpose)
 import Debug.Trace(trace)
 import Foreign.C.String(peekCString)
 import Foreign.C.Types
+import Data.Monoid
 
 -- | A one-dimensional array of objects stored in a contiguous memory block.
 data Vector t = V { dim  :: Int            -- ^ number of elements
@@ -177,3 +178,4 @@ liftVector  f = fromList . map f . toList
 liftVector2 :: (Storable a, Storable b, Storable c) => (a-> b -> c) -> Vector a -> Vector b -> Vector c
 liftVector2 f u v = fromList $ zipWith f (toList u) (toList v)
 
+-----------------------------------------------------------------

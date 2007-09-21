@@ -14,15 +14,13 @@ Portability :  uses ffi
 -----------------------------------------------------------------------------
 
 module LinearAlgebra.Algorithms (
-    -- mXv, vXm,
-    inv,
-    pinv,
+    GMatrix(..),
+    Normed(..), NormType(..),
+    det,inv,pinv,full,economy,
     pinvTol,
-    pinvTolg,
+--    pinvTolg,
     nullspacePrec,
     nullVector,
-    Normed(..), NormType(..),
-    det,
     eps, i
 ) where
 
@@ -33,6 +31,69 @@ import GSL.Matrix
 import GSL.Vector
 import LAPACK
 import Complex
+import LinearAlgebra.Linear
+
+class (Linear Matrix t) => GMatrix t where
+    svd         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
+    lu          :: Matrix t -> (Matrix t, Matrix t, [Int], t)
+    linearSolve :: Matrix t -> Matrix t -> Matrix t
+    linearSolveSVD :: Matrix t -> Matrix t -> Matrix t
+    ctrans :: Matrix t -> Matrix t
+    eig         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
+    eigSH       :: Matrix t -> (Vector Double, Matrix t)
+
+instance GMatrix Double where
+    svd = svdR
+    lu  = luR
+    linearSolve = linearSolveR
+    linearSolveSVD = linearSolveSVDR Nothing
+    ctrans = trans
+    eig = eigR
+    eigSH = eigS
+
+instance GMatrix (Complex Double) where
+    svd = svdC
+    lu  = luC
+    linearSolve = linearSolveC
+    linearSolveSVD = linearSolveSVDC Nothing
+    ctrans = conjTrans
+    eig = eigC
+    eigSH = eigH
+
+square m = rows m == cols m
+
+det :: GMatrix t => Matrix t -> t
+det m | square m = s * (product $ toList $ takeDiag $ u)
+      | otherwise = error "det of nonsquare matrix"
+    where (_,u,_,s) = lu m
+
+inv :: GMatrix t => Matrix t -> Matrix t
+inv m | square m = m `linearSolve` ident (rows m)
+      | otherwise = error "inv of nonsquare matrix"
+
+pinv :: GMatrix t => Matrix t -> Matrix t
+pinv m = linearSolveSVD m (ident (rows m))
+
+
+full svd m = (u, d ,v) where
+    (u,s,v) = svd m
+    d = diagRect s r c
+    r = rows m
+    c = cols m
+
+economy svd m = (u', subVector 0 d s, v') where
+    (u,s,v) = svd m
+    sl@(g:_) = toList (complex s)
+    s' = fromList . filter rec $ sl
+    rec x = magnitude x > magnitude g*tol
+    t = 1
+    tol = (fromIntegral (max (rows m) (cols m)) * magnitude g * t * eps)
+    r = rows m
+    c = cols m
+    d = dim s'
+    u' = takeColumns d u
+    v' = takeColumns d v
+
 
 {- | Machine precision of a Double.
 
@@ -70,119 +131,6 @@ vXm :: (Num t, Field t) => Vector t -> Matrix t -> Vector t
 vXm v m = flatten $ (asRow v) `mXm` m
 
 
-
--- | Pseudoinverse of a real matrix
---
--- @dispR 3 $ pinv (fromLists [[1,2],
---                           [3,4],
---                           [5,6]])
---matrix (2x3)
--- -1.333 | -0.333 |  0.667
---  1.083 |  0.333 | -0.417@
---
-
-pinv :: Matrix Double -> Matrix Double
-pinv m = pinvTol 1 m
---pinv m = linearSolveSVDR Nothing m (ident (rows m))
-
-{- -| Pseudoinverse of a real matrix with the default tolerance used by GNU-Octave: the singular values less than max (rows, colums) * greatest singular value * 'eps' are ignored. See 'pinvTol'.
-
-@\> let m = 'fromLists' [[ 1, 2]
-                    ,[ 5, 8]
-                    ,[10,-5]]
-\> pinv m
-9.353e-3 4.539e-2  7.637e-2
-2.231e-2 8.993e-2 -4.719e-2
-\ 
-\> m \<\> pinv m \<\> m
- 1.  2.
- 5.  8.
-10. -5.@
-
--}
---pinvg :: Matrix Double -> Matrix Double
-pinvg m = pinvTolg 1 m
-
-{- | Pseudoinverse of a real matrix with the desired tolerance, expressed as a
-multiplicative factor of the default tolerance used by GNU-Octave (see 'pinv').
-
-@\> let m = 'fromLists' [[1,0,    0]
-                    ,[0,1,    0]
-                    ,[0,0,1e-10]]
-\ 
-\> 'pinv' m 
-1. 0.           0.
-0. 1.           0.
-0. 0. 10000000000.
-\ 
-\> pinvTol 1E8 m
-1. 0. 0.
-0. 1. 0.
-0. 0. 1.@
-
--}
-pinvTol :: Double -> Matrix Double -> Matrix Double
-pinvTol t m = v' `mXm` diag s' `mXm` trans u' where
-    (u,s,v) = svdR' m
-    sl@(g:_) = toList s
-    s' = fromList . map rec $ sl
-    rec x = if x < g*tol then 1 else 1/x
-    tol = (fromIntegral (max (rows m) (cols m)) * g * t * eps)
-    r = rows m
-    c = cols m
-    d = dim s
-    u' = takeColumns d u
-    v' = takeColumns d v
-
-
-pinvTolg :: Double -> Matrix Double -> Matrix Double
-pinvTolg t m = v `mXm` diag s' `mXm` trans u where
-    (u,s,v) = svdg m
-    sl@(g:_) = toList s
-    s' = fromList . map rec $ sl
-    rec x = if x < g*tol then 1 else 1/x
-    tol = (fromIntegral (max (rows m) (cols m)) * g * t * eps)
-
-
-
-{- | Inverse of a square matrix.
-
-inv m = 'linearSolveR' m ('ident' ('rows' m))
-
-@\>inv ('fromLists' [[1,4]
-                ,[0,2]])
-1.   -2.
-0. 0.500@
--}
-inv :: Matrix Double -> Matrix Double
-inv m = if rows m == cols m
-    then m `linearSolveR` ident (rows m)
-    else error "inv of nonsquare matrix"
-
-
-{- - | Shortcut for the 2-norm ('pnorm' 2)
-
-@ > norm $ 'hilb' 5
-1.5670506910982311
-@
-
-@\> norm $ 'fromList' [1,-1,'i',-'i']
-2.0@
-
--}
-
-
-
-{- | Determinant of a square matrix, computed from the LU decomposition.
-
-@\> det ('fromLists' [[7,2],[3,8]])
-50.0@
-
--}
-det :: Matrix Double -> Double
-det m = s * (product $ toList $ takeDiag $ u)
-    where (_,u,_,s) = luR m
-
 ---------------------------------------------------------------------------
 
 norm2 :: Vector Double -> Double
@@ -212,12 +160,12 @@ pnormCV PNorm1 = norm1 . liftVector magnitude
 pnormCV Infinity = vectorMax . liftVector magnitude
 --pnormCV _ = error "pnormCV not yet defined"
 
-pnormRM PNorm2 m = head (toList s) where (_,s,_) = svdR' m
+pnormRM PNorm2 m = head (toList s) where (_,s,_) = svdR m
 pnormRM PNorm1 m = vectorMax $ constant 1 (rows m) `vXm` liftMatrix (vectorMapR Abs) m
 pnormRM Infinity m = vectorMax $ liftMatrix (vectorMapR Abs) m `mXv` constant 1 (cols m)
 --pnormRM _ _ = error "p norm not yet defined"
 
-pnormCM PNorm2 m = head (toList s) where (_,s,_) = svdC' m
+pnormCM PNorm2 m = head (toList s) where (_,s,_) = svdC m
 pnormCM PNorm1 m = vectorMax $ constant 1 (rows m) `vXm` liftMatrix (liftVector magnitude) m
 pnormCM Infinity m = vectorMax $ liftMatrix (liftVector magnitude) m `mXv` constant 1 (cols m)
 --pnormCM _ _ = error "p norm not yet defined"
@@ -245,17 +193,52 @@ instance Normed (Matrix (Complex Double)) where
 
 -----------------------------------------------------------------------
 
--- | The nullspace of a real matrix from its SVD decomposition.
-nullspacePrec :: Double          -- ^ relative tolerance in 'eps' units
-              -> Matrix Double   -- ^ input matrix
-              -> [Vector Double] -- ^ list of unitary vectors spanning the nullspace
+-- | The nullspace of a matrix from its SVD decomposition.
+nullspacePrec :: GMatrix t
+              => Double          -- ^ relative tolerance in 'eps' units
+              -> Matrix t   -- ^ input matrix
+              -> [Vector t] -- ^ list of unitary vectors spanning the nullspace
 nullspacePrec t m = ns where
-    (_,s,v) = svdR' m
+    (_,s,v) = svd m
     sl@(g:_) = toList s
     tol = (fromIntegral (max (rows m) (cols m)) * g * t * eps)
     rank = length (filter (> g*tol) sl)
-    ns = drop rank (toColumns v)
+--    ns = drop rank (toColumns v)
+    ns = drop rank $ toRows $ ctrans v
 
--- | The nullspace of a real matrix, assumed to be one-dimensional, with default tolerance (shortcut for @last . nullspacePrec 1@).
-nullVector :: Matrix Double -> Vector Double
+-- | The nullspace of a matrix, assumed to be one-dimensional, with default tolerance (shortcut for @last . nullspacePrec 1@).
+nullVector :: GMatrix t => Matrix t -> Vector t
 nullVector = last . nullspacePrec 1
+
+------------------------------------------------------------------------
+
+{- | Pseudoinverse of a real matrix with the desired tolerance, expressed as a
+multiplicative factor of the default tolerance used by GNU-Octave (see 'pinv').
+
+@\> let m = 'fromLists' [[1,0,    0]
+                    ,[0,1,    0]
+                    ,[0,0,1e-10]]
+\ 
+\> 'pinv' m 
+1. 0.           0.
+0. 1.           0.
+0. 0. 10000000000.
+\ 
+\> pinvTol 1E8 m
+1. 0. 0.
+0. 1. 0.
+0. 0. 1.@
+
+-}
+pinvTol :: Double -> Matrix Double -> Matrix Double
+pinvTol t m = v' `mXm` diag s' `mXm` trans u' where
+    (u,s,v) = svdR m
+    sl@(g:_) = toList s
+    s' = fromList . map rec $ sl
+    rec x = if x < g*tol then 1 else 1/x
+    tol = (fromIntegral (max (rows m) (cols m)) * g * t * eps)
+    r = rows m
+    c = cols m
+    d = dim s
+    u' = takeColumns d u
+    v' = takeColumns d v

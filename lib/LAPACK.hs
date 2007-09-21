@@ -14,7 +14,7 @@
 -----------------------------------------------------------------------------
 
 module LAPACK (
-    svdR, svdR', svdRdd, svdRdd', svdC, svdC',
+    svdR, svdRdd, svdC,
     eigC, eigR, eigS, eigH,
     linearSolveR, linearSolveC,
     linearSolveLSR, linearSolveLSC,
@@ -26,7 +26,6 @@ import Data.Packed.Internal.Vector
 import Data.Packed.Internal.Matrix
 import Data.Packed.Vector
 import Data.Packed.Matrix
---import LinearAlgebra.Linear(scale)
 import GSL.Vector(vectorMapValR, FunCodeSV(Scale))
 import Complex
 import Foreign
@@ -36,14 +35,9 @@ foreign import ccall "LAPACK/lapack-aux.h svd_l_R" dgesvd :: TMMVM
 
 -- | Wrapper for LAPACK's /dgesvd/, which computes the full svd decomposition of a real matrix.
 --
--- @(u,s,v)=svdR m@ so that @m=u \<\> s \<\> 'trans' v@.
-svdR :: Matrix Double -> (Matrix Double, Matrix Double, Matrix Double)
-svdR x = (u, diagRect s r c, v) where (u,s,v) = svdR' x
-                                      r = rows x
-                                      c = cols x
-
-svdR' :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
-svdR' x = unsafePerformIO $ do
+-- @(u,s,v)=full svdR m@ so that @m=u \<\> s \<\> 'trans' v@.
+svdR :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
+svdR x = unsafePerformIO $ do
     u <- createMatrix ColumnMajor r r
     s <- createVector (min r c)
     v <- createMatrix ColumnMajor c c
@@ -56,14 +50,9 @@ foreign import ccall "LAPACK/lapack-aux.h svd_l_Rdd" dgesdd :: TMMVM
 
 -- | Wrapper for LAPACK's /dgesvd/, which computes the full svd decomposition of a real matrix.
 --
--- @(u,s,v)=svdRdd m@ so that @m=u \<\> s \<\> 'trans' v@.
-svdRdd :: Matrix Double -> (Matrix Double, Matrix Double , Matrix Double)
-svdRdd x = (u, diagRect s r c, v) where (u,s,v) = svdRdd' x
-                                        r = rows x
-                                        c = cols x
-
-svdRdd' :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
-svdRdd' x = unsafePerformIO $ do
+-- @(u,s,v)=full svdRdd m@ so that @m=u \<\> s \<\> 'trans' v@.
+svdRdd :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
+svdRdd x = unsafePerformIO $ do
     u <- createMatrix ColumnMajor r r
     s <- createVector (min r c)
     v <- createMatrix ColumnMajor c c
@@ -77,14 +66,9 @@ foreign import ccall "LAPACK/lapack-aux.h svd_l_C" zgesvd :: TCMCMVCM
 
 -- | Wrapper for LAPACK's /zgesvd/, which computes the full svd decomposition of a complex matrix.
 --
--- @(u,s,v)=svdC m@ so that @m=u \<\> s \<\> 'trans' v@.
-svdC :: Matrix (Complex Double) -> (Matrix (Complex Double), Matrix Double, Matrix (Complex Double))
-svdC x = (u, diagRect s r c, v) where (u,s,v) = svdC' x
-                                      r = rows x
-                                      c = cols x
-
-svdC' :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector Double, Matrix (Complex Double))
-svdC' x = unsafePerformIO $ do
+-- @(u,s,v)=full svdC m@ so that @m=u \<\> comp s \<\> 'trans' v@.
+svdC :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector Double, Matrix (Complex Double))
+svdC x = unsafePerformIO $ do
     u <- createMatrix ColumnMajor r r
     s <- createVector (min r c)
     v <- createMatrix ColumnMajor c c
