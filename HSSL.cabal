@@ -20,6 +20,7 @@ Exposed-modules:    Data.Packed.Internal,
                     Data.Packed.Internal.Common,
                     Data.Packed.Internal.Vector
                     Data.Packed.Internal.Matrix,
+                    Data.Packed,
                     Data.Packed.Vector,
                     Data.Packed.Matrix,
                     GSL.Vector,

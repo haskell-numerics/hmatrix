@@ -25,9 +25,10 @@ module Data.Packed.Matrix (
     fromBlocks,
     flipud, fliprl,
     subMatrix, takeRows, dropRows, takeColumns, dropColumns,
+    extractRows,
     ident, diag, diagRect, takeDiag,
     liftMatrix, liftMatrix2,
-    format, dispR, readMatrix, fromArray2D
+    format, dispR, readMatrix, fromFile, fromArray2D
 ) where
 
 import Data.Packed.Internal
@@ -209,3 +210,8 @@ dispC d m = disp m (shfc d)
 -- | creates a matrix from a table of numbers.
 readMatrix :: String -> Matrix Double
 readMatrix = fromLists . map (map read). map words . filter (not.null) . lines
+
+-- | rearranges the rows of a matrix according to the order given in a list of integers. 
+extractRows :: Field t => [Int] -> Matrix t -> Matrix t
+extractRows l m = fromRows $ extract (toRows $ m) l
+    where extract l is = [l!!i |i<-is]

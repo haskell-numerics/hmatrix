@@ -9,10 +9,10 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses ffi
 
+Basic optimized operations on vectors and matrices.
 
 -}
 -----------------------------------------------------------------------------
--- #hide
 
 module LinearAlgebra.Linear (
     Linear(..),
@@ -21,25 +21,22 @@ module LinearAlgebra.Linear (
 
 
 import Data.Packed.Internal
-import Data.Packed.Matrix
+import Data.Packed
 import GSL.Vector
 import Complex
 
 -- | basic optimized operations
-class (Field e) => Linear c e where
+class (Container c e) => Linear c e where
     scale       :: e -> c e -> c e
-    scaleRecip  :: e -> c e -> c e
     addConstant :: e -> c e -> c e
     add         :: c e -> c e -> c e
     sub         :: c e -> c e -> c e
+    -- | element by element multiplication
     mul         :: c e -> c e -> c e
+    -- | element by element division
     divide      :: c e -> c e -> c e
-    toComplex   :: RealFloat e => (c e, c e) -> c (Complex e)
-    fromComplex :: RealFloat e => c (Complex e) -> (c e, c e)
-    comp        :: RealFloat e => c e -> c (Complex e)
-    conj        :: RealFloat e => c (Complex e) -> c (Complex e)
-    real        :: c Double -> c e
-    complex     :: c e -> c (Complex Double)
+    -- | scale the element by element reciprocal of the object: @scaleRecip 2 (fromList [5,i]) == 2 |> [0.4 :+ 0.0,0.0 :+ (-2.0)]@
+    scaleRecip  :: e -> c e -> c e
 
 instance Linear Vector Double where
     scale = vectorMapValR Scale
@@ -49,12 +46,6 @@ instance Linear Vector Double where
     sub = vectorZipR Sub
     mul = vectorZipR Mul
     divide = vectorZipR Div
-    toComplex = Data.Packed.Internal.toComplex
-    fromComplex = Data.Packed.Internal.fromComplex
-    comp = Data.Packed.Internal.comp
-    conj = Data.Packed.Internal.conj
-    real = id
-    complex = LinearAlgebra.Linear.comp
 
 instance Linear Vector (Complex Double) where
     scale = vectorMapValC Scale
@@ -64,12 +55,6 @@ instance Linear Vector (Complex Double) where
     sub = vectorZipC Sub
     mul = vectorZipC Mul
     divide = vectorZipC Div
-    toComplex = undefined -- can't match
-    fromComplex = undefined
-    comp = undefined
-    conj = undefined
-    real = LinearAlgebra.Linear.comp
-    complex = id
 
 instance Linear Matrix Double where
     scale x = liftMatrix (scale x)
@@ -79,14 +64,6 @@ instance Linear Matrix Double where
     sub = liftMatrix2 sub
     mul = liftMatrix2 mul
     divide = liftMatrix2 divide
-    toComplex = uncurry $ liftMatrix2 $ curry LinearAlgebra.Linear.toComplex
-    fromComplex z = (reshape c r, reshape c i)
-        where (r,i) = LinearAlgebra.Linear.fromComplex (cdat z)
-              c = cols z
-    comp = liftMatrix Data.Packed.Internal.comp
-    conj = liftMatrix Data.Packed.Internal.conj
-    real = id
-    complex = LinearAlgebra.Linear.comp
 
 instance Linear Matrix (Complex Double) where
     scale x = liftMatrix (scale x)
@@ -96,12 +73,6 @@ instance Linear Matrix (Complex Double) where
     sub = liftMatrix2 sub
     mul = liftMatrix2 mul
     divide = liftMatrix2 divide
-    toComplex = undefined
-    fromComplex = undefined
-    comp = undefined
-    conj = undefined
-    real = LinearAlgebra.Linear.comp
-    complex = id
 
 --------------------------------------------------
 

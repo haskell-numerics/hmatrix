@@ -18,17 +18,14 @@ module GSL.Matrix(
     qr,
     cholR, -- cholC,
     luSolveR, luSolveC,
-    luR, luC,
-    fromFile, extractRows
+    luR, luC
 ) where
 
 import Data.Packed.Internal
 import Data.Packed.Matrix(fromLists,ident,takeDiag)
 import GSL.Vector
 import Foreign
-import Foreign.C.Types
 import Complex
-import Foreign.C.String
 
 {- | eigendecomposition of a real symmetric matrix using /gsl_eigen_symmv/.
 
@@ -257,7 +254,7 @@ p is a permutation:
 
 L \* U obtains a permuted version of the original matrix:
 
-@\> 'extractRows' p m
+@\> extractRows p m
   2.+3.i   -7.   0.
       1.    2.  -3.
       1.  -1.i  2.i
@@ -298,35 +295,7 @@ luC m = (l,u,p, fromIntegral s') where
     add = liftMatrix2 $ vectorZipC Add
     mul = liftMatrix2 $ vectorZipC Mul
 
-extract l is = [l!!i |i<-is]
-
 {- auxiliary function to get triangular matrices
 -}
 triang r c h v = reshape c $ fromList [el i j | i<-[0..r-1], j<-[0..c-1]]
     where el i j = if j-i>=h then v else 1 - v
-
-{- | rearranges the rows of a matrix according to the order given in a list of integers. 
-
-> > extractRows [3,3,0,1] (ident 4)
-> 0. 0. 0. 1.
-> 0. 0. 0. 1.
-> 1. 0. 0. 0.
-> 0. 1. 0. 0.
-
--}
-extractRows :: Field t => [Int] -> Matrix t -> Matrix t
-extractRows l m = fromRows $ extract (toRows $ m) l
-
---------------------------------------------------------------
-
--- | loads a matrix efficiently from formatted ASCII text file (the number of rows and columns must be known in advance).
-fromFile :: FilePath -> (Int,Int) -> IO (Matrix Double)
-fromFile filename (r,c) = do
-    charname <- newCString filename
-    res <- createMatrix RowMajor r c
-    c_gslReadMatrix charname // mat dat res // check "gslReadMatrix" []
-    --free charname  -- TO DO: free the auxiliary CString
-    return res
-foreign import ccall "gsl-aux.h matrix_fscanf" c_gslReadMatrix:: Ptr CChar -> TM
-
----------------------------------------------------------------------------

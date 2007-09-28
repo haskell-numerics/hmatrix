@@ -24,6 +24,8 @@ import Complex
 import Control.Monad(when)
 import Data.List(transpose,intersperse)
 import Data.Maybe(fromJust)
+import Foreign.C.String
+import Foreign.C.Types
 
 -----------------------------------------------------------------
 
@@ -370,6 +372,16 @@ fromComplex z = (r,i) where
 -- | converts a real vector into a complex representation (with zero imaginary parts)
 comp :: Vector Double -> Vector (Complex Double)
 comp v = toComplex (v,constant 0 (dim v))
+
+-- | loads a matrix efficiently from formatted ASCII text file (the number of rows and columns must be known in advance).
+fromFile :: FilePath -> (Int,Int) -> IO (Matrix Double)
+fromFile filename (r,c) = do
+    charname <- newCString filename
+    res <- createMatrix RowMajor r c
+    c_gslReadMatrix charname // mat dat res // check "gslReadMatrix" []
+    --free charname  -- TO DO: free the auxiliary CString
+    return res
+foreign import ccall "aux.h matrix_fscanf" c_gslReadMatrix:: Ptr CChar -> TM
 
 -------------------------------------------------------------------------
 

@@ -328,6 +328,7 @@ tests = do
      [ test "arith1" $ ((ones (100,100) * 5 + 2)/0.5 - 7)**2 |~| (49 :: RM)
      , test "arith2" $ (((1+i) .* ones (100,100) * 5 + 2)/0.5 - 7)**2 |~| ( (140*i-51).*1 :: CM)
      , test "arith3" $ exp (i.*ones(10,10)*pi) + 1 |~| 0
+     , test "<\\>"   $ (3><2) [2,0,0,3,1,1::Double] <\> 3|>[4,9,5] |~| 2|>[2,3]
      ]
     putStrLn "--------- GSL ------"
     quickCheck $ \v -> ifft (fft v) |~| v

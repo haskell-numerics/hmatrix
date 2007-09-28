@@ -9,106 +9,114 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses ffi
 
-A simple interface to the available matrix computations. We have defined some generic functions 
-on both real and complex matrices in such a way that higher level algorithms and 
-testing properties are valid for both base types.
+A generic interface for a number of essential functions. Using it some higher level algorithms
+and testing properties can be written for both real and complex matrices.
 
-In any case the specific functions for particular base types can also be explicitly
+In any case, the specific functions for particular base types can also be explicitly
 imported from the LAPACK and GSL.Matrix modules.
 
 -}
 -----------------------------------------------------------------------------
 
 module LinearAlgebra.Algorithms (
--- * Basic Linear Algebra
-    scale,
-    add,
-    multiply, dot, outer,
-    linearSolve, linearSolveSVD,
+-- * Linear Systems
+    linearSolve,
+    inv, pinv,
+    pinvTol, det,
 -- * Matrix factorizations
-    svd, lu, eig, eigSH,
-    qr, chol,
--- * Utilities
-    Normed(..), NormType(..),
-    det,inv,pinv,full,economy,
-    pinvTol,
---    pinvTolg,
+-- ** Singular value decomposition
+    svd,
+    full, economy,
+-- ** Eigensystems
+    eig, LinearAlgebra.Algorithms.eigS, LinearAlgebra.Algorithms.eigH,
+-- ** Other 
+    LinearAlgebra.Algorithms.qr, chol,
+-- * Nullspace
     nullspacePrec,
     nullVector,
--- * Conversions
-    toComplex, fromComplex,
-    comp, real, complex,
-    conj, ctrans,
 -- * Misc
     eps, i,
-    scaleRecip,
-    addConstant,
-    sub,
-    mul,
-    divide,
+    ctrans,
+    Normed(..), NormType(..),
+    GenMat(linearSolveSVD,lu,eigSH)
 ) where
 
 
 import Data.Packed.Internal hiding (fromComplex, toComplex, comp, conj)
-import Data.Packed.Matrix
+import Data.Packed
 import GSL.Matrix
 import GSL.Vector
 import LAPACK
 import Complex
 import LinearAlgebra.Linear
 
--- | Base types for which some optimized matrix computations are available
-class (Linear Matrix t) => Optimized t where
+-- | matrix computations available for both real and complex matrices
+class (Linear Matrix t) => GenMat t where
     svd         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     lu          :: Matrix t -> (Matrix t, Matrix t, [Int], t)
     linearSolve :: Matrix t -> Matrix t -> Matrix t
     linearSolveSVD :: Matrix t -> Matrix t -> Matrix t
-    ctrans :: Matrix t -> Matrix t
     eig         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
     eigSH       :: Matrix t -> (Vector Double, Matrix t)
     chol        :: Matrix t -> Matrix t
+    -- | conjugate transpose
+    ctrans :: Matrix t -> Matrix t
 
-instance Optimized Double where
+instance GenMat Double where
     svd = svdR
     lu  = luR
     linearSolve = linearSolveR
     linearSolveSVD = linearSolveSVDR Nothing
     ctrans = trans
     eig = eigR
-    eigSH = eigS
+    eigSH = LAPACK.eigS
     chol = cholR
 
-instance Optimized (Complex Double) where
+instance GenMat (Complex Double) where
     svd = svdC
     lu  = luC
     linearSolve = linearSolveC
     linearSolveSVD = linearSolveSVDC Nothing
     ctrans = conjTrans
     eig = eigC
-    eigSH = eigH
+    eigSH =  LAPACK.eigH
     chol = error "cholC not yet implemented" -- waiting for GSL-1.10
+
+-- | eigensystem of a symmetric matrix
+eigS :: Matrix Double -> (Vector Double, Matrix Double)
+eigS = LAPACK.eigS
+
+-- | eigensystem of a hermitian matrix
+eigH :: Matrix (Complex Double) -> (Vector Double, Matrix (Complex Double))
+eigH = LAPACK.eigH
+
+qr :: Matrix Double -> (Matrix Double, Matrix Double)
+qr = GSL.Matrix.qr
 
 square m = rows m == cols m
 
-det :: Optimized t => Matrix t -> t
+det :: GenMat t => Matrix t -> t
 det m | square m = s * (product $ toList $ takeDiag $ u)
       | otherwise = error "det of nonsquare matrix"
     where (_,u,_,s) = lu m
 
-inv :: Optimized t => Matrix t -> Matrix t
+inv :: GenMat t => Matrix t -> Matrix t
 inv m | square m = m `linearSolve` ident (rows m)
       | otherwise = error "inv of nonsquare matrix"
 
-pinv :: Optimized t => Matrix t -> Matrix t
+pinv :: GenMat t => Matrix t -> Matrix t
 pinv m = linearSolveSVD m (ident (rows m))
 
-
+full :: Field t 
+     => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Matrix Double, Matrix t)
 full svd m = (u, d ,v) where
     (u,s,v) = svd m
     d = diagRect s r c
     r = rows m
     c = cols m
 
+economy :: Field t 
+        => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Vector Double, Matrix t)
 economy svd m = (u', subVector 0 d s, v') where
     (u,s,v) = svd m
     sl@(g:_) = toList (complex s)
@@ -123,39 +131,25 @@ economy svd m = (u', subVector 0 d s, v') where
     v' = takeColumns d v
 
 
-{- | Machine precision of a Double.
-
->> eps
-> 2.22044604925031e-16
-
-(The value used by GNU-Octave)
-
--}
+-- | The machine precision of a Double: @eps == 2.22044604925031e-16@ (the value used by GNU-Octave).
 eps :: Double
 eps =  2.22044604925031e-16
 
-{- | The imaginary unit
-
-@> 'ident' 3 \<\> i
-1.i   0.   0.
- 0.  1.i   0.
- 0.   0.  1.i@
-
--}
+-- | The imaginary unit: @i == 0.0 :+ 1.0@
 i :: Complex Double
 i = 0:+1
 
 
 -- | matrix product
-mXm :: (Num t, Optimized t) => Matrix t -> Matrix t -> Matrix t
+mXm :: (Num t, GenMat t) => Matrix t -> Matrix t -> Matrix t
 mXm = multiply
 
 -- | matrix - vector product
-mXv :: (Num t, Optimized t) => Matrix t -> Vector t -> Vector t
+mXv :: (Num t, GenMat t) => Matrix t -> Vector t -> Vector t
 mXv m v = flatten $ m `mXm` (asColumn v)
 
 -- | vector - matrix product
-vXm :: (Num t, Optimized t) => Vector t -> Matrix t -> Vector t
+vXm :: (Num t, GenMat t) => Vector t -> Matrix t -> Vector t
 vXm v m = flatten $ (asRow v) `mXm` m
 
 
@@ -166,15 +160,6 @@ norm2 = toScalarR Norm2
 
 norm1 :: Vector Double -> Double
 norm1 = toScalarR AbsSum
-
-vectorMax :: Vector Double -> Double
-vectorMax = toScalarR Max
-vectorMin :: Vector Double -> Double
-vectorMin = toScalarR Min
-vectorMaxIndex :: Vector Double -> Int
-vectorMaxIndex = round . toScalarR MaxIdx
-vectorMinIndex :: Vector Double -> Int
-vectorMinIndex = round . toScalarR MinIdx
 
 data NormType = Infinity | PNorm1 | PNorm2 -- PNorm Int
 
@@ -199,7 +184,7 @@ pnormCM Infinity m = vectorMax $ liftMatrix (liftVector magnitude) m `mXv` const
 --pnormCM _ _ = error "p norm not yet defined"
 
 -- -- | computes the p-norm of a matrix or vector (with the same definitions as GNU-octave). pnorm 0 denotes \\inf-norm. See also 'norm'.
---pnorm :: (Container t, Optimized a) => Int -> t a -> Double
+--pnorm :: (Container t, GenMat a) => Int -> t a -> Double
 --pnorm = pnormG
 
 class Normed t where
@@ -222,7 +207,7 @@ instance Normed (Matrix (Complex Double)) where
 -----------------------------------------------------------------------
 
 -- | The nullspace of a matrix from its SVD decomposition.
-nullspacePrec :: Optimized t
+nullspacePrec :: GenMat t
               => Double          -- ^ relative tolerance in 'eps' units
               -> Matrix t   -- ^ input matrix
               -> [Vector t] -- ^ list of unitary vectors spanning the nullspace
@@ -235,12 +220,12 @@ nullspacePrec t m = ns where
     ns = drop rank $ toRows $ ctrans v
 
 -- | The nullspace of a matrix, assumed to be one-dimensional, with default tolerance (shortcut for @last . nullspacePrec 1@).
-nullVector :: Optimized t => Matrix t -> Vector t
+nullVector :: GenMat t => Matrix t -> Vector t
 nullVector = last . nullspacePrec 1
 
 ------------------------------------------------------------------------
 
-{- | Pseudoinverse of a real matrix with the desired tolerance, expressed as a
+{-  Pseudoinverse of a real matrix with the desired tolerance, expressed as a
 multiplicative factor of the default tolerance used by GNU-Octave (see 'pinv').
 
 @\> let m = 'fromLists' [[1,0,    0]
@@ -258,7 +243,7 @@ multiplicative factor of the default tolerance used by GNU-Octave (see 'pinv').
 0. 0. 1.@
 
 -}
-pinvTol :: Double -> Matrix Double -> Matrix Double
+--pinvTol :: Double -> Matrix Double -> Matrix Double
 pinvTol t m = v' `mXm` diag s' `mXm` trans u' where
     (u,s,v) = svdR m
     sl@(g:_) = toList s

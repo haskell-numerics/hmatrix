@@ -52,8 +52,6 @@ int integrate_qags(double f(double,void*), double a, double b, double prec, int 
 
 int polySolve(KRVEC(a), CVEC(z));
 
-int matrix_fscanf(char*filename, RMAT(a));
-
 int minimize(double f(int, double*), double tolsize, int maxit, 
                  KRVEC(xi), KRVEC(sz), RMAT(sol));
 

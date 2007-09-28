@@ -13,17 +13,15 @@ Basic matrix computations implemented by BLAS, LAPACK and GSL.
 -}
 -----------------------------------------------------------------------------
 module LinearAlgebra (
-    module Data.Packed.Vector,
-    module Data.Packed.Matrix,
-    module LinearAlgebra.Instances,
-    module LinearAlgebra.Interface,
+    module Data.Packed,
+    module LinearAlgebra.Linear,
     module LinearAlgebra.Algorithms,
-    module Complex
+    module LinearAlgebra.Instances,
+    module LinearAlgebra.Interface
 ) where
 
+import Data.Packed
+import LinearAlgebra.Linear
+import LinearAlgebra.Algorithms
 import LinearAlgebra.Instances
 import LinearAlgebra.Interface
-import LinearAlgebra.Algorithms
-import Data.Packed.Matrix
-import Data.Packed.Vector
-import Complex

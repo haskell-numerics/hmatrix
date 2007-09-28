@@ -16,6 +16,7 @@ Operators for frequent operations.
 
 module LinearAlgebra.Interface(
     (<>),(<.>),
+    (<\>),
     (.*),(*/),
     (<|>),(<->),
 ) where
@@ -23,6 +24,7 @@ module LinearAlgebra.Interface(
 import LinearAlgebra.Linear
 import Data.Packed.Vector
 import Data.Packed.Matrix
+import LinearAlgebra.Algorithms
 
 class Mul a b c | a b -> c where
  infixl 7 <>
@@ -58,6 +60,11 @@ a .* x = scale a x
 (*/) :: (Linear c a) => c a -> a -> c a
 infixl 7 */
 v */ x = scale (recip x) v
+
+-- | least squares solution of a linear system, similar to the \\ operator of Matlab\/Octave (based on linearSolveSVD).
+(<\>) :: (GenMat a) => Matrix a -> Vector a -> Vector a
+infixl 7 <\>
+m <\> v = flatten (linearSolveSVD m (reshape 1 v))
 
 ------------------------------------------------
 
