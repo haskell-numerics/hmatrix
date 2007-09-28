@@ -9,23 +9,47 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses ffi
 
+A simple interface to the available matrix computations. We have defined some generic functions 
+on both real and complex matrices in such a way that higher level algorithms and 
+testing properties are valid for both base types.
+
+In any case the specific functions for particular base types can also be explicitly
+imported from the LAPACK and GSL.Matrix modules.
 
 -}
 -----------------------------------------------------------------------------
 
 module LinearAlgebra.Algorithms (
-    GMatrix(..),
+-- * Basic Linear Algebra
+    scale,
+    add,
+    multiply, dot, outer,
+    linearSolve, linearSolveSVD,
+-- * Matrix factorizations
+    svd, lu, eig, eigSH,
+    qr, chol,
+-- * Utilities
     Normed(..), NormType(..),
     det,inv,pinv,full,economy,
     pinvTol,
 --    pinvTolg,
     nullspacePrec,
     nullVector,
-    eps, i
+-- * Conversions
+    toComplex, fromComplex,
+    comp, real, complex,
+    conj, ctrans,
+-- * Misc
+    eps, i,
+    scaleRecip,
+    addConstant,
+    sub,
+    mul,
+    divide,
 ) where
 
 
-import Data.Packed.Internal
+import Data.Packed.Internal hiding (fromComplex, toComplex, comp, conj)
 import Data.Packed.Matrix
 import GSL.Matrix
 import GSL.Vector
@@ -33,7 +57,8 @@ import LAPACK
 import Complex
 import LinearAlgebra.Linear
 
-class (Linear Matrix t) => GMatrix t where
+-- | Base types for which some optimized matrix computations are available
+class (Linear Matrix t) => Optimized t where
     svd         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     lu          :: Matrix t -> (Matrix t, Matrix t, [Int], t)
     linearSolve :: Matrix t -> Matrix t -> Matrix t
@@ -41,8 +66,9 @@ class (Linear Matrix t) => GMatrix t where
     ctrans :: Matrix t -> Matrix t
     eig         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
     eigSH       :: Matrix t -> (Vector Double, Matrix t)
+    chol        :: Matrix t -> Matrix t
 
-instance GMatrix Double where
+instance Optimized Double where
     svd = svdR
     lu  = luR
     linearSolve = linearSolveR
@@ -50,8 +76,9 @@ instance GMatrix Double where
     ctrans = trans
     eig = eigR
     eigSH = eigS
+    chol = cholR
 
-instance GMatrix (Complex Double) where
+instance Optimized (Complex Double) where
     svd = svdC
     lu  = luC
     linearSolve = linearSolveC
@@ -59,19 +86,20 @@ instance GMatrix (Complex Double) where
     ctrans = conjTrans
     eig = eigC
     eigSH = eigH
+    chol = error "cholC not yet implemented" -- waiting for GSL-1.10
 
 square m = rows m == cols m
 
-det :: GMatrix t => Matrix t -> t
+det :: Optimized t => Matrix t -> t
 det m | square m = s * (product $ toList $ takeDiag $ u)
       | otherwise = error "det of nonsquare matrix"
     where (_,u,_,s) = lu m
 
-inv :: GMatrix t => Matrix t -> Matrix t
+inv :: Optimized t => Matrix t -> Matrix t
 inv m | square m = m `linearSolve` ident (rows m)
       | otherwise = error "inv of nonsquare matrix"
 
-pinv :: GMatrix t => Matrix t -> Matrix t
+pinv :: Optimized t => Matrix t -> Matrix t
 pinv m = linearSolveSVD m (ident (rows m))
 
 
@@ -119,15 +147,15 @@ i = 0:+1
 
 
 -- | matrix product
-mXm :: (Num t, Field t) => Matrix t -> Matrix t -> Matrix t
+mXm :: (Num t, Optimized t) => Matrix t -> Matrix t -> Matrix t
 mXm = multiply
 
 -- | matrix - vector product
-mXv :: (Num t, Field t) => Matrix t -> Vector t -> Vector t
+mXv :: (Num t, Optimized t) => Matrix t -> Vector t -> Vector t
 mXv m v = flatten $ m `mXm` (asColumn v)
 
 -- | vector - matrix product
-vXm :: (Num t, Field t) => Vector t -> Matrix t -> Vector t
+vXm :: (Num t, Optimized t) => Vector t -> Matrix t -> Vector t
 vXm v m = flatten $ (asRow v) `mXm` m
 
 
@@ -171,7 +199,7 @@ pnormCM Infinity m = vectorMax $ liftMatrix (liftVector magnitude) m `mXv` const
 --pnormCM _ _ = error "p norm not yet defined"
 
 -- -- | computes the p-norm of a matrix or vector (with the same definitions as GNU-octave). pnorm 0 denotes \\inf-norm. See also 'norm'.
---pnorm :: (Container t, Field a) => Int -> t a -> Double
+--pnorm :: (Container t, Optimized a) => Int -> t a -> Double
 --pnorm = pnormG
 
 class Normed t where
@@ -194,7 +222,7 @@ instance Normed (Matrix (Complex Double)) where
 -----------------------------------------------------------------------
 
 -- | The nullspace of a matrix from its SVD decomposition.
-nullspacePrec :: GMatrix t
+nullspacePrec :: Optimized t
               => Double          -- ^ relative tolerance in 'eps' units
               -> Matrix t   -- ^ input matrix
               -> [Vector t] -- ^ list of unitary vectors spanning the nullspace
@@ -207,7 +235,7 @@ nullspacePrec t m = ns where
     ns = drop rank $ toRows $ ctrans v
 
 -- | The nullspace of a matrix, assumed to be one-dimensional, with default tolerance (shortcut for @last . nullspacePrec 1@).
-nullVector :: GMatrix t => Matrix t -> Vector t
+nullVector :: Optimized t => Matrix t -> Vector t
 nullVector = last . nullspacePrec 1
 
 ------------------------------------------------------------------------

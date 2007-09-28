@@ -12,6 +12,7 @@ Portability :  uses ffi
 
 -}
 -----------------------------------------------------------------------------
+-- #hide
 
 module LinearAlgebra.Linear (
     Linear(..),
@@ -24,7 +25,7 @@ import Data.Packed.Matrix
 import GSL.Vector
 import Complex
 
-
+-- | basic optimized operations
 class (Field e) => Linear c e where
     scale       :: e -> c e -> c e
     scaleRecip  :: e -> c e -> c e

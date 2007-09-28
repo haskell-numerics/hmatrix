@@ -5,6 +5,9 @@ module Main where
 import Data.Packed.Internal((>|<), fdat, cdat, multiply', multiplyG, MatrixOrder(..),debug)
 import GSL hiding (sin,cos,exp,choose)
 import LinearAlgebra
+import LinearAlgebra.Linear(Linear)
+import LAPACK
+import GSL.Matrix
 import Test.QuickCheck hiding (test)
 import Test.HUnit hiding ((~:),test)
 import System.Random(randomRs,mkStdGen)
@@ -263,6 +266,10 @@ gammaTest = test "gamma" (gamma 5 == 24.0)
 
 ---------------------------------------------------------------------
 
+cholRTest = chol ((2><2) [1,2,2,9::Double]) == (2><2) [1,0,2,2.23606797749979]
+
+---------------------------------------------------------------------
+
 asFortran m = (rows m >|< cols m) $ toList (fdat m)
 asC m = (rows m >< cols m) $ toList (cdat m)
 
@@ -331,6 +338,7 @@ tests = do
      , integrateTest
      , polySolveTest
      , test "det" detTest
+     , test "cholR" cholRTest
      ]
 
 bigtests = do

@@ -16,7 +16,7 @@ module GSL.Matrix(
     eigSg, eigHg,
     svdg,
     qr,
-    chol,
+    cholR, -- cholC,
     luSolveR, luSolveC,
     luR, luC,
     fromFile, extractRows
@@ -153,24 +153,29 @@ foreign import ccall "gsl-aux.h QR" c_qr :: TMMM
 
 {- | Cholesky decomposition of a symmetric positive definite real matrix using /gsl_linalg_cholesky_decomp/.
 
-@\> let c = chol $ 'fromLists' [[5,4],[4,5]]
-\
-\> c
-2.236    0.
-1.789 1.342
-\
-\> c \<\> 'trans' c
-5.000 4.000
-4.000 5.000@
+@\> chol $ (2><2) [1,2,
+                   2,9::Double]
+(2><2)
+ [ 1.0,              0.0
+ , 2.0, 2.23606797749979 ]@
 
 -}
-chol :: Matrix Double -> Matrix Double
-chol x = unsafePerformIO $ do
+cholR :: Matrix Double -> Matrix Double
+cholR x = unsafePerformIO $ do
     res <- createMatrix RowMajor r r
-    c_chol // mat cdat x // mat dat res // check "chol" [cdat x]
+    c_cholR // mat cdat x // mat dat res // check "cholR" [cdat x]
     return res
   where r = rows x
-foreign import ccall "gsl-aux.h chol" c_chol :: TMM
+foreign import ccall "gsl-aux.h cholR" c_cholR :: TMM
+
+cholC :: Matrix (Complex Double) -> Matrix (Complex Double)
+cholC x = unsafePerformIO $ do
+    res <- createMatrix RowMajor r r
+    c_cholC // mat cdat x // mat dat res // check "cholC" [cdat x]
+    return res
+  where r = rows x
+foreign import ccall "gsl-aux.h cholC" c_cholC :: TCMCM
+
 
 --------------------------------------------------------
 

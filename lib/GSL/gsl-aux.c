@@ -471,9 +471,9 @@ int QR(KRMAT(x),RMAT(q),RMAT(r)) {
     OK
 }
 
-int chol(KRMAT(x),RMAT(l)) {
+int cholR(KRMAT(x),RMAT(l)) {
     REQUIRES(xr==xc && lr==xr && lr==lc,BAD_SIZE);
-    DEBUGMSG("chol");
+    DEBUGMSG("cholR");
     KDMVIEW(x);
     DMVIEW(l);
     gsl_matrix_memcpy(M(l),M(x));
@@ -488,6 +488,23 @@ int chol(KRMAT(x),RMAT(l)) {
     OK
 }
 
+int cholC(KCMAT(x),CMAT(l)) {
+    REQUIRES(xr==xc && lr==xr && lr==lc,BAD_SIZE);
+    DEBUGMSG("cholC");
+    KCMVIEW(x);
+    CMVIEW(l);
+    gsl_matrix_complex_memcpy(M(l),M(x));
+    int res = 0; // gsl_linalg_complex_cholesky_decomp(M(l));
+    CHECK(res,res);
+    gsl_complex zero = {0.,0.};
+    int r,c;
+    for (r=0; r<xr-1; r++) {
+        for(c=r+1; c<xc; c++) {
+            lp[r*lc+c] = zero;
+        }
+    }
+    OK
+}
 
 int fft(int code, KCVEC(X), CVEC(R)) {
     REQUIRES(Xn == Rn,BAD_SIZE);

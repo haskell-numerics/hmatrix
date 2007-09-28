@@ -38,7 +38,9 @@ int eigensystemC(KCMAT(x),RVEC(l),CMAT(v));
 
 int QR(KRMAT(x),RMAT(q),RMAT(r));
 
-int chol(KRMAT(x),RMAT(l));
+int cholR(KRMAT(x),RMAT(l));
+
+int cholC(KCMAT(x),CMAT(l));
 
 int fft(int code, KCVEC(a), CVEC(b));
 

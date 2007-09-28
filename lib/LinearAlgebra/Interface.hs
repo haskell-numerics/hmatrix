@@ -82,7 +82,7 @@ infixl 3 <->
 
 {- | Horizontal concatenation of matrices and vectors:
 
-@> (ident 3 -&- 3 * ident 3) |&| fromList [1..6.0]
+@> (ident 3 \<-\> 3 * ident 3) \<|\> fromList [1..6.0]
 (6><4)
  [ 1.0, 0.0, 0.0, 1.0
  , 0.0, 1.0, 0.0, 2.0

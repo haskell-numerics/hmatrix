@@ -8,28 +8,22 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses ffi
 
-Some linear algebra algorithms, implemented by means of BLAS, LAPACK or GSL.
+Basic matrix computations implemented by BLAS, LAPACK and GSL.
 
 -}
 -----------------------------------------------------------------------------
 module LinearAlgebra (
     module Data.Packed.Vector,
     module Data.Packed.Matrix,
-    module LinearAlgebra.Linear,
     module LinearAlgebra.Instances,
     module LinearAlgebra.Interface,
-    module LAPACK,
-    module GSL.Matrix,
     module LinearAlgebra.Algorithms,
     module Complex
 ) where
 
-import LinearAlgebra.Linear
 import LinearAlgebra.Instances
 import LinearAlgebra.Interface
 import LinearAlgebra.Algorithms
-import LAPACK
-import GSL.Matrix
 import Data.Packed.Matrix
 import Data.Packed.Vector
 import Complex
