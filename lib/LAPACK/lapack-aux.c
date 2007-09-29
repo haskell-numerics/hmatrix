@@ -619,3 +619,38 @@ int chol_l_S(KDMAT(a),DMAT(l)) {
     }
     OK
 }
+
+//////////////////// QR factorization /////////////////////////
+// TO DO: unpack
+
+int qr_l_R(KDMAT(a), DVEC(tau), DMAT(r)) {
+    integer m = ar;
+    integer n = ac;
+    integer mn = MIN(m,n);
+    REQUIRES(m>=1 && n >=1 && rr== m && rc == n && taun == mn, BAD_SIZE);
+    DEBUGMSG("qr_l_R");
+    double *WORK = (double*)malloc(m*sizeof(double));
+    CHECK(!WORK,MEM);
+    memcpy(rp,ap,m*n*sizeof(double));
+    integer res;
+    dgeqr2_ (&m,&n,rp,&m,taup,WORK,&res);
+    CHECK(res,res);
+    free(WORK);
+    OK
+}
+
+int qr_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
+    integer m = ar;
+    integer n = ac;
+    integer mn = MIN(m,n);
+    REQUIRES(m>=1 && n >=1 && rr== m && rc == n && taun == mn, BAD_SIZE);
+    DEBUGMSG("qr_l_C");
+    doublecomplex *WORK = (doublecomplex*)malloc(m*sizeof(doublecomplex));
+    CHECK(!WORK,MEM);
+    memcpy(rp,ap,m*n*sizeof(doublecomplex));
+    integer res;
+    zgeqr2_ (&m,&n,(doublecomplex*)rp,&m,(doublecomplex*)taup,WORK,&res);
+    CHECK(res,res);
+    free(WORK);
+    OK
+}

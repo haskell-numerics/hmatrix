@@ -19,7 +19,8 @@ module LAPACK (
     linearSolveR, linearSolveC,
     linearSolveLSR, linearSolveLSC,
     linearSolveSVDR, linearSolveSVDC,
-    cholS, cholH
+    cholS, cholH,
+    qrR, qrC
 ) where
 
 import Data.Packed.Internal
@@ -303,4 +304,32 @@ cholS a = unsafePerformIO $ do
     dpotrf // mat fdat a // mat dat r // check "cholS" [fdat a]
     return r
   where n = rows a
+
+-----------------------------------------------------------------------------------
+foreign import ccall "LAPACK/lapack-aux.h qr_l_R" dgeqr2 :: TMVM
+
+-- | Wrapper for LAPACK's /dgeqr2/,which computes a QR factorization of a real matrix.
+qrR :: Matrix Double -> (Matrix Double, Vector Double)
+qrR a = unsafePerformIO $ do
+    r <- createMatrix ColumnMajor m n
+    tau <- createVector mn
+    dgeqr2 // mat fdat a // vec tau // mat dat r // check "qrR" [fdat a]
+    return (r,tau)
+  where m = rows a
+        n = cols a
+        mn = min m n
+
+-----------------------------------------------------------------------------------
+foreign import ccall "LAPACK/lapack-aux.h qr_l_C" zgeqr2 :: TCMCVCM
+
+-- | Wrapper for LAPACK's /zgeqr2/,which computes a QR factorization of a complex matrix.
+qrC :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector (Complex Double))
+qrC a = unsafePerformIO $ do
+    r <- createMatrix ColumnMajor m n
+    tau <- createVector mn
+    zgeqr2 // mat fdat a // vec tau // mat dat r // check "qrC" [fdat a]
+    return (r,tau)
+  where m = rows a
+        n = cols a
+        mn = min m n
 
