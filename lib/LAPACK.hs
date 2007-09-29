@@ -19,6 +19,7 @@ module LAPACK (
     linearSolveR, linearSolveC,
     linearSolveLSR, linearSolveLSC,
     linearSolveSVDR, linearSolveSVDC,
+    cholS, cholH
 ) where
 
 import Data.Packed.Internal
@@ -278,4 +279,28 @@ linearSolveSVDC_l rcond  a b = unsafePerformIO $ do
   where m = rows a
         n = cols a
         nrhs = cols b
+
+-----------------------------------------------------------------------------------
+foreign import ccall "LAPACK/lapack-aux.h chol_l_H" zpotrf :: TCMCM
+
+-- | Wrapper for LAPACK's /zpotrf/,which computes the Cholesky factorization of a
+-- complex Hermitian positive definite matrix.
+cholH :: Matrix (Complex Double) -> Matrix (Complex Double)
+cholH a = unsafePerformIO $ do
+    r <- createMatrix ColumnMajor n n
+    zpotrf // mat fdat a // mat dat r // check "cholH" [fdat a]
+    return r
+  where n = rows a
+
+-----------------------------------------------------------------------------------
+foreign import ccall "LAPACK/lapack-aux.h chol_l_S" dpotrf :: TMM
+
+-- | Wrapper for LAPACK's /dpotrf/,which computes the Cholesky factorization of a
+-- real symmetric positive definite matrix.
+cholS :: Matrix Double -> Matrix Double
+cholS a = unsafePerformIO $ do
+    r <- createMatrix ColumnMajor n n
+    dpotrf // mat fdat a // mat dat r // check "cholS" [fdat a]
+    return r
+  where n = rows a
 

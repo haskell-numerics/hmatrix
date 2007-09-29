@@ -36,3 +36,7 @@ int linearSolveLSC_l(KCMAT(a),KCMAT(b),CMAT(x));
 int linearSolveSVDR_l(double,KDMAT(a),KDMAT(b),DMAT(x));
 
 int linearSolveSVDC_l(double,KCMAT(a),KCMAT(b),CMAT(x));
+
+int chol_l_H(KCMAT(a),CMAT(r));
+
+int chol_l_S(KDMAT(a),DMAT(r));

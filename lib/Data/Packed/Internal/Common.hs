@@ -69,6 +69,7 @@ errorCode 2002 = "memory problem"
 errorCode 2003 = "bad file"
 errorCode 2004 = "singular"
 errorCode 2005 = "didn't converge"
+errorCode 2006 = "the input matrix is not positive definite"
 errorCode n    = "code "++show n
 
 {- | conversion of Haskell functions into function pointers that can be used in the C side

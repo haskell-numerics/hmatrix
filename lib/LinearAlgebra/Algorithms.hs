@@ -44,7 +44,7 @@ module LinearAlgebra.Algorithms (
 
 import Data.Packed.Internal hiding (fromComplex, toComplex, comp, conj)
 import Data.Packed
-import GSL.Matrix
+import GSL.Matrix(luR,luC,qr)
 import GSL.Vector
 import LAPACK
 import Complex
@@ -70,7 +70,7 @@ instance GenMat Double where
     ctrans = trans
     eig = eigR
     eigSH = LAPACK.eigS
-    chol = cholR
+    chol = cholS
 
 instance GenMat (Complex Double) where
     svd = svdC
@@ -80,7 +80,7 @@ instance GenMat (Complex Double) where
     ctrans = conjTrans
     eig = eigC
     eigSH =  LAPACK.eigH
-    chol = error "cholC not yet implemented" -- waiting for GSL-1.10
+    chol = cholH
 
 -- | eigensystem of a symmetric matrix
 eigS :: Matrix Double -> (Vector Double, Matrix Double)

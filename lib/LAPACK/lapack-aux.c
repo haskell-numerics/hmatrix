@@ -28,6 +28,7 @@
 #define BAD_FILE 2003
 #define SINGULAR 2004
 #define NOCONVER 2005
+#define NODEFPOS 2006
 
 //////////////////// real svd ////////////////////////////////////
 
@@ -575,5 +576,46 @@ int linearSolveSVDC_l(double rcond, KCMAT(a),KCMAT(b),CMAT(x)) {
     free(RWORK);
     free(S);
     free(AC);
+    OK
+}
+
+//////////////////// Cholesky factorization /////////////////////////
+
+int chol_l_H(KCMAT(a),CMAT(l)) {
+    integer n = ar;
+    REQUIRES(n>=1 && ac == n && lr==n && lc==n,BAD_SIZE);
+    DEBUGMSG("chol_l_H");
+    memcpy(lp,ap,n*n*sizeof(doublecomplex));
+    char uplo = 'U';
+    integer res;
+    zpotrf_ (&uplo,&n,(doublecomplex*)lp,&n,&res);
+    CHECK(res>0,NODEFPOS);
+    CHECK(res,res);
+    doublecomplex zero = {0.,0.};
+    int r,c;
+    for (r=0; r<lr-1; r++) {
+        for(c=r+1; c<lc; c++) {
+            ((doublecomplex*)lp)[r*lc+c] = zero;
+        }
+    }
+    OK
+}
+
+int chol_l_S(KDMAT(a),DMAT(l)) {
+    integer n = ar;
+    REQUIRES(n>=1 && ac == n && lr==n && lc==n,BAD_SIZE);
+    DEBUGMSG("chol_l_S");
+    memcpy(lp,ap,n*n*sizeof(double));
+    char uplo = 'U';
+    integer res;
+    dpotrf_ (&uplo,&n,lp,&n,&res);
+    CHECK(res>0,NODEFPOS);
+    CHECK(res,res);
+    int r,c;
+    for (r=0; r<lr-1; r++) {
+        for(c=r+1; c<lc; c++) {
+            lp[r*lc+c] = 0.;
+        }
+    }
     OK
 }

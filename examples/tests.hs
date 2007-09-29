@@ -266,7 +266,8 @@ gammaTest = test "gamma" (gamma 5 == 24.0)
 
 ---------------------------------------------------------------------
 
-cholRTest = chol ((2><2) [1,2,2,9::Double]) == (2><2) [1,0,2,2.23606797749979]
+cholRTest = chol ((2><2) [1,2,2,9::Double]) == (2><2) [1,2,0,2.23606797749979]
+cholCTest = chol ((2><2) [1,2,2,9::Complex Double]) == (2><2) [1,2,0,2.23606797749979]
 
 ---------------------------------------------------------------------
 
@@ -316,6 +317,11 @@ tests = do
     putStrLn "--------- pinv ------"
     quickCheck (pinvTest . sqm   :: SqM Double -> Bool)
     quickCheck (pinvTest . sqm   :: SqM (Complex Double) -> Bool)
+    putStrLn "--------- chol ------"
+    runTestTT $ TestList
+     [ test "cholR" cholRTest
+     , test "cholC" cholRTest
+     ]
     putStrLn "--------- nullspace ------"
     quickCheck (nullspaceTest :: RM -> Bool)
     quickCheck (nullspaceTest :: CM -> Bool)
@@ -339,7 +345,6 @@ tests = do
      , integrateTest
      , polySolveTest
      , test "det" detTest
-     , test "cholR" cholRTest
      ]
 
 bigtests = do
