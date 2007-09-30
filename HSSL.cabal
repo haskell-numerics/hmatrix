@@ -3,13 +3,13 @@ Version:            0.1
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
-Maintainer:         aruiz@um.es
+Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          provisional
---Homepage:           http://dis.um.es/~alberto/GSLHaskell
-Package-url:
+Homepage:           http://dis.um.es/~alberto/GSLHaskell
 Synopsis:           Simple Scientific Library
-Description:
-Category:           Numerical
+Description:        A high level functional interface to some linear algebra computations
+                    and other numerical routines, internally implemented using GSL, BLAS and LAPACK.
+Category:           Numerical, Math
 tested-with:        GHC ==6.6.1
 Build-Depends:      base, haskell98
 Extensions:         ForeignFunctionInterface
@@ -30,34 +30,44 @@ Exposed-modules:    Data.Packed.Internal,
                     GSL.Fourier,
                     GSL.Polynomials,
                     GSL.Minimization,
-                    GSL.Special, GSL.Special.Internal,
-                    GSL.Special.Gamma, GSL.Special.Erf,
-                    GSL.Special.Airy, GSL.Special.Exp,
-                    GSL.Special.Bessel, GSL.Special.Clausen,
-                    GSL.Special.Coulomb, GSL.Special.Coupling,
-                    GSL.Special.Dawson, GSL.Special.Debye,
-                    GSL.Special.Dilog, GSL.Special.Elementary,
+                    GSL.Special,
+                    GSL.Special.Internal,
+                    GSL.Special.Gamma,
+                    GSL.Special.Erf,
+                    GSL.Special.Airy,
+                    GSL.Special.Exp,
+                    GSL.Special.Bessel,
+                    GSL.Special.Clausen,
+                    GSL.Special.Coulomb,
+                    GSL.Special.Coupling,
+                    GSL.Special.Dawson,
+                    GSL.Special.Debye,
+                    GSL.Special.Dilog,
+                    GSL.Special.Elementary,
                     GSL.Special.Ellint,
-                    GSL.Special.Expint, GSL.Special.Fermi_dirac,
-                    GSL.Special.Gegenbauer, GSL.Special.Hyperg,
-                    GSL.Special.Laguerre, GSL.Special.Lambert,
-                    GSL.Special.Pow_int, GSL.Special.Psi,
-                    GSL.Special.Synchrotron, GSL.Special.Trig,
-                    GSL.Special.Zeta, GSL.Special.Log,
+                    GSL.Special.Expint,
+                    GSL.Special.Fermi_dirac,
+                    GSL.Special.Gegenbauer,
+                    GSL.Special.Hyperg,
+                    GSL.Special.Laguerre,
+                    GSL.Special.Lambert,
+                    GSL.Special.Pow_int,
+                    GSL.Special.Psi,
+                    GSL.Special.Synchrotron,
+                    GSL.Special.Trig,
+                    GSL.Special.Zeta,
+                    GSL.Special.Log,
                     GSL.Special.Legendre,
                     GSL,
-                    LAPACK,
                     LinearAlgebra,
+                    LinearAlgebra.LAPACK,
                     LinearAlgebra.Linear,
                     LinearAlgebra.Instances,
                     LinearAlgebra.Interface,
-                    LinearAlgebra.Algorithms
---                    , LinearAlgebra.Tests
-                    , Graphics.Plot
---                    , GSLHaskell
-Other-modules:
+                    LinearAlgebra.Algorithms,
+                    Graphics.Plot
 C-sources:          lib/Data/Packed/Internal/aux.c,
-                    lib/LAPACK/lapack-aux.c,
+                    lib/LinearAlgebra/LAPACK/lapack-aux.c,
                     lib/GSL/gsl-aux.c
 extra-libraries:    gsl cblas lapack
 cc-options:         -O4

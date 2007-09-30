@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  LAPACK
+-- Module      :  LinearAlgebra.LAPACK
 -- Copyright   :  (c) Alberto Ruiz 2006-7
 -- License     :  GPL-style
 -- 
@@ -13,7 +13,7 @@
 --
 -----------------------------------------------------------------------------
 
-module LAPACK (
+module LinearAlgebra.LAPACK (
     svdR, svdRdd, svdC,
     eigC, eigR, eigS, eigH,
     linearSolveR, linearSolveC,

@@ -46,7 +46,7 @@ import Data.Packed.Internal hiding (fromComplex, toComplex, comp, conj)
 import Data.Packed
 import GSL.Matrix(luR,luC,qr)
 import GSL.Vector
-import LAPACK
+import LinearAlgebra.LAPACK as LAPACK
 import Complex
 import LinearAlgebra.Linear
 

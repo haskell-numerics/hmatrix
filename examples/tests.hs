@@ -6,7 +6,7 @@ import Data.Packed.Internal((>|<), fdat, cdat, multiply', multiplyG, MatrixOrder
 import GSL hiding (sin,cos,exp,choose)
 import LinearAlgebra
 import LinearAlgebra.Linear(Linear)
-import LAPACK
+import LinearAlgebra.LAPACK
 import GSL.Matrix
 import Test.QuickCheck hiding (test)
 import Test.HUnit hiding ((~:),test)
