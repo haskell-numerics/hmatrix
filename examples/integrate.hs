@@ -1,5 +1,5 @@
 -- Numerical integration
-import GSL
+import Numeric.GSL
 
 quad f a b = fst $ integrateQAGS 1E-9 100 f a b  
 

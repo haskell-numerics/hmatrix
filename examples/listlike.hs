@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fglasgow-exts #-}
 
 import qualified Data.ListLike as LL
-import LinearAlgebra
+import Numeric.LinearAlgebra
 import Data.Monoid
 import Data.Packed.Internal.Vector
 import Foreign

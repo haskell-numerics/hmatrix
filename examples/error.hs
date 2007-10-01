@@ -1,4 +1,4 @@
-import GSL
+import Numeric.GSL
 import Prelude hiding (catch)
 import Control.Exception
 

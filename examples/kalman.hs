@@ -1,8 +1,5 @@
-import LinearAlgebra
+import Numeric.LinearAlgebra
 import Graphics.Plot
-import LinearAlgebra.Instances
-
---import GSLHaskell
 
 vector l = fromList l :: Vector Double
 matrix ls = fromLists ls :: Matrix Double

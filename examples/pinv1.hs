@@ -1,5 +1,5 @@
 -- initial check for the polynomial model example
-import LinearAlgebra
+import Numeric.LinearAlgebra
 
 
 prepSyst :: Int -> Matrix Double -> (Matrix Double, Vector Double)

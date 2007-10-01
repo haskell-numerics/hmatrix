@@ -1,6 +1,6 @@
 -- Improved PCA, including illustrative graphics
 
-import LinearAlgebra
+import Numeric.LinearAlgebra
 import Graphics.Plot
 import System.Directory(doesFileExist)
 import System(system)
@@ -24,7 +24,7 @@ type Stat = (Vec, [Double], Mat)
 stat :: Mat -> Stat
 stat x = (m, toList s, trans v) where   
     m = mean x
-    (s,v) = eigS (cov x)   
+    (s,v) = eigSH' (cov x)   
 
 -- creates the compression and decompression functions from the desired reconstruction 
 -- quality and the statistics of a data set

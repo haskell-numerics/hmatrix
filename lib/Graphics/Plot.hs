@@ -14,7 +14,7 @@
 
 module Graphics.Plot(
 
-    gnuplotX, mplot,
+    mplot,
 
     plot, parametricPlot, 
 
@@ -22,12 +22,14 @@ module Graphics.Plot(
 
     matrixToPGM, imshow,
 
+    gnuplotX
+
 ) where
 
 import Data.Packed.Vector
 import Data.Packed.Matrix
-import LinearAlgebra.Linear(outer)
-import GSL.Vector(FunCodeS(Max,Min),toScalarR)
+import Numeric.LinearAlgebra.Linear(outer)
+import Numeric.GSL.Vector(FunCodeS(Max,Min),toScalarR)
 import Data.List(intersperse)
 import System
 import Data.IORef

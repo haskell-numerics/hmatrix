@@ -3,11 +3,11 @@
 module Main where
 
 import Data.Packed.Internal((>|<), fdat, cdat, multiply', multiplyG, MatrixOrder(..),debug)
-import GSL hiding (sin,cos,exp,choose)
-import LinearAlgebra
-import LinearAlgebra.Linear(Linear)
-import LinearAlgebra.LAPACK
-import GSL.Matrix
+import Numeric.GSL hiding (sin,cos,exp,choose)
+import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra.Linear(Linear)
+import Numeric.LinearAlgebra.LAPACK
+import Numeric.GSL.Matrix
 import Test.QuickCheck hiding (test)
 import Test.HUnit hiding ((~:),test)
 import System.Random(randomRs,mkStdGen)

@@ -1,5 +1,5 @@
 -- MSE polynomial model using the pseudoinverse
-import LinearAlgebra
+import Numeric.LinearAlgebra
 import Graphics.Plot
 
 expand :: Int -> Vector Double -> Matrix Double

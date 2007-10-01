@@ -24,7 +24,7 @@ module Data.Packed.Vector (
 
 import Data.Packed.Internal
 import Complex
-import GSL.Vector
+import Numeric.GSL.Vector
 
 {- | Creates a real vector containing a range of values:
 

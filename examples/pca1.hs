@@ -1,6 +1,6 @@
 -- Principal component analysis
 
-import LinearAlgebra
+import Numeric.LinearAlgebra
 import System.Directory(doesFileExist)
 import System(system)
 import Control.Monad(when)
@@ -26,7 +26,7 @@ pca n dataSet = (encode,decode)
     decode x = x <> vp + m
     m = mean dataSet
     c = cov dataSet
-    (_,v) = eigS c
+    (_,v) = eigSH c
     vp = takeRows n (trans v)
 
 main = do

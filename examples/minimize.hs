@@ -1,6 +1,6 @@
 -- the multidimensional minimization example in the GSL manual
-import GSL
-import LinearAlgebra
+import Numeric.GSL
+import Numeric.LinearAlgebra
 import Graphics.Plot
 
 -- the function to be minimized 

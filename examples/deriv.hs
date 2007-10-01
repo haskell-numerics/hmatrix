@@ -1,6 +1,6 @@
 -- Numerical differentiation
 
-import GSL
+import Numeric.GSL
 
 d :: (Double -> Double) -> (Double -> Double)
 d f x = fst $ derivCentral 0.01 f x

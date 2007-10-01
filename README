@@ -17,8 +17,8 @@ $ runhaskell Setup.hs install --user
 
 USING ATLAS
 
-$ ln -s /usr/lib/atlas/libblas.so.3.0 $HOME/lib/HSSL-0.1/ghc-6.6.1/libcblas.so
-$ ln -s /usr/lib/atlas/liblapack.so.3.0 $HOME/lib/HSSL-0.1/ghc-6.6.1/liblapack.so
+$ ln -s /usr/lib/atlas/libblas.so.3.0 $HOME/lib/hssl-0.1/ghc-6.6.1/libcblas.so
+$ ln -s /usr/lib/atlas/liblapack.so.3.0 $HOME/lib/hssl-0.1/ghc-6.6.1/liblapack.so
 
 TESTS
 
