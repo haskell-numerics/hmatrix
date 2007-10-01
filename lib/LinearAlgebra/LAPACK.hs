@@ -15,7 +15,7 @@
 
 module LinearAlgebra.LAPACK (
     svdR, svdRdd, svdC,
-    eigC, eigR, eigS, eigH,
+    eigC, eigR, eigS, eigH, eigS', eigH',
     linearSolveR, linearSolveC,
     linearSolveLSR, linearSolveLSC,
     linearSolveSVDR, linearSolveSVDC,
@@ -166,7 +166,7 @@ foreign import ccall "LAPACK/lapack-aux.h eig_l_H" zheev :: TCMVCM
 -- if @(l,v)=eigH m@ then @m \<\> s v = v \<\> diag l@.
 --
 -- The eigenvectors are the columns of v.
--- The eigenvalues are sorted in descending order.
+-- The eigenvalues are sorted in descending order (use eigH' for ascending order).
 eigH :: Matrix (Complex Double) -> (Vector Double, Matrix (Complex Double))
 eigH m = (s', fliprl v)
     where (s,v) = eigH' m

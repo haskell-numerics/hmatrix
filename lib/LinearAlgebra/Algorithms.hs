@@ -28,7 +28,7 @@ module LinearAlgebra.Algorithms (
     svd,
     full, economy,
 -- ** Eigensystems
-    eig, LinearAlgebra.Algorithms.eigS, LinearAlgebra.Algorithms.eigH,
+    eig, eigSH,
 -- ** Other 
     LinearAlgebra.Algorithms.qr, chol,
 -- * Nullspace
@@ -38,7 +38,7 @@ module LinearAlgebra.Algorithms (
     eps, i,
     ctrans,
     Normed(..), NormType(..),
-    GenMat(linearSolveSVD,lu,eigSH)
+    GenMat(linearSolveSVD,lu,eigSH')
 ) where
 
 
@@ -50,15 +50,15 @@ import LinearAlgebra.LAPACK as LAPACK
 import Complex
 import LinearAlgebra.Linear
 
--- | matrix computations available for both real and complex matrices
+-- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
 class (Linear Matrix t) => GenMat t where
     svd         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     lu          :: Matrix t -> (Matrix t, Matrix t, [Int], t)
     linearSolve :: Matrix t -> Matrix t -> Matrix t
     linearSolveSVD :: Matrix t -> Matrix t -> Matrix t
     eig         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
-    eigSH       :: Matrix t -> (Vector Double, Matrix t)
-    chol        :: Matrix t -> Matrix t
+    eigSH'      :: Matrix t -> (Vector Double, Matrix t)
+    cholSH      :: Matrix t -> Matrix t
     -- | conjugate transpose
     ctrans :: Matrix t -> Matrix t
 
@@ -69,8 +69,8 @@ instance GenMat Double where
     linearSolveSVD = linearSolveSVDR Nothing
     ctrans = trans
     eig = eigR
-    eigSH = LAPACK.eigS
-    chol = cholS
+    eigSH' = eigS
+    cholSH = cholS
 
 instance GenMat (Complex Double) where
     svd = svdC
@@ -79,16 +79,18 @@ instance GenMat (Complex Double) where
     linearSolveSVD = linearSolveSVDC Nothing
     ctrans = conjTrans
     eig = eigC
-    eigSH =  LAPACK.eigH
-    chol = cholH
+    eigSH' = eigH
+    cholSH = cholH
 
--- | eigensystem of a symmetric matrix
-eigS :: Matrix Double -> (Vector Double, Matrix Double)
-eigS = LAPACK.eigS
+-- | eigensystem of complex hermitian or real symmetric matrix
+eigSH :: GenMat t => Matrix t -> (Vector Double, Matrix t)
+eigSH m | m `equal` ctrans m = eigSH' m
+        | otherwise = error "eigSH requires complex hermitian or real symmetric matrix"
 
--- | eigensystem of a hermitian matrix
-eigH :: Matrix (Complex Double) -> (Vector Double, Matrix (Complex Double))
-eigH = LAPACK.eigH
+-- | Cholesky factorization of a positive definite hermitian or symmetric matrix
+chol :: GenMat t => Matrix t ->  Matrix t
+chol m | m `equal` ctrans m = cholSH m
+       | otherwise = error "chol requires positive definite complex hermitian or real symmetric matrix"
 
 qr :: Matrix Double -> (Matrix Double, Matrix Double)
 qr = GSL.Matrix.qr

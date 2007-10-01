@@ -37,6 +37,8 @@ class (Container c e) => Linear c e where
     divide      :: c e -> c e -> c e
     -- | scale the element by element reciprocal of the object: @scaleRecip 2 (fromList [5,i]) == 2 |> [0.4 :+ 0.0,0.0 :+ (-2.0)]@
     scaleRecip  :: e -> c e -> c e
+    equal       :: c e -> c e -> Bool
+--  numequal    :: Double -> c e -> c e -> Bool
 
 instance Linear Vector Double where
     scale = vectorMapValR Scale
@@ -46,6 +48,7 @@ instance Linear Vector Double where
     sub = vectorZipR Sub
     mul = vectorZipR Mul
     divide = vectorZipR Div
+    equal u v = dim u == dim v && vectorMax (vectorMapR Abs (sub u v)) == 0.0
 
 instance Linear Vector (Complex Double) where
     scale = vectorMapValC Scale
@@ -55,6 +58,7 @@ instance Linear Vector (Complex Double) where
     sub = vectorZipC Sub
     mul = vectorZipC Mul
     divide = vectorZipC Div
+    equal u v = dim u == dim v && vectorMax (liftVector magnitude (sub u v)) == 0.0
 
 instance Linear Matrix Double where
     scale x = liftMatrix (scale x)
@@ -64,6 +68,8 @@ instance Linear Matrix Double where
     sub = liftMatrix2 sub
     mul = liftMatrix2 mul
     divide = liftMatrix2 divide
+    equal a b = cols a == cols b && cdat a `equal` cdat b
+
 
 instance Linear Matrix (Complex Double) where
     scale x = liftMatrix (scale x)
@@ -73,6 +79,7 @@ instance Linear Matrix (Complex Double) where
     sub = liftMatrix2 sub
     mul = liftMatrix2 mul
     divide = liftMatrix2 divide
+    equal a b = cols a == cols b && cdat a `equal` cdat b
 
 --------------------------------------------------
 
