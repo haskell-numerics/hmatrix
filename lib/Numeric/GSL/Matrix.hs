@@ -16,7 +16,7 @@
 module Numeric.GSL.Matrix(
     eigSg, eigHg,
     svdg,
-    qr,
+    qr, qrPacked, unpackQR,
     cholR, -- cholC,
     luSolveR, luSolveC,
     luR, luC
@@ -148,6 +148,30 @@ qr x = unsafePerformIO $ do
   where r = rows x
         c = cols x
 foreign import ccall "gsl-aux.h QR" c_qr :: TMMM
+
+qrPacked :: Matrix Double -> (Matrix Double, Vector Double)
+qrPacked x = unsafePerformIO $ do
+    qr <- createMatrix RowMajor r c
+    tau <- createVector (min r c)
+    c_qrPacked // mat cdat x // mat dat qr // vec tau // check "qrUnpacked" [cdat x]
+    return (qr,tau)
+  where r = rows x
+        c = cols x
+foreign import ccall "gsl-aux.h QRpacked" c_qrPacked :: TMMV
+
+unpackQR :: (Matrix Double, Vector Double) -> (Matrix Double, Matrix Double)
+unpackQR (qr,tau) = unsafePerformIO $ do
+    q <- createMatrix RowMajor r r
+    rot <- createMatrix RowMajor r c
+    c_qrUnpack // mat cdat qr // vec tau // mat dat q // mat dat rot // check "qrUnpack" [cdat qr,tau]
+    return (q,rot)
+  where r = rows qr
+        c = cols qr
+foreign import ccall "gsl-aux.h QRunpack" c_qrUnpack :: TMVMM
+
+
+type TMMV = Int -> Int -> PD -> TMV
+type TMVMM = Int -> Int -> PD -> Int -> PD -> TMM
 
 {- | Cholesky decomposition of a symmetric positive definite real matrix using /gsl_linalg_cholesky_decomp/.
 

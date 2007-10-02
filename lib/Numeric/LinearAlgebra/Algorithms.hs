@@ -38,17 +38,18 @@ module Numeric.LinearAlgebra.Algorithms (
     eps, i,
     ctrans,
     Normed(..), NormType(..),
-    GenMat(linearSolveSVD,lu,eigSH')
+    GenMat(linearSolveSVD,lu,eigSH'), unpackQR
 ) where
 
 
 import Data.Packed.Internal hiding (fromComplex, toComplex, comp, conj)
 import Data.Packed
-import Numeric.GSL.Matrix(luR,luC,qr)
+import qualified Numeric.GSL.Matrix as GSL
 import Numeric.GSL.Vector
 import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Complex
 import Numeric.LinearAlgebra.Linear
+import Data.List(foldl1')
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
 class (Linear Matrix t) => GenMat t where
@@ -59,28 +60,31 @@ class (Linear Matrix t) => GenMat t where
     eig         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
     eigSH'      :: Matrix t -> (Vector Double, Matrix t)
     cholSH      :: Matrix t -> Matrix t
+    qr          :: Matrix t -> (Matrix t, Matrix t)
     -- | conjugate transpose
     ctrans :: Matrix t -> Matrix t
 
 instance GenMat Double where
     svd = svdR
-    lu  = luR
+    lu  = GSL.luR
     linearSolve = linearSolveR
     linearSolveSVD = linearSolveSVDR Nothing
     ctrans = trans
     eig = eigR
     eigSH' = eigS
     cholSH = cholS
+    qr = GSL.unpackQR . qrR
 
 instance GenMat (Complex Double) where
     svd = svdC
-    lu  = luC
+    lu  = GSL.luC
     linearSolve = linearSolveC
     linearSolveSVD = linearSolveSVDC Nothing
     ctrans = conjTrans
     eig = eigC
     eigSH' = eigH
     cholSH = cholH
+    qr = unpackQR . qrC
 
 -- | eigensystem of complex hermitian or real symmetric matrix
 eigSH :: GenMat t => Matrix t -> (Vector Double, Matrix t)
@@ -91,9 +95,6 @@ eigSH m | m `equal` ctrans m = eigSH' m
 chol :: GenMat t => Matrix t ->  Matrix t
 chol m | m `equal` ctrans m = cholSH m
        | otherwise = error "chol requires positive definite complex hermitian or real symmetric matrix"
-
-qr :: Matrix Double -> (Matrix Double, Matrix Double)
-qr = Numeric.GSL.Matrix.qr
 
 square m = rows m == cols m
 
@@ -257,3 +258,26 @@ pinvTol t m = v' `mXm` diag s' `mXm` trans u' where
     d = dim s
     u' = takeColumns d u
     v' = takeColumns d v
+
+---------------------------------------------------------------------
+
+-- many thanks, quickcheck!
+
+haussholder tau v = ident (dim v) `sub` (tau `scale` (w `mXm` ctrans w))
+    where w = asColumn v
+
+unpackQR (pq, tau) = (q,r)
+    where cs = toColumns pq
+          m = rows pq
+          n = cols pq
+          mn = min m n
+          r = fromColumns $ zipWith zt ([m-1, m-2 .. 1] ++ repeat 0) cs
+          vs = zipWith zh [1..mn] cs
+          hs = zipWith haussholder (toList tau) vs
+          q = foldl1' mXm hs
+
+          zh k v = fromList $ replicate (k-1) 0 ++ (1:drop k xs)
+              where xs = toList v
+
+          zt 0 v = v
+          zt k v = join [subVector 0 (dim v - k) v, constant 0 k]

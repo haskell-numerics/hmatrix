@@ -38,6 +38,9 @@ int eigensystemC(KCMAT(x),RVEC(l),CMAT(v));
 
 int QR(KRMAT(x),RMAT(q),RMAT(r));
 
+int QRpacked(KRMAT(x),RMAT(qr),RVEC(tau));
+int QRunpack(KRMAT(qr),KRVEC(tau),RMAT(q),RMAT(r));
+
 int cholR(KRMAT(x),RMAT(l));
 
 int cholC(KCMAT(x),CMAT(l));

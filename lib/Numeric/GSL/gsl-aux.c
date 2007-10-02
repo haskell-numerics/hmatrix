@@ -471,6 +471,33 @@ int QR(KRMAT(x),RMAT(q),RMAT(r)) {
     OK
 }
 
+int QRpacked(KRMAT(x),RMAT(qr),RVEC(tau)) {
+    //REQUIRES(xr==rr && xc==rc && qr==qc && xr==qr,BAD_SIZE);
+    DEBUGMSG("QRpacked");
+    KDMVIEW(x);
+    DMVIEW(qr);
+    DVVIEW(tau);
+    //gsl_matrix * a = gsl_matrix_alloc(xr,xc);
+    //gsl_vector * tau = gsl_vector_alloc(MIN(xr,xc));
+    gsl_matrix_memcpy(M(qr),M(x));
+    int res = gsl_linalg_QR_decomp(M(qr),V(tau));
+    CHECK(res,res);
+    OK
+}
+
+
+int QRunpack(KRMAT(xqr),KRVEC(tau),RMAT(q),RMAT(r)) {
+    //REQUIRES(xr==rr && xc==rc && qr==qc && xr==qr,BAD_SIZE);
+    DEBUGMSG("QRunpack");
+    KDMVIEW(xqr);
+    KDVVIEW(tau);
+    DMVIEW(q);
+    DMVIEW(r);
+    gsl_linalg_QR_unpack(M(xqr),V(tau),M(q),M(r));
+    OK
+}
+
+
 int cholR(KRMAT(x),RMAT(l)) {
     REQUIRES(xr==xc && lr==xr && lr==lc,BAD_SIZE);
     DEBUGMSG("cholR");

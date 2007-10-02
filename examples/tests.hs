@@ -7,7 +7,8 @@ import Numeric.GSL hiding (sin,cos,exp,choose)
 import Numeric.LinearAlgebra
 import Numeric.LinearAlgebra.Linear(Linear)
 import Numeric.LinearAlgebra.LAPACK
-import Numeric.GSL.Matrix
+import Numeric.GSL.Matrix(svdg)
+import qualified Numeric.GSL.Matrix as GSL
 import Test.QuickCheck hiding (test)
 import Test.HUnit hiding ((~:),test)
 import System.Random(randomRs,mkStdGen)
@@ -271,6 +272,11 @@ cholCTest = chol ((2><2) [1,2,2,9::Complex Double]) == (2><2) [1,2,0,2.236067977
 
 ---------------------------------------------------------------------
 
+qrTest qr m = q <> r |~| m -- && q <> ctrans q |~| ident (rows m)
+    where (q,r) = qr m
+
+---------------------------------------------------------------------
+
 asFortran m = (rows m >|< cols m) $ toList (fdat m)
 asC m = (rows m >< cols m) $ toList (cdat m)
 
@@ -322,6 +328,12 @@ tests = do
      [ test "cholR" cholRTest
      , test "cholC" cholRTest
      ]
+    putStrLn "--------- qr ---------"
+    quickCheck (qrTest GSL.qr)
+    quickCheck (qrTest (GSL.unpackQR . GSL.qrPacked))
+    quickCheck (qrTest (    unpackQR . GSL.qrPacked))
+    quickCheck (qrTest qr ::RM->Bool)
+    quickCheck (qrTest qr ::CM->Bool)
     putStrLn "--------- nullspace ------"
     quickCheck (nullspaceTest :: RM -> Bool)
     quickCheck (nullspaceTest :: CM -> Bool)

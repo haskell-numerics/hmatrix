@@ -12,7 +12,6 @@
 -- Vector operations
 --
 -----------------------------------------------------------------------------
--- #hide
 
 module Numeric.GSL.Vector (
     FunCodeS(..), toScalarR,
