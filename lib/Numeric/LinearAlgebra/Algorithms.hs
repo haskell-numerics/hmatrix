@@ -9,11 +9,11 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses ffi
 
-A generic interface for a number of essential functions. Using it some higher level algorithms
-and testing properties can be written for both real and complex matrices.
+A generic interface for some common functions. Using it we can write higher level algorithms
+and testing properties both for real and complex matrices.
 
 In any case, the specific functions for particular base types can also be explicitly
-imported from the LAPACK and GSL.Matrix modules.
+imported from "Numeric.LinearAlgebra.LAPACK".
 
 -}
 -----------------------------------------------------------------------------
@@ -29,16 +29,20 @@ module Numeric.LinearAlgebra.Algorithms (
     full, economy,
 -- ** Eigensystems
     eig, eigSH,
--- ** Other 
-    Numeric.LinearAlgebra.Algorithms.qr, chol,
+-- ** QR
+    qr,
+-- ** Cholesky
+    chol,
 -- * Nullspace
     nullspacePrec,
     nullVector,
--- * Misc
-    eps, i,
-    ctrans,
+-- * Norms
     Normed(..), NormType(..),
-    GenMat(linearSolveSVD,lu,eigSH'), unpackQR
+-- * Misc
+    ctrans,
+    eps, i,
+-- * Util
+    GenMat(linearSolveSVD,lu,eigSH',cholSH), unpackQR, haussholder
 ) where
 
 
@@ -53,15 +57,22 @@ import Data.List(foldl1')
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
 class (Linear Matrix t) => GenMat t where
+    -- | Singular value decomposition using lapack's dgesvd or zgesvd.
     svd         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     lu          :: Matrix t -> (Matrix t, Matrix t, [Int], t)
+    -- | Solution of a general linear system (for several right-hand sides) using lapacks' dgesv and zgesv.
+    --  See also other versions of linearSolve in "Numeric.LinearAlgebra.LAPACK".
     linearSolve :: Matrix t -> Matrix t -> Matrix t
     linearSolveSVD :: Matrix t -> Matrix t -> Matrix t
+    -- | eigensystem of general square matrix using lapack's dgeev or zgeev. If @(s,v) = eig m@ then @m <> v =~= v <> diag s@
     eig         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
+    -- | similar to eigSH without checking that the input matrix is hermitian or symmetric.
     eigSH'      :: Matrix t -> (Vector Double, Matrix t)
+    -- | similar to chol without checking that the input matrix is hermitian or symmetric.
     cholSH      :: Matrix t -> Matrix t
+    -- | QR factorization using lapack's dgeqr2 or zgeqr2.
     qr          :: Matrix t -> (Matrix t, Matrix t)
-    -- | conjugate transpose
+    -- | conjugate transpose.
     ctrans :: Matrix t -> Matrix t
 
 instance GenMat Double where
@@ -86,12 +97,12 @@ instance GenMat (Complex Double) where
     cholSH = cholH
     qr = unpackQR . qrC
 
--- | eigensystem of complex hermitian or real symmetric matrix
+-- | eigensystem of complex hermitian or real symmetric matrix using lapack's dsyev or zheev. If @(s,v) = eigSH m@ then @m =~= v <> diag s <> ctrans v@
 eigSH :: GenMat t => Matrix t -> (Vector Double, Matrix t)
 eigSH m | m `equal` ctrans m = eigSH' m
         | otherwise = error "eigSH requires complex hermitian or real symmetric matrix"
 
--- | Cholesky factorization of a positive definite hermitian or symmetric matrix
+-- | Cholesky factorization of a positive definite hermitian or symmetric matrix using lapack's dpotrf or zportrf.
 chol :: GenMat t => Matrix t ->  Matrix t
 chol m | m `equal` ctrans m = cholSH m
        | otherwise = error "chol requires positive definite complex hermitian or real symmetric matrix"
@@ -103,13 +114,16 @@ det m | square m = s * (product $ toList $ takeDiag $ u)
       | otherwise = error "det of nonsquare matrix"
     where (_,u,_,s) = lu m
 
+-- | Inverse of a square matrix using lapacks' dgesv and zgesv.
 inv :: GenMat t => Matrix t -> Matrix t
 inv m | square m = m `linearSolve` ident (rows m)
       | otherwise = error "inv of nonsquare matrix"
 
+-- | Pseudoinverse of a general matrix using lapack's dgelss or zgelss.
 pinv :: GenMat t => Matrix t -> Matrix t
 pinv m = linearSolveSVD m (ident (rows m))
 
+-- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values: if @(u,d,v) = full svd m@ then @m =~= u \<> d \<> trans v@.
 full :: Field t 
      => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Matrix Double, Matrix t)
 full svd m = (u, d ,v) where
@@ -118,6 +132,7 @@ full svd m = (u, d ,v) where
     r = rows m
     c = cols m
 
+-- | A version of 'svd' which returns only the nonzero singular values and the corresponding rows and columns of the rotations:  if @(u,s,v) = economy svd m@ then @m =~= u \<> diag s \<> trans v@.
 economy :: Field t 
         => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Vector Double, Matrix t)
 economy svd m = (u', subVector 0 d s, v') where
@@ -263,9 +278,11 @@ pinvTol t m = v' `mXm` diag s' `mXm` trans u' where
 
 -- many thanks, quickcheck!
 
+haussholder :: (GenMat a) => a -> Vector a -> Matrix a
 haussholder tau v = ident (dim v) `sub` (tau `scale` (w `mXm` ctrans w))
     where w = asColumn v
 
+unpackQR :: (GenMat t) => (Matrix t, Vector t) -> (Matrix t, Matrix t)
 unpackQR (pq, tau) = (q,r)
     where cs = toColumns pq
           m = rows pq

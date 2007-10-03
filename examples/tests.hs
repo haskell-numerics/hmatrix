@@ -204,6 +204,7 @@ eigTest m = complex m <> v |~| v <> diag s
 
 eigTestSH m = m <> v |~| v <> real (diag s)
               && orthonormal v
+              && m |~| v <> real (diag s) <> ctrans v
     where (s, v) = eigSH m
 
 rank m | m |~| 0   = 0
