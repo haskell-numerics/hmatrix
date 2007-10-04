@@ -10,10 +10,10 @@ INSTALLATION
 (More detailed information is included in the "tutorial",
 available in the web page of the project.)
 
-$ runhaskell Setup.hs configure --prefix=$HOME
-$ runhaskell Setup.hs build
-$ runhaskell Setup.hs haddock
-$ runhaskell Setup.hs install --user
+$ runhaskell Setup.lhs configure --prefix=$HOME
+$ runhaskell Setup.lhs build
+$ runhaskell Setup.lhs haddock
+$ runhaskell Setup.lhs install --user
 
 USING ATLAS
 
@@ -27,11 +27,23 @@ $ runhaskell examples/tests.hs
 EXAMPLES
 
 $ ghci
-Prelude> :m + GSL
-Prelude GSL> let quad = integrateQNG 1E-10
-Prelude GSL> quad (^2) 0 1
+Prelude> :m + Numeric.GSL
+Prelude Numeric.GSL> let quad = integrateQNG 1E-10
+Prelude Numeric.GSL> quad (^2) 0 1
 (0.3333333333333333,3.700743415417188e-15)
-Prelude GSL> :q
+
+Prelude Numeric.GSL> :m + Numeric.LinearAlgebra
+Prelude Numeric.LinearAlgebra> let m = (2><3)[1,2,3,4,5,6::Double]
+Prelude Numeric.LinearAlgebra> let (u,d,v) = full svd m
+Prelude Numeric.LinearAlgebra> d
+(2><3)
+ [ 9.508032000695724,                0.0, 0.0
+ ,               0.0, 0.7728696356734838, 0.0 ]
+Prelude Numeric.LinearAlgebra> u <> d <> trans v
+(2><3)
+ [ 1.0000000000000004,               2.0, 3.0
+ , 3.9999999999999996, 5.000000000000001, 6.0 ]
+Prelude Numeric.GSL> :q
 Leaving GHCi.
 
 --------------------------------------------------------------------------------------
