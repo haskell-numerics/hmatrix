@@ -6,11 +6,23 @@ import Language.Haskell.TH
 import Numeric.LinearAlgebra
 import Foreign
 import Language.Haskell.TH.Syntax
+import Data.Packed.Internal(Vector(..),Matrix(..))
 
 instance Lift Double where
   lift x = return (LitE (RationalL (toRational x)))
 
---instance (Lift a, Storable a) => Lift (Vector a ) where
+instance Lift (Ptr Double) where
+    lift p = [e| p |]
+
+instance Lift (ForeignPtr Double) where
+    lift p = [e| p |]
+
+instance (Lift a, Storable a, Lift (Ptr a), Lift (ForeignPtr a)) => Lift (Vector a ) where
+    lift (V n fp p) = [e| V $(lift n) $(lift fp) $(lift p) |]
+
+instance (Lift (Vector a)) => Lift (Matrix a) where
+    lift (MC r c v vt) = [e| MC $(lift r) $(lift c) $(lift v) $(lift vt) |]
+    lift (MF r c v vt) = [e| MF $(lift r) $(lift c) $(lift v) $(lift vt) |]
 
 tdim :: Int -> ExpQ
 tdim 0 = [| Z |]
@@ -46,6 +58,9 @@ vec' :: [Double] -> ExpQ
 vec' d = [| createl ($(tdim (length d))) d |]
 
 
+createm :: (Dim r, Dim c) => r -> c -> (Matrix Double) -> SMat r c Double
+createm _ _ m = SMat m
+
 createml :: (Dim r, Dim c) => r -> c -> Int -> Int -> [Double] -> SMat r c Double
 createml _ _ r c l = SMat ((r><c) l)
 
@@ -53,7 +68,11 @@ mat :: Int -> Int -> [Double] -> ExpQ
 mat r c l = [| createml ($(tdim r)) ($(tdim c)) r c l |]
 
 vec :: [Double] -> ExpQ
-vec d = [|mat (length d) 1 d|]
+vec d = mat (length d) 1 d
+
+
+mat' :: Matrix Double -> ExpQ
+mat' m = [| createm ($(tdim (rows m))) ($(tdim (cols m))) m |]
 
 covec :: [Double] -> ExpQ
 covec d = mat 1 (length d) d

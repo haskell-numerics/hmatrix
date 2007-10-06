@@ -64,15 +64,15 @@ class (Linear Matrix t) => GenMat t where
     --  See also other versions of linearSolve in "Numeric.LinearAlgebra.LAPACK".
     linearSolve :: Matrix t -> Matrix t -> Matrix t
     linearSolveSVD :: Matrix t -> Matrix t -> Matrix t
-    -- | eigensystem of general square matrix using lapack's dgeev or zgeev. If @(s,v) = eig m@ then @m <> v =~= v <> diag s@
+    -- | Eigenvalues and eigenvectors of a general square matrix using lapack's dgeev or zgeev. If @(s,v) = eig m@ then @m \<> v == v \<> diag s@
     eig         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
-    -- | similar to eigSH without checking that the input matrix is hermitian or symmetric.
+    -- | Similar to eigSH without checking that the input matrix is hermitian or symmetric.
     eigSH'      :: Matrix t -> (Vector Double, Matrix t)
-    -- | similar to chol without checking that the input matrix is hermitian or symmetric.
+    -- | Similar to chol without checking that the input matrix is hermitian or symmetric.
     cholSH      :: Matrix t -> Matrix t
     -- | QR factorization using lapack's dgeqr2 or zgeqr2.
     qr          :: Matrix t -> (Matrix t, Matrix t)
-    -- | conjugate transpose.
+    -- | Conjugate transpose.
     ctrans :: Matrix t -> Matrix t
 
 instance GenMat Double where
@@ -97,7 +97,7 @@ instance GenMat (Complex Double) where
     cholSH = cholH
     qr = unpackQR . qrC
 
--- | eigensystem of complex hermitian or real symmetric matrix using lapack's dsyev or zheev. If @(s,v) = eigSH m@ then @m =~= v <> diag s <> ctrans v@
+-- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev. If @(s,v) = eigSH m@ then @m == v \<> diag s \<> ctrans v@
 eigSH :: GenMat t => Matrix t -> (Vector Double, Matrix t)
 eigSH m | m `equal` ctrans m = eigSH' m
         | otherwise = error "eigSH requires complex hermitian or real symmetric matrix"
@@ -123,7 +123,7 @@ inv m | square m = m `linearSolve` ident (rows m)
 pinv :: GenMat t => Matrix t -> Matrix t
 pinv m = linearSolveSVD m (ident (rows m))
 
--- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values: if @(u,d,v) = full svd m@ then @m =~= u \<> d \<> trans v@.
+-- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values: if @(u,d,v) = full svd m@ then @m == u \<> d \<> trans v@.
 full :: Field t 
      => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Matrix Double, Matrix t)
 full svd m = (u, d ,v) where
@@ -132,7 +132,7 @@ full svd m = (u, d ,v) where
     r = rows m
     c = cols m
 
--- | A version of 'svd' which returns only the nonzero singular values and the corresponding rows and columns of the rotations:  if @(u,s,v) = economy svd m@ then @m =~= u \<> diag s \<> trans v@.
+-- | A version of 'svd' which returns only the nonzero singular values and the corresponding rows and columns of the rotations:  if @(u,s,v) = economy svd m@ then @m == u \<> diag s \<> trans v@.
 economy :: Field t 
         => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Vector Double, Matrix t)
 economy svd m = (u', subVector 0 d s, v') where
@@ -149,24 +149,24 @@ economy svd m = (u', subVector 0 d s, v') where
     v' = takeColumns d v
 
 
--- | The machine precision of a Double: @eps == 2.22044604925031e-16@ (the value used by GNU-Octave).
+-- | The machine precision of a Double: @eps = 2.22044604925031e-16@ (the value used by GNU-Octave).
 eps :: Double
 eps =  2.22044604925031e-16
 
--- | The imaginary unit: @i == 0.0 :+ 1.0@
+-- | The imaginary unit: @i = 0.0 :+ 1.0@
 i :: Complex Double
 i = 0:+1
 
 
--- | matrix product
+-- matrix product
 mXm :: (Num t, GenMat t) => Matrix t -> Matrix t -> Matrix t
 mXm = multiply
 
--- | matrix - vector product
+-- matrix - vector product
 mXv :: (Num t, GenMat t) => Matrix t -> Vector t -> Vector t
 mXv m v = flatten $ m `mXm` (asColumn v)
 
--- | vector - matrix product
+-- vector - matrix product
 vXm :: (Num t, GenMat t) => Vector t -> Matrix t -> Vector t
 vXm v m = flatten $ (asRow v) `mXm` m
 
@@ -201,10 +201,6 @@ pnormCM PNorm1 m = vectorMax $ constant 1 (rows m) `vXm` liftMatrix (liftVector 
 pnormCM Infinity m = vectorMax $ liftMatrix (liftVector magnitude) m `mXv` constant 1 (cols m)
 --pnormCM _ _ = error "p norm not yet defined"
 
--- -- | computes the p-norm of a matrix or vector (with the same definitions as GNU-octave). pnorm 0 denotes \\inf-norm. See also 'norm'.
---pnorm :: (Container t, GenMat a) => Int -> t a -> Double
---pnorm = pnormG
-
 class Normed t where
     pnorm :: NormType -> t -> Double
     norm :: t -> Double
@@ -226,7 +222,7 @@ instance Normed (Matrix (Complex Double)) where
 
 -- | The nullspace of a matrix from its SVD decomposition.
 nullspacePrec :: GenMat t
-              => Double          -- ^ relative tolerance in 'eps' units
+              => Double     -- ^ relative tolerance in 'eps' units
               -> Matrix t   -- ^ input matrix
               -> [Vector t] -- ^ list of unitary vectors spanning the nullspace
 nullspacePrec t m = ns where
@@ -234,7 +230,6 @@ nullspacePrec t m = ns where
     sl@(g:_) = toList s
     tol = (fromIntegral (max (rows m) (cols m)) * g * t * eps)
     rank = length (filter (> g*tol) sl)
---    ns = drop rank (toColumns v)
     ns = drop rank $ toRows $ ctrans v
 
 -- | The nullspace of a matrix, assumed to be one-dimensional, with default tolerance (shortcut for @last . nullspacePrec 1@).
