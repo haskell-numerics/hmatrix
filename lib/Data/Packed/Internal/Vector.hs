@@ -46,7 +46,7 @@ check msg ls f = do
     return ()
 
 -- | description of GSL error codes
-foreign import ccall "aux.h gsl_strerror" gsl_strerror :: Int -> IO (Ptr CChar)
+foreign import ccall "auxi.h gsl_strerror" gsl_strerror :: Int -> IO (Ptr CChar)
 
 -- | signature of foreign functions admitting C-style vectors
 type Vc t s = Int -> Ptr t -> s

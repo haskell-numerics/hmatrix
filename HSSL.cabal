@@ -68,7 +68,7 @@ Exposed-modules:    Data.Packed.Internal,
                     Numeric.LinearAlgebra.Interface,
                     Numeric.LinearAlgebra.Algorithms,
                     Graphics.Plot
-C-sources:          lib/Data/Packed/Internal/aux.c,
+C-sources:          lib/Data/Packed/Internal/auxi.c,
                     lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                     lib/Numeric/GSL/gsl-aux.c
 extra-libraries:    gsl cblas lapack

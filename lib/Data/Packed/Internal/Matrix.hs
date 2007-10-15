@@ -240,9 +240,9 @@ transdataAux fun c1 d c2 =
         r2 = dim d `div` c2
         noneed = r1 == 1 || c1 == 1
 
-foreign import ccall safe "aux.h transR"
+foreign import ccall safe "auxi.h transR"
     ctransR :: TMM -- Double ::> Double ::> IO Int
-foreign import ccall safe "aux.h transC"
+foreign import ccall safe "auxi.h transC"
     ctransC :: TCMCM -- Complex Double ::> Complex Double ::> IO Int
 
 ------------------------------------------------------------------
@@ -258,14 +258,14 @@ multiplyAux fun a b = unsafePerformIO $ do
     return r
 
 multiplyR = multiplyAux cmultiplyR
-foreign import ccall safe "aux.h multiplyR"
+foreign import ccall safe "auxi.h multiplyR"
     cmultiplyR :: Int -> Int -> Int -> Ptr Double
                -> Int -> Int -> Int -> Ptr Double
                -> Int -> Int -> Ptr Double
                -> IO Int
 
 multiplyC = multiplyAux cmultiplyC
-foreign import ccall safe "aux.h multiplyC"
+foreign import ccall safe "auxi.h multiplyC"
     cmultiplyC :: Int -> Int -> Int -> Ptr (Complex Double)
                -> Int -> Int -> Int -> Ptr (Complex Double)
                -> Int -> Int -> Ptr (Complex Double)
@@ -288,7 +288,7 @@ subMatrixR (r0,c0) (rt,ct) x = unsafePerformIO $ do
     r <- createMatrix RowMajor rt ct
     c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1) // mat cdat x // mat dat r // check "subMatrixR" [dat r]
     return r
-foreign import ccall "aux.h submatrixR" c_submatrixR :: Int -> Int -> Int -> Int -> TMM
+foreign import ccall "auxi.h submatrixR" c_submatrixR :: Int -> Int -> Int -> Int -> TMM
 
 -- | extraction of a submatrix from a complex matrix
 subMatrixC :: (Int,Int) -> (Int,Int) -> Matrix (Complex Double) -> Matrix (Complex Double)
@@ -316,12 +316,12 @@ diagAux fun msg (v@V {dim = n}) = unsafePerformIO $ do
 -- | diagonal matrix from a real vector
 diagR :: Vector Double -> Matrix Double
 diagR = diagAux c_diagR "diagR"
-foreign import ccall "aux.h diagR" c_diagR :: TVM
+foreign import ccall "auxi.h diagR" c_diagR :: TVM
 
 -- | diagonal matrix from a real vector
 diagC :: Vector (Complex Double) -> Matrix (Complex Double)
 diagC = diagAux c_diagC "diagC"
-foreign import ccall "aux.h diagC" c_diagC :: TCVCM
+foreign import ccall "auxi.h diagC" c_diagC :: TCVCM
 
 -- | creates a square matrix with the given diagonal
 diag :: Field a => Vector a -> Matrix a
@@ -338,12 +338,12 @@ constantAux fun x n = unsafePerformIO $ do
 
 constantR :: Double -> Int -> Vector Double
 constantR = constantAux cconstantR
-foreign import ccall safe "aux.h constantR"
+foreign import ccall safe "auxi.h constantR"
     cconstantR :: Ptr Double -> TV -- Double :> IO Int
 
 constantC :: Complex Double -> Int -> Vector (Complex Double)
 constantC = constantAux cconstantC
-foreign import ccall safe "aux.h constantC"
+foreign import ccall safe "auxi.h constantC"
     cconstantC :: Ptr (Complex Double) -> TCV -- Complex Double :> IO Int
 
 {- | creates a vector with a given number of equal components:
@@ -381,7 +381,7 @@ fromFile filename (r,c) = do
     c_gslReadMatrix charname // mat dat res // check "gslReadMatrix" []
     --free charname  -- TO DO: free the auxiliary CString
     return res
-foreign import ccall "aux.h matrix_fscanf" c_gslReadMatrix:: Ptr CChar -> TM
+foreign import ccall "auxi.h matrix_fscanf" c_gslReadMatrix:: Ptr CChar -> TM
 
 -------------------------------------------------------------------------
 

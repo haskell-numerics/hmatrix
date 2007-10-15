@@ -5,11 +5,9 @@ import System.Time
 
 inParallel = parMap rwhnf id
 
-parMul x y = fromBlocks [[ay],[by]]
-    where p = rows x `div` 2
-          a = takeRows p x
-          b = dropRows p x
-          [ay,by] = inParallel [a<>y,b<>y]
+parMul x y = fromBlocks [inParallel[x <> y1, x <> y2]]
+    where p = cols y `div` 2
+          (y1,y2) = splitColumnsAt p y
 
 main = do
     n <- (read . head) `fmap` getArgs
@@ -19,6 +17,9 @@ main = do
 
 a = (2><3) [1..6::Double]
 b = (3><4) [1..12::Double]
+
+splitRowsAt p m    = (takeRows p m, dropRows p m)
+splitColumnsAt p m = (takeColumns p m, dropColumns p m)
 
 time act = do
     t0 <- getClockTime
