@@ -107,4 +107,5 @@ INSTALLATION ON WINDOWS
    They are required to run the programs and ghci.
 
 Unfortunately the lapack dll supplied by the R system does not include zgels_ and zgelss_,
-so the functions depending on them will produced a "non supported" runtime error.
+so the functions depending on them (linearSolveLS and linearSolveSVD for complex data)
+will produce a "non supported" runtime error.
