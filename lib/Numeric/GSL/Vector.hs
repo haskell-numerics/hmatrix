@@ -9,7 +9,7 @@
 -- Stability   :  provisional
 -- Portability :  portable (uses FFI)
 --
--- Vector operations
+-- Low level interface to vector operations.
 --
 -----------------------------------------------------------------------------
 

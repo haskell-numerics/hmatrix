@@ -8,7 +8,7 @@
 -- Stability   :  provisional
 -- Portability :  uses gnuplot and ImageMagick
 --
--- Very basic (and provisional) drawing tools.
+-- Very basic (and provisional) drawing tools using gnuplot and imageMagick.
 --
 -----------------------------------------------------------------------------
 

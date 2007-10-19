@@ -103,9 +103,6 @@ at :: Storable a => Vector a -> Int -> a
 at v n | n >= 0 && n < dim v = at' v n
        | otherwise          = error "vector index out of range"
 
-instance (Show a, Storable a) => (Show (Vector a)) where
-    show v = (show (dim v))++" |> " ++ show (toList v)
-
 {- | takes a number of consecutive elements from a Vector
 
 @> subVector 2 3 (fromList [1..10])

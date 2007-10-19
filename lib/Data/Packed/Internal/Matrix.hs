@@ -22,10 +22,10 @@ import Data.Packed.Internal.Vector
 import Foreign hiding (xor)
 import Complex
 import Control.Monad(when)
-import Data.List(transpose,intersperse)
 import Data.Maybe(fromJust)
 import Foreign.C.String
 import Foreign.C.Types
+import Data.List(transpose)
 
 -----------------------------------------------------------------
 
@@ -196,20 +196,6 @@ instance Field (Complex Double) where
     multiplyD  = multiplyC
     subMatrixD = subMatrixC
     diagD      = diagC
-
-------------------------------------------------------------------
-
-instance (Show a, Field a) => (Show (Matrix a)) where
-    show m = (sizes++) . dsp . map (map show) . toLists $ m
-        where sizes = "("++show (rows m)++"><"++show (cols m)++")\n"
-
-dsp as = (++" ]") . (" ["++) . init . drop 2 . unlines . map (" , "++) . map unwords' $ transpose mtp
-    where
-        mt = transpose as
-        longs = map (maximum . map length) mt
-        mtp = zipWith (\a b -> map (pad a) b) longs mt
-        pad n str = replicate (n - length str) ' ' ++ str
-        unwords' = concat . intersperse ", "
 
 ------------------------------------------------------------------
 

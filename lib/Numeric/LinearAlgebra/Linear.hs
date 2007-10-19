@@ -25,7 +25,7 @@ import Data.Packed
 import Numeric.GSL.Vector
 import Complex
 
--- | basic optimized operations
+-- | A generic interface for vectors and matrices to a few element-by-element functions in Numeric.GSL.Vector.
 class (Container c e) => Linear c e where
     scale       :: e -> c e -> c e
     addConstant :: e -> c e -> c e

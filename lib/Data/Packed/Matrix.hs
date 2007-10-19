@@ -9,7 +9,7 @@
 -- Stability   :  provisional
 -- Portability :  portable
 --
--- Matrices
+-- A Matrix representation suitable for numerical computations using LAPACK and GSL.
 --
 -----------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ module Data.Packed.Matrix (
     trans, conjTrans,
     asRow, asColumn,
     fromRows, toRows, fromColumns, toColumns,
-    fromBlocks,
+    fromBlocks, repmat,
     flipud, fliprl,
     subMatrix, takeRows, dropRows, takeColumns, dropColumns,
     extractRows,
@@ -215,3 +215,16 @@ readMatrix = fromLists . map (map read). map words . filter (not.null) . lines
 extractRows :: Field t => [Int] -> Matrix t -> Matrix t
 extractRows l m = fromRows $ extract (toRows $ m) l
     where extract l is = [l!!i |i<-is]
+
+{- | creates matrix by repetition of a matrix a given number of rows and columns
+
+@> repmat (ident 2) 2 3 :: Matrix Double
+(4><6)
+ [ 1.0, 0.0, 1.0, 0.0, 1.0, 0.0
+ , 0.0, 1.0, 0.0, 1.0, 0.0, 1.0
+ , 1.0, 0.0, 1.0, 0.0, 1.0, 0.0
+ , 0.0, 1.0, 0.0, 1.0, 0.0, 1.0 ]@
+
+-}
+repmat :: (Field t) => Matrix t -> Int -> Int -> Matrix t
+repmat m r c = fromBlocks $ partit c $ replicate (r*c) m

@@ -2,14 +2,14 @@
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Interface
-Copyright   :  (c) Alberto Ruiz 2006
+Copyright   :  (c) Alberto Ruiz 2007
 License     :  GPL-style
 
 Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  portable
 
-Operators for frequent operations.
+(Very provisional) operators for frequent operations.
 
 -}
 -----------------------------------------------------------------------------

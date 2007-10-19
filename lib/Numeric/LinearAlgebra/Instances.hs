@@ -9,7 +9,7 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  portable
 
-Numeric instances for Vector and Matrix.
+This module exports Show, Eq, Num, Fractional, and Floating instances for Vector and Matrix.
 
 In the context of the standard numeric operators, one-component vectors and matrices automatically expand to match the dimensions of the other operand.
 
@@ -24,6 +24,27 @@ import Numeric.GSL.Vector
 import Data.Packed.Matrix
 import Data.Packed.Vector
 import Complex
+import Data.List(transpose,intersperse)
+import Foreign(Storable)
+
+------------------------------------------------------------------
+
+instance (Show a, Field a) => (Show (Matrix a)) where
+    show m = (sizes++) . dsp . map (map show) . toLists $ m
+        where sizes = "("++show (rows m)++"><"++show (cols m)++")\n"
+
+dsp as = (++" ]") . (" ["++) . init . drop 2 . unlines . map (" , "++) . map unwords' $ transpose mtp
+    where
+        mt = transpose as
+        longs = map (maximum . map length) mt
+        mtp = zipWith (\a b -> map (pad a) b) longs mt
+        pad n str = replicate (n - length str) ' ' ++ str
+        unwords' = concat . intersperse ", "
+
+instance (Show a, Storable a) => (Show (Vector a)) where
+    show v = (show (dim v))++" |> " ++ show (toList v)
+
+------------------------------------------------------------------
 
 adaptScalar f1 f2 f3 x y
     | dim x == 1 = f1   (x@>0) y

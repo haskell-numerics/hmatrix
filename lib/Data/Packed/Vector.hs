@@ -8,7 +8,7 @@
 -- Stability   :  provisional
 -- Portability :  portable
 --
--- Vectors
+-- A representation of 1D arrays suitable for numeric computations using external libraries.
 --
 -----------------------------------------------------------------------------
 
