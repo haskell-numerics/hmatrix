@@ -83,7 +83,7 @@ her (Her a) = a
 instance {-(Field a, Arbitrary a, Num a) =>-} Arbitrary Her where
     arbitrary = do
         SqM m <- arbitrary
-        return $ Her (m + conjTrans m)
+        return $ Her (m + ctrans m)
     coarbitrary = undefined
 
 data PairSM a = PairSM (Matrix a) (Matrix a) deriving Show
@@ -125,7 +125,7 @@ pseudorandomC seed (n,m) = toComplex (pseudorandomR seed (n,m), pseudorandomR (s
 
 bigmat = m + trans m :: RM
     where m = pseudorandomR 18 (1000,1000)
-bigmatc = mc + conjTrans mc ::CM
+bigmatc = mc + ctrans mc ::CM
     where mc = pseudorandomC 19 (1000,1000)
 
 ----------------------------------------------------------------------

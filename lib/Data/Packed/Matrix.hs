@@ -16,10 +16,11 @@
 module Data.Packed.Matrix (
     Field,
     Matrix,rows,cols,
-    (><), reshape, flatten,
+    (><),
+    trans,
+    reshape, flatten,
     fromLists, toLists,
     (@@>),
-    trans, conjTrans,
     asRow, asColumn,
     fromRows, toRows, fromColumns, toColumns,
     fromBlocks, repmat,
@@ -28,7 +29,7 @@ module Data.Packed.Matrix (
     extractRows,
     ident, diag, diagRect, takeDiag,
     liftMatrix, liftMatrix2,
-    format, dispR, readMatrix, fromFile, fromArray2D
+    format, readMatrix, fromFile, fromArray2D
 ) where
 
 import Data.Packed.Internal
@@ -153,10 +154,6 @@ flatten = cdat
 -}
 fromLists :: Field t => [[t]] -> Matrix t
 fromLists = fromRows . map fromList
-
--- | conjugate transpose
-conjTrans :: Matrix (Complex Double) -> Matrix (Complex Double)
-conjTrans = trans . liftMatrix conj
 
 -- | creates a 1-row matrix from a vector
 asRow :: Field a => Vector a -> Matrix a

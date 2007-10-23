@@ -91,7 +91,7 @@ instance GenMat (Complex Double) where
     lu  = GSL.luC
     linearSolve = linearSolveC
     linearSolveSVD = linearSolveSVDC Nothing
-    ctrans = conjTrans
+    ctrans = conj . trans
     eig = eigC
     eigSH' = eigH
     cholSH = cholH

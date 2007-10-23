@@ -2,6 +2,7 @@
 import Numeric.GSL
 import Numeric.LinearAlgebra
 import Graphics.Plot
+import Text.Printf(printf)
 
 -- the function to be minimized 
 f [x,y] = 10*(x-1)^2 + 20*(y-2)^2 + 30
@@ -26,18 +27,20 @@ main = do
     -- conjugate gradient with true gradient
     let (s,p) = minimizeCG f df [5,7]
     print s -- solution
-    dispR 2 p -- evolution of the algorithm
+    disp p -- evolution of the algorithm
     let [x,y] = drop 2 (toColumns p)
     mplot [x,y]  -- path from the starting point to the solution
 
     -- conjugate gradient with estimated gradient
     let (s,p) = minimizeCG f (gradient f) [5,7]
     print s
-    dispR 2 p
+    disp p
     mplot $ drop 2 (toColumns p)
 
     -- without gradient, using the NM Simplex method
     let (s,p) = minimizeS f [5,7]
     print s
-    dispR 2 p
+    disp p
     mplot $ drop 3 (toColumns p)
+
+disp = putStrLn . format "  " (printf "%.2f")
