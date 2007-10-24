@@ -12,6 +12,7 @@ import qualified Numeric.GSL.Matrix as GSL
 import Test.QuickCheck hiding (test)
 import Test.HUnit hiding ((~:),test)
 import System.Random(randomRs,mkStdGen)
+import System.Info
 
 type RM = Matrix Double
 type CM = Matrix (Complex Double)
@@ -323,7 +324,9 @@ tests = do
     quickCheck (invTest . sqm   :: SqM (Complex Double) -> Bool)
     putStrLn "--------- pinv ------"
     quickCheck (pinvTest . sqm   :: SqM Double -> Bool)
-    quickCheck (pinvTest . sqm   :: SqM (Complex Double) -> Bool)
+    if os == "mingw32"
+        then putStrLn "complex pinvTest skipped in this OS"
+        else quickCheck (pinvTest . sqm   :: SqM (Complex Double) -> Bool)
     putStrLn "--------- chol ------"
     runTestTT $ TestList
      [ test "cholR" cholRTest

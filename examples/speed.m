@@ -12,9 +12,10 @@ end
 t0=time();
 x = linspace(0,1,1E5);
 ac = eye(3);
-for a=x
-    ac = rot(a)*ac;
+for a = x
+    ac = ac*rot(a);
 end
 
+format long
 disp(ac);
-disp(time()-t0)
+printf("%.2f seconds\n",time()-t0)

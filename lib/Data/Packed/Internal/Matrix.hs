@@ -48,12 +48,14 @@ import Data.List(transpose)
 - we could carry both the matrix and its (lazily computed) transpose.
   This may save some transpositions, but it is necessary to keep track of the
   data which is actually computed to be used by functions like the matrix product
-  which admit both orders. Therefore, maybe it is better to have something like
-  viewC and viewF, which may actually perform a transpose if required.
+  which admit both orders.
 
 - but if we need the transposed data and it is not in the structure, we must make
-  sure that we touch the same foreignptr that is used in the computation. Access
-  to such pointer cannot be made by creating a new vector.
+  sure that we touch the same foreignptr that is used in the computation.
+
+- a reasonable solution is using two constructors for a matrix. Transposition just
+  "flips" the constructor. Actual data transposition is not done if followed by a
+  matrix product or another transpose.
 
 -}
 
@@ -66,7 +68,7 @@ data Matrix t = MC { rows :: Int, cols :: Int, cdat :: Vector t, fdat :: Vector 
 -- MC: preferred by C, fdat may require a transposition
 -- MF: preferred by LAPACK, cdat may require a transposition
 
--- | matrix transpose
+-- | Matrix transpose.
 trans :: Matrix t -> Matrix t
 trans MC {rows = r, cols = c, cdat = d, fdat = dt } = MF {rows = c, cols = r, fdat = d, cdat = dt }
 trans MF {rows = r, cols = c, fdat = d, cdat = dt } = MC {rows = c, cols = r, cdat = d, fdat = dt }

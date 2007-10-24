@@ -193,6 +193,14 @@ dsp' sep as = unlines . map unwords' $ transpose mtp where
     pad n str = replicate (n - length str) ' ' ++ str
     unwords' = concat . intersperse sep
 
+{- | Creates a string from a matrix given a separator and a function to show each entry. Using
+this function the user can easily define any desired display function:
+
+@import Text.Printf(printf)@
+
+@disp = putStrLn . format \"  \" (printf \"%.2f\")@
+
+-}
 format :: (Field t) => String -> (t -> String) -> Matrix t -> String
 format sep f m = dsp' sep . map (map f) . toLists $ m
 

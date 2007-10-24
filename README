@@ -1,3 +1,6 @@
+A simple scientific library for Haskell
+---------------------------------------
+
 REQUIREMENTS
 
 1) GNU Scientific Library (http://www.gnu.org/software/gsl) development packages
@@ -7,18 +10,19 @@ REQUIREMENTS
 
 INSTALLATION
 
-(More detailed information is included in the "tutorial",
-available in the web page of the project.)
-
 $ runhaskell Setup.lhs configure --prefix=$HOME
 $ runhaskell Setup.lhs build
 $ runhaskell Setup.lhs haddock
 $ runhaskell Setup.lhs install --user
 
+See below for installation on Windows.
+
 USING ATLAS
 
 $ ln -s /usr/lib/atlas/libblas.so.3.0 $HOME/lib/hssl-0.1/ghc-6.6.1/libcblas.so
 $ ln -s /usr/lib/atlas/liblapack.so.3.0 $HOME/lib/hssl-0.1/ghc-6.6.1/liblapack.so
+
+(More info in the tutorial, available from the web page of the project.)
 
 TESTS
 
@@ -46,10 +50,12 @@ Prelude Numeric.LinearAlgebra> u <> d <> trans v
 Prelude Numeric.GSL> :q
 Leaving GHCi.
 
+A few illustrative programs are included in the examples folder.
+
 CHANGES
 
-This is a new version of GSLHaskell. The package is (provisionally)
-called \C{hssl} (a simple scientific library for Haskell) because only
+This is a new version of GSLHaskell. The package is provisionally
+called "hssl" (a simple scientific library for Haskell) because only
 a small part of GSL is available and linear algebra is based on LAPACK.
 
 The code has been extensively refactored. There is a new internal representation
@@ -57,34 +63,17 @@ which admits both C and Fortran matrices and avoids many transposes.
 
 There are only minor API changes:
 
-- the matrix product operator \C{(<>)} is now overloaded only for matrix-matrix,
-matrix-vector and vector-matrix, with the same base type. The dot product and the scaling
-of vectors or matrices is now denoted by `dot` and `scale`. Conversions from real to
-complex objects must be explicit.
+- The matrix product operator (<>) is now overloaded only for matrix-matrix,
+  matrix-vector and vector-matrix, with the same base type. Dot product and scaling
+  of vectors or matrices is now denoted by `dot` or (<.>) and `scale` or (.*).
+  Conversions from real to complex objects must now be explicit.
 
 - Most linear algebra functions admit both real and complex objects. Utilities such as
-ident or constant are now polymorphic.
+  ident or constant are now polymorphic.
 
-- Runtime errors produced by GSL or LAPACK can be handled using \C{Control.Exeception.catch}.
+- Runtime errors produced by GSL or LAPACK can be handled using Control.Exeception.catch.
 
 Old GSLHaskell code will work with small modifications.
-
-ACKNOWLEDGEMENTS
-
-I thank Henning Thielemann and all the people in the Haskell mailing lists for their help.
-
-- Nico Mahlo discovered a bug in the eigendecomposition wrapper.
-
-- Frederik Eaton discovered a bug in the design of the wrappers.
-
-- Eric Kidd has created a wiki page explaining the installation on MacOS X:
-  http://www.haskell.org/haskellwiki/GSLHaskell_on_MacOS_X
-
-- Fawzi Mohamed discovered a portability bug in the lapack wrappers.
-
-- Pedro E. López de Teruel fixed the interface to lapack.
-
-- Antti Siira discovered a bug in the plotting functions.
 
 INSTALLATION ON WINDOWS
 
@@ -109,3 +98,20 @@ INSTALLATION ON WINDOWS
 Unfortunately the lapack dll supplied by the R system does not include zgels_ and zgelss_,
 so the functions depending on them (linearSolveLS and linearSolveSVD for complex data)
 will produce a "non supported" runtime error.
+
+ACKNOWLEDGEMENTS
+
+I thank Henning Thielemann and all the people in the Haskell mailing lists for their help.
+
+- Nico Mahlo discovered a bug in the eigendecomposition wrapper.
+
+- Frederik Eaton discovered a bug in the design of the wrappers.
+
+- Eric Kidd has created a wiki page explaining the installation on MacOS X:
+  http://www.haskell.org/haskellwiki/GSLHaskell_on_MacOS_X
+
+- Fawzi Mohamed discovered a portability bug in the lapack wrappers.
+
+- Pedro E. López de Teruel fixed the interface to lapack.
+
+- Antti Siira discovered a bug in the plotting functions.
