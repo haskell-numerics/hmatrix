@@ -193,6 +193,14 @@ unitary m = square m && m <> ctrans m |~| ident (rows m)
 
 hermitian m = m |~| ctrans m
 
+upperTriang m = rows m == 1 || down == z
+    where down = fromList $ concat $ zipWith drop [1..] (toLists (ctrans m))
+          z = constant 0 (dim down)
+
+upperHessenberg m = rows m < 3 || down == z
+    where down = fromList $ concat $ zipWith drop [2..] (toLists (ctrans m))
+          z = constant 0 (dim down)
+
 svdTest svd m = u <> real d <> trans v |~| m
           && unitary u && unitary v
     where (u,d,v) = full svd m
@@ -274,13 +282,21 @@ cholCTest = chol ((2><2) [1,2,2,9::Complex Double]) == (2><2) [1,2,0,2.236067977
 
 ---------------------------------------------------------------------
 
-qrTest qr m = q <> r |~| m && unitary q
+qrTest qr m = q <> r |~| m && unitary q && upperTriang r
     where (q,r) = qr m
 
 ---------------------------------------------------------------------
 
-hessTest m = m |~| p <> h <> ctrans p && unitary p
+hessTest m = m |~| p <> h <> ctrans p && unitary p && upperHessenberg h
     where (p,h) = hess m
+
+---------------------------------------------------------------------
+
+schurTest1 m = m |~| u <> s <> ctrans u && unitary u && upperTriang s
+    where (u,s) = schur m
+
+schurTest2 m = m |~| u <> s <> ctrans u && unitary u && upperHessenberg s -- fixme
+    where (u,s) = schur m
 
 ---------------------------------------------------------------------
 
@@ -346,6 +362,9 @@ tests = do
     putStrLn "--------- hess --------"
     quickCheck (hessTest . sqm ::SqM Double->Bool)
     quickCheck (hessTest . sqm ::SqM (Complex Double) -> Bool)
+    putStrLn "--------- schur --------"
+    quickCheck (schurTest2 . sqm ::SqM Double->Bool)
+    quickCheck (schurTest1 . sqm ::SqM (Complex Double) -> Bool)
     putStrLn "--------- nullspace ------"
     quickCheck (nullspaceTest :: RM -> Bool)
     quickCheck (nullspaceTest :: CM -> Bool)

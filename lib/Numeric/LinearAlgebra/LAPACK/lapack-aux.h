@@ -48,3 +48,7 @@ int qr_l_C(KCMAT(a), CVEC(tau), CMAT(r));
 int hess_l_R(KDMAT(a), DVEC(tau), DMAT(r));
 
 int hess_l_C(KCMAT(a), CVEC(tau), CMAT(r));
+
+int schur_l_R(KDMAT(a), DMAT(u), DMAT(s));
+
+int schur_l_C(KCMAT(a), CMAT(u), CMAT(s));

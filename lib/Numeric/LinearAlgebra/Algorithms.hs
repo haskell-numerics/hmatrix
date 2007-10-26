@@ -35,6 +35,8 @@ module Numeric.LinearAlgebra.Algorithms (
     chol,
 -- ** Hessenberg
     hess,
+-- ** Schur
+    schur,
 -- * Nullspace
     nullspacePrec,
     nullVector,
@@ -79,6 +81,8 @@ class (Linear Matrix t) => GenMat t where
     qr          :: Matrix t -> (Matrix t, Matrix t)
     -- | Hessenberg factorization using lapack's dgehrd or zgehrd.
     hess        :: Matrix t -> (Matrix t, Matrix t)
+    -- | Schur factorization using lapack's dgees or zgees.
+    schur       :: Matrix t -> (Matrix t, Matrix t)
     -- | Conjugate transpose.
     ctrans :: Matrix t -> Matrix t
 
@@ -93,6 +97,7 @@ instance GenMat Double where
     cholSH = cholS
     qr = GSL.unpackQR . qrR
     hess = unpackHess hessR
+    schur = schurR
 
 instance GenMat (Complex Double) where
     svd = svdC
@@ -105,6 +110,7 @@ instance GenMat (Complex Double) where
     cholSH = cholH
     qr = unpackQR . qrC
     hess = unpackHess hessC
+    schur = schurC
 
 -- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev. If @(s,v) = eigSH m@ then @m == v \<> diag s \<> ctrans v@
 eigSH :: GenMat t => Matrix t -> (Vector Double, Matrix t)

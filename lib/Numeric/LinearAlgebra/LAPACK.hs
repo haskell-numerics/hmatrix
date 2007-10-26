@@ -21,7 +21,8 @@ module Numeric.LinearAlgebra.LAPACK (
     linearSolveSVDR, linearSolveSVDC,
     cholS, cholH,
     qrR, qrC,
-    hessR, hessC
+    hessR, hessC,
+    schurR, schurC
 ) where
 
 import Data.Packed.Internal
@@ -351,7 +352,7 @@ hessR a = unsafePerformIO $ do
 -----------------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h hess_l_C" zgehrd :: TCMCVCM
 
--- | Wrapper for LAPACK's /zgeqr2/, which computes a Hessenberg factorization of a square complex matrix.
+-- | Wrapper for LAPACK's /zgehrd/, which computes a Hessenberg factorization of a square complex matrix.
 hessC :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector (Complex Double))
 hessC a = unsafePerformIO $ do
     r <- createMatrix ColumnMajor m n
@@ -362,3 +363,26 @@ hessC a = unsafePerformIO $ do
         n = cols a
         mn = min m n
 
+-----------------------------------------------------------------------------------
+foreign import ccall "LAPACK/lapack-aux.h schur_l_R" dgees :: TMMM
+
+-- | Wrapper for LAPACK's /dgees/, which computes a Schur factorization of a square real matrix.
+schurR :: Matrix Double -> (Matrix Double, Matrix Double)
+schurR a = unsafePerformIO $ do
+    u <- createMatrix ColumnMajor n n
+    s <- createMatrix ColumnMajor n n
+    dgees // mat fdat a // mat dat u // mat dat s // check "schurR" [fdat a]
+    return (u,s)
+  where n = rows a
+
+-----------------------------------------------------------------------------------
+foreign import ccall "LAPACK/lapack-aux.h schur_l_C" zgees :: TCMCMCM
+
+-- | Wrapper for LAPACK's /zgees/, which computes a Schur factorization of a square complex matrix.
+schurC :: Matrix (Complex Double) -> (Matrix (Complex Double), Matrix (Complex Double))
+schurC a = unsafePerformIO $ do
+    u <- createMatrix ColumnMajor n n
+    s <- createMatrix ColumnMajor n n
+    zgees // mat fdat a // mat dat u // mat dat s // check "schurC" [fdat a]
+    return (u,s)
+  where n = rows a

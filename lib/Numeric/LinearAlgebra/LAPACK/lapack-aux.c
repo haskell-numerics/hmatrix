@@ -701,3 +701,52 @@ int hess_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
     free(WORK);
     OK
 }
+
+//////////////////// Schur factorization /////////////////////////
+
+int schur_l_R(KDMAT(a), DMAT(u), DMAT(s)) {
+    integer m = ar;
+    integer n = ac;
+    REQUIRES(m>=1 && n==m && ur==n && uc==n && sr==n && sc==n, BAD_SIZE);
+    DEBUGMSG("schur_l_R");
+    memcpy(sp,ap,n*n*sizeof(double));
+    integer lwork = 6*n; // fixme
+    double *WORK = (double*)malloc(lwork*sizeof(double));
+    double *WR = (double*)malloc(n*sizeof(double));
+    double *WI = (double*)malloc(n*sizeof(double));
+    // WR and WI not really required in this call
+    logical *BWORK = (logical*)malloc(n*sizeof(logical));
+    integer res;
+    integer sdim;
+    dgees_ ("V","N",NULL,&n,sp,&n,&sdim,WR,WI,up,&n,WORK,&lwork,BWORK,&res);
+    CHECK(res,res);
+    free(WR);
+    free(WI);
+    free(BWORK);
+    free(WORK);
+    OK
+}
+
+int schur_l_C(KCMAT(a), CMAT(u), CMAT(s)) {
+    integer m = ar;
+    integer n = ac;
+    REQUIRES(m>=1 && n==m && ur==n && uc==n && sr==n && sc==n, BAD_SIZE);
+    DEBUGMSG("schur_l_C");
+    memcpy(sp,ap,n*n*sizeof(doublecomplex));
+    integer lwork = 6*n; // fixme
+    doublecomplex *WORK = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
+    doublecomplex *W = (doublecomplex*)malloc(n*sizeof(doublecomplex));
+    // W not really required in this call
+    logical *BWORK = (logical*)malloc(n*sizeof(logical));
+    double *RWORK = (double*)malloc(n*sizeof(double));
+    integer res;
+    integer sdim;
+    zgees_ ("V","N",NULL,&n,(doublecomplex*)sp,&n,&sdim,W,
+                            (doublecomplex*)up,&n,
+                            WORK,&lwork,RWORK,BWORK,&res);
+    CHECK(res,res);
+    free(W);
+    free(BWORK);
+    free(WORK);
+    OK
+}
