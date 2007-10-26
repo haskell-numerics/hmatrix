@@ -44,3 +44,7 @@ int chol_l_S(KDMAT(a),DMAT(r));
 int qr_l_R(KDMAT(a), DVEC(tau), DMAT(r));
 
 int qr_l_C(KCMAT(a), CVEC(tau), CMAT(r));
+
+int hess_l_R(KDMAT(a), DVEC(tau), DMAT(r));
+
+int hess_l_C(KCMAT(a), CVEC(tau), CMAT(r));

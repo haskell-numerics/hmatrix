@@ -663,3 +663,41 @@ int qr_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
     free(WORK);
     OK
 }
+
+//////////////////// Hessenberg factorization /////////////////////////
+
+int hess_l_R(KDMAT(a), DVEC(tau), DMAT(r)) {
+    integer m = ar;
+    integer n = ac;
+    integer mn = MIN(m,n);
+    REQUIRES(m>=1 && n == m && rr== m && rc == n && taun == mn-1, BAD_SIZE);
+    DEBUGMSG("hess_l_R");
+    integer lwork = 5*n; // fixme
+    double *WORK = (double*)malloc(lwork*sizeof(double));
+    CHECK(!WORK,MEM);
+    memcpy(rp,ap,m*n*sizeof(double));
+    integer res;
+    integer one = 1;
+    dgehrd_ (&n,&one,&n,rp,&n,taup,WORK,&lwork,&res);
+    CHECK(res,res);
+    free(WORK);
+    OK
+}
+
+int hess_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
+    integer m = ar;
+    integer n = ac;
+    integer mn = MIN(m,n);
+    REQUIRES(m>=1 && n == m && rr== m && rc == n && taun == mn-1, BAD_SIZE);
+    DEBUGMSG("hess_l_C");
+    integer lwork = 5*n; // fixme
+    doublecomplex *WORK = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
+    CHECK(!WORK,MEM);
+    memcpy(rp,ap,m*n*sizeof(doublecomplex));
+    integer res;
+    integer one = 1;
+    zgehrd_ (&n,&one,&n,(doublecomplex*)rp,&n,(doublecomplex*)taup,WORK,&lwork,&res);
+    CHECK(res,res);
+    free(WORK);
+    OK
+}

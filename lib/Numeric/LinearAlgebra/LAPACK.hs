@@ -20,7 +20,8 @@ module Numeric.LinearAlgebra.LAPACK (
     linearSolveLSR, linearSolveLSC,
     linearSolveSVDR, linearSolveSVDC,
     cholS, cholH,
-    qrR, qrC
+    qrR, qrC,
+    hessR, hessC
 ) where
 
 import Data.Packed.Internal
@@ -284,7 +285,7 @@ linearSolveSVDC_l rcond  a b = unsafePerformIO $ do
 -----------------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h chol_l_H" zpotrf :: TCMCM
 
--- | Wrapper for LAPACK's /zpotrf/,which computes the Cholesky factorization of a
+-- | Wrapper for LAPACK's /zpotrf/, which computes the Cholesky factorization of a
 -- complex Hermitian positive definite matrix.
 cholH :: Matrix (Complex Double) -> Matrix (Complex Double)
 cholH a = unsafePerformIO $ do
@@ -296,7 +297,7 @@ cholH a = unsafePerformIO $ do
 -----------------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h chol_l_S" dpotrf :: TMM
 
--- | Wrapper for LAPACK's /dpotrf/,which computes the Cholesky factorization of a
+-- | Wrapper for LAPACK's /dpotrf/, which computes the Cholesky factorization of a
 -- real symmetric positive definite matrix.
 cholS :: Matrix Double -> Matrix Double
 cholS a = unsafePerformIO $ do
@@ -308,7 +309,7 @@ cholS a = unsafePerformIO $ do
 -----------------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h qr_l_R" dgeqr2 :: TMVM
 
--- | Wrapper for LAPACK's /dgeqr2/,which computes a QR factorization of a real matrix.
+-- | Wrapper for LAPACK's /dgeqr2/, which computes a QR factorization of a real matrix.
 qrR :: Matrix Double -> (Matrix Double, Vector Double)
 qrR a = unsafePerformIO $ do
     r <- createMatrix ColumnMajor m n
@@ -322,12 +323,40 @@ qrR a = unsafePerformIO $ do
 -----------------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h qr_l_C" zgeqr2 :: TCMCVCM
 
--- | Wrapper for LAPACK's /zgeqr2/,which computes a QR factorization of a complex matrix.
+-- | Wrapper for LAPACK's /zgeqr2/, which computes a QR factorization of a complex matrix.
 qrC :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector (Complex Double))
 qrC a = unsafePerformIO $ do
     r <- createMatrix ColumnMajor m n
     tau <- createVector mn
     zgeqr2 // mat fdat a // vec tau // mat dat r // check "qrC" [fdat a]
+    return (r,tau)
+  where m = rows a
+        n = cols a
+        mn = min m n
+
+-----------------------------------------------------------------------------------
+foreign import ccall "LAPACK/lapack-aux.h hess_l_R" dgehrd :: TMVM
+
+-- | Wrapper for LAPACK's /dgehrd/, which computes a Hessenberg factorization of a square real matrix.
+hessR :: Matrix Double -> (Matrix Double, Vector Double)
+hessR a = unsafePerformIO $ do
+    r <- createMatrix ColumnMajor m n
+    tau <- createVector (mn-1)
+    dgehrd // mat fdat a // vec tau // mat dat r // check "hessR" [fdat a]
+    return (r,tau)
+  where m = rows a
+        n = cols a
+        mn = min m n
+
+-----------------------------------------------------------------------------------
+foreign import ccall "LAPACK/lapack-aux.h hess_l_C" zgehrd :: TCMCVCM
+
+-- | Wrapper for LAPACK's /zgeqr2/, which computes a Hessenberg factorization of a square complex matrix.
+hessC :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector (Complex Double))
+hessC a = unsafePerformIO $ do
+    r <- createMatrix ColumnMajor m n
+    tau <- createVector (mn-1)
+    zgehrd // mat fdat a // vec tau // mat dat r // check "hessC" [fdat a]
     return (r,tau)
   where m = rows a
         n = cols a

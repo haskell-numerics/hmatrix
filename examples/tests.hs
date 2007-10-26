@@ -189,12 +189,12 @@ pinvTest m =  m <> p <> m |~| m
 
 square m = rows m == cols m
 
-orthonormal m = square m && m <> ctrans m |~| ident (rows m)
+unitary m = square m && m <> ctrans m |~| ident (rows m)
 
 hermitian m = m |~| ctrans m
 
 svdTest svd m = u <> real d <> trans v |~| m
-          && orthonormal u && orthonormal v
+          && unitary u && unitary v
     where (u,d,v) = full svd m
 
 svdTest' svd m = m |~| 0 || u <> real (diag s) <> trans v |~| m
@@ -204,7 +204,7 @@ eigTest m = complex m <> v |~| v <> diag s
     where (s, v) = eig m
 
 eigTestSH m = m <> v |~| v <> real (diag s)
-              && orthonormal v
+              && unitary v
               && m |~| v <> real (diag s) <> ctrans v
     where (s, v) = eigSH m
 
@@ -274,8 +274,13 @@ cholCTest = chol ((2><2) [1,2,2,9::Complex Double]) == (2><2) [1,2,0,2.236067977
 
 ---------------------------------------------------------------------
 
-qrTest qr m = q <> r |~| m && q <> ctrans q |~| ident (rows m)
+qrTest qr m = q <> r |~| m && unitary q
     where (q,r) = qr m
+
+---------------------------------------------------------------------
+
+hessTest m = m |~| p <> h <> ctrans p && unitary p
+    where (p,h) = hess m
 
 ---------------------------------------------------------------------
 
@@ -338,6 +343,9 @@ tests = do
     quickCheck (qrTest (    unpackQR . GSL.qrPacked))
     quickCheck (qrTest qr ::RM->Bool)
     quickCheck (qrTest qr ::CM->Bool)
+    putStrLn "--------- hess --------"
+    quickCheck (hessTest . sqm ::SqM Double->Bool)
+    quickCheck (hessTest . sqm ::SqM (Complex Double) -> Bool)
     putStrLn "--------- nullspace ------"
     quickCheck (nullspaceTest :: RM -> Bool)
     quickCheck (nullspaceTest :: CM -> Bool)

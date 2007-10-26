@@ -33,6 +33,8 @@ module Numeric.LinearAlgebra.Algorithms (
     qr,
 -- ** Cholesky
     chol,
+-- ** Hessenberg
+    hess,
 -- * Nullspace
     nullspacePrec,
     nullVector,
@@ -42,7 +44,9 @@ module Numeric.LinearAlgebra.Algorithms (
     ctrans,
     eps, i,
 -- * Util
-    GenMat(linearSolveSVD,lu,eigSH',cholSH), unpackQR, haussholder
+    GenMat(linearSolveSVD,lu,eigSH',cholSH), 
+    haussholder,
+    unpackQR, unpackHess
 ) where
 
 
@@ -64,7 +68,8 @@ class (Linear Matrix t) => GenMat t where
     --  See also other versions of linearSolve in "Numeric.LinearAlgebra.LAPACK".
     linearSolve :: Matrix t -> Matrix t -> Matrix t
     linearSolveSVD :: Matrix t -> Matrix t -> Matrix t
-    -- | Eigenvalues and eigenvectors of a general square matrix using lapack's dgeev or zgeev. If @(s,v) = eig m@ then @m \<> v == v \<> diag s@
+    -- | Eigenvalues and eigenvectors of a general square matrix using lapack's dgeev or zgeev.
+    -- If @(s,v) = eig m@ then @m \<> v == v \<> diag s@
     eig         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
     -- | Similar to eigSH without checking that the input matrix is hermitian or symmetric.
     eigSH'      :: Matrix t -> (Vector Double, Matrix t)
@@ -72,6 +77,8 @@ class (Linear Matrix t) => GenMat t where
     cholSH      :: Matrix t -> Matrix t
     -- | QR factorization using lapack's dgeqr2 or zgeqr2.
     qr          :: Matrix t -> (Matrix t, Matrix t)
+    -- | Hessenberg factorization using lapack's dgehrd or zgehrd.
+    hess        :: Matrix t -> (Matrix t, Matrix t)
     -- | Conjugate transpose.
     ctrans :: Matrix t -> Matrix t
 
@@ -85,6 +92,7 @@ instance GenMat Double where
     eigSH' = eigS
     cholSH = cholS
     qr = GSL.unpackQR . qrR
+    hess = unpackHess hessR
 
 instance GenMat (Complex Double) where
     svd = svdC
@@ -96,6 +104,7 @@ instance GenMat (Complex Double) where
     eigSH' = eigH
     cholSH = cholH
     qr = unpackQR . qrC
+    hess = unpackHess hessC
 
 -- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev. If @(s,v) = eigSH m@ then @m == v \<> diag s \<> ctrans v@
 eigSH :: GenMat t => Matrix t -> (Vector Double, Matrix t)
@@ -277,6 +286,14 @@ haussholder :: (GenMat a) => a -> Vector a -> Matrix a
 haussholder tau v = ident (dim v) `sub` (tau `scale` (w `mXm` ctrans w))
     where w = asColumn v
 
+
+zh k v = fromList $ replicate (k-1) 0 ++ (1:drop k xs)
+              where xs = toList v
+
+zt 0 v = v
+zt k v = join [subVector 0 (dim v - k) v, constant 0 k]
+
+
 unpackQR :: (GenMat t) => (Matrix t, Vector t) -> (Matrix t, Matrix t)
 unpackQR (pq, tau) = (q,r)
     where cs = toColumns pq
@@ -288,8 +305,17 @@ unpackQR (pq, tau) = (q,r)
           hs = zipWith haussholder (toList tau) vs
           q = foldl1' mXm hs
 
-          zh k v = fromList $ replicate (k-1) 0 ++ (1:drop k xs)
-              where xs = toList v
+unpackHess :: (GenMat t) => (Matrix t -> (Matrix t,Vector t)) -> Matrix t -> (Matrix t, Matrix t)
+unpackHess hf m
+    | rows m == 1 = ((1><1)[1],m)
+    | otherwise = (uH . hf) m
 
-          zt 0 v = v
-          zt k v = join [subVector 0 (dim v - k) v, constant 0 k]
+uH (pq, tau) = (p,h)
+    where cs = toColumns pq
+          m = rows pq
+          n = cols pq
+          mn = min m n
+          h = fromColumns $ zipWith zt ([m-2, m-3 .. 1] ++ repeat 0) cs
+          vs = zipWith zh [2..mn] cs
+          hs = zipWith haussholder (toList tau) vs
+          p = foldl1' mXm hs
