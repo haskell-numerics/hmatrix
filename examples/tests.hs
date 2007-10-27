@@ -216,9 +216,6 @@ eigTestSH m = m <> v |~| v <> real (diag s)
               && m |~| v <> real (diag s) <> ctrans v
     where (s, v) = eigSH m
 
-rank m | m |~| 0   = 0
-       | otherwise = dim s where (_,s,_) = economy svd m
-
 zeros (r,c) = reshape c (constant 0 (r*c))
 
 ones (r,c) = zeros (r,c) + 1
@@ -300,6 +297,11 @@ schurTest2 m = m |~| u <> s <> ctrans u && unitary u && upperHessenberg s -- fix
 
 ---------------------------------------------------------------------
 
+expmTest m = expm (logm m) |~| complex m
+    where logm m = matFunc Prelude.log m
+
+---------------------------------------------------------------------
+
 asFortran m = (rows m >|< cols m) $ toList (fdat m)
 asC m = (rows m >< cols m) $ toList (cdat m)
 
@@ -367,6 +369,11 @@ tests = do
     if os == "mingw32"
         then putStrLn "complex schur skipped in this OS"
         else quickCheck (schurTest1 . sqm ::SqM (Complex Double) -> Bool)
+    putStrLn "--------- expm --------"
+    runTestTT $ TestList
+     [ test "expmd"  (expmTest $ (2><2) [1,2,3,5 :: Double])
+     --,  test "expmnd" (expmTest $ (2><2) [1,0,1,1 :: Double])
+     ]
     putStrLn "--------- nullspace ------"
     quickCheck (nullspaceTest :: RM -> Bool)
     quickCheck (nullspaceTest :: CM -> Bool)
