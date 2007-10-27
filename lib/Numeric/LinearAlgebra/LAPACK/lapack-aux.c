@@ -728,6 +728,9 @@ int schur_l_R(KDMAT(a), DMAT(u), DMAT(s)) {
 }
 
 int schur_l_C(KCMAT(a), CMAT(u), CMAT(s)) {
+    #ifdef _WIN32
+    return NOSPRTD;
+    #else
     integer m = ar;
     integer n = ac;
     REQUIRES(m>=1 && n==m && ur==n && uc==n && sr==n && sc==n, BAD_SIZE);
@@ -749,4 +752,5 @@ int schur_l_C(KCMAT(a), CMAT(u), CMAT(s)) {
     free(BWORK);
     free(WORK);
     OK
+    #endif
 }

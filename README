@@ -97,9 +97,16 @@ INSTALLATION ON WINDOWS
    to the working directory or C:\windows\system
    They are required to run the programs and ghci.
 
-Unfortunately the lapack dll supplied by the R system does not include zgels_ and zgelss_,
-so the functions depending on them (linearSolveLS and linearSolveSVD for complex data)
-will produce a "non supported" runtime error.
+Unfortunately the lapack dll supplied by the R system does not include zgels_, zgelss_, and zgees_,
+so the functions depending on them (linearSolveLS, linearSolveSVD, and schur for complex data)
+will produce a "non supported in this OS" runtime error.
+
+If you find an alternative free and complete lapack.dll which works well
+for this system please let me know.
+
+NOTE: I get a syntax error when compiling LAPACK.hs in Windows with ghc-opts -O.
+      Please change it to ghc-opts -O0 in hssl.cabal and build again.
+      You won't notice any appreciable difference in performance, but I will try to fix it asap.
 
 ACKNOWLEDGEMENTS
 

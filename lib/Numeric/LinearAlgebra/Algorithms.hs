@@ -46,9 +46,9 @@ module Numeric.LinearAlgebra.Algorithms (
     ctrans,
     eps, i,
 -- * Util
-    GenMat(linearSolveSVD,lu,eigSH',cholSH), 
     haussholder,
-    unpackQR, unpackHess
+    unpackQR, unpackHess,
+    GenMat(linearSolveSVD,lu,eigSH',cholSH)
 ) where
 
 
@@ -71,6 +71,7 @@ class (Linear Matrix t) => GenMat t where
     linearSolve :: Matrix t -> Matrix t -> Matrix t
     linearSolveSVD :: Matrix t -> Matrix t -> Matrix t
     -- | Eigenvalues and eigenvectors of a general square matrix using lapack's dgeev or zgeev.
+    --
     -- If @(s,v) = eig m@ then @m \<> v == v \<> diag s@
     eig         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
     -- | Similar to eigSH without checking that the input matrix is hermitian or symmetric.
@@ -78,10 +79,22 @@ class (Linear Matrix t) => GenMat t where
     -- | Similar to chol without checking that the input matrix is hermitian or symmetric.
     cholSH      :: Matrix t -> Matrix t
     -- | QR factorization using lapack's dgeqr2 or zgeqr2.
+    --
+    -- If @(q,r) = qr m@ then @m == q \<> r@, where q is unitary and r is upper triangular.
     qr          :: Matrix t -> (Matrix t, Matrix t)
     -- | Hessenberg factorization using lapack's dgehrd or zgehrd.
+    --
+    -- If @(p,h) = hess m@ then @m == p \<> h \<> ctrans p@, where p is unitary
+    -- and h is in upper Hessenberg form.
     hess        :: Matrix t -> (Matrix t, Matrix t)
     -- | Schur factorization using lapack's dgees or zgees.
+    --
+    -- If @(u,s) = schur m@ then @m == u \<> s \<> ctrans u@, where u is unitary
+    -- and s is a Shur matrix. A complex Schur matrix is upper triangular. A real Schur matrix is
+    -- upper triangular in 2x2 blocks.
+    --
+    -- \"Anything that the Jordan decomposition can do, the Schur decomposition
+    -- can do better!\" (Van Loan)
     schur       :: Matrix t -> (Matrix t, Matrix t)
     -- | Conjugate transpose.
     ctrans :: Matrix t -> Matrix t
@@ -112,12 +125,16 @@ instance GenMat (Complex Double) where
     hess = unpackHess hessC
     schur = schurC
 
--- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev. If @(s,v) = eigSH m@ then @m == v \<> diag s \<> ctrans v@
+-- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev.
+--
+-- If @(s,v) = eigSH m@ then @m == v \<> diag s \<> ctrans v@
 eigSH :: GenMat t => Matrix t -> (Vector Double, Matrix t)
 eigSH m | m `equal` ctrans m = eigSH' m
         | otherwise = error "eigSH requires complex hermitian or real symmetric matrix"
 
 -- | Cholesky factorization of a positive definite hermitian or symmetric matrix using lapack's dpotrf or zportrf.
+--
+-- If @c = chol m@ then @m == c \<> ctrans c@.
 chol :: GenMat t => Matrix t ->  Matrix t
 chol m | m `equal` ctrans m = cholSH m
        | otherwise = error "chol requires positive definite complex hermitian or real symmetric matrix"
@@ -138,7 +155,9 @@ inv m | square m = m `linearSolve` ident (rows m)
 pinv :: GenMat t => Matrix t -> Matrix t
 pinv m = linearSolveSVD m (ident (rows m))
 
--- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values: if @(u,d,v) = full svd m@ then @m == u \<> d \<> trans v@.
+-- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values.
+--
+-- If @(u,d,v) = full svd m@ then @m == u \<> d \<> trans v@.
 full :: Field t 
      => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Matrix Double, Matrix t)
 full svd m = (u, d ,v) where
@@ -147,7 +166,9 @@ full svd m = (u, d ,v) where
     r = rows m
     c = cols m
 
--- | A version of 'svd' which returns only the nonzero singular values and the corresponding rows and columns of the rotations:  if @(u,s,v) = economy svd m@ then @m == u \<> diag s \<> trans v@.
+-- | A version of 'svd' which returns only the nonzero singular values and the corresponding rows and columns of the rotations.
+--
+-- If @(u,s,v) = economy svd m@ then @m == u \<> diag s \<> trans v@.
 economy :: Field t 
         => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Vector Double, Matrix t)
 economy svd m = (u', subVector 0 d s, v') where

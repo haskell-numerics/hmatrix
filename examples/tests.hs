@@ -364,7 +364,9 @@ tests = do
     quickCheck (hessTest . sqm ::SqM (Complex Double) -> Bool)
     putStrLn "--------- schur --------"
     quickCheck (schurTest2 . sqm ::SqM Double->Bool)
-    quickCheck (schurTest1 . sqm ::SqM (Complex Double) -> Bool)
+    if os == "mingw32"
+        then putStrLn "complex schur skipped in this OS"
+        else quickCheck (schurTest1 . sqm ::SqM (Complex Double) -> Bool)
     putStrLn "--------- nullspace ------"
     quickCheck (nullspaceTest :: RM -> Bool)
     quickCheck (nullspaceTest :: CM -> Bool)
