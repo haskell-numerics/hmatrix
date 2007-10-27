@@ -22,7 +22,7 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Linear Systems
     linearSolve,
     inv, pinv,
-    pinvTol, det,
+    pinvTol, det, rank,
 -- * Matrix factorizations
 -- ** Singular value decomposition
     svd,
@@ -37,6 +37,9 @@ module Numeric.LinearAlgebra.Algorithms (
     hess,
 -- ** Schur
     schur,
+-- * Matrix functions
+    expm,
+    matFunc,
 -- * Nullspace
     nullspacePrec,
     nullVector,
@@ -62,7 +65,7 @@ import Numeric.LinearAlgebra.Linear
 import Data.List(foldl1')
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
-class (Linear Matrix t) => GenMat t where
+class (Normed (Matrix t), Linear Matrix t) => GenMat t where
     -- | Singular value decomposition using lapack's dgesvd or zgesvd.
     svd         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     lu          :: Matrix t -> (Matrix t, Matrix t, [Int], t)
@@ -98,6 +101,9 @@ class (Linear Matrix t) => GenMat t where
     schur       :: Matrix t -> (Matrix t, Matrix t)
     -- | Conjugate transpose.
     ctrans :: Matrix t -> Matrix t
+    -- | Matrix exponential (currently implemented only for diagonalizable matrices).
+    expm :: Matrix t -> Matrix t
+
 
 instance GenMat Double where
     svd = svdR
@@ -111,6 +117,7 @@ instance GenMat Double where
     qr = GSL.unpackQR . qrR
     hess = unpackHess hessR
     schur = schurR
+    expm = fst . fromComplex . expm' . comp
 
 instance GenMat (Complex Double) where
     svd = svdC
@@ -124,6 +131,7 @@ instance GenMat (Complex Double) where
     qr = unpackQR . qrC
     hess = unpackHess hessC
     schur = schurC
+    expm = expm'
 
 -- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev.
 --
@@ -346,3 +354,29 @@ uH (pq, tau) = (p,h)
           vs = zipWith zh [2..mn] cs
           hs = zipWith haussholder (toList tau) vs
           p = foldl1' mXm hs
+
+--------------------------------------------------------------------------
+
+-- | Number of linearly independent rows or columns.
+rank :: GenMat t => Matrix t -> Int
+rank m | pnorm PNorm1 m < eps = 0
+       | otherwise = dim s where (_,s,_) = economy svd m
+
+expm' m = case diagonalize (complex m) of
+    Just (l,v) -> v `mXm` diag (exp l) `mXm` inv v
+    Nothing -> error "Sorry, expm not yet implemented for non-diagonalizable matrices"
+  where exp = vectorMapC Exp
+
+diagonalize m = if rank v == n
+                    then Just (l,v)
+                    else Nothing
+    where n = rows m
+          (l,v) = if m `equal` ctrans m
+                    then let (l',v') = eigSH m in (real l', v')
+                    else eig m
+
+-- | Generic matrix functions for diagonalizable matrices.
+matFunc :: GenMat t => (Complex Double -> Complex Double) -> Matrix t -> Matrix (Complex Double)
+matFunc f m = case diagonalize (complex m) of
+    Just (l,v) -> v `mXm` diag (liftVector f l) `mXm` inv v
+    Nothing -> error "Sorry, matFunc requieres a diagonalizable matrix" 
