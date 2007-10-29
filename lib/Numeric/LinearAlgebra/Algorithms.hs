@@ -181,11 +181,10 @@ economy :: Field t
         => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Vector Double, Matrix t)
 economy svd m = (u', subVector 0 d s, v') where
     (u,s,v) = svd m
-    sl@(g:_) = toList (complex s)
-    s' = fromList . filter rec $ sl
-    rec x = magnitude x > magnitude g*tol
+    sl@(g:_) = toList s
+    s' = fromList . filter (>tol) $ sl
     t = 1
-    tol = (fromIntegral (max (rows m) (cols m)) * magnitude g * t * eps)
+    tol = (fromIntegral (max (rows m) (cols m)) * g * t * eps)
     r = rows m
     c = cols m
     d = dim s'

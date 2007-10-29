@@ -5,12 +5,13 @@ License-file:       LICENSE
 Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          provisional
-Homepage:           http://dis.um.es/~alberto/GSLHaskell
+Homepage:           http://alberrto.googlepages.com/gslhaskell
 Synopsis:           Simple Scientific Library
-Description:        A high level functional interface to some linear algebra computations
-                    and other numerical routines, internally implemented using GSL, BLAS and LAPACK.
+Description:        A purely functional interface to basic linear algebra computations
+                    and other numerical routines, internally implemented using
+                    GSL, BLAS and LAPACK.
                     .
-                    More information: <http://dis.um.es/~alberto/GSLHaskell>
+                    More information: <http://alberrto.googlepages.com/gslhaskell>
 Category:           Numerical, Math
 tested-with:        GHC ==6.6.1
 Build-Depends:      base, haskell98
