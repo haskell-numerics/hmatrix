@@ -1,20 +1,41 @@
 {- speed tests
 
-$ ghc --make -O speed
-In my machine:
-$ ./speed 5 100000 1
-(3><3)
- [ -1.7877285611885504e-2, 0.0,    -0.9998401885597121
- ,                    0.0, 1.0,                    0.0
- ,     0.9998401885597168, 0.0, -1.7877285611891697e-2 ]
-0.29 CPU seconds
+GNU-Octave (see speed.m in this folder):
 
-GNU-Octave:
 ./speed.m
   -0.017877255967426   0.000000000000000  -0.999840189089781
    0.000000000000000   1.000000000000000   0.000000000000000
    0.999840189089763   0.000000000000000  -0.017877255967417
 9.69 seconds
+
+Mathematica:
+
+rot[a_]:={{ Cos[a], 0, Sin[a]},
+          { 0,      1,      0},
+          { -Sin[a],0,Cos[a]}}//N
+
+test := Timing[
+    n = 100000;
+    angles = Range[0.,n-1]/(n-1);
+    Fold[Dot,IdentityMatrix[3],rot/@angles] // MatrixForm
+]
+
+2.08013 Second
+     {{\(-0.017877255967432837`\), "0.`", \(-0.9998401890898042`\)},
+      {"0.`", "1.`", "0.`"},
+      {"0.9998401890898042`", "0.`", \(-0.017877255967432837`\)}}
+
+$ ghc --make -O speed
+
+$ ./speed 5 100000 1
+(3><3)
+ [ -1.7877255967425523e-2, 0.0,    -0.9998401890897632
+ ,                    0.0, 1.0,                    0.0
+ ,      0.999840189089781, 0.0, -1.7877255967416586e-2 ]
+0.33 CPU seconds
+
+cos 50000 = -0.0178772559665563
+sin 50000 = -0.999840189089790
 
 -}
 
@@ -31,7 +52,7 @@ timing act = do
     t0 <- getCPUTime
     act
     t1 <- getCPUTime
-    printf "%.2f CPU seconds\n" $ (fromIntegral ((t1 - t0) `div` (10^10)) / 100 :: Double)
+    printf "%.2f CPU seconds\n" $ (fromIntegral ((t1 - t0) `div` (10^10)) / 100 :: Double) :: IO ()
 
 op a b = trans $ (trans a) <> (trans b)
 
@@ -52,9 +73,8 @@ rot a = (3><3) [ c,0,s
     where c = cos a
           s = sin a
 
-
-fun n r = foldl1' (<>) (map r [0,delta..1]) where delta = 1 /(fromIntegral n-1)
-
+fun n r = foldl1' (<>) (map r angles)
+    where angles = toList $ linspace n (0,1)
 
 main = do
     args <- getArgs

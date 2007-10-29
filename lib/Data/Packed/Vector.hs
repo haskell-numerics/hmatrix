@@ -32,8 +32,10 @@ import Numeric.GSL.Vector
 5 |> [-3.0,-0.5,2.0,4.5,7.0]@
 -}
 linspace :: Int -> (Double, Double) -> Vector Double
-linspace n (a,b) = fromList [a, a+delta .. b]
-    where delta = (b-a)/(fromIntegral n -1)
+linspace n (a,b) = add a $ scale s  $ fromList [0 .. fromIntegral n-1]
+    where scale = vectorMapValR Scale
+          add   = vectorMapValR AddConstant
+          s = (b-a)/fromIntegral (n-1)
 
 vectorMax :: Vector Double -> Double
 vectorMax = toScalarR Max

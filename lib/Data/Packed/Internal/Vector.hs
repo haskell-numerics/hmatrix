@@ -80,6 +80,8 @@ fromList l = unsafePerformIO $ do
     f // vec v // check "fromList" []
     return v
 
+safeRead v f = unsafePerformIO $ withForeignPtr (fptr v) $ const $ f (ptr v)
+
 {- | extracts the Vector elements to a list
 
 @> toList (linspace 5 (1,10))
@@ -87,7 +89,7 @@ fromList l = unsafePerformIO $ do
 
 -}
 toList :: Storable a => Vector a -> [a]
-toList v = unsafePerformIO $ peekArray (dim v) (ptr v)
+toList v = safeRead v $ peekArray (dim v)
 
 -- | an alternative to 'fromList' with explicit dimension, used also in the instances for Show (Vector a).
 (|>) :: (Storable a) => Int -> [a] -> Vector a
@@ -96,7 +98,7 @@ n |> l = if length l == n then fromList l else error "|> with wrong size"
 
 -- | access to Vector elements without range checking
 at' :: Storable a => Vector a -> Int -> a
-at' v n = unsafePerformIO $ peekElemOff (ptr v) n
+at' v n = safeRead v $ flip peekElemOff n
 
 -- | access to Vector elements with range checking.
 at :: Storable a => Vector a -> Int -> a

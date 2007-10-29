@@ -13,6 +13,7 @@ import Test.QuickCheck hiding (test)
 import Test.HUnit hiding ((~:),test)
 import System.Random(randomRs,mkStdGen)
 import System.Info
+import Data.List(foldl1')
 
 type RM = Matrix Double
 type CM = Matrix (Complex Double)
@@ -310,6 +311,20 @@ mulF a b = multiply' ColumnMajor a b
 
 ---------------------------------------------------------------------
 
+rot :: Double -> Matrix Double
+rot a = (3><3) [ c,0,s
+               , 0,1,0
+               ,-s,0,c ]
+    where c = cos a
+          s = sin a
+
+fun n = foldl1' (<>) (map rot angles)
+    where angles = toList $ linspace n (0,1)
+
+rotTest = fun (10^5) :~12~: rot 5E4
+
+---------------------------------------------------------------------
+
 tests = do
     putStrLn "--------- internal -----"
     quickCheck ((\m -> m == trans m).sym :: Sym Double -> Bool)
@@ -322,6 +337,9 @@ tests = do
     quickCheck $ \m -> m == asFortran (m :: CM)
     quickCheck $ \m -> m == (asC . asFortran) (m :: RM)
     quickCheck $ \m -> m == (asC . asFortran) (m :: CM)
+    runTestTT $ TestList
+     [ test "1E5 rots" rotTest
+     ]
     putStrLn "--------- multiply ----"
     quickCheck $ \(PairM m1 m2) -> mulC m1 m2 == mulF m1 (m2 :: RM)
     quickCheck $ \(PairM m1 m2) -> mulC m1 m2 == mulF m1 (m2 :: CM)
