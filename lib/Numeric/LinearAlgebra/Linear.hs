@@ -16,7 +16,7 @@ Basic optimized operations on vectors and matrices.
 
 module Numeric.LinearAlgebra.Linear (
     Linear(..),
-    multiply, dot, outer
+    multiply, dot, outer, kronecker
 ) where
 
 
@@ -100,3 +100,32 @@ dot u v = dat (multiply r c) `at` 0
 -}
 outer :: (Field t) => Vector t -> Vector t -> Matrix t
 outer u v = asColumn u `multiply` asRow v
+
+{- | Kronecker product of two matrices.
+
+@m1=(2><3)
+ [ 1.0,  2.0, 0.0
+ , 0.0, -1.0, 3.0 ]
+m2=(4><3)
+ [  1.0,  2.0,  3.0
+ ,  4.0,  5.0,  6.0
+ ,  7.0,  8.0,  9.0
+ , 10.0, 11.0, 12.0 ]@
+
+@\> kronecker m1 m2
+(8><9)
+ [  1.0,  2.0,  3.0,   2.0,   4.0,   6.0,  0.0,  0.0,  0.0
+ ,  4.0,  5.0,  6.0,   8.0,  10.0,  12.0,  0.0,  0.0,  0.0
+ ,  7.0,  8.0,  9.0,  14.0,  16.0,  18.0,  0.0,  0.0,  0.0
+ , 10.0, 11.0, 12.0,  20.0,  22.0,  24.0,  0.0,  0.0,  0.0
+ ,  0.0,  0.0,  0.0,  -1.0,  -2.0,  -3.0,  3.0,  6.0,  9.0
+ ,  0.0,  0.0,  0.0,  -4.0,  -5.0,  -6.0, 12.0, 15.0, 18.0
+ ,  0.0,  0.0,  0.0,  -7.0,  -8.0,  -9.0, 21.0, 24.0, 27.0
+ ,  0.0,  0.0,  0.0, -10.0, -11.0, -12.0, 30.0, 33.0, 36.0 ]@
+-}
+kronecker :: (Field t) => Matrix t -> Matrix t -> Matrix t
+kronecker a b = fromBlocks
+              . partit (cols a)
+              . map (reshape (cols b))
+              . toRows
+              $ flatten a `outer` flatten b

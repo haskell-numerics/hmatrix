@@ -22,7 +22,7 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Linear Systems
     linearSolve,
     inv, pinv,
-    pinvTol, det, rank,
+    pinvTol, det, rank, rcond,
 -- * Matrix factorizations
 -- ** Singular value decomposition
     svd,
@@ -244,10 +244,10 @@ pnormCM PNorm1 m = vectorMax $ constant 1 (rows m) `vXm` liftMatrix (liftVector 
 pnormCM Infinity m = vectorMax $ liftMatrix (liftVector magnitude) m `mXv` constant 1 (cols m)
 --pnormCM _ _ = error "p norm not yet defined"
 
+-- | Objects which have a p-norm.
+-- Using it you can define convenient shortcuts: @norm2 = pnorm PNorm2@, @frobenius = norm2 . flatten@, etc.
 class Normed t where
     pnorm :: NormType -> t -> Double
-    norm :: t -> Double
-    norm = pnorm PNorm2
 
 instance Normed (Vector Double) where
     pnorm = pnormRV
@@ -355,6 +355,12 @@ uH (pq, tau) = (p,h)
           p = foldl1' mXm hs
 
 --------------------------------------------------------------------------
+
+-- | Reciprocal of the 2-norm condition number of a matrix, computed from the SVD.
+rcond :: GenMat t => Matrix t -> Double
+rcond m = last s / head s
+    where (_,s',_) = svd m
+          s = toList s'
 
 -- | Number of linearly independent rows or columns.
 rank :: GenMat t => Matrix t -> Int

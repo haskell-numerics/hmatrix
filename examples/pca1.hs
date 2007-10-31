@@ -21,13 +21,15 @@ cov x = (trans xc <> xc) / fromIntegral (rows x -1)
 -- creates the compression and decompression functions from the desired number of components
 pca :: Int -> Mat -> (Vec -> Vec , Vec -> Vec)
 pca n dataSet = (encode,decode)
-  where    
+  where
     encode x = vp <> (x - m)
     decode x = x <> vp + m
     m = mean dataSet
     c = cov dataSet
     (_,v) = eigSH c
     vp = takeRows n (trans v)
+
+norm = pnorm PNorm2
 
 main = do
     ok <- doesFileExist ("mnist.txt")
