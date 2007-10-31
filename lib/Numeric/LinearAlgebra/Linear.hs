@@ -84,7 +84,7 @@ instance Linear Matrix (Complex Double) where
 --------------------------------------------------
 
 -- | euclidean inner product
-dot :: (Field t) => Vector t -> Vector t -> t
+dot :: (Element t) => Vector t -> Vector t -> t
 dot u v = dat (multiply r c) `at` 0
     where r = asRow u
           c = asColumn v
@@ -98,7 +98,7 @@ dot u v = dat (multiply r c) `at` 0
  , 10.0, 4.0, 6.0
  , 15.0, 6.0, 9.0 ]@
 -}
-outer :: (Field t) => Vector t -> Vector t -> Matrix t
+outer :: (Element t) => Vector t -> Vector t -> Matrix t
 outer u v = asColumn u `multiply` asRow v
 
 {- | Kronecker product of two matrices.
@@ -123,7 +123,7 @@ m2=(4><3)
  ,  0.0,  0.0,  0.0,  -7.0,  -8.0,  -9.0, 21.0, 24.0, 27.0
  ,  0.0,  0.0,  0.0, -10.0, -11.0, -12.0, 30.0, 33.0, 36.0 ]@
 -}
-kronecker :: (Field t) => Matrix t -> Matrix t -> Matrix t
+kronecker :: (Element t) => Matrix t -> Matrix t -> Matrix t
 kronecker a b = fromBlocks
               . partit (cols a)
               . map (reshape (cols b))

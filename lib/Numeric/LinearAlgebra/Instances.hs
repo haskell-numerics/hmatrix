@@ -29,7 +29,7 @@ import Foreign(Storable)
 
 ------------------------------------------------------------------
 
-instance (Show a, Field a) => (Show (Matrix a)) where
+instance (Show a, Element a) => (Show (Matrix a)) where
     show m = (sizes++) . dsp . map (map show) . toLists $ m
         where sizes = "("++show (rows m)++"><"++show (cols m)++")\n"
 
@@ -51,7 +51,7 @@ adaptScalar f1 f2 f3 x y
     | dim y == 1 = f3 x (y@>0)
     | otherwise = f2 x y
 
-liftMatrix2' :: (Field t, Field a, Field b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
+liftMatrix2' :: (Element t, Element a, Element b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
 liftMatrix2' f m1 m2 | compat' m1 m2 = reshape (max (cols m1) (cols m2)) (f (flatten m1) (flatten m2))
                      | otherwise    = error "nonconformant matrices in liftMatrix2'"
 
@@ -60,7 +60,7 @@ compat' m1 m2 = rows m1 == 1 && cols m1 == 1
              || rows m2 == 1 && cols m2 == 1
              || rows m1 == rows m2 && cols m1 == cols m2
 
-instance (Eq a, Field a) => Eq (Vector a) where
+instance (Eq a, Element a) => Eq (Vector a) where
     a == b = dim a == dim b && toList a == toList b
 
 instance (Linear Vector a) => Num (Vector a) where
@@ -71,7 +71,7 @@ instance (Linear Vector a) => Num (Vector a) where
     abs = liftVector abs
     fromInteger = fromList . return . fromInteger
 
-instance (Eq a, Field a) => Eq (Matrix a) where
+instance (Eq a, Element a) => Eq (Matrix a) where
     a == b = cols a == cols b && flatten a == flatten b
 
 instance (Linear Vector a) => Num (Matrix a) where

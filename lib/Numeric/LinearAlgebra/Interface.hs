@@ -29,7 +29,7 @@ import Numeric.LinearAlgebra.Algorithms
 class Mul a b c | a b -> c where
  infixl 7 <>
  -- | matrix product
- (<>) :: Field t => a t -> b t -> c t
+ (<>) :: Element t => a t -> b t -> c t
 
 instance Mul Matrix Matrix Matrix where
     (<>) = multiply
@@ -43,7 +43,7 @@ instance Mul Vector Matrix Vector where
 ---------------------------------------------------
 
 -- | @u \<.\> v = dot u v@
-(<.>) :: (Field t) => Vector t -> Vector t -> t
+(<.>) :: (Element t) => Vector t -> Vector t -> t
 infixl 7 <.>
 (<.>) = dot
 
@@ -62,15 +62,15 @@ infixl 7 */
 v */ x = scale (recip x) v
 
 -- | least squares solution of a linear system, similar to the \\ operator of Matlab\/Octave (based on linearSolveSVD).
-(<\>) :: (GenMat a) => Matrix a -> Vector a -> Vector a
+(<\>) :: (Field a) => Matrix a -> Vector a -> Vector a
 infixl 7 <\>
 m <\> v = flatten (linearSolveSVD m (reshape 1 v))
 
 ------------------------------------------------
 
 class Joinable a b where
-    joinH :: Field t => a t -> b t -> Matrix t
-    joinV :: Field t => a t -> b t -> Matrix t
+    joinH :: Element t => a t -> b t -> Matrix t
+    joinV :: Element t => a t -> b t -> Matrix t
 
 instance Joinable Matrix Matrix where
     joinH m1 m2 = fromBlocks [[m1,m2]]
@@ -98,9 +98,9 @@ infixl 3 <->
  , 0.0, 3.0, 0.0, 5.0
  , 0.0, 0.0, 3.0, 6.0 ]@
 -}
-(<|>) :: (Field t, Joinable a b) => a t -> b t -> Matrix t
+(<|>) :: (Element t, Joinable a b) => a t -> b t -> Matrix t
 a <|> b = joinH a b
 
 -- | Vertical concatenation of matrices and vectors.
-(<->) :: (Field t, Joinable a b) => a t -> b t -> Matrix t
+(<->) :: (Element t, Joinable a b) => a t -> b t -> Matrix t
 a <-> b = joinV a b

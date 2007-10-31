@@ -27,7 +27,7 @@ import Data.Complex
 import Data.Packed.Internal
 
 -- | conversion utilities
-class (Field e) => Container c e where
+class (Element e) => Container c e where
     toComplex   :: RealFloat e => (c e, c e) -> c (Complex e)
     fromComplex :: RealFloat e => c (Complex e) -> (c e, c e)
     comp        :: RealFloat e => c e -> c (Complex e)

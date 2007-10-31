@@ -39,7 +39,7 @@ instance (Arbitrary a, RealFloat a) => Arbitrary (Complex a) where
         return (r:+i)
     coarbitrary = undefined
 
-instance (Field a, Arbitrary a) => Arbitrary (Matrix a) where 
+instance (Element a, Arbitrary a) => Arbitrary (Matrix a) where 
    arbitrary = do --m <- sized $ \max -> choose (1,1+3*max)
                   m <- choose (1,maxdim)
                   n <- choose (1,maxdim)
@@ -52,7 +52,7 @@ instance (Field a, Arbitrary a) => Arbitrary (Matrix a) where
    coarbitrary = undefined
 
 data PairM a = PairM (Matrix a) (Matrix a) deriving Show
-instance (Num a, Field a, Arbitrary a) => Arbitrary (PairM a) where
+instance (Num a, Element a, Arbitrary a) => Arbitrary (PairM a) where
     arbitrary = do
         a <- choose (1,maxdim)
         b <- choose (1,maxdim)
@@ -65,7 +65,7 @@ instance (Num a, Field a, Arbitrary a) => Arbitrary (PairM a) where
 
 data SqM a = SqM (Matrix a) deriving Show
 sqm (SqM a) = a
-instance (Field a, Arbitrary a) => Arbitrary (SqM a) where
+instance (Element a, Arbitrary a) => Arbitrary (SqM a) where
     arbitrary = do
         n <- choose (1,maxdim)
         l <- vector (n*n)

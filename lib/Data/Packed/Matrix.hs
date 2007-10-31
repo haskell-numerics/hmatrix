@@ -14,7 +14,7 @@
 -----------------------------------------------------------------------------
 
 module Data.Packed.Matrix (
-    Field,
+    Element,
     Matrix,rows,cols,
     (><),
     trans,
@@ -41,13 +41,13 @@ import Data.List(transpose,intersperse)
 import Data.Array
 
 -- | creates a matrix from a vertical list of matrices
-joinVert :: Field t => [Matrix t] -> Matrix t
+joinVert :: Element t => [Matrix t] -> Matrix t
 joinVert ms = case common cols ms of
     Nothing -> error "joinVert on matrices with different number of columns"
     Just c  -> reshape c $ join (map cdat ms)
 
 -- | creates a matrix from a horizontal list of matrices
-joinHoriz :: Field t => [Matrix t] -> Matrix t
+joinHoriz :: Element t => [Matrix t] -> Matrix t
 joinHoriz ms = trans. joinVert . map trans $ ms
 
 {- | Creates a matrix from blocks given as a list of lists of matrices:
@@ -63,15 +63,15 @@ joinHoriz ms = trans. joinVert . map trans $ ms
  , -1.0, -1.0, -1.0, -1.0,  0.0,  7.0,  0.0
  , -1.0, -1.0, -1.0, -1.0,  0.0,  0.0,  2.0 ]@
 -}
-fromBlocks :: Field t => [[Matrix t]] -> Matrix t
+fromBlocks :: Element t => [[Matrix t]] -> Matrix t
 fromBlocks = joinVert . map joinHoriz 
 
 -- | Reverse rows 
-flipud :: Field t => Matrix t -> Matrix t
+flipud :: Element t => Matrix t -> Matrix t
 flipud m = fromRows . reverse . toRows $ m
 
 -- | Reverse columns
-fliprl :: Field t => Matrix t -> Matrix t
+fliprl :: Element t => Matrix t -> Matrix t
 fliprl m = fromColumns . reverse . toColumns $ m
 
 ------------------------------------------------------------
@@ -84,7 +84,7 @@ fliprl m = fromColumns . reverse . toColumns $ m
  , 0.0, 5.0, 0.0, 0.0
  , 0.0, 0.0, 5.0, 0.0 ]@
 -}
-diagRect :: (Field t, Num t) => Vector t -> Int -> Int -> Matrix t
+diagRect :: (Element t, Num t) => Vector t -> Int -> Int -> Matrix t
 diagRect s r c
     | dim s < min r c = error "diagRect"
     | r == c    = diag s
@@ -93,11 +93,11 @@ diagRect s r c
     where zeros (r,c) = reshape c $ constantD 0 (r*c)
 
 -- | extracts the diagonal from a rectangular matrix
-takeDiag :: (Field t) => Matrix t -> Vector t
+takeDiag :: (Element t) => Matrix t -> Vector t
 takeDiag m = fromList [cdat m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
 
 -- | creates the identity matrix of given dimension
-ident :: Field a => Int -> Matrix a
+ident :: Element a => Int -> Matrix a
 ident n = diag (constant 1 n)
 
 ------------------------------------------------------------
@@ -112,7 +112,7 @@ ident n = diag (constant 1 n)
 This is the format produced by the instances of Show (Matrix a), which
 can also be used for input.
 -}
-(><) :: (Field a) => Int -> Int -> [a] -> Matrix a
+(><) :: (Element a) => Int -> Int -> [a] -> Matrix a
 r >< c = f where
     f l | dim v == r*c = matrixFromVector RowMajor c v
         | otherwise    = error $ "inconsistent list size = "
@@ -122,16 +122,16 @@ r >< c = f where
 ----------------------------------------------------------------
 
 -- | Creates a matrix with the first n rows of another matrix
-takeRows :: Field t => Int -> Matrix t -> Matrix t
+takeRows :: Element t => Int -> Matrix t -> Matrix t
 takeRows n mat = subMatrix (0,0) (n, cols mat) mat
 -- | Creates a copy of a matrix without the first n rows
-dropRows :: Field t => Int -> Matrix t -> Matrix t
+dropRows :: Element t => Int -> Matrix t -> Matrix t
 dropRows n mat = subMatrix (n,0) (rows mat - n, cols mat) mat
 -- |Creates a matrix with the first n columns of another matrix
-takeColumns :: Field t => Int -> Matrix t -> Matrix t
+takeColumns :: Element t => Int -> Matrix t -> Matrix t
 takeColumns n mat = subMatrix (0,0) (rows mat, n) mat
 -- | Creates a copy of a matrix without the first n columns
-dropColumns :: Field t => Int -> Matrix t -> Matrix t
+dropColumns :: Element t => Int -> Matrix t -> Matrix t
 dropColumns n mat = subMatrix (0,n) (rows mat, cols mat - n) mat
 
 ----------------------------------------------------------------
@@ -141,7 +141,7 @@ dropColumns n mat = subMatrix (0,n) (rows mat, cols mat - n) mat
 @\> flatten ('ident' 3)
 9 |> [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]@
 -}
-flatten :: Field t => Matrix t -> Vector t
+flatten :: Element t => Matrix t -> Vector t
 flatten = cdat
 
 {- | Creates a 'Matrix' from a list of lists (considered as rows).
@@ -152,20 +152,20 @@ flatten = cdat
  , 3.0, 4.0
  , 5.0, 6.0 ]@
 -}
-fromLists :: Field t => [[t]] -> Matrix t
+fromLists :: Element t => [[t]] -> Matrix t
 fromLists = fromRows . map fromList
 
 -- | creates a 1-row matrix from a vector
-asRow :: Field a => Vector a -> Matrix a
+asRow :: Element a => Vector a -> Matrix a
 asRow v = reshape (dim v) v
 
 -- | creates a 1-column matrix from a vector
-asColumn :: Field a => Vector a -> Matrix a
+asColumn :: Element a => Vector a -> Matrix a
 asColumn v = reshape 1 v
 
 -----------------------------------------------------
 
-fromArray2D :: (Field e) => Array (Int, Int) e -> Matrix e
+fromArray2D :: (Element e) => Array (Int, Int) e -> Matrix e
 fromArray2D m = (r><c) (elems m)
     where ((r0,c0),(r1,c1)) = bounds m
           r = r1-r0+1
@@ -201,7 +201,7 @@ this function the user can easily define any desired display function:
 @disp = putStrLn . format \"  \" (printf \"%.2f\")@
 
 -}
-format :: (Field t) => String -> (t -> String) -> Matrix t -> String
+format :: (Element t) => String -> (t -> String) -> Matrix t -> String
 format sep f m = dsp' sep . map (map f) . toLists $ m
 
 disp m f = putStrLn $ "matrix ("++show (rows m) ++"x"++ show (cols m) ++")\n"++format " | " f m
@@ -217,7 +217,7 @@ readMatrix :: String -> Matrix Double
 readMatrix = fromLists . map (map read). map words . filter (not.null) . lines
 
 -- | rearranges the rows of a matrix according to the order given in a list of integers. 
-extractRows :: Field t => [Int] -> Matrix t -> Matrix t
+extractRows :: Element t => [Int] -> Matrix t -> Matrix t
 extractRows l m = fromRows $ extract (toRows $ m) l
     where extract l is = [l!!i |i<-is]
 
@@ -231,5 +231,5 @@ extractRows l m = fromRows $ extract (toRows $ m) l
  , 0.0, 1.0, 0.0, 1.0, 0.0, 1.0 ]@
 
 -}
-repmat :: (Field t) => Matrix t -> Int -> Int -> Matrix t
+repmat :: (Element t) => Matrix t -> Int -> Int -> Matrix t
 repmat m r c = fromBlocks $ partit c $ replicate (r*c) m

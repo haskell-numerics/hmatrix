@@ -84,17 +84,17 @@ type Mt t s = Int -> Int -> Ptr t -> s
 -- type t ::> s = Mt t s
 
 -- | the inverse of 'Data.Packed.Matrix.fromLists'
-toLists :: (Field t) => Matrix t -> [[t]]
+toLists :: (Element t) => Matrix t -> [[t]]
 toLists m = partit (cols m) . toList . cdat $ m
 
 -- | creates a Matrix from a list of vectors
-fromRows :: Field t => [Vector t] -> Matrix t
+fromRows :: Element t => [Vector t] -> Matrix t
 fromRows vs = case common dim vs of
     Nothing -> error "fromRows applied to [] or to vectors with different sizes"
     Just c  -> reshape c (join vs)
 
 -- | extracts the rows of a matrix as a list of vectors
-toRows :: Field t => Matrix t -> [Vector t]
+toRows :: Element t => Matrix t -> [Vector t]
 toRows m = toRows' 0 where
     v = cdat m
     r = rows m
@@ -103,11 +103,11 @@ toRows m = toRows' 0 where
               | otherwise = subVector k c v : toRows' (k+c)
 
 -- | Creates a matrix from a list of vectors, as columns
-fromColumns :: Field t => [Vector t] -> Matrix t
+fromColumns :: Element t => [Vector t] -> Matrix t
 fromColumns m = trans . fromRows $ m
 
 -- | Creates a list of vectors from the columns of a matrix
-toColumns :: Field t => Matrix t -> [Vector t]
+toColumns :: Element t => Matrix t -> [Vector t]
 toColumns m = toRows . trans $ m
 
 
@@ -152,18 +152,18 @@ where r is the desired number of rows.)
  , 9.0, 10.0, 11.0, 12.0 ]@
 
 -}
-reshape :: Field t => Int -> Vector t -> Matrix t
+reshape :: Element t => Int -> Vector t -> Matrix t
 reshape c v = matrixFromVector RowMajor c v
 
 singleton x = reshape 1 (fromList [x])
 
 -- | application of a vector function on the flattened matrix elements
-liftMatrix :: (Field a, Field b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
+liftMatrix :: (Element a, Element b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
 liftMatrix f MC { cols = c, cdat = d } = matrixFromVector RowMajor    c (f d)
 liftMatrix f MF { cols = c, fdat = d } = matrixFromVector ColumnMajor c (f d)
 
 -- | application of a vector function on the flattened matrices elements
-liftMatrix2 :: (Field t, Field a, Field b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
+liftMatrix2 :: (Element t, Element a, Element b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
 liftMatrix2 f m1 m2
     | not (compat m1 m2) = error "nonconformant matrices in liftMatrix2"
     | otherwise = case m1 of
@@ -176,8 +176,8 @@ compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
 
 ----------------------------------------------------------------
 
--- | Optimized matrix computations are provided for elements in the Field class.
-class (Storable a, Floating a) => Field a where
+-- | Optimized matrix computations are provided for elements in the Element class.
+class (Storable a, Floating a) => Element a where
     constantD :: a -> Int -> Vector a
     transdata :: Int -> Vector a -> Int -> Vector a
     multiplyD :: Matrix a -> Matrix a -> Matrix a
@@ -186,14 +186,14 @@ class (Storable a, Floating a) => Field a where
                -> Matrix a -> Matrix a
     diagD :: Vector a -> Matrix a
 
-instance Field Double where
+instance Element Double where
     constantD  = constantR
     transdata = transdataR
     multiplyD  = multiplyR
     subMatrixD = subMatrixR
     diagD      = diagR
 
-instance Field (Complex Double) where
+instance Element (Complex Double) where
     constantD  = constantC
     transdata  = transdataC
     multiplyD  = multiplyC
@@ -202,7 +202,7 @@ instance Field (Complex Double) where
 
 ------------------------------------------------------------------
 
-(>|<) :: (Field a) => Int -> Int -> [a] -> Matrix a
+(>|<) :: (Element a) => Int -> Int -> [a] -> Matrix a
 r >|< c = f where
     f l | dim v == r*c = matrixFromVector ColumnMajor c v
         | otherwise    = error $ "inconsistent list size = "
@@ -260,13 +260,13 @@ foreign import ccall safe "auxi.h multiplyC"
                -> Int -> Int -> Ptr (Complex Double)
                -> IO Int
 
-multiply' :: (Field a) => MatrixOrder -> Matrix a -> Matrix a -> Matrix a
+multiply' :: (Element a) => MatrixOrder -> Matrix a -> Matrix a -> Matrix a
 multiply' RowMajor a b    = multiplyD a b
 multiply' ColumnMajor a b = trans $ multiplyD (trans b) (trans a)
 
 
 -- | matrix product
-multiply :: (Field a) => Matrix a -> Matrix a -> Matrix a
+multiply :: (Element a) => Matrix a -> Matrix a -> Matrix a
 multiply = multiplyD
 
 ----------------------------------------------------------------------
@@ -287,7 +287,7 @@ subMatrixC (r0,c0) (rt,ct) x =
     reshape (2*cols x) . asReal . cdat $ x
 
 -- | Extracts a submatrix from a matrix.
-subMatrix :: Field a
+subMatrix :: Element a
           => (Int,Int) -- ^ (r0,c0) starting position 
           -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
           -> Matrix a -- ^ input matrix
@@ -313,7 +313,7 @@ diagC = diagAux c_diagC "diagC"
 foreign import ccall "auxi.h diagC" c_diagC :: TCVCM
 
 -- | creates a square matrix with the given diagonal
-diag :: Field a => Vector a -> Matrix a
+diag :: Element a => Vector a -> Matrix a
 diag = diagD
 
 ------------------------------------------------------------------------
@@ -340,7 +340,7 @@ foreign import ccall safe "auxi.h constantC"
 @> constant 2 7
 7 |> [2.0,2.0,2.0,2.0,2.0,2.0,2.0]@
 -}
-constant :: Field a => a -> Int -> Vector a
+constant :: Element a => a -> Int -> Vector a
 constant = constantD
 
 --------------------------------------------------------------------------

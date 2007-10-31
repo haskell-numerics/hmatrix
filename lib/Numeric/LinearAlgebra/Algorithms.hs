@@ -51,7 +51,7 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Util
     haussholder,
     unpackQR, unpackHess,
-    GenMat(linearSolveSVD,lu,eigSH',cholSH)
+    Field(linearSolveSVD,lu,eigSH',cholSH)
 ) where
 
 
@@ -65,7 +65,7 @@ import Numeric.LinearAlgebra.Linear
 import Data.List(foldl1')
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
-class (Normed (Matrix t), Linear Matrix t) => GenMat t where
+class (Normed (Matrix t), Linear Matrix t) => Field t where
     -- | Singular value decomposition using lapack's dgesvd or zgesvd.
     svd         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     lu          :: Matrix t -> (Matrix t, Matrix t, [Int], t)
@@ -103,7 +103,7 @@ class (Normed (Matrix t), Linear Matrix t) => GenMat t where
     ctrans :: Matrix t -> Matrix t
 
 
-instance GenMat Double where
+instance Field Double where
     svd = svdR
     lu  = GSL.luR
     linearSolve = linearSolveR
@@ -116,7 +116,7 @@ instance GenMat Double where
     hess = unpackHess hessR
     schur = schurR
 
-instance GenMat (Complex Double) where
+instance Field (Complex Double) where
     svd = svdC
     lu  = GSL.luC
     linearSolve = linearSolveC
@@ -132,37 +132,37 @@ instance GenMat (Complex Double) where
 -- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev.
 --
 -- If @(s,v) = eigSH m@ then @m == v \<> diag s \<> ctrans v@
-eigSH :: GenMat t => Matrix t -> (Vector Double, Matrix t)
+eigSH :: Field t => Matrix t -> (Vector Double, Matrix t)
 eigSH m | m `equal` ctrans m = eigSH' m
         | otherwise = error "eigSH requires complex hermitian or real symmetric matrix"
 
 -- | Cholesky factorization of a positive definite hermitian or symmetric matrix using lapack's dpotrf or zportrf.
 --
 -- If @c = chol m@ then @m == c \<> ctrans c@.
-chol :: GenMat t => Matrix t ->  Matrix t
+chol :: Field t => Matrix t ->  Matrix t
 chol m | m `equal` ctrans m = cholSH m
        | otherwise = error "chol requires positive definite complex hermitian or real symmetric matrix"
 
 square m = rows m == cols m
 
-det :: GenMat t => Matrix t -> t
+det :: Field t => Matrix t -> t
 det m | square m = s * (product $ toList $ takeDiag $ u)
       | otherwise = error "det of nonsquare matrix"
     where (_,u,_,s) = lu m
 
 -- | Inverse of a square matrix using lapacks' dgesv and zgesv.
-inv :: GenMat t => Matrix t -> Matrix t
+inv :: Field t => Matrix t -> Matrix t
 inv m | square m = m `linearSolve` ident (rows m)
       | otherwise = error "inv of nonsquare matrix"
 
 -- | Pseudoinverse of a general matrix using lapack's dgelss or zgelss.
-pinv :: GenMat t => Matrix t -> Matrix t
+pinv :: Field t => Matrix t -> Matrix t
 pinv m = linearSolveSVD m (ident (rows m))
 
 -- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values.
 --
 -- If @(u,d,v) = full svd m@ then @m == u \<> d \<> trans v@.
-full :: Field t 
+full :: Element t 
      => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Matrix Double, Matrix t)
 full svd m = (u, d ,v) where
     (u,s,v) = svd m
@@ -173,7 +173,7 @@ full svd m = (u, d ,v) where
 -- | A version of 'svd' which returns only the nonzero singular values and the corresponding rows and columns of the rotations.
 --
 -- If @(u,s,v) = economy svd m@ then @m == u \<> diag s \<> trans v@.
-economy :: Field t 
+economy :: Element t 
         => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Vector Double, Matrix t)
 economy svd m = (u', subVector 0 d s, v') where
     (u,s,v) = svd m
@@ -198,15 +198,15 @@ i = 0:+1
 
 
 -- matrix product
-mXm :: (Num t, GenMat t) => Matrix t -> Matrix t -> Matrix t
+mXm :: (Num t, Field t) => Matrix t -> Matrix t -> Matrix t
 mXm = multiply
 
 -- matrix - vector product
-mXv :: (Num t, GenMat t) => Matrix t -> Vector t -> Vector t
+mXv :: (Num t, Field t) => Matrix t -> Vector t -> Vector t
 mXv m v = flatten $ m `mXm` (asColumn v)
 
 -- vector - matrix product
-vXm :: (Num t, GenMat t) => Vector t -> Matrix t -> Vector t
+vXm :: (Num t, Field t) => Vector t -> Matrix t -> Vector t
 vXm v m = flatten $ (asRow v) `mXm` m
 
 
@@ -264,7 +264,7 @@ instance Normed (Matrix (Complex Double)) where
 -----------------------------------------------------------------------
 
 -- | The nullspace of a matrix from its SVD decomposition.
-nullspacePrec :: GenMat t
+nullspacePrec :: Field t
               => Double     -- ^ relative tolerance in 'eps' units
               -> Matrix t   -- ^ input matrix
               -> [Vector t] -- ^ list of unitary vectors spanning the nullspace
@@ -276,7 +276,7 @@ nullspacePrec t m = ns where
     ns = drop rank $ toRows $ ctrans v
 
 -- | The nullspace of a matrix, assumed to be one-dimensional, with default tolerance (shortcut for @last . nullspacePrec 1@).
-nullVector :: GenMat t => Matrix t -> Vector t
+nullVector :: Field t => Matrix t -> Vector t
 nullVector = last . nullspacePrec 1
 
 ------------------------------------------------------------------------
@@ -316,7 +316,7 @@ pinvTol t m = v' `mXm` diag s' `mXm` trans u' where
 
 -- many thanks, quickcheck!
 
-haussholder :: (GenMat a) => a -> Vector a -> Matrix a
+haussholder :: (Field a) => a -> Vector a -> Matrix a
 haussholder tau v = ident (dim v) `sub` (tau `scale` (w `mXm` ctrans w))
     where w = asColumn v
 
@@ -328,7 +328,7 @@ zt 0 v = v
 zt k v = join [subVector 0 (dim v - k) v, constant 0 k]
 
 
-unpackQR :: (GenMat t) => (Matrix t, Vector t) -> (Matrix t, Matrix t)
+unpackQR :: (Field t) => (Matrix t, Vector t) -> (Matrix t, Matrix t)
 unpackQR (pq, tau) = (q,r)
     where cs = toColumns pq
           m = rows pq
@@ -339,7 +339,7 @@ unpackQR (pq, tau) = (q,r)
           hs = zipWith haussholder (toList tau) vs
           q = foldl1' mXm hs
 
-unpackHess :: (GenMat t) => (Matrix t -> (Matrix t,Vector t)) -> Matrix t -> (Matrix t, Matrix t)
+unpackHess :: (Field t) => (Matrix t -> (Matrix t,Vector t)) -> Matrix t -> (Matrix t, Matrix t)
 unpackHess hf m
     | rows m == 1 = ((1><1)[1],m)
     | otherwise = (uH . hf) m
@@ -357,13 +357,13 @@ uH (pq, tau) = (p,h)
 --------------------------------------------------------------------------
 
 -- | Reciprocal of the 2-norm condition number of a matrix, computed from the SVD.
-rcond :: GenMat t => Matrix t -> Double
+rcond :: Field t => Matrix t -> Double
 rcond m = last s / head s
     where (_,s',_) = svd m
           s = toList s'
 
 -- | Number of linearly independent rows or columns.
-rank :: GenMat t => Matrix t -> Int
+rank :: Field t => Matrix t -> Int
 rank m | pnorm PNorm1 m < eps = 0
        | otherwise = dim s where (_,s,_) = economy svd m
 
@@ -381,7 +381,7 @@ diagonalize m = if rank v == n
                     else eig m
 
 -- | Generic matrix functions for diagonalizable matrices.
-matFunc :: GenMat t => (Complex Double -> Complex Double) -> Matrix t -> Matrix (Complex Double)
+matFunc :: Field t => (Complex Double -> Complex Double) -> Matrix t -> Matrix (Complex Double)
 matFunc f m = case diagonalize (complex m) of
     Just (l,v) -> v `mXm` diag (liftVector f l) `mXm` inv v
     Nothing -> error "Sorry, matFunc requieres a diagonalizable matrix" 
@@ -420,5 +420,5 @@ expGolub m = iterate msq f !! j
 {- | Matrix exponential. It uses a direct translation of Algorithm 11.3.1 in Golub & Van Loan,
      based on a scaled Pade approximation.
 -}
-expm :: GenMat t => Matrix t -> Matrix t
+expm :: Field t => Matrix t -> Matrix t
 expm = expGolub
