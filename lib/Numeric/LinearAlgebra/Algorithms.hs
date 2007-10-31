@@ -26,7 +26,7 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Matrix factorizations
 -- ** Singular value decomposition
     svd,
-    full, economy,
+    full, economy, --thin,
 -- ** Eigensystems
     eig, eigSH,
 -- ** QR
@@ -101,8 +101,6 @@ class (Normed (Matrix t), Linear Matrix t) => GenMat t where
     schur       :: Matrix t -> (Matrix t, Matrix t)
     -- | Conjugate transpose.
     ctrans :: Matrix t -> Matrix t
-    -- | Matrix exponential (currently implemented only for diagonalizable matrices).
-    expm :: Matrix t -> Matrix t
 
 
 instance GenMat Double where
@@ -117,7 +115,6 @@ instance GenMat Double where
     qr = GSL.unpackQR . qrR
     hess = unpackHess hessR
     schur = schurR
-    expm = fst . fromComplex . expm' . comp
 
 instance GenMat (Complex Double) where
     svd = svdC
@@ -131,7 +128,6 @@ instance GenMat (Complex Double) where
     qr = unpackQR . qrC
     hess = unpackHess hessC
     schur = schurC
-    expm = expm'
 
 -- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev.
 --
@@ -245,7 +241,11 @@ pnormCM Infinity m = vectorMax $ liftMatrix (liftVector magnitude) m `mXv` const
 --pnormCM _ _ = error "p norm not yet defined"
 
 -- | Objects which have a p-norm.
--- Using it you can define convenient shortcuts: @norm2 = pnorm PNorm2@, @frobenius = norm2 . flatten@, etc.
+-- Using it you can define convenient shortcuts:
+--
+-- @norm2 x = pnorm PNorm2 x@
+--
+-- @frobenius m = norm2 . flatten $ m@
 class Normed t where
     pnorm :: NormType -> t -> Double
 
@@ -385,3 +385,40 @@ matFunc :: GenMat t => (Complex Double -> Complex Double) -> Matrix t -> Matrix 
 matFunc f m = case diagonalize (complex m) of
     Just (l,v) -> v `mXm` diag (liftVector f l) `mXm` inv v
     Nothing -> error "Sorry, matFunc requieres a diagonalizable matrix" 
+
+--------------------------------------------------------------
+
+golubeps :: Integer -> Integer -> Double
+golubeps p q = a * fromIntegral b / fromIntegral c where
+    a = 2^^(3-p-q)
+    b = fact p * fact q
+    c = fact (p+q) * fact (p+q+1)
+    fact n = product [1..n]
+
+epslist = [ (fromIntegral k, golubeps k k) | k <- [1..]]
+
+geps delta = head [ k | (k,g) <- epslist, g<delta]
+
+expGolub m = iterate msq f !! j
+    where j = max 0 $ floor $ log2 $ pnorm Infinity m
+          log2 x = log x / log 2
+          a = m */ fromIntegral (2^j)
+          q = geps eps -- 7 steps
+          eye = ident (rows m)
+          work (k,c,x,n,d) = (k',c',x',n',d')
+              where k' = k+1
+                    c' = c * fromIntegral (q-k+1) / fromIntegral ((2*q-k+1)*k)
+                    x' = a <> x
+                    n' = n `add` (c' `scale` x')
+                    d' = d `add` (((-1)^k * c') `scale` x')
+          (_,_,_,n,d) = iterate work (1,1,eye,eye,eye) !! q
+          f = linearSolve d n
+          msq m = m <> m
+          (<>) = multiply
+          v */ x = scale (recip x) v
+
+{- | Matrix exponential. It uses a direct translation of Algorithm 11.3.1 in Golub & Van Loan,
+     based on a scaled Pade approximation.
+-}
+expm :: GenMat t => Matrix t -> Matrix t
+expm = expGolub

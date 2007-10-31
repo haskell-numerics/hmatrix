@@ -298,8 +298,33 @@ schurTest2 m = m |~| u <> s <> ctrans u && unitary u && upperHessenberg s -- fix
 
 ---------------------------------------------------------------------
 
-expmTest m = expm (logm m) |~| complex m
+nd1 = (3><3) [ 1/2, 1/4, 1/4
+             , 0/1, 1/2, 1/4
+             , 1/2, 1/4, 1/2 :: Double]
+
+nd2 = (2><2) [1, 0, 1, 1:: Complex Double]
+
+expmTest1 = expm nd1 :~14~: (3><3)
+ [ 1.762110887278176
+ , 0.478085470590435
+ , 0.478085470590435
+ , 0.104719410945666
+ , 1.709751181805343
+ , 0.425725765117601
+ , 0.851451530235203
+ , 0.530445176063267
+ , 1.814470592751009 ]
+
+expmTest2 = expm nd2 :~15~: (2><2)
+ [ 2.718281828459045
+ , 0.000000000000000
+ , 2.718281828459045
+ , 2.718281828459045 ]
+
+expmTestDiag m = expm (logm m) |~| complex m
     where logm m = matFunc Prelude.log m
+
+
 
 ---------------------------------------------------------------------
 
@@ -389,8 +414,9 @@ tests = do
         else quickCheck (schurTest1 . sqm ::SqM (Complex Double) -> Bool)
     putStrLn "--------- expm --------"
     runTestTT $ TestList
-     [ test "expmd"  (expmTest $ (2><2) [1,2,3,5 :: Double])
-     --,  test "expmnd" (expmTest $ (2><2) [1,0,1,1 :: Double])
+     [ test "expmd" (expmTestDiag $ (2><2) [1,2,3,5 :: Double])
+     , test "expm1" (expmTest1)
+     , test "expm2" (expmTest2)
      ]
     putStrLn "--------- nullspace ------"
     quickCheck (nullspaceTest :: RM -> Bool)
