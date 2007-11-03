@@ -39,6 +39,7 @@ module Numeric.LinearAlgebra.Algorithms (
     schur,
 -- * Matrix functions
     expm,
+    sqrtm,
     matFunc,
 -- * Nullspace
     nullspacePrec,
@@ -380,7 +381,10 @@ diagonalize m = if rank v == n
                     then let (l',v') = eigSH m in (real l', v')
                     else eig m
 
--- | Generic matrix functions for diagonalizable matrices.
+-- | Generic matrix functions for diagonalizable matrices. For instance:
+--
+-- @logm = matFunc log@
+--
 matFunc :: Field t => (Complex Double -> Complex Double) -> Matrix t -> Matrix (Complex Double)
 matFunc f m = case diagonalize (complex m) of
     Just (l,v) -> v `mXm` diag (liftVector f l) `mXm` inv v
@@ -422,3 +426,28 @@ expGolub m = iterate msq f !! j
 -}
 expm :: Field t => Matrix t -> Matrix t
 expm = expGolub
+
+--------------------------------------------------------------
+
+{- | Matrix square root. Currently it uses a simple iterative algorithm described in Wikipedia.
+It only works with invertible matrices that have a real solution. For diagonalizable matrices you can try @matFunc sqrt@.
+
+@m = (2><2) [4,9
+           ,0,4] :: Matrix Double@
+
+@\>sqrtm m
+(2><2)
+ [ 2.0, 2.25
+ , 0.0,  2.0 ]@
+-}
+sqrtm :: Field t => Matrix t -> Matrix t
+sqrtm = sqrtmInv
+
+sqrtmInv a = fst $ fixedPoint $ iterate f (a, ident (rows a))
+    where fixedPoint (a:b:rest) | pnorm PNorm1 (fst a |-| fst b) < eps   = a
+                                | otherwise = fixedPoint (b:rest)
+          f (y,z) = (0.5 .* (y |+| inv z),
+                     0.5 .* (inv y |+| z))
+          (.*) = scale
+          (|+|) = add
+          (|-|) = sub
