@@ -14,6 +14,7 @@ import Test.HUnit hiding ((~:),test)
 import System.Random(randomRs,mkStdGen)
 import System.Info
 import Data.List(foldl1')
+import System(getArgs)
 
 type RM = Matrix Double
 type CM = Matrix (Complex Double)
@@ -452,4 +453,8 @@ bigtests = do
      , test "eigC" $ eigTest   bigmatc
      ]
 
-main = tests
+main = do
+    args <- getArgs
+    if "--big" `elem` args
+        then bigtests
+        else tests

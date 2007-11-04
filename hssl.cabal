@@ -72,6 +72,6 @@ Exposed-modules:    Data.Packed.Internal,
 C-sources:          lib/Data/Packed/Internal/auxi.c,
                     lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                     lib/Numeric/GSL/gsl-aux.c
-extra-libraries:    gsl cblas lapack
+extra-libraries:    gsl blas lapack
 cc-options:         -O4
 ghc-prof-options:   -auto-all

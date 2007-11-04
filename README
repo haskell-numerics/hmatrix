@@ -3,10 +3,33 @@ A simple scientific library for Haskell
 
 REQUIREMENTS
 
-1) GNU Scientific Library (http://www.gnu.org/software/gsl) development packages
-   for your system (typically "gsl" and "gsl-devel").
+Development packages of:
 
-2) ATLAS BLAS AND LAPACK (http://www.netlib.org/lapack). Usually included with GNU-Octave.
+1) GNU Scientific Library (http://www.gnu.org/software/gsl)
+
+2) BLAS and LAPACK (http://www.netlib.org/lapack)
+
+3) ATLAS (recommended) (http://math-atlas.sourceforge.net/)
+
+For example, in Ubuntu Linux we need:
+
+- libgsl0-dev
+- refblas3-dev
+- lapack3-dev
+- atlas3-base-dev
+
+You can also install an atlas version specifically tuned
+for your machine (e.g., atlas3-sse2-dev, atlas3-3dnow-dev, etc.).
+However, do not install atlas3-sse2-dev on ubuntu 6.06 Dapper
+(see the TESTS section below).
+
+The following packages are used for simple graphics:
+
+- gnuplot
+- imagemagick
+
+It is also a good idea to install GNU-Octave to check
+that the results obtained by this library are correct...
 
 INSTALLATION
 
@@ -17,16 +40,28 @@ $ runhaskell Setup.lhs install --user
 
 See below for installation on Windows.
 
-USING ATLAS
-
-$ ln -s /usr/lib/atlas/libblas.so.3.0 $HOME/lib/hssl-0.1/ghc-6.6.1/libcblas.so
-$ ln -s /usr/lib/atlas/liblapack.so.3.0 $HOME/lib/hssl-0.1/ghc-6.6.1/liblapack.so
-
-(More info in the tutorial, available from the web page of the project.)
-
 TESTS
 
-$ runhaskell examples/tests.hs
+$ runhaskell examples/tests
+
+Additional tests with big matrices (taking a few minutes):
+
+$ runhaskell examples/tests --big
+
+NOTE: On Ubuntu 6.06 LTS (Dapper) atlas3-sse2-dev (3.6.0-20)
+produces segmentation faults when working with big matrices 
+on compiled programs. To expose the problem:
+
+$ cd examples
+$ ghc --make -O tests.hs
+$ ./tests --big
+
+If this crashes, just uninstall atlas3-sse2 (atlas3-base-dev will be used).
+Fortunately, atlas3-sse2-dev seems to work well on Ubuntu 7.10 Gutsy.
+
+A similar problem was reported at:
+
+http://article.gmane.org/gmane.linux.debian.devel.bugs.general/323065
 
 EXAMPLES
 
@@ -75,7 +110,7 @@ There are only minor API changes:
 
 Old GSLHaskell code will work with small modifications.
 
-INSTALLATION ON WINDOWS
+INSTALLATION ON WINDOWS (FIXME)
 
 1) Download the developer files gsl-1.8-lib.zip from
    http://gnuwin32.sourceforge.net/packages/gsl.htm
@@ -124,3 +159,5 @@ I thank Henning Thielemann and all the people in the Haskell mailing lists for t
 - Pedro E. López de Teruel fixed the interface to lapack.
 
 - Antti Siira discovered a bug in the plotting functions.
+
+- Paulo Tanimoto helped to fix the configuration of the required libraries.
