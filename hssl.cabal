@@ -14,64 +14,77 @@ Description:        A purely functional interface to basic linear algebra comput
                     More information: <http://alberrto.googlepages.com/gslhaskell>
 Category:           Numerical, Math
 tested-with:        GHC ==6.6.1
-Build-Depends:      base, haskell98
-Extensions:         ForeignFunctionInterface
---ghc-options:        -Wall
-ghc-options:        -O
-hs-source-dirs:     lib
-Exposed-modules:    Data.Packed.Internal,
-                    Data.Packed.Internal.Common,
-                    Data.Packed.Internal.Vector
-                    Data.Packed.Internal.Matrix,
-                    Data.Packed,
-                    Data.Packed.Vector,
-                    Data.Packed.Matrix,
-                    Numeric.GSL.Vector,
-                    Numeric.GSL.Matrix,
-                    Numeric.GSL.Differentiation,
-                    Numeric.GSL.Integration,
-                    Numeric.GSL.Fourier,
-                    Numeric.GSL.Polynomials,
-                    Numeric.GSL.Minimization,
-                    Numeric.GSL.Special,
-                    Numeric.GSL.Special.Internal,
-                    Numeric.GSL.Special.Gamma,
-                    Numeric.GSL.Special.Erf,
-                    Numeric.GSL.Special.Airy,
-                    Numeric.GSL.Special.Exp,
-                    Numeric.GSL.Special.Bessel,
-                    Numeric.GSL.Special.Clausen,
-                    Numeric.GSL.Special.Coulomb,
-                    Numeric.GSL.Special.Coupling,
-                    Numeric.GSL.Special.Dawson,
-                    Numeric.GSL.Special.Debye,
-                    Numeric.GSL.Special.Dilog,
-                    Numeric.GSL.Special.Elementary,
-                    Numeric.GSL.Special.Ellint,
-                    Numeric.GSL.Special.Expint,
-                    Numeric.GSL.Special.Fermi_dirac,
-                    Numeric.GSL.Special.Gegenbauer,
-                    Numeric.GSL.Special.Hyperg,
-                    Numeric.GSL.Special.Laguerre,
-                    Numeric.GSL.Special.Lambert,
-                    Numeric.GSL.Special.Pow_int,
-                    Numeric.GSL.Special.Psi,
-                    Numeric.GSL.Special.Synchrotron,
-                    Numeric.GSL.Special.Trig,
-                    Numeric.GSL.Special.Zeta,
-                    Numeric.GSL.Special.Log,
-                    Numeric.GSL.Special.Legendre,
-                    Numeric.GSL,
-                    Numeric.LinearAlgebra,
-                    Numeric.LinearAlgebra.LAPACK,
-                    Numeric.LinearAlgebra.Linear,
-                    Numeric.LinearAlgebra.Instances,
-                    Numeric.LinearAlgebra.Interface,
-                    Numeric.LinearAlgebra.Algorithms,
-                    Graphics.Plot
-C-sources:          lib/Data/Packed/Internal/auxi.c,
-                    lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
-                    lib/Numeric/GSL/gsl-aux.c
-extra-libraries:    gsl blas lapack
-cc-options:         -O4
-ghc-prof-options:   -auto-all
+
+cabal-version:      >=1.2
+
+flag splitBase
+    description: Choose the new smaller, split-up base package.
+
+library
+    if flag(splitBase)
+      build-depends: base >= 3, array
+      ghc-options:   -O0
+    else
+      build-depends: base < 3
+      ghc-options:   -O
+
+    Build-Depends:      base, haskell98
+    Extensions:         ForeignFunctionInterface
+
+    hs-source-dirs:     lib
+    Exposed-modules:    Data.Packed.Internal,
+                        Data.Packed.Internal.Common,
+                        Data.Packed.Internal.Vector
+                        Data.Packed.Internal.Matrix,
+                        Data.Packed,
+                        Data.Packed.Vector,
+                        Data.Packed.Matrix,
+                        Numeric.GSL.Vector,
+                        Numeric.GSL.Matrix,
+                        Numeric.GSL.Differentiation,
+                        Numeric.GSL.Integration,
+                        Numeric.GSL.Fourier,
+                        Numeric.GSL.Polynomials,
+                        Numeric.GSL.Minimization,
+                        Numeric.GSL.Special,
+                        Numeric.GSL.Special.Internal,
+                        Numeric.GSL.Special.Gamma,
+                        Numeric.GSL.Special.Erf,
+                        Numeric.GSL.Special.Airy,
+                        Numeric.GSL.Special.Exp,
+                        Numeric.GSL.Special.Bessel,
+                        Numeric.GSL.Special.Clausen,
+                        Numeric.GSL.Special.Coulomb,
+                        Numeric.GSL.Special.Coupling,
+                        Numeric.GSL.Special.Dawson,
+                        Numeric.GSL.Special.Debye,
+                        Numeric.GSL.Special.Dilog,
+                        Numeric.GSL.Special.Elementary,
+                        Numeric.GSL.Special.Ellint,
+                        Numeric.GSL.Special.Expint,
+                        Numeric.GSL.Special.Fermi_dirac,
+                        Numeric.GSL.Special.Gegenbauer,
+                        Numeric.GSL.Special.Hyperg,
+                        Numeric.GSL.Special.Laguerre,
+                        Numeric.GSL.Special.Lambert,
+                        Numeric.GSL.Special.Pow_int,
+                        Numeric.GSL.Special.Psi,
+                        Numeric.GSL.Special.Synchrotron,
+                        Numeric.GSL.Special.Trig,
+                        Numeric.GSL.Special.Zeta,
+                        Numeric.GSL.Special.Log,
+                        Numeric.GSL.Special.Legendre,
+                        Numeric.GSL,
+                        Numeric.LinearAlgebra,
+                        Numeric.LinearAlgebra.LAPACK,
+                        Numeric.LinearAlgebra.Linear,
+                        Numeric.LinearAlgebra.Instances,
+                        Numeric.LinearAlgebra.Interface,
+                        Numeric.LinearAlgebra.Algorithms,
+                        Graphics.Plot
+    C-sources:          lib/Data/Packed/Internal/auxi.c,
+                        lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
+                        lib/Numeric/GSL/gsl-aux.c
+    extra-libraries:    gsl blas lapack
+    cc-options:         -O4
+    ghc-prof-options:   -auto-all

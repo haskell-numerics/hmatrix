@@ -352,6 +352,7 @@ rotTest = fun (10^5) :~12~: rot 5E4
 ---------------------------------------------------------------------
 
 tests = do
+    setErrorHandlerOff
     putStrLn "--------- internal -----"
     quickCheck ((\m -> m == trans m).sym :: Sym Double -> Bool)
     quickCheck ((\m -> m == trans m).sym :: Sym (Complex Double) -> Bool)
