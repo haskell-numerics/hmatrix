@@ -44,7 +44,7 @@ integrateQAGS prec n f a b = unsafePerformIO $ do
     r <- malloc
     e <- malloc
     fp <- mkfun (\x _ -> f x) 
-    c_integrate_qags fp a b prec n r e // check "integrate_qags" []
+    c_integrate_qags fp a b prec n r e // check "integrate_qags"
     vr <- peek r
     ve <- peek e
     let result = (vr,ve)
@@ -75,7 +75,7 @@ integrateQNG prec f a b = unsafePerformIO $ do
     r <- malloc
     e <- malloc
     fp <- mkfun (\x _ -> f x) 
-    c_integrate_qng fp a b prec r e  // check "integrate_qng" []
+    c_integrate_qng fp a b prec r e  // check "integrate_qng"
     vr <- peek r
     ve <- peek e
     let result = (vr,ve)

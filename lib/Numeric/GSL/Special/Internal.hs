@@ -45,7 +45,7 @@ type Size_t = Int
 createSFR :: Storable a => String -> (Ptr a -> IO Int) -> (a, a)
 createSFR s f = unsafePerformIO $ do
     p <- mallocArray 2
-    f p // check s []
+    f p // check s
     [val,err] <- peekArray 2 p
     free p
     return (val,err)
@@ -60,7 +60,7 @@ createSFR_E10 s f = unsafePerformIO $ do
     let sd = sizeOf (0::Double)
     let si = sizeOf (0::Int)
     p <- mallocBytes (2*sd + si)
-    f p // check s []
+    f p // check s
     val <- peekByteOff p 0
     err <- peekByteOff p sd
     expo <- peekByteOff p (2*sd) 

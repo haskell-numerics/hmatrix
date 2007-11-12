@@ -79,9 +79,20 @@ cmat MF {rows = r, cols = c, fdat = d } = MC {rows = r, cols = c, cdat = transda
 fmat m@MF{} = m
 fmat MC {rows = r, cols = c, cdat = d } = MF {rows = r, cols = c, fdat = transdata c d r}
 
-matc m f = f (rows m) (cols m) (ptr (cdat m))
-matf m f = f (rows m) (cols m) (ptr (fdat m))
+--matc m f = f (rows m) (cols m) (ptr (cdat m))
+--matf m f = f (rows m) (cols m) (ptr (fdat m))
 
+withMatrix MC {rows = r, cols = c, cdat = d } f =
+    withForeignPtr (fptr d) $ \p -> do
+        let m f = do
+            f r c p
+        f m
+
+withMatrix MF {rows = r, cols = c, fdat = d } f =
+    withForeignPtr (fptr d) $ \p -> do
+        let m f = do
+            f r c p
+        f m
 
 {- | Creates a vector by concatenation of rows
 
@@ -236,7 +247,9 @@ transdataAux fun c1 d c2 =
         then d
         else unsafePerformIO $ do
             v <- createVector (dim d)
-            fun r1 c1 (ptr d) r2 c2 (ptr v) // check "transdataAux" [d,v]
+            withForeignPtr (fptr d) $ \pd ->
+                withForeignPtr (fptr v) $ \pv ->
+                    fun r1 c1 pd r2 c2 pv // check "transdataAux"
             -- putStrLn $ "---> transdataAux" ++ show (toList d) ++ show (toList v)
             return v
   where r1 = dim d `div` c1
@@ -250,8 +263,8 @@ foreign import ccall safe "auxi.h transC"
 
 ------------------------------------------------------------------
 
-gmatC MF {rows = r, cols = c, fdat = d} f = f 1 c r (ptr d)
-gmatC MC {rows = r, cols = c, cdat = d} f = f 0 r c (ptr d)
+gmatC MF {rows = r, cols = c, fdat = d} p f = f 1 c r p
+gmatC MC {rows = r, cols = c, cdat = d} p f = f 0 r c p
 
 dtt MC { cdat = d } = d
 dtt MF { fdat = d } = d
@@ -260,7 +273,9 @@ multiplyAux fun a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $ "inconsistent dimensions in contraction "++
                                       show (rows a,cols a) ++ " x " ++ show (rows b, cols b)
     r <- createMatrix RowMajor (rows a) (cols b)
-    fun // gmatC a // gmatC b // matc r // check "multiplyAux" [dtt a, dtt b, cdat r]
+    withForeignPtr (fptr (dtt a)) $ \pa -> withForeignPtr (fptr (dtt b)) $ \pb ->
+        withMatrix r $ \r ->
+            fun // gmatC a pa // gmatC b pb // r // check "multiplyAux"
     return r
 
 multiplyR = multiplyAux cmultiplyR
@@ -293,7 +308,8 @@ subMatrixR :: (Int,Int) -> (Int,Int) -> Matrix Double -> Matrix Double
 subMatrixR (r0,c0) (rt,ct) x' = unsafePerformIO $ do
     r <- createMatrix RowMajor rt ct
     let x = cmat x'
-    c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1) // matc x // matc r // check "subMatrixR" [cdat x]
+    ww2 withMatrix x withMatrix r $ \x r ->
+        c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1) // x // r // check "subMatrixR"
     return r
 foreign import ccall "auxi.h submatrixR" c_submatrixR :: Int -> Int -> Int -> Int -> TMM
 
@@ -317,8 +333,9 @@ subMatrix = subMatrixD
 
 diagAux fun msg (v@V {dim = n}) = unsafePerformIO $ do
     m <- createMatrix RowMajor n n
-    fun // vec v // matc m // check msg [v]
-    return m -- {tdat = dat m}
+    ww2 withVector v withMatrix m $ \v m ->
+        fun // v // m // check msg
+    return m
 
 -- | diagonal matrix from a real vector
 diagR :: Vector Double -> Matrix Double
@@ -339,7 +356,8 @@ diag = diagD
 constantAux fun x n = unsafePerformIO $ do
     v <- createVector n
     px <- newArray [x]
-    fun px // vec v // check "constantAux" []
+    withVector v $ \v ->
+        fun px // v // check "constantAux"
     free px
     return v
 
@@ -385,7 +403,8 @@ fromFile :: FilePath -> (Int,Int) -> IO (Matrix Double)
 fromFile filename (r,c) = do
     charname <- newCString filename
     res <- createMatrix RowMajor r c
-    c_gslReadMatrix charname // matc res // check "gslReadMatrix" []
+    withMatrix res $ \res ->
+        c_gslReadMatrix charname // res // check "gslReadMatrix"
     --free charname  -- TO DO: free the auxiliary CString
     return res
 foreign import ccall "auxi.h matrix_fscanf" c_gslReadMatrix:: Ptr CChar -> TM

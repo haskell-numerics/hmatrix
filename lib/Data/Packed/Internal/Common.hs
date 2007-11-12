@@ -60,6 +60,11 @@ common f = commonval . map f where
 infixl 0 //
 (//) = flip ($)
 
+-- hmm..
+ww2 w1 o1 w2 o2 f = w1 o1 $ \a1 -> w2 o2 $ \a2 -> f a1 a2
+ww3 w1 o1 w2 o2 w3 o3 f = w1 o1 $ \a1 -> ww2 w2 o2 w3 o3 (f a1)
+ww4 w1 o1 w2 o2 w3 o3 w4 o4 f = w1 o1 $ \a1 -> ww3 w2 o2 w3 o3 w4 o4 (f a1)
+
 -- GSL error codes are <= 1024
 -- | error codes for the auxiliary functions required by the wrappers
 errorCode :: Int -> String

@@ -31,11 +31,11 @@ data Vector t = V { dim  :: Int              -- ^ number of elements
                   , fptr :: ForeignPtr t     -- ^ foreign pointer to the memory block
                   }
 
-ptr (V _ fptr) = unsafeForeignPtrToPtr fptr
+--ptr (V _ fptr) = unsafeForeignPtrToPtr fptr
 
--- | check the error code and touch foreign ptr of vector arguments (if any)
-check :: String -> [Vector a] -> IO Int -> IO ()
-check msg ls f = do
+-- | check the error code
+check :: String -> IO Int -> IO ()
+check msg f = do
     err <- f
     when (err/=0) $ if err > 1024
                       then (error (msg++": "++errorCode err)) -- our errors
@@ -43,7 +43,6 @@ check msg ls f = do
                         ps <- gsl_strerror err
                         s <- peekCString ps
                         error (msg++": "++s)
-    mapM_ (touchForeignPtr . fptr) ls
     return ()
 
 -- | description of GSL error codes
@@ -55,9 +54,14 @@ type Vc t s = Int -> Ptr t -> s
 -- infixr 5 :>
 -- type t :> s = Vc t s
 
--- | adaptation of our vectors to be admitted by foreign functions: @f \/\/ vec v@
-vec :: Vector t -> (Vc t s) -> s
-vec v f = f (dim v) (ptr v)
+--- | adaptation of our vectors to be admitted by foreign functions: @f \/\/ vec v@
+--vec :: Vector t -> (Vc t s) -> s
+--vec v f = f (dim v) (ptr v)
+
+withVector (V n fp) f = withForeignPtr fp $ \p -> do
+    let v f = do
+        f n p
+    f v
 
 -- | allocates memory for a new vector
 createVector :: Storable a => Int -> IO (Vector a)
@@ -76,7 +80,8 @@ fromList :: Storable a => [a] -> Vector a
 fromList l = unsafePerformIO $ do
     v <- createVector (length l)
     let f _ p = pokeArray p l >> return 0
-    f // vec v // check "fromList" []
+    withVector v $ \v ->
+        f // v // check "fromList"
     return v
 
 safeRead v = unsafePerformIO . withForeignPtr (fptr v)
@@ -118,8 +123,9 @@ subVector k l (v@V {dim=n})
     | k<0 || k >= n || k+l > n || l < 0 = error "subVector out of range"
     | otherwise = unsafePerformIO $ do
         r <- createVector l
-        let f = copyArray (ptr r) (advancePtr (ptr v) k) l >> return 0
-        f // check "subVector" [v,r]
+        let f _ s _ d = copyArray d (advancePtr s k) l >> return 0
+        ww2 withVector v withVector r $ \v r ->
+            f // v // r // check "subVector"
         return r
 
 {- | Reads a vector position:
@@ -144,12 +150,12 @@ join [] = error "joining zero vectors"
 join as = unsafePerformIO $ do
     let tot = sum (map dim as)
     r@V {fptr = p} <- createVector tot
-    withForeignPtr p $ \_ ->
-        joiner as tot (ptr r)
+    withForeignPtr p $ \ptr ->
+        joiner as tot ptr
     return r
   where joiner [] _ _ = return ()
         joiner (r@V {dim = n, fptr = b} : cs) _ p = do
-            withForeignPtr b  $ \_ -> copyArray p (ptr r) n
+            withForeignPtr b $ \pb -> copyArray p pb n
             joiner cs 0 (advancePtr p n)
 
 

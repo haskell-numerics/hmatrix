@@ -61,7 +61,8 @@ svdAux f st x = unsafePerformIO $ do
     u <- createMatrix ColumnMajor r r
     s <- createVector (min r c)
     v <- createMatrix ColumnMajor c c
-    f // matf x // matf u // vec s // matf v // check st [fdat x]
+    ww4 withMatrix x withMatrix u withVector s withMatrix v $ \x u s v ->
+        f // x // u // s // v // check st
     return (u,s,trans v)
   where r = rows x
         c = cols x
@@ -73,7 +74,8 @@ eigAux f st m
         l <- createVector r
         v <- createMatrix ColumnMajor r r
         dummy <- createMatrix ColumnMajor 1 1
-        f // matf m // matf dummy // vec l // matf v // check st [fdat m]
+        ww4 withMatrix m withMatrix dummy withVector l withMatrix v $ \m dummy l v ->
+            f // m // dummy // l // v // check st
         return (l,v)
   where r = rows m
 
@@ -115,7 +117,8 @@ eigRaux m
         l <- createVector r
         v <- createMatrix ColumnMajor r r
         dummy <- createMatrix ColumnMajor 1 1
-        dgeev // matf m // matf dummy // vec l // matf v // check "eigR" [fdat m]
+        ww4 withMatrix m withMatrix dummy withVector l withMatrix v $ \m dummy l v ->
+            dgeev // m // dummy // l // v // check "eigR"
         return (l,v)
   where r = rows m
 
@@ -144,7 +147,8 @@ eigS' m
     | otherwise = unsafePerformIO $ do
         l <- createVector r
         v <- createMatrix ColumnMajor r r
-        dsyev // matf m // vec l // matf v // check "eigS" [fdat m]
+        ww3 withMatrix m withVector l withMatrix v $ \m l v ->
+            dsyev // m // l // v // check "eigS"
         return (l,v)
   where r = rows m
 
@@ -166,7 +170,8 @@ eigH' m
     | otherwise = unsafePerformIO $ do
         l <- createVector r
         v <- createMatrix ColumnMajor r r
-        zheev // matf m // vec l // matf v // check "eigH" [fdat m]
+        ww3 withMatrix m withVector l withMatrix v $ \m l v ->
+            zheev // m // l // v // check "eigH"
         return (l,v)
   where r = rows m
 
@@ -177,7 +182,8 @@ foreign import ccall "LAPACK/lapack-aux.h linearSolveC_l" zgesv :: TCMCMCM
 linearSolveSQAux f st a b
     | n1==n2 && n1==r = unsafePerformIO $ do
         s <- createMatrix ColumnMajor r c
-        f // matf a // matf b // matf s // check st [fdat a, fdat b]
+        ww3 withMatrix a withMatrix b withMatrix s $ \a b s ->
+            f // a // b // s // check st
         return s
     | otherwise = error $ st ++ " of nonsquare matrix"
   where n1 = rows a
@@ -201,7 +207,8 @@ foreign import ccall "LAPACK/lapack-aux.h linearSolveSVDC_l" zgelss :: Double ->
 
 linearSolveAux f st a b = unsafePerformIO $ do
     r <- createMatrix ColumnMajor (max m n) nrhs
-    f // matf a // matf b // matf r // check st [fdat a, fdat b]
+    ww3 withMatrix a withMatrix b withMatrix r $ \a b r ->
+            f // a // b // r // check st
     return r
   where m = rows a
         n = cols a
@@ -251,7 +258,8 @@ cholS = cholAux dpotrf "cholS" . fmat
 
 cholAux f st a = unsafePerformIO $ do
     r <- createMatrix ColumnMajor n n
-    f // matf a // matf r // check st [fdat a]
+    ww2 withMatrix a withMatrix r $ \a r ->
+        f // a // r // check st
     return r
   where n = rows a
 
@@ -270,8 +278,8 @@ qrC = qrAux zgeqr2 "qrC" . fmat
 qrAux f st a = unsafePerformIO $ do
     r <- createMatrix ColumnMajor m n
     tau <- createVector mn
-    withForeignPtr (fptr $ fdat $ a) $ \p ->
-        f m n p // vec tau // matf r // check st [fdat a]
+    ww3 withMatrix a withMatrix r withVector tau $ \ a r tau ->
+        f // a // tau // r // check st
     return (r,tau)
   where m = rows a
         n = cols a
@@ -292,7 +300,8 @@ hessC = hessAux zgehrd "hessC" . fmat
 hessAux f st a = unsafePerformIO $ do
     r <- createMatrix ColumnMajor m n
     tau <- createVector (mn-1)
-    f // matf a // vec tau // matf r // check st [fdat a]
+    ww3 withMatrix a withMatrix r withVector tau $ \ a r tau ->
+        f // a // tau // r // check st
     return (r,tau)
   where m = rows a
         n = cols a
@@ -313,7 +322,8 @@ schurC = schurAux zgees "schurC" . fmat
 schurAux f st a = unsafePerformIO $ do
     u <- createMatrix ColumnMajor n n
     s <- createMatrix ColumnMajor n n
-    f // matf a // matf u // matf s // check st [fdat a]
+    ww3 withMatrix a withMatrix u withMatrix s $ \ a u s ->
+        f // a // u // s // check st
     return (u,s)
   where n = rows a
 

@@ -35,7 +35,7 @@ derivGen c h f x = unsafePerformIO $ do
     r <- malloc
     e <- malloc
     fp <- mkfun (\x _ -> f x) 
-    c_deriv c fp x h r e // check "deriv" []
+    c_deriv c fp x h r e // check "deriv"
     vr <- peek r
     ve <- peek e
     let result = (vr,ve)

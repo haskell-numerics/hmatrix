@@ -51,7 +51,8 @@ eigSg' m
     | otherwise = unsafePerformIO $ do
         l <- createVector r
         v <- createMatrix RowMajor r r
-        c_eigS // matc m // vec l // matc v // check "eigSg" [cdat m]
+        ww3 withMatrix m withVector l withMatrix v $ \m l v ->
+            c_eigS // m // l // v // check "eigSg"
         return (l,v)
   where r = rows m
 foreign import ccall "gsl-aux.h eigensystemR" c_eigS :: TMVM
@@ -84,7 +85,8 @@ eigHg' m
     | otherwise = unsafePerformIO $ do
         l <- createVector r
         v <- createMatrix RowMajor r r
-        c_eigH // matc m // vec l // matc v // check "eigHg" [cdat m]
+        ww3 withMatrix m withVector l withMatrix v $ \m l v ->
+            c_eigH // m // l // v // check "eigHg"
         return (l,v)
   where r = rows m
 foreign import ccall "gsl-aux.h eigensystemC" c_eigH :: TCMVCM
@@ -120,7 +122,8 @@ svd' x = unsafePerformIO $ do
     u <- createMatrix RowMajor r c
     s <- createVector c
     v <- createMatrix RowMajor c c
-    c_svd // matc x // matc u // vec s // matc v // check "svdg" [cdat x]
+    ww4 withMatrix x withMatrix u withVector s withMatrix v $ \x u s v ->
+        c_svd // x // u // s // v // check "svdg"
     return (u,s,v)
   where r = rows x
         c = cols x
@@ -149,7 +152,8 @@ qr = qr' . cmat
 qr' x = unsafePerformIO $ do
     q <- createMatrix RowMajor r r
     rot <- createMatrix RowMajor r c
-    c_qr // matc x // matc q // matc rot // check "qr" [cdat x]
+    ww3 withMatrix x withMatrix q withMatrix rot $ \x q rot ->
+        c_qr // x // q // rot // check "qr"
     return (q,rot)
   where r = rows x
         c = cols x
@@ -161,7 +165,8 @@ qrPacked = qrPacked' . cmat
 qrPacked' x = unsafePerformIO $ do
     qr <- createMatrix RowMajor r c
     tau <- createVector (min r c)
-    c_qrPacked // matc x // matc qr // vec tau // check "qrUnpacked" [cdat x]
+    ww3 withMatrix x withMatrix qr withVector tau $ \x qr tau ->
+        c_qrPacked // x // qr // tau // check "qrUnpacked"
     return (qr,tau)
   where r = rows x
         c = cols x
@@ -172,9 +177,10 @@ unpackQR (qr,tau) = unpackQR' (cmat qr, tau)
 
 unpackQR' (qr,tau) = unsafePerformIO $ do
     q <- createMatrix RowMajor r r
-    rot <- createMatrix RowMajor r c
-    c_qrUnpack // matc qr // vec tau // matc q // matc rot // check "qrUnpack" [cdat qr,tau]
-    return (q,rot)
+    res <- createMatrix RowMajor r c
+    ww4 withMatrix qr withVector tau withMatrix q withMatrix res $ \qr tau q res ->
+        c_qrUnpack // qr // tau // q // res // check "qrUnpack"
+    return (q,res)
   where r = rows qr
         c = cols qr
 foreign import ccall "gsl-aux.h QRunpack" c_qrUnpack :: TMVMM
@@ -196,20 +202,22 @@ cholR :: Matrix Double -> Matrix Double
 cholR = cholR' . cmat
 
 cholR' x = unsafePerformIO $ do
-    res <- createMatrix RowMajor r r
-    c_cholR // matc x // matc res // check "cholR" [cdat x]
-    return res
-  where r = rows x
+    r <- createMatrix RowMajor n n
+    ww2 withMatrix x withMatrix r $ \x r ->
+        c_cholR // x // r // check "cholR"
+    return r
+  where n = rows x
 foreign import ccall "gsl-aux.h cholR" c_cholR :: TMM
 
 cholC :: Matrix (Complex Double) -> Matrix (Complex Double)
 cholC = cholC' . cmat
 
 cholC' x = unsafePerformIO $ do
-    res <- createMatrix RowMajor r r
-    c_cholC // matc x // matc res // check "cholC" [cdat x]
-    return res
-  where r = rows x
+    r <- createMatrix RowMajor n n
+    ww2 withMatrix x withMatrix r $ \x r ->
+        c_cholC // x // r // check "cholC"
+    return r
+  where n = rows x
 foreign import ccall "gsl-aux.h cholC" c_cholC :: TCMCM
 
 
@@ -223,7 +231,8 @@ luSolveR a b = luSolveR' (cmat a) (cmat b)
 luSolveR' a b
     | n1==n2 && n1==r = unsafePerformIO $ do
         s <- createMatrix RowMajor r c
-        c_luSolveR // matc a // matc b // matc s // check "luSolveR" [cdat a, cdat b]
+        ww3 withMatrix a withMatrix b withMatrix s $ \ a b s ->
+            c_luSolveR // a // b // s // check "luSolveR"
         return s
     | otherwise = error "luSolveR of nonsquare matrix"
   where n1 = rows a
@@ -240,7 +249,8 @@ luSolveC a b = luSolveC' (cmat a) (cmat b)
 luSolveC' a b
     | n1==n2 && n1==r = unsafePerformIO $ do
         s <- createMatrix RowMajor r c
-        c_luSolveC // matc a // matc b // matc s // check "luSolveC" [cdat a, cdat b]
+        ww3 withMatrix a withMatrix b withMatrix s $ \ a b s ->
+            c_luSolveC // a // b // s // check "luSolveC"
         return s
     | otherwise = error "luSolveC of nonsquare matrix"
   where n1 = rows a
@@ -256,7 +266,8 @@ luRaux = luRaux' . cmat
 
 luRaux' x = unsafePerformIO $ do
     res <- createVector (r*r+r+1)
-    c_luRaux // matc x // vec res // check "luRaux" [cdat x]
+    ww2 withMatrix x withVector res $ \x res ->
+        c_luRaux // x // res // check "luRaux"
     return res
   where r = rows x
         c = cols x
@@ -269,7 +280,8 @@ luCaux = luCaux' . cmat
 
 luCaux' x = unsafePerformIO $ do
     res <- createVector (r*r+r+1)
-    c_luCaux // matc x // vec res // check "luCaux" [cdat x]
+    ww2 withMatrix x withVector res $ \x res ->
+        c_luCaux // x // res // check "luCaux"
     return res
   where r = rows x
         c = cols x

@@ -26,7 +26,6 @@ import Data.Packed.Matrix
 import Foreign
 import Complex
 
-
 -------------------------------------------------------------------------
 
 {- | The method of Nelder and Mead, implemented by /gsl_multimin_fminimizer_nmsimplex/. The gradient of the function is not required. This is the example in the GSL manual:
@@ -85,9 +84,10 @@ minimizeNMSimplex f xi sz tol maxit = unsafePerformIO $ do
         szv = fromList sz
         n   = dim xiv
     fp <- mkVecfun (iv (f.toList))
-    rawpath <- createMIO maxit (n+3)
-                         (c_minimizeNMSimplex fp tol maxit // vec xiv // vec szv) 
-                         "minimizeNMSimplex" [xiv,szv]
+    rawpath <- ww2 withVector xiv withVector szv $ \xiv szv ->
+                   createMIO maxit (n+3)
+                         (c_minimizeNMSimplex fp tol maxit // xiv // szv)
+                         "minimizeNMSimplex"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
         [sol] = toLists $ dropRows (it-1) path
@@ -150,9 +150,10 @@ minimizeConjugateGradient istep minimpar tol maxit f df xi = unsafePerformIO $ d
         df' = (fromList . df . toList)
     fp <- mkVecfun (iv f')
     dfp <- mkVecVecfun (aux_vTov df')
-    rawpath <- createMIO maxit (n+2)
-                         (c_minimizeConjugateGradient fp dfp istep minimpar tol maxit // vec xiv)
-                         "minimizeDerivV" [xiv]
+    rawpath <- withVector xiv $ \xiv ->
+                    createMIO maxit (n+2)
+                         (c_minimizeConjugateGradient fp dfp istep minimpar tol maxit // xiv)
+                         "minimizeDerivV"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
         sol = toList $ cdat $ dropColumns 2 $ dropRows (it-1) path
@@ -169,7 +170,7 @@ foreign import ccall "gsl-aux.h minimizeWithDeriv"
 
 ---------------------------------------------------------------------
 iv :: (Vector Double -> Double) -> (Int -> Ptr Double -> Double)
-iv f n p = f (createV n copy "iv" []) where
+iv f n p = f (createV n copy "iv") where
     copy n q = do 
         copyArray q p n
         return 0
@@ -187,25 +188,30 @@ foreign import ccall "wrapper"
 aux_vTov :: (Vector Double -> Vector Double) -> (Int -> Ptr Double -> Ptr Double -> IO())
 aux_vTov f n p r = g where
     v@V {fptr = pr} = f x
-    x = createV n copy "aux_vTov" []
+    x = createV n copy "aux_vTov"
     copy n q = do
         copyArray q p n
         return 0
-    g = withForeignPtr pr $ \_ -> copyArray r (ptr v) n
+    g = withForeignPtr pr $ \p -> copyArray r p n
 
 --------------------------------------------------------------------
 
-createV n fun msg ptrs = unsafePerformIO $ do
+
+createV n fun msg = unsafePerformIO $ do
     r <- createVector n
-    fun // vec r // check msg ptrs
+    withVector r $ \ r ->
+        fun // r // check msg
     return r
 
+{-
 createM r c fun msg ptrs = unsafePerformIO $ do
     r <- createMatrix RowMajor r c
     fun // matc r // check msg ptrs
     return r
+-}
 
-createMIO r c fun msg ptrs = do
+createMIO r c fun msg = do
     r <- createMatrix RowMajor r c
-    fun // matc r // check msg ptrs
+    withMatrix r $ \ r ->
+        fun // r // check msg
     return r
