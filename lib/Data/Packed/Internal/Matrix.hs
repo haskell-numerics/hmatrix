@@ -317,7 +317,7 @@ subMatrix = subMatrixD
 
 diagAux fun msg (v@V {dim = n}) = unsafePerformIO $ do
     m <- createMatrix RowMajor n n
-    fun // vec v // matc m // check msg [cdat m]
+    fun // vec v // matc m // check msg [v]
     return m -- {tdat = dat m}
 
 -- | diagonal matrix from a real vector
