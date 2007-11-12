@@ -24,7 +24,7 @@ module Data.Packed (
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import Data.Complex
-import Data.Packed.Internal
+import Data.Packed.Internal(fromComplex,toComplex,comp,conj)
 
 -- | conversion utilities
 class (Element e) => Container c e where
@@ -54,7 +54,7 @@ instance Container Vector (Complex Double) where
 instance Container Matrix Double where
     toComplex = uncurry $ liftMatrix2 $ curry Data.Packed.toComplex
     fromComplex z = (reshape c r, reshape c i)
-        where (r,i) = Data.Packed.fromComplex (cdat z)
+        where (r,i) = Data.Packed.fromComplex (flatten z)
               c = cols z
     comp = liftMatrix Data.Packed.Internal.comp
     conj = liftMatrix Data.Packed.Internal.conj

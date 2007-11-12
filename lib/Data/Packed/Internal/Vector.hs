@@ -27,10 +27,11 @@ import Foreign.C.Types
 import Data.Monoid
 
 -- | A one-dimensional array of objects stored in a contiguous memory block.
-data Vector t = V { dim  :: Int            -- ^ number of elements
-                  , fptr :: ForeignPtr t   -- ^ foreign pointer to the memory block
-                  , ptr  :: Ptr t          -- ^ ordinary pointer to the actual starting address (usually the same)
+data Vector t = V { dim  :: Int              -- ^ number of elements
+                  , fptr :: ForeignPtr t     -- ^ foreign pointer to the memory block
                   }
+
+ptr (V _ fptr) = unsafeForeignPtrToPtr fptr
 
 -- | check the error code and touch foreign ptr of vector arguments (if any)
 check :: String -> [Vector a] -> IO Int -> IO ()
@@ -63,9 +64,7 @@ createVector :: Storable a => Int -> IO (Vector a)
 createVector n = do
     when (n <= 0) $ error ("trying to createVector of dim "++show n)
     fp <- mallocForeignPtrArray n
-    let p = unsafeForeignPtrToPtr fp
-    --putStrLn ("\n---------> V"++show n)
-    return $ V n fp p
+    return $ V n fp
 
 {- | creates a Vector from a list:
 
@@ -80,7 +79,7 @@ fromList l = unsafePerformIO $ do
     f // vec v // check "fromList" []
     return v
 
-safeRead v f = unsafePerformIO $ withForeignPtr (fptr v) $ const $ f (ptr v)
+safeRead v = unsafePerformIO . withForeignPtr (fptr v)
 
 {- | extracts the Vector elements to a list
 
@@ -115,18 +114,13 @@ subVector :: Storable t => Int       -- ^ index of the starting element
                         -> Int       -- ^ number of elements to extract
                         -> Vector t  -- ^ source
                         -> Vector t  -- ^ result
-subVector k l (v@V {dim=n, ptr=p, fptr=fp})
+subVector k l (v@V {dim=n})
     | k<0 || k >= n || k+l > n || l < 0 = error "subVector out of range"
     | otherwise = unsafePerformIO $ do
         r <- createVector l
-        let f = copyArray (ptr r) (advancePtr p k) l >> return 0
-        f // check "subVector" [v]
+        let f = copyArray (ptr r) (advancePtr (ptr v) k) l >> return 0
+        f // check "subVector" [v,r]
         return r
-
-subVector' k l (v@V {dim=n, ptr=p, fptr=fp})
-    | k<0 || k >= n || k+l > n || l < 0 = error "subVector out of range"
-    | otherwise = v {dim=l, ptr=advancePtr p k}
-
 
 {- | Reads a vector position:
 
@@ -149,23 +143,23 @@ join :: Storable t => [Vector t] -> Vector t
 join [] = error "joining zero vectors"
 join as = unsafePerformIO $ do
     let tot = sum (map dim as)
-    r@V {fptr = p, ptr = p'} <- createVector tot
+    r@V {fptr = p} <- createVector tot
     withForeignPtr p $ \_ ->
-        joiner as tot p'
+        joiner as tot (ptr r)
     return r
   where joiner [] _ _ = return ()
-        joiner (V {dim = n, fptr = b, ptr = q} : cs) _ p = do
-            withForeignPtr b  $ \_ -> copyArray p q n
+        joiner (r@V {dim = n, fptr = b} : cs) _ p = do
+            withForeignPtr b  $ \_ -> copyArray p (ptr r) n
             joiner cs 0 (advancePtr p n)
 
 
 -- | transforms a complex vector into a real vector with alternating real and imaginary parts 
 asReal :: Vector (Complex Double) -> Vector Double
-asReal v = V { dim = 2*dim v, fptr =  castForeignPtr (fptr v), ptr = castPtr (ptr v) }
+asReal v = V { dim = 2*dim v, fptr =  castForeignPtr (fptr v) }
 
 -- | transforms a real vector into a complex vector with alternating real and imaginary parts
 asComplex :: Vector Double -> Vector (Complex Double)
-asComplex v = V { dim = dim v `div` 2, fptr =  castForeignPtr (fptr v), ptr = castPtr (ptr v) }
+asComplex v = V { dim = dim v `div` 2, fptr =  castForeignPtr (fptr v) }
 
 ----------------------------------------------------------------
 

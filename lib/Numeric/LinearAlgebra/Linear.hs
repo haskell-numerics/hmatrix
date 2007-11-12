@@ -20,7 +20,7 @@ module Numeric.LinearAlgebra.Linear (
 ) where
 
 
-import Data.Packed.Internal
+import Data.Packed.Internal(multiply,at,partit)
 import Data.Packed
 import Numeric.GSL.Vector
 import Complex
@@ -68,7 +68,7 @@ instance Linear Matrix Double where
     sub = liftMatrix2 sub
     mul = liftMatrix2 mul
     divide = liftMatrix2 divide
-    equal a b = cols a == cols b && cdat a `equal` cdat b
+    equal a b = cols a == cols b && flatten a `equal` flatten b
 
 
 instance Linear Matrix (Complex Double) where
@@ -79,13 +79,13 @@ instance Linear Matrix (Complex Double) where
     sub = liftMatrix2 sub
     mul = liftMatrix2 mul
     divide = liftMatrix2 divide
-    equal a b = cols a == cols b && cdat a `equal` cdat b
+    equal a b = cols a == cols b && flatten a `equal` flatten b
 
 --------------------------------------------------
 
 -- | euclidean inner product
 dot :: (Element t) => Vector t -> Vector t -> t
-dot u v = dat (multiply r c) `at` 0
+dot u v = multiply r c  @@> (0,0)
     where r = asRow u
           c = asColumn v
 

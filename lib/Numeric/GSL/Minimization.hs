@@ -186,12 +186,12 @@ foreign import ccall "wrapper"
 
 aux_vTov :: (Vector Double -> Vector Double) -> (Int -> Ptr Double -> Ptr Double -> IO())
 aux_vTov f n p r = g where
-    V {fptr = pr, ptr = t} = f x
+    v@V {fptr = pr} = f x
     x = createV n copy "aux_vTov" []
     copy n q = do
         copyArray q p n
         return 0
-    g = withForeignPtr pr $ \_ -> copyArray r t n
+    g = withForeignPtr pr $ \_ -> copyArray r (ptr v) n
 
 --------------------------------------------------------------------
 
@@ -202,10 +202,10 @@ createV n fun msg ptrs = unsafePerformIO $ do
 
 createM r c fun msg ptrs = unsafePerformIO $ do
     r <- createMatrix RowMajor r c
-    fun // mat cdat r // check msg ptrs
+    fun // matc r // check msg ptrs
     return r
 
 createMIO r c fun msg ptrs = do
     r <- createMatrix RowMajor r c
-    fun // mat cdat r // check msg ptrs
+    fun // matc r // check msg ptrs
     return r

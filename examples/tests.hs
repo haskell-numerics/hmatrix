@@ -2,7 +2,7 @@
 
 module Main where
 
-import Data.Packed.Internal((>|<), fdat, cdat, multiply', multiplyG, MatrixOrder(..),debug)
+import Data.Packed.Internal((>|<), multiply', multiplyG, MatrixOrder(..),debug,fmat)
 import Numeric.GSL hiding (sin,cos,exp,choose)
 import Numeric.LinearAlgebra
 import Numeric.LinearAlgebra.Linear(Linear)
@@ -329,8 +329,8 @@ expmTestDiag m = expm (logm m) |~| complex m
 
 ---------------------------------------------------------------------
 
-asFortran m = (rows m >|< cols m) $ toList (fdat m)
-asC m = (rows m >< cols m) $ toList (cdat m)
+asFortran m = (rows m >|< cols m) $ toList (flatten $ trans  m)
+asC m = (rows m >< cols m) $ toList (flatten m)
 
 mulC a b = multiply' RowMajor a b
 mulF a b = multiply' ColumnMajor a b
@@ -383,8 +383,8 @@ tests = do
     quickCheck (svdTest' svdC)
     quickCheck (svdTest' svdg)
     putStrLn "--------- eig ---------"
-    quickCheck (eigTest   . sqm :: SqM Double -> Bool)
-    quickCheck (eigTest   . sqm :: SqM (Complex Double) -> Bool)
+    quickCheck (eigTest  . sqm :: SqM Double -> Bool)
+    quickCheck (eigTest  . sqm :: SqM (Complex Double) -> Bool)
     quickCheck (eigTestSH . sym :: Sym Double -> Bool)
     quickCheck (eigTestSH . her :: Her -> Bool)
     putStrLn "--------- inv ------"

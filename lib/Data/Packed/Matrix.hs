@@ -44,7 +44,7 @@ import Data.Array
 joinVert :: Element t => [Matrix t] -> Matrix t
 joinVert ms = case common cols ms of
     Nothing -> error "joinVert on matrices with different number of columns"
-    Just c  -> reshape c $ join (map cdat ms)
+    Just c  -> reshape c $ join (map flatten ms)
 
 -- | creates a matrix from a horizontal list of matrices
 joinHoriz :: Element t => [Matrix t] -> Matrix t
@@ -94,7 +94,7 @@ diagRect s r c
 
 -- | extracts the diagonal from a rectangular matrix
 takeDiag :: (Element t) => Matrix t -> Vector t
-takeDiag m = fromList [cdat m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
+takeDiag m = fromList [flatten m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
 
 -- | creates the identity matrix of given dimension
 ident :: Element a => Int -> Matrix a
@@ -135,14 +135,6 @@ dropColumns :: Element t => Int -> Matrix t -> Matrix t
 dropColumns n mat = subMatrix (0,n) (rows mat, cols mat - n) mat
 
 ----------------------------------------------------------------
-
-{- | Creates a vector by concatenation of rows
-
-@\> flatten ('ident' 3)
-9 |> [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]@
--}
-flatten :: Element t => Matrix t -> Vector t
-flatten = cdat
 
 {- | Creates a 'Matrix' from a list of lists (considered as rows).
 

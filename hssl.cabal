@@ -23,7 +23,7 @@ flag splitBase
 library
     if flag(splitBase)
       build-depends: base >= 3, array
-      ghc-options:   -O0
+      ghc-options:   -O
     else
       build-depends: base < 3
       ghc-options:   -O

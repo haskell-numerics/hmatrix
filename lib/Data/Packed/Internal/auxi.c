@@ -125,11 +125,26 @@ int multiplyR(int ta, KRMAT(a), int tb, KRMAT(b),RMAT(r)) {
     KDMVIEW(a);
     KDMVIEW(b);
     DMVIEW(r);
+    int k;
+    for(k=0;k<rr*rc;k++) rp[k]=0;
+    int debug = 0;
+    if(debug) {
+        printf("---------------------------\n");
+        printf("%p: ",ap); for(k=0;k<ar*ac;k++) printf("%f ",ap[k]); printf("\n");
+        printf("%p: ",bp); for(k=0;k<br*bc;k++) printf("%f ",bp[k]); printf("\n");
+        printf("%p: ",rp); for(k=0;k<rr*rc;k++) printf("%f ",rp[k]); printf("\n");
+    }
     int res = gsl_blas_dgemm(
          ta?CblasTrans:CblasNoTrans,
          tb?CblasTrans:CblasNoTrans,
          1.0, M(a), M(b),
          0.0, M(r));
+    if(debug) {
+        printf("--------------\n");
+        printf("%p: ",ap); for(k=0;k<ar*ac;k++) printf("%f ",ap[k]); printf("\n");
+        printf("%p: ",bp); for(k=0;k<br*bc;k++) printf("%f ",bp[k]); printf("\n");
+        printf("%p: ",rp); for(k=0;k<rr*rc;k++) printf("%f ",rp[k]); printf("\n");
+    }
     CHECK(res,res);
     OK
 }
@@ -140,14 +155,36 @@ int multiplyC(int ta, KCMAT(a), int tb, KCMAT(b),CMAT(r)) {
     KCMVIEW(a);
     KCMVIEW(b);
     CMVIEW(r);
+    int k;
     gsl_complex alpha, beta;
     GSL_SET_COMPLEX(&alpha,1.,0.);
     GSL_SET_COMPLEX(&beta,0.,0.);
+    //double *TEMP = (double*)malloc(rr*rc*2*sizeof(double));
+    //gsl_matrix_complex_view T = gsl_matrix_complex_view_array(TEMP,rr,rc);
+    for(k=0;k<rr*rc;k++) rp[k]=beta;
+    //for(k=0;k<2*rr*rc;k++) TEMP[k]=0;
+    int debug = 0;
+    if(debug) {
+        printf("---------------------------\n");
+        printf("%p: ",ap); for(k=0;k<2*ar*ac;k++) printf("%f ",((double*)ap)[k]); printf("\n");
+        printf("%p: ",bp); for(k=0;k<2*br*bc;k++) printf("%f ",((double*)bp)[k]); printf("\n");
+        printf("%p: ",rp); for(k=0;k<2*rr*rc;k++) printf("%f ",((double*)rp)[k]); printf("\n");
+        //printf("%p: ",T); for(k=0;k<2*rr*rc;k++) printf("%f ",TEMP[k]); printf("\n");
+    }
     int res = gsl_blas_zgemm(
          ta?CblasTrans:CblasNoTrans,
          tb?CblasTrans:CblasNoTrans,
          alpha, M(a), M(b),
-         beta, M(r));
+         beta, M(r)); 
+         //&T.matrix);
+    //memcpy(rp,TEMP,2*rr*rc*sizeof(double));
+    if(debug) {
+        printf("--------------\n");
+        printf("%p: ",ap); for(k=0;k<2*ar*ac;k++) printf("%f ",((double*)ap)[k]); printf("\n");
+        printf("%p: ",bp); for(k=0;k<2*br*bc;k++) printf("%f ",((double*)bp)[k]); printf("\n");
+        printf("%p: ",rp); for(k=0;k<2*rr*rc;k++) printf("%f ",((double*)rp)[k]); printf("\n");
+        //printf("%p: ",T); for(k=0;k<2*rr*rc;k++) printf("%f ",TEMP[k]); printf("\n");
+    }
     CHECK(res,res);
     OK
 }

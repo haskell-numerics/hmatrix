@@ -62,21 +62,35 @@ import Data.List(transpose)
 data MatrixOrder = RowMajor | ColumnMajor deriving (Show,Eq)
 
 -- | Matrix representation suitable for GSL and LAPACK computations.
-data Matrix t = MC { rows :: Int, cols :: Int, cdat :: Vector t, fdat :: Vector t }
-              | MF { rows :: Int, cols :: Int, fdat :: Vector t, cdat :: Vector t }
+data Matrix t = MC { rows :: Int, cols :: Int, cdat :: Vector t }
+              | MF { rows :: Int, cols :: Int, fdat :: Vector t }
 
 -- MC: preferred by C, fdat may require a transposition
 -- MF: preferred by LAPACK, cdat may require a transposition
 
 -- | Matrix transpose.
 trans :: Matrix t -> Matrix t
-trans MC {rows = r, cols = c, cdat = d, fdat = dt } = MF {rows = c, cols = r, fdat = d, cdat = dt }
-trans MF {rows = r, cols = c, fdat = d, cdat = dt } = MC {rows = c, cols = r, cdat = d, fdat = dt }
+trans MC {rows = r, cols = c, cdat = d } = MF {rows = c, cols = r, fdat = d }
+trans MF {rows = r, cols = c, fdat = d } = MC {rows = c, cols = r, cdat = d }
 
-dat MC { cdat = d } = d
-dat MF { fdat = d } = d
+cmat m@MC{} = m
+cmat MF {rows = r, cols = c, fdat = d } = MC {rows = r, cols = c, cdat = transdata r d c}
 
-mat d m f = f (rows m) (cols m) (ptr (d m))
+fmat m@MF{} = m
+fmat MC {rows = r, cols = c, cdat = d } = MF {rows = r, cols = c, fdat = transdata c d r}
+
+matc m f = f (rows m) (cols m) (ptr (cdat m))
+matf m f = f (rows m) (cols m) (ptr (fdat m))
+
+
+{- | Creates a vector by concatenation of rows
+
+@\> flatten ('ident' 3)
+9 |> [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]@
+-}
+flatten :: Element t => Matrix t -> Vector t
+flatten = cdat . cmat
+
 
 type Mt t s = Int -> Int -> Ptr t -> s
 -- not yet admitted by my haddock version
@@ -85,7 +99,7 @@ type Mt t s = Int -> Int -> Ptr t -> s
 
 -- | the inverse of 'Data.Packed.Matrix.fromLists'
 toLists :: (Element t) => Matrix t -> [[t]]
-toLists m = partit (cols m) . toList . cdat $ m
+toLists m = partit (cols m) . toList . flatten $ m
 
 -- | creates a Matrix from a list of vectors
 fromRows :: Element t => [Vector t] -> Matrix t
@@ -96,7 +110,7 @@ fromRows vs = case common dim vs of
 -- | extracts the rows of a matrix as a list of vectors
 toRows :: Element t => Matrix t -> [Vector t]
 toRows m = toRows' 0 where
-    v = cdat m
+    v = flatten $ m
     r = rows m
     c = cols m
     toRows' k | k == r*c  = []
@@ -128,12 +142,12 @@ MF {rows = r, cols = c, fdat = v} @@> (i,j)
 
 ------------------------------------------------------------------
 
-matrixFromVector RowMajor c v = MC { rows = r, cols = c, cdat = v, fdat = transdata c v r }
+matrixFromVector RowMajor c v = MC { rows = r, cols = c, cdat = v }
     where (d,m) = dim v `divMod` c
           r | m==0 = d
             | otherwise = error "matrixFromVector"
 
-matrixFromVector ColumnMajor c v = MF { rows = r, cols = c, fdat = v, cdat = transdata r v c }
+matrixFromVector ColumnMajor c v = MF { rows = r, cols = c, fdat = v }
     where (d,m) = dim v `divMod` c
           r | m==0 = d
             | otherwise = error "matrixFromVector"
@@ -167,8 +181,8 @@ liftMatrix2 :: (Element t, Element a, Element b) => (Vector a -> Vector b -> Vec
 liftMatrix2 f m1 m2
     | not (compat m1 m2) = error "nonconformant matrices in liftMatrix2"
     | otherwise = case m1 of
-        MC {} -> matrixFromVector RowMajor    (cols m1) (f (cdat m1) (cdat m2))
-        MF {} -> matrixFromVector ColumnMajor (cols m1) (f (fdat m1) (fdat m2))
+        MC {} -> matrixFromVector RowMajor    (cols m1) (f (cdat m1) (flatten m2))
+        MF {} -> matrixFromVector ColumnMajor (cols m1) (f (fdat m1) ((fdat.fmat) m2))
 
 
 compat :: Matrix a -> Matrix b -> Bool
@@ -222,8 +236,8 @@ transdataAux fun c1 d c2 =
         then d
         else unsafePerformIO $ do
             v <- createVector (dim d)
-            fun r1 c1 (ptr d) r2 c2 (ptr v) // check "transdataAux" [d]
-            --putStrLn "---> transdataAux"
+            fun r1 c1 (ptr d) r2 c2 (ptr v) // check "transdataAux" [d,v]
+            -- putStrLn $ "---> transdataAux" ++ show (toList d) ++ show (toList v)
             return v
   where r1 = dim d `div` c1
         r2 = dim d `div` c2
@@ -239,11 +253,14 @@ foreign import ccall safe "auxi.h transC"
 gmatC MF {rows = r, cols = c, fdat = d} f = f 1 c r (ptr d)
 gmatC MC {rows = r, cols = c, cdat = d} f = f 0 r c (ptr d)
 
+dtt MC { cdat = d } = d
+dtt MF { fdat = d } = d
+
 multiplyAux fun a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $ "inconsistent dimensions in contraction "++
                                       show (rows a,cols a) ++ " x " ++ show (rows b, cols b)
     r <- createMatrix RowMajor (rows a) (cols b)
-    fun // gmatC a // gmatC b // mat dat r // check "multiplyAux" [dat a, dat b]
+    fun // gmatC a // gmatC b // matc r // check "multiplyAux" [dtt a, dtt b, cdat r]
     return r
 
 multiplyR = multiplyAux cmultiplyR
@@ -273,18 +290,19 @@ multiply = multiplyD
 
 -- | extraction of a submatrix from a real matrix
 subMatrixR :: (Int,Int) -> (Int,Int) -> Matrix Double -> Matrix Double
-subMatrixR (r0,c0) (rt,ct) x = unsafePerformIO $ do
+subMatrixR (r0,c0) (rt,ct) x' = unsafePerformIO $ do
     r <- createMatrix RowMajor rt ct
-    c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1) // mat cdat x // mat dat r // check "subMatrixR" [dat r]
+    let x = cmat x'
+    c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1) // matc x // matc r // check "subMatrixR" [cdat x]
     return r
 foreign import ccall "auxi.h submatrixR" c_submatrixR :: Int -> Int -> Int -> Int -> TMM
 
 -- | extraction of a submatrix from a complex matrix
 subMatrixC :: (Int,Int) -> (Int,Int) -> Matrix (Complex Double) -> Matrix (Complex Double)
 subMatrixC (r0,c0) (rt,ct) x =
-    reshape ct . asComplex . cdat .
+    reshape ct . asComplex . flatten .
     subMatrixR (r0,2*c0) (rt,2*ct) .
-    reshape (2*cols x) . asReal . cdat $ x
+    reshape (2*cols x) . asReal . flatten $ x
 
 -- | Extracts a submatrix from a matrix.
 subMatrix :: Element a
@@ -299,7 +317,7 @@ subMatrix = subMatrixD
 
 diagAux fun msg (v@V {dim = n}) = unsafePerformIO $ do
     m <- createMatrix RowMajor n n
-    fun // vec v // mat cdat m // check msg [dat m]
+    fun // vec v // matc m // check msg [cdat m]
     return m -- {tdat = dat m}
 
 -- | diagonal matrix from a real vector
@@ -347,11 +365,11 @@ constant = constantD
 
 -- | obtains the complex conjugate of a complex vector
 conj :: Vector (Complex Double) -> Vector (Complex Double)
-conj v = asComplex $ cdat $ reshape 2 (asReal v) `multiply` diag (fromList [1,-1])
+conj v = asComplex $ flatten $ reshape 2 (asReal v) `multiply` diag (fromList [1,-1])
 
 -- | creates a complex vector from vectors with real and imaginary parts
 toComplex :: (Vector Double, Vector Double) ->  Vector (Complex Double)
-toComplex (r,i) = asComplex $ cdat $ fromColumns [r,i]
+toComplex (r,i) = asComplex $ flatten $ fromColumns [r,i]
 
 -- | the inverse of 'toComplex'
 fromComplex :: Vector (Complex Double) -> (Vector Double, Vector Double)
@@ -367,7 +385,7 @@ fromFile :: FilePath -> (Int,Int) -> IO (Matrix Double)
 fromFile filename (r,c) = do
     charname <- newCString filename
     res <- createMatrix RowMajor r c
-    c_gslReadMatrix charname // mat dat res // check "gslReadMatrix" []
+    c_gslReadMatrix charname // matc res // check "gslReadMatrix" []
     --free charname  -- TO DO: free the auxiliary CString
     return res
 foreign import ccall "auxi.h matrix_fscanf" c_gslReadMatrix:: Ptr CChar -> TM

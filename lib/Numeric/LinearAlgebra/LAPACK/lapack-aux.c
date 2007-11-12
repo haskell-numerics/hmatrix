@@ -709,6 +709,11 @@ int schur_l_R(KDMAT(a), DMAT(u), DMAT(s)) {
     integer n = ac;
     REQUIRES(m>=1 && n==m && ur==n && uc==n && sr==n && sc==n, BAD_SIZE);
     DEBUGMSG("schur_l_R");
+    int k;
+    //printf("---------------------------\n");
+    //printf("%p: ",ap); for(k=0;k<n*n;k++) printf("%f ",ap[k]); printf("\n");
+    //printf("%p: ",up); for(k=0;k<n*n;k++) printf("%f ",up[k]); printf("\n");
+    //printf("%p: ",sp); for(k=0;k<n*n;k++) printf("%f ",sp[k]); printf("\n");
     memcpy(sp,ap,n*n*sizeof(double));
     integer lwork = 6*n; // fixme
     double *WORK = (double*)malloc(lwork*sizeof(double));
@@ -719,6 +724,12 @@ int schur_l_R(KDMAT(a), DMAT(u), DMAT(s)) {
     integer res;
     integer sdim;
     dgees_ ("V","N",NULL,&n,sp,&n,&sdim,WR,WI,up,&n,WORK,&lwork,BWORK,&res);
+    //printf("%p: ",ap); for(k=0;k<n*n;k++) printf("%f ",ap[k]); printf("\n");
+    //printf("%p: ",up); for(k=0;k<n*n;k++) printf("%f ",up[k]); printf("\n");
+    //printf("%p: ",sp); for(k=0;k<n*n;k++) printf("%f ",sp[k]); printf("\n");
+    if(res>0) {
+        return NOCONVER;
+    }
     CHECK(res,res);
     free(WR);
     free(WI);
@@ -747,6 +758,9 @@ int schur_l_C(KCMAT(a), CMAT(u), CMAT(s)) {
     zgees_ ("V","N",NULL,&n,(doublecomplex*)sp,&n,&sdim,W,
                             (doublecomplex*)up,&n,
                             WORK,&lwork,RWORK,BWORK,&res);
+    if(res>0) {
+        return NOCONVER;
+    }
     CHECK(res,res);
     free(W);
     free(BWORK);
