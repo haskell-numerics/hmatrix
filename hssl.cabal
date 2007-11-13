@@ -13,7 +13,7 @@ Description:        A purely functional interface to basic linear algebra comput
                     .
                     More information: <http://alberrto.googlepages.com/gslhaskell>
 Category:           Numerical, Math
-tested-with:        GHC ==6.6.1
+tested-with:        GHC ==6.6.1, GHC ==6.8.1
 
 cabal-version:      >=1.2
 
@@ -23,7 +23,7 @@ flag splitBase
 library
     if flag(splitBase)
       build-depends: base >= 3, array
-      ghc-options:   -O
+      ghc-options:   -O -fvia-C
     else
       build-depends: base < 3
       ghc-options:   -O
