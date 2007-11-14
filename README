@@ -19,9 +19,7 @@ For example, in Ubuntu Linux we need:
 - atlas3-base-dev
 
 You can also install an atlas version specifically tuned
-for your machine (e.g., atlas3-sse2-dev, atlas3-3dnow-dev, etc.).
-However, do not install atlas3-sse2-dev on ubuntu 6.06 Dapper
-(see the TESTS section below).
+for your machine (but see the TESTS section below).
 
 The following packages are used for simple graphics:
 

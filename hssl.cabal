@@ -18,17 +18,18 @@ tested-with:        GHC ==6.6.1, GHC ==6.8.1
 cabal-version:      >=1.2
 
 flag splitBase
-    description: Choose the new smaller, split-up base package.
+    description:        Choose the new smaller, split-up base package.
 
 library
     if flag(splitBase)
-      build-depends: base >= 3, array
-      ghc-options:   -O -fvia-C
-    else
-      build-depends: base < 3
-      ghc-options:   -O
+      build-depends:    base >= 3, array
+      ghc-options:      -O -fvia-C
 
-    Build-Depends:      base, haskell98
+    else
+      build-depends:    base < 3
+      ghc-options:      -O
+
+    Build-Depends:      haskell98
     Extensions:         ForeignFunctionInterface
 
     hs-source-dirs:     lib
