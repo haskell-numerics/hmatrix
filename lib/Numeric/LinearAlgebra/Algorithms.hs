@@ -388,7 +388,7 @@ diagonalize m = if rank v == n
 matFunc :: Field t => (Complex Double -> Complex Double) -> Matrix t -> Matrix (Complex Double)
 matFunc f m = case diagonalize (complex m) of
     Just (l,v) -> v `mXm` diag (liftVector f l) `mXm` inv v
-    Nothing -> error "Sorry, matFunc requieres a diagonalizable matrix" 
+    Nothing -> error "Sorry, matFunc requires a diagonalizable matrix" 
 
 --------------------------------------------------------------
 
@@ -413,13 +413,16 @@ expGolub m = iterate msq f !! j
               where k' = k+1
                     c' = c * fromIntegral (q-k+1) / fromIntegral ((2*q-k+1)*k)
                     x' = a <> x
-                    n' = n `add` (c' `scale` x')
-                    d' = d `add` (((-1)^k * c') `scale` x')
+                    n' = n |+| (c' .* x')
+                    d' = d |+| (((-1)^k * c') .* x')
           (_,_,_,n,d) = iterate work (1,1,eye,eye,eye) !! q
           f = linearSolve d n
           msq m = m <> m
+
           (<>) = multiply
           v */ x = scale (recip x) v
+          (.*) = scale
+          (|+|) = add
 
 {- | Matrix exponential. It uses a direct translation of Algorithm 11.3.1 in Golub & Van Loan,
      based on a scaled Pade approximation.
