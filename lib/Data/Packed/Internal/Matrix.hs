@@ -79,8 +79,7 @@ cmat MF {rows = r, cols = c, fdat = d } = MC {rows = r, cols = c, cdat = transda
 fmat m@MF{} = m
 fmat MC {rows = r, cols = c, cdat = d } = MF {rows = r, cols = c, fdat = transdata c d r}
 
---matc m f = f (rows m) (cols m) (ptr (cdat m))
---matf m f = f (rows m) (cols m) (ptr (fdat m))
+mat = withMatrix
 
 withMatrix MC {rows = r, cols = c, cdat = d } f =
     withForeignPtr (fptr d) $ \p -> do
@@ -308,8 +307,7 @@ subMatrixR :: (Int,Int) -> (Int,Int) -> Matrix Double -> Matrix Double
 subMatrixR (r0,c0) (rt,ct) x' = unsafePerformIO $ do
     r <- createMatrix RowMajor rt ct
     let x = cmat x'
-    ww2 withMatrix x withMatrix r $ \x r ->
-        c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1) // x // r // check "subMatrixR"
+    app2 (c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1)) mat x mat r "subMatrixR"
     return r
 foreign import ccall "auxi.h submatrixR" c_submatrixR :: Int -> Int -> Int -> Int -> TMM
 
@@ -333,8 +331,7 @@ subMatrix = subMatrixD
 
 diagAux fun msg (v@V {dim = n}) = unsafePerformIO $ do
     m <- createMatrix RowMajor n n
-    ww2 withVector v withMatrix m $ \v m ->
-        fun // v // m // check msg
+    app2 fun vec v mat m msg
     return m
 
 -- | diagonal matrix from a real vector
@@ -356,19 +353,18 @@ diag = diagD
 constantAux fun x n = unsafePerformIO $ do
     v <- createVector n
     px <- newArray [x]
-    withVector v $ \v ->
-        fun px // v // check "constantAux"
+    app1 (fun px) vec v "constantAux"
     free px
     return v
 
 constantR :: Double -> Int -> Vector Double
 constantR = constantAux cconstantR
-foreign import ccall safe "auxi.h constantR"
+foreign import ccall "auxi.h constantR"
     cconstantR :: Ptr Double -> TV -- Double :> IO Int
 
 constantC :: Complex Double -> Int -> Vector (Complex Double)
 constantC = constantAux cconstantC
-foreign import ccall safe "auxi.h constantC"
+foreign import ccall "auxi.h constantC"
     cconstantC :: Ptr (Complex Double) -> TCV -- Complex Double :> IO Int
 
 {- | creates a vector with a given number of equal components:
@@ -403,8 +399,7 @@ fromFile :: FilePath -> (Int,Int) -> IO (Matrix Double)
 fromFile filename (r,c) = do
     charname <- newCString filename
     res <- createMatrix RowMajor r c
-    withMatrix res $ \res ->
-        c_gslReadMatrix charname // res // check "gslReadMatrix"
+    app1 (c_gslReadMatrix charname) mat res "gslReadMatrix"
     --free charname  -- TO DO: free the auxiliary CString
     return res
 foreign import ccall "auxi.h matrix_fscanf" c_gslReadMatrix:: Ptr CChar -> TM

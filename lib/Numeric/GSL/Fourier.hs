@@ -26,8 +26,7 @@ import Foreign
 
 genfft code v = unsafePerformIO $ do
     r <- createVector (dim v)
-    ww2 withVector v withVector r $ \ v r ->
-        c_fft code // v // r // check "fft"
+    app2 (c_fft code) vec v vec r "fft"
     return r
 
 foreign import ccall "gsl-aux.h fft" c_fft ::  Int -> TCVCV

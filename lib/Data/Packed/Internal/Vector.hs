@@ -21,10 +21,6 @@ import Foreign
 import Complex
 import Control.Monad(when)
 import Data.List(transpose)
-import Debug.Trace(trace)
-import Foreign.C.String(peekCString)
-import Foreign.C.Types
-import Data.Monoid
 
 -- | A one-dimensional array of objects stored in a contiguous memory block.
 data Vector t = V { dim  :: Int              -- ^ number of elements
@@ -33,30 +29,14 @@ data Vector t = V { dim  :: Int              -- ^ number of elements
 
 --ptr (V _ fptr) = unsafeForeignPtrToPtr fptr
 
--- | check the error code
-check :: String -> IO Int -> IO ()
-check msg f = do
-    err <- f
-    when (err/=0) $ if err > 1024
-                      then (error (msg++": "++errorCode err)) -- our errors
-                      else do                                 -- GSL errors
-                        ps <- gsl_strerror err
-                        s <- peekCString ps
-                        error (msg++": "++s)
-    return ()
-
--- | description of GSL error codes
-foreign import ccall "auxi.h gsl_strerror" gsl_strerror :: Int -> IO (Ptr CChar)
-
 -- | signature of foreign functions admitting C-style vectors
 type Vc t s = Int -> Ptr t -> s
 -- not yet admitted by my haddock version
 -- infixr 5 :>
 -- type t :> s = Vc t s
 
---- | adaptation of our vectors to be admitted by foreign functions: @f \/\/ vec v@
---vec :: Vector t -> (Vc t s) -> s
---vec v f = f (dim v) (ptr v)
+
+vec = withVector
 
 withVector (V n fp) f = withForeignPtr fp $ \p -> do
     let v f = do
@@ -80,8 +60,7 @@ fromList :: Storable a => [a] -> Vector a
 fromList l = unsafePerformIO $ do
     v <- createVector (length l)
     let f _ p = pokeArray p l >> return 0
-    withVector v $ \v ->
-        f // v // check "fromList"
+    app1 f vec v "fromList"
     return v
 
 safeRead v = unsafePerformIO . withForeignPtr (fptr v)
@@ -124,8 +103,7 @@ subVector k l (v@V {dim=n})
     | otherwise = unsafePerformIO $ do
         r <- createVector l
         let f _ s _ d = copyArray d (advancePtr s k) l >> return 0
-        ww2 withVector v withVector r $ \v r ->
-            f // v // r // check "subVector"
+        app2 f vec v vec r "subVector"
         return r
 
 {- | Reads a vector position:

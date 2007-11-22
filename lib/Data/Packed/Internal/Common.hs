@@ -23,6 +23,8 @@ import Debug.Trace
 import Data.List(transpose,intersperse)
 import Data.Typeable
 import Data.Maybe(fromJust)
+import Foreign.C.String(peekCString)
+import Foreign.C.Types
 
 ----------------------------------------------------------------------
 instance (Storable a, RealFloat a) => Storable (Complex a) where    --
@@ -65,6 +67,13 @@ ww2 w1 o1 w2 o2 f = w1 o1 $ \a1 -> w2 o2 $ \a2 -> f a1 a2
 ww3 w1 o1 w2 o2 w3 o3 f = w1 o1 $ \a1 -> ww2 w2 o2 w3 o3 (f a1)
 ww4 w1 o1 w2 o2 w3 o3 w4 o4 f = w1 o1 $ \a1 -> ww3 w2 o2 w3 o3 w4 o4 (f a1)
 
+app1 f w1 o1 s = w1 o1 $ \a1 -> f // a1 // check s
+app2 f w1 o1 w2 o2 s = ww2 w1 o1 w2 o2 $ \a1 a2 -> f // a1 // a2 // check s
+app3 f w1 o1 w2 o2 w3 o3 s = ww3 w1 o1 w2 o2 w3 o3 $
+     \a1 a2 a3 -> f // a1 // a2 // a3 // check s
+app4 f w1 o1 w2 o2 w3 o3 w4 o4 s = ww4 w1 o1 w2 o2 w3 o3 w4 o4 $ 
+     \a1 a2 a3 a4 -> f // a1 // a2 // a3 // a4 // check s
+
 -- GSL error codes are <= 1024
 -- | error codes for the auxiliary functions required by the wrappers
 errorCode :: Int -> String
@@ -77,6 +86,22 @@ errorCode 2005 = "didn't converge"
 errorCode 2006 = "the input matrix is not positive definite"
 errorCode 2007 = "not yet supported in this OS"
 errorCode n    = "code "++show n
+
+-- | check the error code
+check :: String -> IO Int -> IO ()
+check msg f = do
+    err <- f
+    when (err/=0) $ if err > 1024
+                      then (error (msg++": "++errorCode err)) -- our errors
+                      else do                                 -- GSL errors
+                        ps <- gsl_strerror err
+                        s <- peekCString ps
+                        error (msg++": "++s)
+    return ()
+
+-- | description of GSL error codes
+foreign import ccall "auxi.h gsl_strerror" gsl_strerror :: Int -> IO (Ptr CChar)
+
 
 {- | conversion of Haskell functions into function pointers that can be used in the C side
 -}

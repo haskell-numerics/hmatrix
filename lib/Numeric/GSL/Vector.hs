@@ -73,28 +73,24 @@ data FunCodeS = Norm2
 
 toScalarAux fun code v = unsafePerformIO $ do
     r <- createVector 1
-    ww2 withVector v withVector r $ \v r ->
-        fun (fromEnum code) // v // r // check "toScalarAux"
+    app2 (fun (fromEnum code)) vec v vec r "toScalarAux"
     return (r `at` 0)
 
 vectorMapAux fun code v = unsafePerformIO $ do
     r <- createVector (dim v)
-    ww2 withVector v withVector r $ \v r ->
-        fun (fromEnum code) // v // r // check "vectorMapAux"
+    app2 (fun (fromEnum code)) vec v vec r "vectorMapAux"
     return r
 
 vectorMapValAux fun code val v = unsafePerformIO $ do
     r <- createVector (dim v)
     pval <- newArray [val]
-    ww2 withVector v withVector r $ \v r ->
-        fun (fromEnum code) pval // v // r // check "vectorMapValAux"
+    app2 (fun (fromEnum code) pval) vec v vec r "vectorMapValAux"
     free pval
     return r
 
 vectorZipAux fun code u v = unsafePerformIO $ do
     r <- createVector (dim u)
-    ww3 withVector u withVector v withVector r $ \u v r ->
-        fun (fromEnum code) // u // v // r // check "vectorZipAux"
+    app3 (fun (fromEnum code)) vec u vec v vec r "vectorZipAux"
     return r
 
 ---------------------------------------------------------------------

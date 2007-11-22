@@ -47,8 +47,7 @@ polySolve = toList . polySolve' . fromList
 polySolve' :: Vector Double -> Vector (Complex Double)
 polySolve' v | dim v > 1 = unsafePerformIO $ do
     r <- createVector (dim v-1)
-    ww2 withVector v withVector r $ \ v r ->
-        c_polySolve // v // r // check "polySolve"
+    app2 c_polySolve vec v vec r "polySolve"
     return r
              | otherwise = error "polySolve on a polynomial of degree zero"
 

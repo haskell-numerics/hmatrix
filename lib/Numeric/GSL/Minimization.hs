@@ -196,22 +196,12 @@ aux_vTov f n p r = g where
 
 --------------------------------------------------------------------
 
-
 createV n fun msg = unsafePerformIO $ do
     r <- createVector n
-    withVector r $ \ r ->
-        fun // r // check msg
+    app1 fun vec r msg
     return r
-
-{-
-createM r c fun msg ptrs = unsafePerformIO $ do
-    r <- createMatrix RowMajor r c
-    fun // matc r // check msg ptrs
-    return r
--}
 
 createMIO r c fun msg = do
     r <- createMatrix RowMajor r c
-    withMatrix r $ \ r ->
-        fun // r // check msg
+    app1 fun mat r msg
     return r
