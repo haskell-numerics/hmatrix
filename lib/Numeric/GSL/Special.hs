@@ -44,8 +44,6 @@ module Numeric.GSL.Special (
 )
 where
 
-import Foreign
-import Numeric.GSL.Special.Internal
 import Numeric.GSL.Special.Airy
 import Numeric.GSL.Special.Bessel
 import Numeric.GSL.Special.Clausen

@@ -20,7 +20,7 @@ module Numeric.LinearAlgebra.Linear (
 ) where
 
 
-import Data.Packed.Internal(multiply,at,partit)
+import Data.Packed.Internal(multiply,partit)
 import Data.Packed
 import Numeric.GSL.Vector
 import Complex

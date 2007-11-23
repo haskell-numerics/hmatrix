@@ -24,7 +24,6 @@ module Numeric.GSL.Minimization (
 import Data.Packed.Internal
 import Data.Packed.Matrix
 import Foreign
-import Complex
 
 -------------------------------------------------------------------------
 
@@ -84,9 +83,9 @@ minimizeNMSimplex f xi sz tol maxit = unsafePerformIO $ do
         szv = fromList sz
         n   = dim xiv
     fp <- mkVecfun (iv (f.toList))
-    rawpath <- ww2 withVector xiv withVector szv $ \xiv szv ->
+    rawpath <- ww2 withVector xiv withVector szv $ \xiv' szv' ->
                    createMIO maxit (n+3)
-                         (c_minimizeNMSimplex fp tol maxit // xiv // szv)
+                         (c_minimizeNMSimplex fp tol maxit // xiv' // szv')
                          "minimizeNMSimplex"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
@@ -150,9 +149,9 @@ minimizeConjugateGradient istep minimpar tol maxit f df xi = unsafePerformIO $ d
         df' = (fromList . df . toList)
     fp <- mkVecfun (iv f')
     dfp <- mkVecVecfun (aux_vTov df')
-    rawpath <- withVector xiv $ \xiv ->
+    rawpath <- withVector xiv $ \xiv' ->
                     createMIO maxit (n+2)
-                         (c_minimizeConjugateGradient fp dfp istep minimpar tol maxit // xiv)
+                         (c_minimizeConjugateGradient fp dfp istep minimpar tol maxit // xiv')
                          "minimizeDerivV"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
@@ -171,8 +170,8 @@ foreign import ccall "gsl-aux.h minimizeWithDeriv"
 ---------------------------------------------------------------------
 iv :: (Vector Double -> Double) -> (Int -> Ptr Double -> Double)
 iv f n p = f (createV n copy "iv") where
-    copy n q = do 
-        copyArray q p n
+    copy n' q = do
+        copyArray q p n'
         return 0
 
 -- | conversion of Haskell functions into function pointers that can be used in the C side
@@ -187,12 +186,12 @@ foreign import ccall "wrapper"
 
 aux_vTov :: (Vector Double -> Vector Double) -> (Int -> Ptr Double -> Ptr Double -> IO())
 aux_vTov f n p r = g where
-    v@V {fptr = pr} = f x
+    V {fptr = pr} = f x
     x = createV n copy "aux_vTov"
-    copy n q = do
-        copyArray q p n
+    copy n' q = do
+        copyArray q p n'
         return 0
-    g = withForeignPtr pr $ \p -> copyArray r p n
+    g = withForeignPtr pr $ \p' -> copyArray r p' n
 
 --------------------------------------------------------------------
 
@@ -202,6 +201,6 @@ createV n fun msg = unsafePerformIO $ do
     return r
 
 createMIO r c fun msg = do
-    r <- createMatrix RowMajor r c
-    app1 fun mat r msg
-    return r
+    res <- createMatrix RowMajor r c
+    app1 fun mat res msg
+    return res

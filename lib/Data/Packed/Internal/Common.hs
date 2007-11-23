@@ -20,9 +20,6 @@ import Foreign
 import Complex
 import Control.Monad(when)
 import Debug.Trace
-import Data.List(transpose,intersperse)
-import Data.Typeable
-import Data.Maybe(fromJust)
 import Foreign.C.String(peekCString)
 import Foreign.C.Types
 

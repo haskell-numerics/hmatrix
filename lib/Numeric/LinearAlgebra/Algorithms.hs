@@ -165,8 +165,8 @@ pinv m = linearSolveSVD m (ident (rows m))
 -- If @(u,d,v) = full svd m@ then @m == u \<> d \<> trans v@.
 full :: Element t 
      => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Matrix Double, Matrix t)
-full svd m = (u, d ,v) where
-    (u,s,v) = svd m
+full svd' m = (u, d ,v) where
+    (u,s,v) = svd' m
     d = diagRect s r c
     r = rows m
     c = cols m
@@ -176,12 +176,12 @@ full svd m = (u, d ,v) where
 -- If @(u,s,v) = economy svd m@ then @m == u \<> diag s \<> trans v@.
 economy :: Element t 
         => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Vector Double, Matrix t)
-economy svd m = (u', subVector 0 d s, v') where
-    (u,s,v) = svd m
+economy svd' m = (u', subVector 0 d s, v') where
+    (u,s,v) = svd' m
     sl@(g:_) = toList s
     s' = fromList . filter (>tol) $ sl
     t = 1
-    tol = (fromIntegral (max (rows m) (cols m)) * g * t * eps)
+    tol = (fromIntegral (max r c) * g * t * eps)
     r = rows m
     c = cols m
     d = dim s'
@@ -273,8 +273,8 @@ nullspacePrec t m = ns where
     (_,s,v) = svd m
     sl@(g:_) = toList s
     tol = (fromIntegral (max (rows m) (cols m)) * g * t * eps)
-    rank = length (filter (> g*tol) sl)
-    ns = drop rank $ toRows $ ctrans v
+    rank' = length (filter (> g*tol) sl)
+    ns = drop rank' $ toRows $ ctrans v
 
 -- | The nullspace of a matrix, assumed to be one-dimensional, with default tolerance (shortcut for @last . nullspacePrec 1@).
 nullVector :: Field t => Matrix t -> Vector t
@@ -306,7 +306,7 @@ pinvTol t m = v' `mXm` diag s' `mXm` trans u' where
     sl@(g:_) = toList s
     s' = fromList . map rec $ sl
     rec x = if x < g*tol then 1 else 1/x
-    tol = (fromIntegral (max (rows m) (cols m)) * g * t * eps)
+    tol = (fromIntegral (max r c) * g * t * eps)
     r = rows m
     c = cols m
     d = dim s
@@ -368,10 +368,12 @@ rank :: Field t => Matrix t -> Int
 rank m | pnorm PNorm1 m < eps = 0
        | otherwise = dim s where (_,s,_) = economy svd m
 
+{-
 expm' m = case diagonalize (complex m) of
     Just (l,v) -> v `mXm` diag (exp l) `mXm` inv v
     Nothing -> error "Sorry, expm not yet implemented for non-diagonalizable matrices"
   where exp = vectorMapC Exp
+-}
 
 diagonalize m = if rank v == n
                     then Just (l,v)
@@ -406,7 +408,7 @@ geps delta = head [ k | (k,g) <- epslist, g<delta]
 expGolub m = iterate msq f !! j
     where j = max 0 $ floor $ log2 $ pnorm Infinity m
           log2 x = log x / log 2
-          a = m */ fromIntegral (2^j)
+          a = m */ fromIntegral ((2::Int)^j)
           q = geps eps -- 7 steps
           eye = ident (rows m)
           work (k,c,x,n,d) = (k',c',x',n',d')
@@ -415,9 +417,9 @@ expGolub m = iterate msq f !! j
                     x' = a <> x
                     n' = n |+| (c' .* x')
                     d' = d |+| (((-1)^k * c') .* x')
-          (_,_,_,n,d) = iterate work (1,1,eye,eye,eye) !! q
-          f = linearSolve d n
-          msq m = m <> m
+          (_,_,_,nf,df) = iterate work (1,1,eye,eye,eye) !! q
+          f = linearSolve df nf
+          msq x = x <> x
 
           (<>) = multiply
           v */ x = scale (recip x) v
@@ -446,9 +448,10 @@ It only works with invertible matrices that have a real solution. For diagonaliz
 sqrtm :: Field t => Matrix t -> Matrix t
 sqrtm = sqrtmInv
 
-sqrtmInv a = fst $ fixedPoint $ iterate f (a, ident (rows a))
+sqrtmInv x = fst $ fixedPoint $ iterate f (x, ident (rows x))
     where fixedPoint (a:b:rest) | pnorm PNorm1 (fst a |-| fst b) < eps   = a
                                 | otherwise = fixedPoint (b:rest)
+          fixedPoint _ = error "fixedpoint with impossible inputs"
           f (y,z) = (0.5 .* (y |+| inv z),
                      0.5 .* (inv y |+| z))
           (.*) = scale

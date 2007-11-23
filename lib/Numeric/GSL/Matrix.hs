@@ -17,13 +17,13 @@ module Numeric.GSL.Matrix(
     eigSg, eigHg,
     svdg,
     qr, qrPacked, unpackQR,
-    cholR, -- cholC,
+    cholR, cholC,
     luSolveR, luSolveC,
     luR, luC
 ) where
 
 import Data.Packed.Internal
-import Data.Packed.Matrix(fromLists,ident,takeDiag)
+import Data.Packed.Matrix(ident)
 import Numeric.GSL.Vector
 import Foreign
 import Complex
@@ -44,7 +44,7 @@ import Complex
 
 -}
 eigSg :: Matrix Double -> (Vector Double, Matrix Double)
-eigSg = eigSg . cmat
+eigSg = eigSg' . cmat
 
 eigSg' m
     | r == 1 = (fromList [cdat m `at` 0], singleton 1)
@@ -159,24 +159,24 @@ qrPacked :: Matrix Double -> (Matrix Double, Vector Double)
 qrPacked = qrPacked' . cmat
 
 qrPacked' x = unsafePerformIO $ do
-    qr <- createMatrix RowMajor r c
+    qrp <- createMatrix RowMajor r c
     tau <- createVector (min r c)
-    app3 c_qrPacked mat x mat qr vec tau "qrUnpacked"
-    return (qr,tau)
+    app3 c_qrPacked mat x mat qrp vec tau "qrUnpacked"
+    return (qrp,tau)
   where r = rows x
         c = cols x
 foreign import ccall "gsl-aux.h QRpacked" c_qrPacked :: TMMV
 
 unpackQR :: (Matrix Double, Vector Double) -> (Matrix Double, Matrix Double)
-unpackQR (qr,tau) = unpackQR' (cmat qr, tau)
+unpackQR (qrp,tau) = unpackQR' (cmat qrp, tau)
 
-unpackQR' (qr,tau) = unsafePerformIO $ do
+unpackQR' (qrp,tau) = unsafePerformIO $ do
     q <- createMatrix RowMajor r r
     res <- createMatrix RowMajor r c
-    app4 c_qrUnpack mat qr vec tau mat q mat res "qrUnpack"
+    app4 c_qrUnpack mat qrp vec tau mat q mat res "qrUnpack"
     return (q,res)
-  where r = rows qr
-        c = cols qr
+  where r = rows qrp
+        c = cols qrp
 foreign import ccall "gsl-aux.h QRunpack" c_qrUnpack :: TMVMM
 
 
@@ -259,7 +259,6 @@ luRaux' x = unsafePerformIO $ do
     app2 c_luRaux mat x vec res "luRaux"
     return res
   where r = rows x
-        c = cols x
 foreign import ccall "gsl-aux.h luRaux" c_luRaux :: TMV
 
 {- | lu decomposition of complex matrix (packed as a vector including l, u, the permutation and sign)
@@ -272,7 +271,6 @@ luCaux' x = unsafePerformIO $ do
     app2 c_luCaux mat x vec res "luCaux"
     return res
   where r = rows x
-        c = cols x
 foreign import ccall "gsl-aux.h luCaux" c_luCaux :: TCMCV
 
 {- | The LU decomposition of a square matrix. Is based on /gsl_linalg_LU_decomp/ and  /gsl_linalg_complex_LU_decomp/ as described in <http://www.gnu.org/software/Numeric.GSL/manual/Numeric.GSL-ref_13.html#SEC223>.

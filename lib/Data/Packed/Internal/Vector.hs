@@ -20,7 +20,6 @@ import Data.Packed.Internal.Common
 import Foreign
 import Complex
 import Control.Monad(when)
-import Data.List(transpose)
 
 -- | A one-dimensional array of objects stored in a contiguous memory block.
 data Vector t = V { dim  :: Int              -- ^ number of elements
@@ -39,8 +38,8 @@ type Vc t s = Int -> Ptr t -> s
 vec = withVector
 
 withVector (V n fp) f = withForeignPtr fp $ \p -> do
-    let v f = do
-        f n p
+    let v g = do
+        g n p
     f v
 
 -- | allocates memory for a new vector
@@ -132,7 +131,7 @@ join as = unsafePerformIO $ do
         joiner as tot ptr
     return r
   where joiner [] _ _ = return ()
-        joiner (r@V {dim = n, fptr = b} : cs) _ p = do
+        joiner (V {dim = n, fptr = b} : cs) _ p = do
             withForeignPtr b $ \pb -> copyArray p pb n
             joiner cs 0 (advancePtr p n)
 

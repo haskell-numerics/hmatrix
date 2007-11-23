@@ -23,7 +23,6 @@ module Data.Packed.Vector (
 ) where
 
 import Data.Packed.Internal
-import Complex
 import Numeric.GSL.Vector
 
 {- | Creates a real vector containing a range of values:

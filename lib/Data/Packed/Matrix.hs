@@ -33,10 +33,7 @@ module Data.Packed.Matrix (
 ) where
 
 import Data.Packed.Internal
-import Foreign(Storable)
-import Complex
 import Data.Packed.Vector
-import Numeric(showGFloat)
 import Data.List(transpose,intersperse)
 import Data.Array
 
@@ -89,8 +86,8 @@ diagRect s r c
     | dim s < min r c = error "diagRect"
     | r == c    = diag s
     | r < c     = trans $ diagRect s c r
-    | r > c     = joinVert  [diag s , zeros (r-c,c)]
-    where zeros (r,c) = reshape c $ constantD 0 (r*c)
+    | otherwise = joinVert  [diag s , zeros (r-c,c)]
+    where zeros (r',c') = reshape c' $ constantD 0 (r'*c')
 
 -- | extracts the diagonal from a rectangular matrix
 takeDiag :: (Element t) => Matrix t -> Vector t
@@ -123,16 +120,16 @@ r >< c = f where
 
 -- | Creates a matrix with the first n rows of another matrix
 takeRows :: Element t => Int -> Matrix t -> Matrix t
-takeRows n mat = subMatrix (0,0) (n, cols mat) mat
+takeRows n mt = subMatrix (0,0) (n, cols mt) mt
 -- | Creates a copy of a matrix without the first n rows
 dropRows :: Element t => Int -> Matrix t -> Matrix t
-dropRows n mat = subMatrix (n,0) (rows mat - n, cols mat) mat
+dropRows n mt = subMatrix (n,0) (rows mt - n, cols mt) mt
 -- |Creates a matrix with the first n columns of another matrix
 takeColumns :: Element t => Int -> Matrix t -> Matrix t
-takeColumns n mat = subMatrix (0,0) (rows mat, n) mat
+takeColumns n mt = subMatrix (0,0) (rows mt, n) mt
 -- | Creates a copy of a matrix without the first n columns
 dropColumns :: Element t => Int -> Matrix t -> Matrix t
-dropColumns n mat = subMatrix (0,n) (rows mat, cols mat - n) mat
+dropColumns n mt = subMatrix (0,n) (rows mt, cols mt - n) mt
 
 ----------------------------------------------------------------
 
@@ -164,6 +161,7 @@ fromArray2D m = (r><c) (elems m)
           c = c1-c0+1
 
 ------------------------------------------------------
+{-
 -- shows a Double with n digits after the decimal point    
 shf :: (RealFloat a) => Int -> a -> String     
 shf dec n | abs n < 1e-10 = "0."
@@ -176,6 +174,8 @@ shfc n z@ (a:+b)
     | abs a < 1e-10 = shf n b ++"i"
     | b > 0         = shf n a ++"+"++shf n b ++"i"
     | otherwise     = shf n a ++shf n b ++"i"         
+
+-}
 
 dsp' :: String -> [[String]] -> String
 dsp' sep as = unlines . map unwords' $ transpose mtp where 
@@ -196,6 +196,7 @@ this function the user can easily define any desired display function:
 format :: (Element t) => String -> (t -> String) -> Matrix t -> String
 format sep f m = dsp' sep . map (map f) . toLists $ m
 
+{-
 disp m f = putStrLn $ "matrix ("++show (rows m) ++"x"++ show (cols m) ++")\n"++format " | " f m
 
 dispR :: Int -> Matrix Double -> IO ()
@@ -203,6 +204,7 @@ dispR d m = disp m (shf d)
 
 dispC :: Int -> Matrix (Complex Double) -> IO ()
 dispC d m = disp m (shfc d)
+-}
 
 -- | creates a matrix from a table of numbers.
 readMatrix :: String -> Matrix Double
@@ -211,7 +213,7 @@ readMatrix = fromLists . map (map read). map words . filter (not.null) . lines
 -- | rearranges the rows of a matrix according to the order given in a list of integers. 
 extractRows :: Element t => [Int] -> Matrix t -> Matrix t
 extractRows l m = fromRows $ extract (toRows $ m) l
-    where extract l is = [l!!i |i<-is]
+    where extract l' is = [l'!!i |i<-is]
 
 {- | creates matrix by repetition of a matrix a given number of rows and columns
 

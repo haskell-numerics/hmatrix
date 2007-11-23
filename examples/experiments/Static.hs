@@ -18,11 +18,11 @@ instance Lift (ForeignPtr Double) where
     lift p = [e| p |]
 
 instance (Lift a, Storable a, Lift (Ptr a), Lift (ForeignPtr a)) => Lift (Vector a ) where
-    lift (V n fp p) = [e| V $(lift n) $(lift fp) $(lift p) |]
+    lift (V n fp) = [e| V $(lift n) $(lift fp) |]
 
 instance (Lift (Vector a)) => Lift (Matrix a) where
-    lift (MC r c v vt) = [e| MC $(lift r) $(lift c) $(lift v) $(lift vt) |]
-    lift (MF r c v vt) = [e| MF $(lift r) $(lift c) $(lift v) $(lift vt) |]
+    lift (MC r c v) = [e| MC $(lift r) $(lift c) $(lift v) |]
+    lift (MF r c v) = [e| MF $(lift r) $(lift c) $(lift v) |]
 
 tdim :: Int -> ExpQ
 tdim 0 = [| Z |]

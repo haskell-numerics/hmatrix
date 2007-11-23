@@ -23,5 +23,5 @@ module Numeric.LinearAlgebra (
 import Data.Packed
 import Numeric.LinearAlgebra.Linear
 import Numeric.LinearAlgebra.Algorithms
-import Numeric.LinearAlgebra.Instances
+import Numeric.LinearAlgebra.Instances()
 import Numeric.LinearAlgebra.Interface

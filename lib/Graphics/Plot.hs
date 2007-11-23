@@ -32,8 +32,6 @@ import Numeric.LinearAlgebra.Linear(outer)
 import Numeric.GSL.Vector(FunCodeS(Max,Min),toScalarR)
 import Data.List(intersperse)
 import System
-import Data.IORef
-import System.Exit
 import Foreign hiding (rotate)
 
 
@@ -107,10 +105,7 @@ mplot m = gnuplotX (commands++dats) where
     dats = concat (replicate (length m-1) dat)
 
 
-
-
-
-
+{-
 mplot' m = do
     writeFile "plot-gnu-command" (commands++endcmd)
     toFile "plot-tmp.txt" (fromColumns m)
@@ -125,6 +120,7 @@ mplot' m = do
     plots = concat $ intersperse ", " (map cmd [2 .. length m])
     cmd k = "\"plot-tmp.txt\" using 1:"++show k++" with lines"
     endcmd = "pause -1"
+-}
 
 -- apply several functions to one object
 mapf fs x = map ($ x) fs

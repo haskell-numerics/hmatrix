@@ -22,7 +22,6 @@ import Data.Packed.Internal.Vector
 import Foreign hiding (xor)
 import Complex
 import Control.Monad(when)
-import Data.Maybe(fromJust)
 import Foreign.C.String
 import Foreign.C.Types
 import Data.List(transpose)
@@ -83,14 +82,14 @@ mat = withMatrix
 
 withMatrix MC {rows = r, cols = c, cdat = d } f =
     withForeignPtr (fptr d) $ \p -> do
-        let m f = do
-            f r c p
+        let m g = do
+            g r c p
         f m
 
 withMatrix MF {rows = r, cols = c, fdat = d } f =
     withForeignPtr (fptr d) $ \p -> do
-        let m f = do
-            f r c p
+        let m g = do
+            g r c p
         f m
 
 {- | Creates a vector by concatenation of rows
@@ -262,8 +261,8 @@ foreign import ccall safe "auxi.h transC"
 
 ------------------------------------------------------------------
 
-gmatC MF {rows = r, cols = c, fdat = d} p f = f 1 c r p
-gmatC MC {rows = r, cols = c, cdat = d} p f = f 0 r c p
+gmatC MF { rows = r, cols = c } p f = f 1 c r p
+gmatC MC { rows = r, cols = c } p f = f 0 r c p
 
 dtt MC { cdat = d } = d
 dtt MF { fdat = d } = d
@@ -273,8 +272,8 @@ multiplyAux fun a b = unsafePerformIO $ do
                                       show (rows a,cols a) ++ " x " ++ show (rows b, cols b)
     r <- createMatrix RowMajor (rows a) (cols b)
     withForeignPtr (fptr (dtt a)) $ \pa -> withForeignPtr (fptr (dtt b)) $ \pb ->
-        withMatrix r $ \r ->
-            fun // gmatC a pa // gmatC b pb // r // check "multiplyAux"
+        withMatrix r $ \r' ->
+            fun // gmatC a pa // gmatC b pb // r' // check "multiplyAux"
     return r
 
 multiplyR = multiplyAux cmultiplyR
@@ -421,7 +420,7 @@ diagG v = matrixFromVector RowMajor c $ fromList $ [ l!!(i-1) * delta k i | k <-
                     | otherwise = 0
 -}
 
-transdataG c1 d c2 = fromList . concat . transpose . partit c1 . toList $ d
+transdataG c1 d _ = fromList . concat . transpose . partit c1 . toList $ d
 
 dotL a b = sum (zipWith (*) a b)
 

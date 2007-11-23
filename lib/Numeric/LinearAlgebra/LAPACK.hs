@@ -120,11 +120,12 @@ eigRaux m
   where r = rows m
 
 fixeig  []  _ =  []
-fixeig [r] [v] = [comp v]
+fixeig [_] [v] = [comp v]
 fixeig ((r1:+i1):(r2:+i2):r) (v1:v2:vs)
     | r1 == r2 && i1 == (-i2) = toComplex (v1,v2) : toComplex (v1,scale (-1) v2) : fixeig r vs
     | otherwise = comp v1 : fixeig ((r2:+i2):r) (v2:vs)
   where scale = vectorMapValR Scale
+fixeig _ _ = error "fixeig with impossible inputs"
 
 -----------------------------------------------------------------------------
 
