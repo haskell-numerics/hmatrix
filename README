@@ -26,8 +26,8 @@ The following packages are used for simple graphics:
 - gnuplot
 - imagemagick
 
-It is also a good idea to install GNU-Octave to check
-that the results obtained by this library are correct...
+GNU-Octave can be used to check if the results
+obtained by this library are correct.
 
 INSTALLATION
 
@@ -83,7 +83,7 @@ Prelude Numeric.LinearAlgebra> u <> d <> trans v
 Prelude Numeric.GSL> :q
 Leaving GHCi.
 
-A few illustrative programs are included in the examples folder.
+A number of illustrative programs are included in the examples folder.
 
 CHANGES
 
@@ -113,24 +113,30 @@ INSTALLATION ON WINDOWS
 1) Download the developer files gsl-1.8-lib.zip from
    http://gnuwin32.sourceforge.net/packages/gsl.htm
    and copy the gsl folder (under include) to the include folder of ghc:
-   C:\ghc\ghc.6.6.1\include
+   C:\ghc\ghc.6.x.1\include
 
 2) Install the package as usual from the command line in the hssl-0.1 folder:
        runhaskell Setup.lhs configure
        runhaskell Setup.lhs build
        runhaskell Setup.lhs install
 
+2.5) If configure cannot find ld please see:
+       http://article.gmane.org/gmane.comp.lang.haskell.cafe/32025
+
 3) Copy libgsl.dll, libcblas.dll (from the binaries package gsl-1.8.bin.zip)
-   and liblapack.dll (borrowed from the R system) to the folder where 
-   hssl has been installed: C:\Program Files\haskell\hss-0.1\ghc-6.6.1.
+   and liblapack.dll (borrowed from the R system) to the folder in which
+   hssl has been installed: C:\Program Files\haskell\hss-0.1\ghc-6.x.1.
    Rename libcblas.dll to libblas.dll.
    They are needed to compile programs.
-   These three dlls are also available from
+   These three dlls are available from:
        http://perception.inf.um.es/~aruiz/darcs/HSSL/dll1.zip
 
-4) Copy the dlls at http://perception.inf.um.es/~aruiz/darcs/HSSL/dll2.zip
+4) Copy the dlls available from:
+       http://perception.inf.um.es/~aruiz/darcs/HSSL/dll2.zip
    to the working directory or C:\windows\system
    They are required to run the programs and ghci.
+
+5) run the tests
 
 Unfortunately the lapack dll supplied by the R system does not include
 zgels_, zgelss_, and zgees_, so the functions depending on them
@@ -140,9 +146,9 @@ will produce a "non supported in this OS" runtime error.
 If you find an alternative free and complete lapack.dll which works well
 for this system please let me know.
 
-NOTE: I get a syntax error when compiling LAPACK.hs in Windows with ghc-opts -O.
-      Please change it to ghc-opts -O0 in hssl.cabal and build again.
-      You won't notice any appreciable difference in performance, but I will try to fix it asap.
+NOTE: In windows the library is currently compiled with -O0 -fasm to avoid
+      a C syntax error on clapack.h. You won't notice any appreciable difference
+      in performance, but I will try to fix it asap.
 
 ACKNOWLEDGEMENTS
 

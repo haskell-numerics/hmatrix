@@ -23,11 +23,13 @@ flag splitBase
 library
     if flag(splitBase)
       build-depends:    base >= 3, array
-      ghc-options:      -O -fvia-C
-
     else
       build-depends:    base < 3
-      ghc-options:      -O
+
+    if os(windows)
+      ghc-options:      -O0 -fasm
+    else
+      ghc-options:      -O1 -fvia-C
 
     Build-Depends:      haskell98
     Extensions:         ForeignFunctionInterface
