@@ -1,12 +1,12 @@
 Name:               hssl
-Version:            0.1
+Version:            0.1.0.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          provisional
 Homepage:           http://alberrto.googlepages.com/gslhaskell
-Synopsis:           Simple Scientific Library
+Synopsis:           Linear algebra and numerical computations
 Description:        A purely functional interface to basic linear algebra computations
                     and other numerical routines, internally implemented using
                     GSL, BLAS and LAPACK.
@@ -18,7 +18,7 @@ tested-with:        GHC ==6.6.1, GHC ==6.8.1
 cabal-version:      >=1.2
 
 flag splitBase
-    description:        Choose the new smaller, split-up base package.
+    description:    Choose the new smaller, split-up base package.
 
 library
     if flag(splitBase)
@@ -26,10 +26,12 @@ library
     else
       build-depends:    base < 3
 
+    ghc-options:        -O
+
     if os(windows)
-      ghc-options:      -O0 -fasm
+      ghc-options:      -fasm
     else
-      ghc-options:      -O1 -fvia-C
+      ghc-options:      -fvia-C
 
     Build-Depends:      haskell98
     Extensions:         ForeignFunctionInterface

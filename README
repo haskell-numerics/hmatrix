@@ -38,6 +38,8 @@ $ runhaskell Setup.lhs install --user
 
 See below for installation on Windows.
 
+For undetermined reasons compilation with -O in Linux requires -fvia-C.
+
 TESTS
 
 $ runhaskell examples/tests
@@ -51,15 +53,13 @@ produces segmentation faults when working with big matrices
 on compiled programs. To expose the problem:
 
 $ cd examples
-$ ghc --make -O tests.hs
+$ ghc --make -O -fvia-C tests.hs
 $ ./tests --big
 
-If this crashes, just uninstall atlas3-sse2 (atlas3-base-dev will be used).
+If this crashes, just uninstall atlas3-sse2 and use atlas3-base-dev instead.
 Fortunately, atlas3-sse2-dev seems to work well on Ubuntu 7.10 Gutsy.
-
 A similar problem was reported at:
-
-http://article.gmane.org/gmane.linux.debian.devel.bugs.general/323065
+    http://article.gmane.org/gmane.linux.debian.devel.bugs.general/323065
 
 EXAMPLES
 
@@ -112,10 +112,12 @@ INSTALLATION ON WINDOWS
 
 1) Download the developer files gsl-1.8-lib.zip from
    http://gnuwin32.sourceforge.net/packages/gsl.htm
-   and copy the gsl folder (under include) to the include folder of ghc:
-   C:\ghc\ghc.6.x.1\include
+   and copy the gsl headers folder (under include) to:
+       C:\ghc\ghc.6.x.1\include
+   These headers are also available from:
+       http://perception.inf.um.es/~aruiz/darcs/HSSL/gsl.zip
 
-2) Install the package as usual from the command line in the hssl-0.1 folder:
+2) Install the package as usual:
        runhaskell Setup.lhs configure
        runhaskell Setup.lhs build
        runhaskell Setup.lhs install
@@ -125,7 +127,7 @@ INSTALLATION ON WINDOWS
 
 3) Copy libgsl.dll, libcblas.dll (from the binaries package gsl-1.8.bin.zip)
    and liblapack.dll (borrowed from the R system) to the folder in which
-   hssl has been installed: C:\Program Files\haskell\hss-0.1\ghc-6.x.1.
+   hssl has been installed: C:\Program Files\haskell\hss-0.1\ghc-6.x.x.
    Rename libcblas.dll to libblas.dll.
    They are needed to compile programs.
    These three dlls are available from:
@@ -146,9 +148,7 @@ will produce a "non supported in this OS" runtime error.
 If you find an alternative free and complete lapack.dll which works well
 for this system please let me know.
 
-NOTE: In windows the library is currently compiled with -O0 -fasm to avoid
-      a C syntax error on clapack.h. You won't notice any appreciable difference
-      in performance, but I will try to fix it asap.
+The examples using graphics do not yet work in windows.
 
 ACKNOWLEDGEMENTS
 

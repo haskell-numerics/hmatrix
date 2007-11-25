@@ -8,7 +8,7 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses -fffi and -fglasgow-exts
 
-This module reexports all the available GSL functions (except those in "LinearAlgebra").
+This module reexports all the available GSL functions (except those in "Numeric.LinearAlgebra").
 
 -}
 
