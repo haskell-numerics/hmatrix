@@ -87,9 +87,9 @@ A number of illustrative programs are included in the examples folder.
 
 CHANGES
 
-This is a new version of GSLHaskell. The package is provisionally
-called "hssl" (a simple scientific library for Haskell) because only
-a small part of GSL is available and linear algebra is based on LAPACK.
+This is a new version of the library previously known as GSLHaskell.
+It has been renamed to "hmatrix" because only a small part of GSL is actually
+available, and most linear algebra is based on LAPACK.
 
 The code has been extensively refactored. There is a new internal representation
 which admits both C and Fortran matrices and avoids many transposes.
@@ -115,7 +115,7 @@ INSTALLATION ON WINDOWS
    and copy the gsl headers folder (under include) to:
        C:\ghc\ghc.6.x.1\include
    These headers are also available from:
-       http://perception.inf.um.es/~aruiz/darcs/HSSL/gsl.zip
+       http://perception.inf.um.es/~aruiz/darcs/hmatrix/gsl.zip
 
 2) Install the package as usual:
        runhaskell Setup.lhs configure
@@ -127,14 +127,14 @@ INSTALLATION ON WINDOWS
 
 3) Copy libgsl.dll, libcblas.dll (from the binaries package gsl-1.8.bin.zip)
    and liblapack.dll (borrowed from the R system) to the folder in which
-   hssl has been installed: C:\Program Files\haskell\hss-0.1\ghc-6.x.x.
+   hmatrix has been installed: C:\Program Files\haskell\hmatrix-x.x.x.x\ghc-6.x.x.
    Rename libcblas.dll to libblas.dll.
    They are needed to compile programs.
    These three dlls are available from:
-       http://perception.inf.um.es/~aruiz/darcs/HSSL/dll1.zip
+       http://perception.inf.um.es/~aruiz/darcs/hmatrix/dll1.zip
 
 4) Copy the dlls available from:
-       http://perception.inf.um.es/~aruiz/darcs/HSSL/dll2.zip
+       http://perception.inf.um.es/~aruiz/darcs/hmatrix/dll2.zip
    to the working directory or C:\windows\system
    They are required to run the programs and ghci.
 
