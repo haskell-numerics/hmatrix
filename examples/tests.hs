@@ -19,11 +19,19 @@ import System(getArgs)
 type RM = Matrix Double
 type CM = Matrix (Complex Double)
 
+-- relative error
 dist :: (Normed t, Num t) => t -> t -> Double
-dist a b = pnorm Infinity (a-b)
+dist a b = f nab na nb
+    where norm = pnorm Infinity
+          na = norm a
+          nb = norm b
+          nab = norm (a-b)
+          f _ a 0 = a
+          f _ 0 b = b
+          f d a b = d / max a b
 
 infixl 4 |~|
-a |~| b = a :~8~: b
+a |~| b = a :~10~: b
 
 data Aprox a = (:~) a Int
 
@@ -391,10 +399,10 @@ tests = do
     quickCheck (invTest . sqm   :: SqM Double -> Bool)
     quickCheck (invTest . sqm   :: SqM (Complex Double) -> Bool)
     putStrLn "--------- pinv ------"
-    quickCheck (pinvTest . sqm   :: SqM Double -> Bool)
+    quickCheck (pinvTest ::RM->Bool)
     if os == "mingw32"
         then putStrLn "complex pinvTest skipped in this OS"
-        else quickCheck (pinvTest . sqm   :: SqM (Complex Double) -> Bool)
+        else quickCheck (pinvTest ::CM->Bool)
     putStrLn "--------- chol ------"
     runTestTT $ TestList
      [ test "cholR" cholRTest
