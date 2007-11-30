@@ -2,19 +2,19 @@
 
 module Main where
 
-import Data.Packed.Internal((>|<), multiply', multiplyG, MatrixOrder(..),debug,fmat)
 import Numeric.GSL hiding (sin,cos,exp,choose)
 import Numeric.LinearAlgebra
-import Numeric.LinearAlgebra.Linear(Linear)
 import Numeric.LinearAlgebra.LAPACK
-import Numeric.GSL.Matrix(svdg)
 import qualified Numeric.GSL.Matrix as GSL
 import Test.QuickCheck hiding (test)
 import Test.HUnit hiding ((~:),test)
 import System.Random(randomRs,mkStdGen)
 import System.Info
-import Data.List(foldl1')
+import Data.List(foldl1', transpose)
 import System(getArgs)
+import Debug.Trace(trace)
+
+debug x = trace (show x) x
 
 type RM = Matrix Double
 type CM = Matrix (Complex Double)
@@ -340,8 +340,20 @@ expmTestDiag m = expm (logm m) |~| complex m
 asFortran m = (rows m >|< cols m) $ toList (flatten $ trans  m)
 asC m = (rows m >< cols m) $ toList (flatten m)
 
-mulC a b = multiply' RowMajor a b
-mulF a b = multiply' ColumnMajor a b
+mulC a b = a <> b
+mulF a b = trans $ trans b <> trans a
+
+-------------------------------------------------------------------------
+
+multiplyG a b = reshape (cols b) $ fromList $ concat $ multiplyL (toLists a) (toLists b)
+    where multiplyL a b = [[dotL x y | y <- transpose b] | x <- a]
+          dotL a b = sum (zipWith (*) a b)
+
+r >|< c = f where
+    f l | dim v == r*c = reshapeF r v
+        | otherwise    = error "(>|<)"
+        where v = fromList l
+    reshapeF r = trans . reshape r
 
 ---------------------------------------------------------------------
 
@@ -389,7 +401,7 @@ tests = do
     quickCheck (svdTest' svdR)
     quickCheck (svdTest' svdRdd)
     quickCheck (svdTest' svdC)
-    quickCheck (svdTest' svdg)
+    quickCheck (svdTest' GSL.svdg)
     putStrLn "--------- eig ---------"
     quickCheck (eigTest  . sqm :: SqM Double -> Bool)
     quickCheck (eigTest  . sqm :: SqM (Complex Double) -> Bool)

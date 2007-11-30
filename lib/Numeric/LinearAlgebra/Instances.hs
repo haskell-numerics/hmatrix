@@ -26,6 +26,8 @@ import Data.Packed.Vector
 import Complex
 import Data.List(transpose,intersperse)
 import Foreign(Storable)
+import Data.Monoid
+import Data.Packed.Internal.Vector
 
 ------------------------------------------------------------------
 
@@ -159,3 +161,12 @@ instance (Linear Vector a, Floating (Vector a)) => Floating (Matrix a) where
     (**)  = liftMatrix2' (**)
     sqrt  = liftMatrix sqrt
     pi    = (1><1) [pi]
+
+---------------------------------------------------------------
+
+instance (Storable a) => Monoid (Vector a) where
+    mempty = V { dim = 0, fptr = undefined }
+    mappend a b = mconcat [a,b]
+    mconcat = j . filter ((>0).dim)
+        where j [] = mempty
+              j l  = join l

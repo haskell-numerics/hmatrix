@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.1.0.0
+Version:            0.1.0.1
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -37,11 +37,7 @@ library
     Extensions:         ForeignFunctionInterface
 
     hs-source-dirs:     lib
-    Exposed-modules:    Data.Packed.Internal,
-                        Data.Packed.Internal.Common,
-                        Data.Packed.Internal.Vector
-                        Data.Packed.Internal.Matrix,
-                        Data.Packed,
+    Exposed-modules:    Data.Packed,
                         Data.Packed.Vector,
                         Data.Packed.Matrix,
                         Numeric.GSL.Vector,
@@ -87,6 +83,10 @@ library
                         Numeric.LinearAlgebra.Interface,
                         Numeric.LinearAlgebra.Algorithms,
                         Graphics.Plot
+    other-modules:      Data.Packed.Internal,
+                        Data.Packed.Internal.Common,
+                        Data.Packed.Internal.Vector,
+                        Data.Packed.Internal.Matrix
     C-sources:          lib/Data/Packed/Internal/auxi.c,
                         lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c

@@ -3,15 +3,7 @@
 import qualified Data.ListLike as LL
 import Numeric.LinearAlgebra
 import Data.Monoid
-import Data.Packed.Internal.Vector
 import Foreign
-
-instance (Storable a) => Monoid (Vector a) where
-    mempty = V { dim = 0, fptr = undefined, ptr = undefined }
-    mappend a b = mconcat [a,b]
-    mconcat = j . filter ((>0).dim)
-        where j [] = mempty
-              j l  = join l
 
 instance Storable a => LL.FoldableLL (Vector a) a where
     foldl f x v = foldl f x (toList v)

@@ -254,9 +254,9 @@ transdataAux fun c1 d c2 =
         r2 = dim d `div` c2
         noneed = r1 == 1 || c1 == 1
 
-foreign import ccall safe "auxi.h transR"
+foreign import ccall unsafe "auxi.h transR"
     ctransR :: TMM -- Double ::> Double ::> IO Int
-foreign import ccall safe "auxi.h transC"
+foreign import ccall unsafe "auxi.h transC"
     ctransC :: TCMCM -- Complex Double ::> Complex Double ::> IO Int
 
 ------------------------------------------------------------------
@@ -277,23 +277,18 @@ multiplyAux fun a b = unsafePerformIO $ do
     return r
 
 multiplyR = multiplyAux cmultiplyR
-foreign import ccall safe "auxi.h multiplyR"
+foreign import ccall unsafe "auxi.h multiplyR"
     cmultiplyR :: Int -> Int -> Int -> Ptr Double
                -> Int -> Int -> Int -> Ptr Double
                -> Int -> Int -> Ptr Double
                -> IO Int
 
 multiplyC = multiplyAux cmultiplyC
-foreign import ccall safe "auxi.h multiplyC"
+foreign import ccall unsafe "auxi.h multiplyC"
     cmultiplyC :: Int -> Int -> Int -> Ptr (Complex Double)
                -> Int -> Int -> Int -> Ptr (Complex Double)
                -> Int -> Int -> Ptr (Complex Double)
                -> IO Int
-
-multiply' :: (Element a) => MatrixOrder -> Matrix a -> Matrix a -> Matrix a
-multiply' RowMajor a b    = multiplyD a b
-multiply' ColumnMajor a b = trans $ multiplyD (trans b) (trans a)
-
 
 -- | matrix product
 multiply :: (Element a) => Matrix a -> Matrix a -> Matrix a
@@ -402,32 +397,3 @@ fromFile filename (r,c) = do
     --free charname  -- TO DO: free the auxiliary CString
     return res
 foreign import ccall "auxi.h matrix_fscanf" c_gslReadMatrix:: Ptr CChar -> TM
-
--------------------------------------------------------------------------
-
--- Generic definitions
-
-{-
-transL m = matrixFromVector RowMajor (rows m) $ transdata (cols m) (cdat m) (rows m)
-
-subMatrixG (r0,c0) (rt,ct) x = matrixFromVector RowMajor ct $ fromList $ concat $ map (subList c0 ct) (subList r0 rt (toLists x))
-    where subList s n = take n . drop s
-
-diagG v = matrixFromVector RowMajor c $ fromList $ [ l!!(i-1) * delta k i | k <- [1..c], i <- [1..c]]
-    where c = dim v
-          l = toList v
-          delta i j | i==j      = 1
-                    | otherwise = 0
--}
-
-transdataG c1 d _ = fromList . concat . transpose . partit c1 . toList $ d
-
-dotL a b = sum (zipWith (*) a b)
-
-multiplyG a b = matrixFromVector RowMajor (cols b) $ fromList $ concat $ multiplyL (toLists a) (toLists b)
-
-multiplyL a b | ok = [[dotL x y | y <- transpose b] | x <- a]
-              | otherwise = error "inconsistent dimensions in contraction "
-    where ok = case common length a of
-                   Nothing -> False
-                   Just c  -> c == length b
