@@ -14,41 +14,34 @@
 
 int svd_l_R(KDMAT(x),DMAT(u),DVEC(s),DMAT(v));
 int svd_l_Rdd(KDMAT(x),DMAT(u),DVEC(s),DMAT(v));
-
 int svd_l_C(KCMAT(a),CMAT(u),DVEC(s),CMAT(v));
 
 int eig_l_C(KCMAT(a),CMAT(u),CVEC(s),CMAT(v));
-
 int eig_l_R(KDMAT(a),DMAT(u),CVEC(s),DMAT(v));
 
 int eig_l_S(KDMAT(a),DVEC(s),DMAT(v));
-
 int eig_l_H(KCMAT(a),DVEC(s),CMAT(v));
 
 int linearSolveR_l(KDMAT(a),KDMAT(b),DMAT(x));
-
 int linearSolveC_l(KCMAT(a),KCMAT(b),CMAT(x));
 
 int linearSolveLSR_l(KDMAT(a),KDMAT(b),DMAT(x));
-
 int linearSolveLSC_l(KCMAT(a),KCMAT(b),CMAT(x));
 
 int linearSolveSVDR_l(double,KDMAT(a),KDMAT(b),DMAT(x));
-
 int linearSolveSVDC_l(double,KCMAT(a),KCMAT(b),CMAT(x));
 
 int chol_l_H(KCMAT(a),CMAT(r));
-
 int chol_l_S(KDMAT(a),DMAT(r));
 
 int qr_l_R(KDMAT(a), DVEC(tau), DMAT(r));
-
 int qr_l_C(KCMAT(a), CVEC(tau), CMAT(r));
 
 int hess_l_R(KDMAT(a), DVEC(tau), DMAT(r));
-
 int hess_l_C(KCMAT(a), CVEC(tau), CMAT(r));
 
 int schur_l_R(KDMAT(a), DMAT(u), DMAT(s));
-
 int schur_l_C(KCMAT(a), CMAT(u), CMAT(s));
+
+int lu_l_R(KDMAT(a), DVEC(ipiv), DMAT(r));
+int lu_l_C(KCMAT(a), DVEC(ipiv), CMAT(r));

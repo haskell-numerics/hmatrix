@@ -37,6 +37,8 @@ module Numeric.LinearAlgebra.Algorithms (
     hess,
 -- ** Schur
     schur,
+-- ** LU
+    lu,
 -- * Matrix functions
     expm,
     sqrtm,
@@ -52,11 +54,11 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Util
     haussholder,
     unpackQR, unpackHess,
-    Field(linearSolveSVD,lu,eigSH',cholSH)
+    Field(linearSolveSVD,eigSH',cholSH)
 ) where
 
 
-import Data.Packed.Internal hiding (fromComplex, toComplex, comp, conj)
+import Data.Packed.Internal hiding (fromComplex, toComplex, comp, conj, (//))
 import Data.Packed
 import qualified Numeric.GSL.Matrix as GSL
 import Numeric.GSL.Vector
@@ -64,12 +66,13 @@ import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Complex
 import Numeric.LinearAlgebra.Linear
 import Data.List(foldl1')
+import Data.Array
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
 class (Normed (Matrix t), Linear Matrix t) => Field t where
     -- | Singular value decomposition using lapack's dgesvd or zgesvd.
     svd         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
-    lu          :: Matrix t -> (Matrix t, Matrix t, [Int], t)
+    luPacked    :: Matrix t -> (Matrix t, [Int])
     -- | Solution of a general linear system (for several right-hand sides) using lapacks' dgesv and zgesv.
     --  See also other versions of linearSolve in "Numeric.LinearAlgebra.LAPACK".
     linearSolve :: Matrix t -> Matrix t -> Matrix t
@@ -106,7 +109,7 @@ class (Normed (Matrix t), Linear Matrix t) => Field t where
 
 instance Field Double where
     svd = svdR
-    lu  = GSL.luR
+    luPacked = luR
     linearSolve = linearSolveR
     linearSolveSVD = linearSolveSVDR Nothing
     ctrans = trans
@@ -119,7 +122,7 @@ instance Field Double where
 
 instance Field (Complex Double) where
     svd = svdC
-    lu  = GSL.luC
+    luPacked = luC
     linearSolve = linearSolveC
     linearSolveSVD = linearSolveSVDC Nothing
     ctrans = conj . trans
@@ -146,10 +149,19 @@ chol m | m `equal` ctrans m = cholSH m
 
 square m = rows m == cols m
 
+-- | determinant of a square matrix, computed from the LU decomposition.
 det :: Field t => Matrix t -> t
-det m | square m = s * (product $ toList $ takeDiag $ u)
+det m | square m = s * (product $ toList $ takeDiag $ lu)
       | otherwise = error "det of nonsquare matrix"
-    where (_,u,_,s) = lu m
+    where (lu,perm) = luPacked m
+          s = signlp (rows m) perm
+
+-- | LU factorization of a general matrix using lapack's dgetrf or zgetrf.
+--
+-- If @(l,u,p,s) = lu m@ then @m == p \<> l \<> u@, where l is lower triangular,
+-- u is upper triangular, p is a permutation matrix and s is the signature of the permutation.
+lu :: Field t => Matrix t -> (Matrix t, Matrix t, Matrix t, t)
+lu = luFact . luPacked
 
 -- | Inverse of a square matrix using lapacks' dgesv and zgesv.
 inv :: Field t => Matrix t -> Matrix t
@@ -457,3 +469,35 @@ sqrtmInv x = fst $ fixedPoint $ iterate f (x, ident (rows x))
           (.*) = scale
           (|+|) = add
           (|-|) = sub
+
+------------------------------------------------------------------
+
+signlp r vals = foldl f 1 (zip [0..r-1] vals)
+    where f s (a,b) | a /= b    = -s
+                    | otherwise =  s
+
+swap (arr,s) (a,b) | a /= b    = (arr // [(a, arr!b),(b,arr!a)],-s)
+                   | otherwise = (arr,s)
+
+fixPerm r vals = (fromColumns $ elems res, sign)
+    where v = [0..r-1]
+          s = toColumns (ident r)
+          (res,sign) = foldl swap (listArray (0,r-1) s, 1) (zip v vals)
+
+triang r c h v = reshape c $ fromList [el i j | i<-[0..r-1], j<-[0..c-1]]
+    where el i j = if j-i>=h then v else 1 - v
+
+luFact (lu,perm) | r <= c    = (l ,u ,p, s)
+                 | otherwise = (l',u',p, s)
+  where
+    r = rows lu
+    c = cols lu
+    tu = triang r c 0 1
+    tl = triang r c 0 0
+    l = takeColumns r (lu |*| tl) |+| diagRect (constant 1 r) r r
+    u = lu |*| tu
+    (p,s) = fixPerm r perm
+    l' = (lu |*| tl) |+| diagRect (constant 1 c) r c
+    u' = takeRows c (lu |*| tu)
+    (|+|) = add
+    (|*|) = mul

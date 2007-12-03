@@ -768,3 +768,49 @@ int schur_l_C(KCMAT(a), CMAT(u), CMAT(s)) {
     OK
     #endif
 }
+
+//////////////////// LU factorization /////////////////////////
+
+int lu_l_R(KDMAT(a), DVEC(ipiv), DMAT(r)) {
+    integer m = ar;
+    integer n = ac;
+    integer mn = MIN(m,n);
+    REQUIRES(m>=1 && n >=1 && ipivn == mn, BAD_SIZE);
+    DEBUGMSG("lu_l_R");
+    integer* auxipiv = (integer*)malloc(mn*sizeof(integer));
+    memcpy(rp,ap,m*n*sizeof(double));
+    integer res;
+    dgetrf_ (&m,&n,rp,&m,auxipiv,&res);
+    if(res>0) {
+        res = 0; // fixme
+    }
+    CHECK(res,res);
+    int k;
+    for (k=0; k<mn; k++) {
+        ipivp[k] = auxipiv[k];
+    }
+    free(auxipiv);
+    OK
+}
+
+int lu_l_C(KCMAT(a), DVEC(ipiv), CMAT(r)) {
+    integer m = ar;
+    integer n = ac;
+    integer mn = MIN(m,n);
+    REQUIRES(m>=1 && n >=1 && ipivn == mn, BAD_SIZE);
+    DEBUGMSG("lu_l_C");
+    integer* auxipiv = (integer*)malloc(mn*sizeof(integer));
+    memcpy(rp,ap,m*n*sizeof(doublecomplex));
+    integer res;
+    zgetrf_ (&m,&n,(doublecomplex*)rp,&m,auxipiv,&res);
+    if(res>0) {
+        res = 0; // fixme
+    }
+    CHECK(res,res);
+    int k;
+    for (k=0; k<mn; k++) {
+        ipivp[k] = auxipiv[k];
+    }
+    free(auxipiv);
+    OK
+}

@@ -19,6 +19,7 @@ module Numeric.LinearAlgebra.LAPACK (
     linearSolveR, linearSolveC,
     linearSolveLSR, linearSolveLSC,
     linearSolveSVDR, linearSolveSVDC,
+    luR, luC,
     cholS, cholH,
     qrR, qrC,
     hessR, hessC,
@@ -299,7 +300,7 @@ hessAux f st a = unsafePerformIO $ do
         mn = min m n
 
 -----------------------------------------------------------------------------------
-foreign import ccall safe "LAPACK/lapack-aux.h schur_l_R" dgees :: TMMM
+foreign import ccall "LAPACK/lapack-aux.h schur_l_R" dgees :: TMMM
 foreign import ccall "LAPACK/lapack-aux.h schur_l_C" zgees :: TCMCMCM
 
 -- | Wrapper for LAPACK's /dgees/, which computes a Schur factorization of a square real matrix.
@@ -318,3 +319,21 @@ schurAux f st a = unsafePerformIO $ do
   where n = rows a
 
 -----------------------------------------------------------------------------------
+foreign import ccall "LAPACK/lapack-aux.h lu_l_R" dgetrf :: TMVM
+foreign import ccall "LAPACK/lapack-aux.h lu_l_C" zgetrf :: TCMVCM
+
+-- | Wrapper for LAPACK's /dgetrf/, which computes a LU factorization of a general real matrix.
+luR :: Matrix Double -> (Matrix Double, [Int])
+luR = luAux dgetrf "luR" . fmat
+
+-- | Wrapper for LAPACK's /zgees/, which computes a Schur factorization of a square complex matrix.
+luC :: Matrix (Complex Double) -> (Matrix (Complex Double), [Int])
+luC = luAux zgetrf "luC" . fmat
+
+luAux f st a = unsafePerformIO $ do
+    lu <- createMatrix ColumnMajor n m
+    piv <- createVector (min n m)
+    app3 f mat a vec piv mat lu st
+    return (lu, map (pred.round) (toList piv))
+  where n = rows a
+        m = cols a

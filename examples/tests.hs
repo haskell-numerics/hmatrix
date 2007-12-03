@@ -187,7 +187,22 @@ bf = (3>|<4) [7,11,15,8,12,16,9,13,17,10,14,18::Double]
 
 -------------------------------------------------------
 
-detTest = det m == 26 && det mc == 38 :+ (-3)
+feye n = flipud (ident n) :: Matrix Double
+
+
+luTest1 m = m |~| p <> l <> u
+    where (l,u,p,_) = lu m
+
+detTest1 = det m == 26
+        && det mc == 38 :+ (-3)
+        && det (feye 2) == -1
+
+detTest2 m = s d1 |~| s d2
+    where d1 = det m
+          d2 = det' m * det q
+          det' m = product $ toList $ takeDiag r
+          (q,r) = qr m
+          s x = fromList [x]
 
 invTest m = degenerate m || m <> inv m |~| ident (rows m)
 
@@ -394,6 +409,14 @@ tests = do
     quickCheck $ \(PairM m1 m2) -> mulC m1 m2 == trans (mulF (trans m2) (trans m1 :: CM))
     quickCheck $ \(PairM m1 m2) -> mulC m1 m2 == multiplyG m1 (m2 :: RM)
     quickCheck $ \(PairM m1 m2) -> mulC m1 m2 == multiplyG m1 (m2 :: CM)
+    putStrLn "--------- lu ---------"
+    quickCheck (luTest1 :: RM->Bool)
+    quickCheck (luTest1 :: CM->Bool)
+    quickCheck (detTest2 . sqm  :: SqM Double -> Bool)
+    quickCheck (detTest2 . sqm  :: SqM (Complex Double) -> Bool)
+    runTestTT $ TestList
+     [ test "det1" detTest1
+     ]
     putStrLn "--------- svd ---------"
     quickCheck (svdTest svdR)
     quickCheck (svdTest svdRdd)
@@ -462,7 +485,6 @@ tests = do
      , exponentialTest
      , integrateTest
      , polySolveTest
-     , test "det" detTest
      ]
 
 bigtests = do
@@ -472,6 +494,7 @@ bigtests = do
      , test "eigH" $ eigTestSH bigmatc
      , test "eigR" $ eigTest   bigmat
      , test "eigC" $ eigTest   bigmatc
+     , test "det"  $ det (feye 1000) == 1 && det (feye 1002) == -1
      ]
 
 main = do
