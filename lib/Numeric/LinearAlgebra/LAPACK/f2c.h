@@ -7,21 +7,74 @@
 #ifndef F2C_INCLUDE
 #define F2C_INCLUDE
 
+/*
+
+Extracted from http://opengrok.creo.hu/dragonfly/xref/src/contrib/gcc-3.4/libf2c/readme.netlib
+
+NOTE:   f2c.h defines several types, e.g., real, integer, doublereal.
+    115         The definitions in f2c.h are suitable for most machines, but if
+    116         your machine has sizeof(double) > 2*sizeof(long), you may need
+    117         to adjust f2c.h appropriately.  f2c assumes
+    118                 sizeof(doublecomplex) = 2*sizeof(doublereal)
+    119                 sizeof(doublereal) = sizeof(complex)
+    120                 sizeof(doublereal) = 2*sizeof(real)
+    121                 sizeof(real) = sizeof(integer)
+    122                 sizeof(real) = sizeof(logical)
+    123                 sizeof(real) = 2*sizeof(shortint)
+    124         EQUIVALENCEs may not be translated correctly if these
+    125         assumptions are violated.
+    126 
+    127         On machines, such as those using a DEC Alpha processor, on
+    128         which sizeof(short) == 2, sizeof(int) == sizeof(float) == 4,
+    129         and sizeof(long) == sizeof(double) == 8, it suffices to
+    130         modify f2c.h by removing the first occurrence of "long "
+    131         on each line containing "long ", e.g., by issuing the
+    132         commands
+    133                 mv f2c.h f2c.h0
+    134                 sed 's/long //' f2c.h0 >f2c.h
+    135         On such machines, one can enable INTEGER*8 by uncommenting
+    136         the typedef of longint in f2c.h, so it reads
+    137                 typedef long longint;
+    138         by compiling libI77 with -DAllow_TYQUAD, and by adjusting
+    139         libF77/makefile as described in libF77/README.
+    140 
+    141         Some machines may have sizeof(int) == 4, sizeof(float) == 8,
+    142         and sizeof(long long) == 8.  On such machines, adjust f2c.h
+    143         by changing "long int " to "long long ", e.g., by saying
+    144                 mv f2c.h f2c.h0
+    145                 sed 's/long int /long long /' f2c.h0 >f2c.h
+    146         One can enable INTEGER*8 on such machines as described
+    147         above, but with
+    148                 typedef long long longint;
+
+I thing that the following definitions are correct:
+
+*/
+
+#ifdef _LP64
+typedef int integer;
+typedef unsigned int uinteger;
+typedef int logical;
+typedef long longint;		/* system-dependent */
+typedef unsigned long ulongint;	/* system-dependent */
+#else
 typedef long int integer;
 typedef unsigned long int uinteger;
+typedef long int logical;
+typedef long long longint;		/* system-dependent */
+typedef unsigned long long ulongint;	/* system-dependent */
+#endif
+
 typedef char *address;
 typedef short int shortint;
 typedef float real;
 typedef double doublereal;
 typedef struct { real r, i; } complex;
 typedef struct { doublereal r, i; } doublecomplex;
-typedef long int logical;
 typedef short int shortlogical;
 typedef char logical1;
 typedef char integer1;
 #ifdef INTEGER_STAR_8	/* Adjust for integer*8. */
-typedef long long longint;		/* system-dependent */
-typedef unsigned long long ulongint;	/* system-dependent */
 #define qbit_clear(a,b)	((a) & ~((ulongint)1 << (b)))
 #define qbit_set(a,b)	((a) |  ((ulongint)1 << (b)))
 #endif
@@ -42,9 +95,17 @@ typedef short flag;
 typedef short ftnlen;
 typedef short ftnint;
 #else
+
+#ifdef _LP64
+typedef int flag;
+typedef int ftnlen;
+typedef int ftnint;
+#else
 typedef long int flag;
 typedef long int ftnlen;
 typedef long int ftnint;
+#endif
+
 #endif
 
 /*external read, write*/

@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.1.1.0
+Version:            0.1.1.1
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -48,7 +48,6 @@ library
                         Numeric.GSL.Polynomials,
                         Numeric.GSL.Minimization,
                         Numeric.GSL.Special,
-                        Numeric.GSL.Special.Internal,
                         Numeric.GSL.Special.Gamma,
                         Numeric.GSL.Special.Erf,
                         Numeric.GSL.Special.Airy,
@@ -86,7 +85,8 @@ library
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Vector,
-                        Data.Packed.Internal.Matrix
+                        Data.Packed.Internal.Matrix,
+                        Numeric.GSL.Special.Internal
     C-sources:          lib/Data/Packed/Internal/auxi.c,
                         lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c

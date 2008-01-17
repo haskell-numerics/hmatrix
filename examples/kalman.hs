@@ -26,12 +26,12 @@ type Measurement = Vector Double
 kalman :: System -> State -> Measurement -> State
 kalman (System f h q r) (State x p) z = State x' p' where
     px = f <> x                            -- prediction
-    pq = f <> p <> trans f                 -- its covariance
+    pq = f <> p <> trans f + q             -- its covariance
     y  = z - h <> px                       -- residue
     cy = h <> pq <> trans h + r            -- its covariance
     k  = pq <> trans h <> inv cy           -- kalman gain
     x' = px + k <> y                       -- new state
-    p' = (ident (dim x) - k <> h) <> pq   -- its covariance
+    p' = (ident (dim x) - k <> h) <> pq    -- its covariance
 
 sys = System f h q r
 
@@ -49,5 +49,3 @@ main = do
     print $ fromRows $ take 10 (map sX xs)
     mapM_ (print . sP) $ take 10 xs
     mplot (evolution 20 (xs,des))
-
---(<>) = multiply
