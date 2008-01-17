@@ -168,3 +168,6 @@ I thank Henning Thielemann and all the people in the Haskell mailing lists for t
 - Antti Siira discovered a bug in the plotting functions.
 
 - Paulo Tanimoto helped to fix the configuration of the required libraries.
+
+- Xiao-Yong Jin reported a bug on x86_64 caused by the assumptions in f2c.h,
+  which are wrong for this architecture.
