@@ -1,5 +1,44 @@
-#include "f2c.h"
+/*
+ * We have copied the definitions in f2c.h required
+ * to compile clapack.h, modified to support both
+ * 32 and 64 bit
+
+      http://opengrok.creo.hu/dragonfly/xref/src/contrib/gcc-3.4/libf2c/readme.netlib
+      http://www.ibm.com/developerworks/library/l-port64.html
+ */
+
+#ifdef _LP64
+typedef int integer;
+typedef unsigned int uinteger;
+typedef int logical;
+typedef long longint;		/* system-dependent */
+typedef unsigned long ulongint;	/* system-dependent */
+#else
+typedef long int integer;
+typedef unsigned long int uinteger;
+typedef long int logical;
+typedef long long longint;		/* system-dependent */
+typedef unsigned long long ulongint;	/* system-dependent */
+#endif
+
+typedef char *address;
+typedef short int shortint;
+typedef float real;
+typedef double doublereal;
+typedef struct { real r, i; } complex;
+typedef struct { doublereal r, i; } doublecomplex;
+typedef short int shortlogical;
+typedef char logical1;
+typedef char integer1;
+
+typedef logical (*L_fp)();
+typedef short ftnlen;
+
+/********************************************************/
+
 #include "clapack.h"
+
+/********************************************************/
 
 #define DVEC(A) int A##n, double*A##p
 #define CVEC(A) int A##n, double*A##p
