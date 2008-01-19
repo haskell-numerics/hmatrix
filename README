@@ -1,7 +1,8 @@
-A simple scientific library for Haskell
----------------------------------------
+-----------------------------------------
+ A simple scientific library for Haskell
+-----------------------------------------
 
-REQUIREMENTS
+REQUIREMENTS ----------------------------
 
 Development packages of:
 
@@ -16,10 +17,11 @@ For example, in Ubuntu Linux we need:
 - libgsl0-dev
 - refblas3-dev
 - lapack3-dev
-- atlas3-base-dev
+- atlas3-base-dev (or a version specifically tuned for your machine)
 
-You can also install an atlas version specifically tuned
-for your machine (but see the TESTS section below).
+For ghc-6.8.x you may also need:
+
+- libgmp3-dev.
 
 The following packages are used for simple graphics:
 
@@ -29,18 +31,16 @@ The following packages are used for simple graphics:
 GNU-Octave can be used to check if the results
 obtained by this library are correct.
 
-INSTALLATION
+INSTALLATION --------------------------------------
 
-$ runhaskell Setup.lhs configure --prefix=$HOME
+$ runhaskell Setup.lhs configure --prefix=$HOME --user
 $ runhaskell Setup.lhs build
 $ runhaskell Setup.lhs haddock
-$ runhaskell Setup.lhs install --user
+$ runhaskell Setup.lhs install
 
 See below for installation on Windows.
 
-For undetermined reasons compilation with -O in Linux requires -fvia-C.
-
-TESTS
+TESTS ---------------------------------------------
 
 $ runhaskell examples/tests
 
@@ -48,20 +48,7 @@ Additional tests with big matrices (taking a few minutes):
 
 $ runhaskell examples/tests --big
 
-NOTE: On Ubuntu 6.06 LTS (Dapper) atlas3-sse2-dev (3.6.0-20)
-produces segmentation faults when working with big matrices 
-on compiled programs. To expose the problem:
-
-$ cd examples
-$ ghc --make -O -fvia-C tests.hs
-$ ./tests --big
-
-If this crashes, just uninstall atlas3-sse2 and use atlas3-base-dev instead.
-Fortunately, atlas3-sse2-dev seems to work well on Ubuntu 7.10 Gutsy.
-A similar problem was reported at:
-    http://article.gmane.org/gmane.linux.debian.devel.bugs.general/323065
-
-EXAMPLES
+EXAMPLES ------------------------------------------------------
 
 $ ghci
 Prelude> :m + Numeric.GSL
@@ -85,7 +72,35 @@ Leaving GHCi.
 
 A number of illustrative programs are included in the examples folder.
 
-CHANGES
+KNOWN PROBLEMS / BUGS -------------------------------
+
+- Compilation with -O -fasm on 32-bit machines produces strange
+  NaN's results on certain blas/lapack calls. In these machines
+  the library is automatically compiled -fvia-C, which apparently
+  solves the problem.
+  On 64-bit the default and faster -fasm seems to work well.
+
+- On 64-bit machines the example "minimize.hs", when run from ghci,
+  produces a segmentation fault. It happens in the call to
+  gsl_multimin_fdfminimizer_alloc, inside the C wrapper.
+  If the program is called by runhaskell, it just terminates
+  prematurely, producing no results. Curiously, in compiled mode the
+  program seems to work perfectly well.
+
+- On Ubuntu 6.06 LTS (Dapper) atlas3-sse2-dev (3.6.0-20)
+  produces segmentation faults when working with big matrices 
+  on compiled programs. To expose the problem:
+
+  $ cd examples
+  $ ghc --make -O -fvia-C tests.hs
+  $ ./tests --big
+
+  If this crashes, just uninstall atlas3-sse2 and use atlas3-base-dev instead.
+  Fortunately, atlas3-sse2-dev seems to work well on Ubuntu 7.10 Gutsy.
+  A similar problem was reported at:
+      http://article.gmane.org/gmane.linux.debian.devel.bugs.general/323065
+
+CHANGES ---------------------------------------------------------
 
 This is a new version of the library previously known as GSLHaskell.
 It has been renamed to "hmatrix" because only a small part of GSL is actually
@@ -108,7 +123,7 @@ There are only minor API changes:
 
 Old GSLHaskell code will work with small modifications.
 
-INSTALLATION ON WINDOWS
+INSTALLATION ON WINDOWS ----------------------------------------
 
 1) Download the developer files gsl-1.8-lib.zip from
    http://gnuwin32.sourceforge.net/packages/gsl.htm
@@ -150,9 +165,10 @@ for this system please let me know.
 
 The examples using graphics do not yet work in windows.
 
-ACKNOWLEDGEMENTS
+ACKNOWLEDGEMENTS -----------------------------------------------------
 
-I thank Henning Thielemann and all the people in the Haskell mailing lists for their help.
+I thank Henning Thielemann and all the people in the Haskell mailing
+lists for their help.
 
 - Nico Mahlo discovered a bug in the eigendecomposition wrapper.
 
@@ -168,6 +184,7 @@ I thank Henning Thielemann and all the people in the Haskell mailing lists for t
 - Antti Siira discovered a bug in the plotting functions.
 
 - Paulo Tanimoto helped to fix the configuration of the required libraries.
+  He also discovered the segfault of minimize.hs in ghci.
 
 - Xiao-Yong Jin reported a bug on x86_64 caused by the assumptions in f2c.h,
   which are wrong for this architecture.
