@@ -6,3 +6,7 @@ int gsl_sf_debye_3_e(double x,double* result);
 double gsl_sf_debye_3(double x);
 int gsl_sf_debye_4_e(double x,double* result);
 double gsl_sf_debye_4(double x);
+int gsl_sf_debye_5_e(double x,double* result);
+double gsl_sf_debye_5(double x);
+int gsl_sf_debye_6_e(double x,double* result);
+double gsl_sf_debye_6(double x);

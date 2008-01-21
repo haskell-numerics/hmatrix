@@ -36,6 +36,7 @@ module Numeric.GSL.Special.Fermi_dirac(
 ) where
 
 import Foreign(Ptr)
+import Foreign.C.Types(CInt)
 import Numeric.GSL.Special.Internal
 
 -- | wrapper for int gsl_sf_fermi_dirac_m1_e(double x,gsl_sf_result* result);
@@ -43,7 +44,7 @@ import Numeric.GSL.Special.Internal
 --   <http://www.google.com/search?q=gsl_sf_fermi_dirac_m1_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 fermi_dirac_m1_e :: Double -> (Double,Double)
 fermi_dirac_m1_e x = createSFR "fermi_dirac_m1_e" $ gsl_sf_fermi_dirac_m1_e x
-foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_m1_e" gsl_sf_fermi_dirac_m1_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_m1_e" gsl_sf_fermi_dirac_m1_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_fermi_dirac_m1(double x);
 --
@@ -57,7 +58,7 @@ foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_m1" gsl_sf_fermi_dirac_m1
 --   <http://www.google.com/search?q=gsl_sf_fermi_dirac_0_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 fermi_dirac_0_e :: Double -> (Double,Double)
 fermi_dirac_0_e x = createSFR "fermi_dirac_0_e" $ gsl_sf_fermi_dirac_0_e x
-foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_0_e" gsl_sf_fermi_dirac_0_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_0_e" gsl_sf_fermi_dirac_0_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_fermi_dirac_0(double x);
 --
@@ -71,7 +72,7 @@ foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_0" gsl_sf_fermi_dirac_0 :
 --   <http://www.google.com/search?q=gsl_sf_fermi_dirac_1_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 fermi_dirac_1_e :: Double -> (Double,Double)
 fermi_dirac_1_e x = createSFR "fermi_dirac_1_e" $ gsl_sf_fermi_dirac_1_e x
-foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_1_e" gsl_sf_fermi_dirac_1_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_1_e" gsl_sf_fermi_dirac_1_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_fermi_dirac_1(double x);
 --
@@ -85,7 +86,7 @@ foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_1" gsl_sf_fermi_dirac_1 :
 --   <http://www.google.com/search?q=gsl_sf_fermi_dirac_2_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 fermi_dirac_2_e :: Double -> (Double,Double)
 fermi_dirac_2_e x = createSFR "fermi_dirac_2_e" $ gsl_sf_fermi_dirac_2_e x
-foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_2_e" gsl_sf_fermi_dirac_2_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_2_e" gsl_sf_fermi_dirac_2_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_fermi_dirac_2(double x);
 --
@@ -97,23 +98,23 @@ foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_2" gsl_sf_fermi_dirac_2 :
 -- | wrapper for int gsl_sf_fermi_dirac_int_e(int j,double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_fermi_dirac_int_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
-fermi_dirac_int_e :: Int -> Double -> (Double,Double)
+fermi_dirac_int_e :: CInt -> Double -> (Double,Double)
 fermi_dirac_int_e j x = createSFR "fermi_dirac_int_e" $ gsl_sf_fermi_dirac_int_e j x
-foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_int_e" gsl_sf_fermi_dirac_int_e :: Int -> Double -> Ptr Double -> IO(Int)
+foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_int_e" gsl_sf_fermi_dirac_int_e :: CInt -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_fermi_dirac_int(int j,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_fermi_dirac_int&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
-fermi_dirac_int :: Int -> Double -> Double
+fermi_dirac_int :: CInt -> Double -> Double
 fermi_dirac_int = gsl_sf_fermi_dirac_int
-foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_int" gsl_sf_fermi_dirac_int :: Int -> Double -> Double
+foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_int" gsl_sf_fermi_dirac_int :: CInt -> Double -> Double
 
 -- | wrapper for int gsl_sf_fermi_dirac_mhalf_e(double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_fermi_dirac_mhalf_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 fermi_dirac_mhalf_e :: Double -> (Double,Double)
 fermi_dirac_mhalf_e x = createSFR "fermi_dirac_mhalf_e" $ gsl_sf_fermi_dirac_mhalf_e x
-foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_mhalf_e" gsl_sf_fermi_dirac_mhalf_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_mhalf_e" gsl_sf_fermi_dirac_mhalf_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_fermi_dirac_mhalf(double x);
 --
@@ -127,7 +128,7 @@ foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_mhalf" gsl_sf_fermi_dirac
 --   <http://www.google.com/search?q=gsl_sf_fermi_dirac_half_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 fermi_dirac_half_e :: Double -> (Double,Double)
 fermi_dirac_half_e x = createSFR "fermi_dirac_half_e" $ gsl_sf_fermi_dirac_half_e x
-foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_half_e" gsl_sf_fermi_dirac_half_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_half_e" gsl_sf_fermi_dirac_half_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_fermi_dirac_half(double x);
 --
@@ -141,7 +142,7 @@ foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_half" gsl_sf_fermi_dirac_
 --   <http://www.google.com/search?q=gsl_sf_fermi_dirac_3half_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 fermi_dirac_3half_e :: Double -> (Double,Double)
 fermi_dirac_3half_e x = createSFR "fermi_dirac_3half_e" $ gsl_sf_fermi_dirac_3half_e x
-foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_3half_e" gsl_sf_fermi_dirac_3half_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_3half_e" gsl_sf_fermi_dirac_3half_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_fermi_dirac_3half(double x);
 --
@@ -155,7 +156,7 @@ foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_3half" gsl_sf_fermi_dirac
 --   <http://www.google.com/search?q=gsl_sf_fermi_dirac_inc_0_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 fermi_dirac_inc_0_e :: Double -> Double -> (Double,Double)
 fermi_dirac_inc_0_e x b = createSFR "fermi_dirac_inc_0_e" $ gsl_sf_fermi_dirac_inc_0_e x b
-foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_inc_0_e" gsl_sf_fermi_dirac_inc_0_e :: Double -> Double -> Ptr Double -> IO(Int)
+foreign import ccall "fermi_dirac.h gsl_sf_fermi_dirac_inc_0_e" gsl_sf_fermi_dirac_inc_0_e :: Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_fermi_dirac_inc_0(double x,double b);
 --

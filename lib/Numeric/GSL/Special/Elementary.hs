@@ -21,6 +21,7 @@ module Numeric.GSL.Special.Elementary(
 ) where
 
 import Foreign(Ptr)
+import Foreign.C.Types(CInt)
 import Numeric.GSL.Special.Internal
 
 -- | wrapper for int gsl_sf_multiply_e(double x,double y,gsl_sf_result* result);
@@ -28,7 +29,7 @@ import Numeric.GSL.Special.Internal
 --   <http://www.google.com/search?q=gsl_sf_multiply_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 multiply_e :: Double -> Double -> (Double,Double)
 multiply_e x y = createSFR "multiply_e" $ gsl_sf_multiply_e x y
-foreign import ccall "elementary.h gsl_sf_multiply_e" gsl_sf_multiply_e :: Double -> Double -> Ptr Double -> IO(Int)
+foreign import ccall "elementary.h gsl_sf_multiply_e" gsl_sf_multiply_e :: Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_multiply(double x,double y);
 --
@@ -42,4 +43,4 @@ foreign import ccall "elementary.h gsl_sf_multiply" gsl_sf_multiply :: Double ->
 --   <http://www.google.com/search?q=gsl_sf_multiply_err_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 multiply_err_e :: Double -> Double -> Double -> Double -> (Double,Double)
 multiply_err_e x dx y dy = createSFR "multiply_err_e" $ gsl_sf_multiply_err_e x dx y dy
-foreign import ccall "elementary.h gsl_sf_multiply_err_e" gsl_sf_multiply_err_e :: Double -> Double -> Double -> Double -> Ptr Double -> IO(Int)
+foreign import ccall "elementary.h gsl_sf_multiply_err_e" gsl_sf_multiply_err_e :: Double -> Double -> Double -> Double -> Ptr () -> IO CInt

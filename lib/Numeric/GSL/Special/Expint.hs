@@ -42,6 +42,7 @@ module Numeric.GSL.Special.Expint(
 ) where
 
 import Foreign(Ptr)
+import Foreign.C.Types(CInt)
 import Numeric.GSL.Special.Internal
 
 -- | wrapper for int gsl_sf_expint_E1_e(double x,gsl_sf_result* result);
@@ -49,7 +50,7 @@ import Numeric.GSL.Special.Internal
 --   <http://www.google.com/search?q=gsl_sf_expint_E1_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 expint_E1_e :: Double -> (Double,Double)
 expint_E1_e x = createSFR "expint_E1_e" $ gsl_sf_expint_E1_e x
-foreign import ccall "expint.h gsl_sf_expint_E1_e" gsl_sf_expint_E1_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "expint.h gsl_sf_expint_E1_e" gsl_sf_expint_E1_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_expint_E1(double x);
 --
@@ -63,7 +64,7 @@ foreign import ccall "expint.h gsl_sf_expint_E1" gsl_sf_expint_E1 :: Double -> D
 --   <http://www.google.com/search?q=gsl_sf_expint_E2_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 expint_E2_e :: Double -> (Double,Double)
 expint_E2_e x = createSFR "expint_E2_e" $ gsl_sf_expint_E2_e x
-foreign import ccall "expint.h gsl_sf_expint_E2_e" gsl_sf_expint_E2_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "expint.h gsl_sf_expint_E2_e" gsl_sf_expint_E2_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_expint_E2(double x);
 --
@@ -77,7 +78,7 @@ foreign import ccall "expint.h gsl_sf_expint_E2" gsl_sf_expint_E2 :: Double -> D
 --   <http://www.google.com/search?q=gsl_sf_expint_E1_scaled_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 expint_E1_scaled_e :: Double -> (Double,Double)
 expint_E1_scaled_e x = createSFR "expint_E1_scaled_e" $ gsl_sf_expint_E1_scaled_e x
-foreign import ccall "expint.h gsl_sf_expint_E1_scaled_e" gsl_sf_expint_E1_scaled_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "expint.h gsl_sf_expint_E1_scaled_e" gsl_sf_expint_E1_scaled_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_expint_E1_scaled(double x);
 --
@@ -91,7 +92,7 @@ foreign import ccall "expint.h gsl_sf_expint_E1_scaled" gsl_sf_expint_E1_scaled 
 --   <http://www.google.com/search?q=gsl_sf_expint_E2_scaled_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 expint_E2_scaled_e :: Double -> (Double,Double)
 expint_E2_scaled_e x = createSFR "expint_E2_scaled_e" $ gsl_sf_expint_E2_scaled_e x
-foreign import ccall "expint.h gsl_sf_expint_E2_scaled_e" gsl_sf_expint_E2_scaled_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "expint.h gsl_sf_expint_E2_scaled_e" gsl_sf_expint_E2_scaled_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_expint_E2_scaled(double x);
 --
@@ -105,7 +106,7 @@ foreign import ccall "expint.h gsl_sf_expint_E2_scaled" gsl_sf_expint_E2_scaled 
 --   <http://www.google.com/search?q=gsl_sf_expint_Ei_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 expint_Ei_e :: Double -> (Double,Double)
 expint_Ei_e x = createSFR "expint_Ei_e" $ gsl_sf_expint_Ei_e x
-foreign import ccall "expint.h gsl_sf_expint_Ei_e" gsl_sf_expint_Ei_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "expint.h gsl_sf_expint_Ei_e" gsl_sf_expint_Ei_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_expint_Ei(double x);
 --
@@ -119,7 +120,7 @@ foreign import ccall "expint.h gsl_sf_expint_Ei" gsl_sf_expint_Ei :: Double -> D
 --   <http://www.google.com/search?q=gsl_sf_expint_Ei_scaled_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 expint_Ei_scaled_e :: Double -> (Double,Double)
 expint_Ei_scaled_e x = createSFR "expint_Ei_scaled_e" $ gsl_sf_expint_Ei_scaled_e x
-foreign import ccall "expint.h gsl_sf_expint_Ei_scaled_e" gsl_sf_expint_Ei_scaled_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "expint.h gsl_sf_expint_Ei_scaled_e" gsl_sf_expint_Ei_scaled_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_expint_Ei_scaled(double x);
 --
@@ -133,7 +134,7 @@ foreign import ccall "expint.h gsl_sf_expint_Ei_scaled" gsl_sf_expint_Ei_scaled 
 --   <http://www.google.com/search?q=gsl_sf_Shi_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 shi_e :: Double -> (Double,Double)
 shi_e x = createSFR "shi_e" $ gsl_sf_Shi_e x
-foreign import ccall "expint.h gsl_sf_Shi_e" gsl_sf_Shi_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "expint.h gsl_sf_Shi_e" gsl_sf_Shi_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_Shi(double x);
 --
@@ -147,7 +148,7 @@ foreign import ccall "expint.h gsl_sf_Shi" gsl_sf_Shi :: Double -> Double
 --   <http://www.google.com/search?q=gsl_sf_Chi_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 chi_e :: Double -> (Double,Double)
 chi_e x = createSFR "chi_e" $ gsl_sf_Chi_e x
-foreign import ccall "expint.h gsl_sf_Chi_e" gsl_sf_Chi_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "expint.h gsl_sf_Chi_e" gsl_sf_Chi_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_Chi(double x);
 --
@@ -161,7 +162,7 @@ foreign import ccall "expint.h gsl_sf_Chi" gsl_sf_Chi :: Double -> Double
 --   <http://www.google.com/search?q=gsl_sf_expint_3_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 expint_3_e :: Double -> (Double,Double)
 expint_3_e x = createSFR "expint_3_e" $ gsl_sf_expint_3_e x
-foreign import ccall "expint.h gsl_sf_expint_3_e" gsl_sf_expint_3_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "expint.h gsl_sf_expint_3_e" gsl_sf_expint_3_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_expint_3(double x);
 --
@@ -175,7 +176,7 @@ foreign import ccall "expint.h gsl_sf_expint_3" gsl_sf_expint_3 :: Double -> Dou
 --   <http://www.google.com/search?q=gsl_sf_Si_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 si_e :: Double -> (Double,Double)
 si_e x = createSFR "si_e" $ gsl_sf_Si_e x
-foreign import ccall "expint.h gsl_sf_Si_e" gsl_sf_Si_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "expint.h gsl_sf_Si_e" gsl_sf_Si_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_Si(double x);
 --
@@ -189,7 +190,7 @@ foreign import ccall "expint.h gsl_sf_Si" gsl_sf_Si :: Double -> Double
 --   <http://www.google.com/search?q=gsl_sf_Ci_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 ci_e :: Double -> (Double,Double)
 ci_e x = createSFR "ci_e" $ gsl_sf_Ci_e x
-foreign import ccall "expint.h gsl_sf_Ci_e" gsl_sf_Ci_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "expint.h gsl_sf_Ci_e" gsl_sf_Ci_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_Ci(double x);
 --
@@ -203,7 +204,7 @@ foreign import ccall "expint.h gsl_sf_Ci" gsl_sf_Ci :: Double -> Double
 --   <http://www.google.com/search?q=gsl_sf_atanint_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 atanint_e :: Double -> (Double,Double)
 atanint_e x = createSFR "atanint_e" $ gsl_sf_atanint_e x
-foreign import ccall "expint.h gsl_sf_atanint_e" gsl_sf_atanint_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "expint.h gsl_sf_atanint_e" gsl_sf_atanint_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_atanint(double x);
 --

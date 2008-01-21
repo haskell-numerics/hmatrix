@@ -37,6 +37,7 @@ int gsl_sf_gamma_inc_e(double a,double x,double* result);
 double gsl_sf_gamma_inc(double a,double x);
 int gsl_sf_lnbeta_e(double a,double b,double* result);
 double gsl_sf_lnbeta(double a,double b);
+int gsl_sf_lnbeta_sgn_e(double x,double y,double* result,double* sgn);
 int gsl_sf_beta_e(double a,double b,double* result);
 double gsl_sf_beta(double a,double b);
 int gsl_sf_beta_inc_e(double a,double b,double x,double* result);

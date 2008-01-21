@@ -30,7 +30,7 @@ where
 
 import Foreign
 import Data.Packed.Internal(check,(//))
-import Foreign.C.Types(CSize)
+import Foreign.C.Types(CSize,CInt)
 
 
 data Precision = PrecDouble | PrecSingle | PrecApprox
@@ -61,7 +61,7 @@ instance Storable Gsl_sf_result where
     (#poke gsl_sf_result, err) ptr err
 
 
-data Gsl_sf_result_e10 = SFE Double Double Int
+data Gsl_sf_result_e10 = SFE Double Double CInt
   deriving (Show)
 
 instance Storable Gsl_sf_result_e10 where
@@ -80,7 +80,7 @@ instance Storable Gsl_sf_result_e10 where
 
 ----------------------------------------------------------------
 -- | access to a sf_result
-createSFR :: String -> (Ptr a -> IO Int) -> (Double, Double)
+createSFR :: String -> (Ptr a -> IO CInt) -> (Double, Double)
 createSFR s f = unsafePerformIO $ do
     p <- malloc :: IO (Ptr Gsl_sf_result)
     f (castPtr p) // check s
@@ -93,10 +93,10 @@ createSFR s f = unsafePerformIO $ do
 -- the sf_result_e10 contains two doubles and the exponent
 
 -- | access to sf_result_e10
-createSFR_E10 :: String -> (Ptr a -> IO Int) -> (Double, Int, Double)
+createSFR_E10 :: String -> (Ptr a -> IO CInt) -> (Double, Int, Double)
 createSFR_E10 s f = unsafePerformIO $ do
     p <- malloc :: IO (Ptr Gsl_sf_result_e10)
     f (castPtr p) // check s
     SFE val err expo  <- peek p
     free p
-    return (val,expo,err)
+    return (val, fromIntegral expo,err)

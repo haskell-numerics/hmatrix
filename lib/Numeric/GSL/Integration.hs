@@ -21,6 +21,7 @@ module Numeric.GSL.Integration (
 ) where
 
 import Foreign
+import Foreign.C.Types(CInt)
 import Data.Packed.Internal(mkfun,check,(//))
 
 
@@ -55,7 +56,7 @@ integrateQAGS prec n f a b = unsafePerformIO $ do
 
 foreign import ccall "gsl-aux.h integrate_qags" 
  c_integrate_qags :: FunPtr (Double-> Ptr() -> Double) -> Double -> Double -> Double -> Int 
-                     -> Ptr Double -> Ptr Double -> IO Int
+                     -> Ptr Double -> Ptr Double -> IO CInt
 
 -----------------------------------------------------------------
 {- | Numerical integration using /gsl_integration_qng/ (useful for fast integration of smooth functions). For example:
@@ -86,5 +87,5 @@ integrateQNG prec f a b = unsafePerformIO $ do
 
 foreign import ccall "gsl-aux.h integrate_qng" 
  c_integrate_qng :: FunPtr (Double-> Ptr() -> Double) -> Double -> Double -> Double 
-                    -> Ptr Double -> Ptr Double -> IO Int
+                    -> Ptr Double -> Ptr Double -> IO CInt
 

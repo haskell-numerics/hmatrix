@@ -4,6 +4,7 @@ int gsl_sf_psi_e(double x,double* result);
 double gsl_sf_psi(double x);
 int gsl_sf_psi_1piy_e(double y,double* result);
 double gsl_sf_psi_1piy(double y);
+int gsl_sf_complex_psi_e(double x,double y,double* result_re,double* result_im);
 int gsl_sf_psi_1_int_e(int n,double* result);
 double gsl_sf_psi_1_int(int n);
 int gsl_sf_psi_1_e(double x,double* result);

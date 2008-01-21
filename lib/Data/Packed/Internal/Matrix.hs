@@ -281,14 +281,14 @@ foreign import ccall unsafe "auxi.h multiplyR"
     cmultiplyR :: Int -> Int -> Int -> Ptr Double
                -> Int -> Int -> Int -> Ptr Double
                -> Int -> Int -> Ptr Double
-               -> IO Int
+               -> IO CInt
 
 multiplyC = multiplyAux cmultiplyC
 foreign import ccall unsafe "auxi.h multiplyC"
     cmultiplyC :: Int -> Int -> Int -> Ptr (Complex Double)
                -> Int -> Int -> Int -> Ptr (Complex Double)
                -> Int -> Int -> Ptr (Complex Double)
-               -> IO Int
+               -> IO CInt
 
 -- | matrix product
 multiply :: (Element a) => Matrix a -> Matrix a -> Matrix a

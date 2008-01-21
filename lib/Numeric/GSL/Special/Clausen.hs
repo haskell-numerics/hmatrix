@@ -20,6 +20,7 @@ module Numeric.GSL.Special.Clausen(
 ) where
 
 import Foreign(Ptr)
+import Foreign.C.Types(CInt)
 import Numeric.GSL.Special.Internal
 
 -- | wrapper for int gsl_sf_clausen_e(double x,gsl_sf_result* result);
@@ -27,7 +28,7 @@ import Numeric.GSL.Special.Internal
 --   <http://www.google.com/search?q=gsl_sf_clausen_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 clausen_e :: Double -> (Double,Double)
 clausen_e x = createSFR "clausen_e" $ gsl_sf_clausen_e x
-foreign import ccall "clausen.h gsl_sf_clausen_e" gsl_sf_clausen_e :: Double -> Ptr Double -> IO(Int)
+foreign import ccall "clausen.h gsl_sf_clausen_e" gsl_sf_clausen_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_clausen(double x);
 --

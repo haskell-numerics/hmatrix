@@ -19,6 +19,10 @@ module Numeric.GSL.Special.Ellint(
 , ellint_Kcomp
 , ellint_Ecomp_e
 , ellint_Ecomp
+, ellint_Pcomp_e
+, ellint_Pcomp
+, ellint_Dcomp_e
+, ellint_Dcomp
 , ellint_F_e
 , ellint_F
 , ellint_E_e
@@ -38,6 +42,7 @@ module Numeric.GSL.Special.Ellint(
 ) where
 
 import Foreign(Ptr)
+import Foreign.C.Types(CInt)
 import Numeric.GSL.Special.Internal
 
 -- | wrapper for int gsl_sf_ellint_Kcomp_e(double k,gsl_mode_t mode,gsl_sf_result* result);
@@ -45,7 +50,7 @@ import Numeric.GSL.Special.Internal
 --   <http://www.google.com/search?q=gsl_sf_ellint_Kcomp_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 ellint_Kcomp_e :: Double -> Precision -> (Double,Double)
 ellint_Kcomp_e k mode = createSFR "ellint_Kcomp_e" $ gsl_sf_ellint_Kcomp_e k  (precCode mode)
-foreign import ccall "ellint.h gsl_sf_ellint_Kcomp_e" gsl_sf_ellint_Kcomp_e :: Double -> Gsl_mode_t -> Ptr Double -> IO(Int)
+foreign import ccall "ellint.h gsl_sf_ellint_Kcomp_e" gsl_sf_ellint_Kcomp_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_ellint_Kcomp(double k,gsl_mode_t mode);
 --
@@ -59,7 +64,7 @@ foreign import ccall "ellint.h gsl_sf_ellint_Kcomp" gsl_sf_ellint_Kcomp :: Doubl
 --   <http://www.google.com/search?q=gsl_sf_ellint_Ecomp_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 ellint_Ecomp_e :: Double -> Precision -> (Double,Double)
 ellint_Ecomp_e k mode = createSFR "ellint_Ecomp_e" $ gsl_sf_ellint_Ecomp_e k  (precCode mode)
-foreign import ccall "ellint.h gsl_sf_ellint_Ecomp_e" gsl_sf_ellint_Ecomp_e :: Double -> Gsl_mode_t -> Ptr Double -> IO(Int)
+foreign import ccall "ellint.h gsl_sf_ellint_Ecomp_e" gsl_sf_ellint_Ecomp_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_ellint_Ecomp(double k,gsl_mode_t mode);
 --
@@ -68,12 +73,40 @@ ellint_Ecomp :: Double -> Precision -> Double
 ellint_Ecomp k mode = gsl_sf_ellint_Ecomp k  (precCode mode)
 foreign import ccall "ellint.h gsl_sf_ellint_Ecomp" gsl_sf_ellint_Ecomp :: Double -> Gsl_mode_t -> Double
 
+-- | wrapper for int gsl_sf_ellint_Pcomp_e(double k,double n,gsl_mode_t mode,gsl_sf_result* result);
+--
+--   <http://www.google.com/search?q=gsl_sf_ellint_Pcomp_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
+ellint_Pcomp_e :: Double -> Double -> Precision -> (Double,Double)
+ellint_Pcomp_e k n mode = createSFR "ellint_Pcomp_e" $ gsl_sf_ellint_Pcomp_e k n  (precCode mode)
+foreign import ccall "ellint.h gsl_sf_ellint_Pcomp_e" gsl_sf_ellint_Pcomp_e :: Double -> Double -> Gsl_mode_t -> Ptr () -> IO CInt
+
+-- | wrapper for double gsl_sf_ellint_Pcomp(double k,double n,gsl_mode_t mode);
+--
+--   <http://www.google.com/search?q=gsl_sf_ellint_Pcomp&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
+ellint_Pcomp :: Double -> Double -> Precision -> Double
+ellint_Pcomp k n mode = gsl_sf_ellint_Pcomp k n  (precCode mode)
+foreign import ccall "ellint.h gsl_sf_ellint_Pcomp" gsl_sf_ellint_Pcomp :: Double -> Double -> Gsl_mode_t -> Double
+
+-- | wrapper for int gsl_sf_ellint_Dcomp_e(double k,gsl_mode_t mode,gsl_sf_result* result);
+--
+--   <http://www.google.com/search?q=gsl_sf_ellint_Dcomp_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
+ellint_Dcomp_e :: Double -> Precision -> (Double,Double)
+ellint_Dcomp_e k mode = createSFR "ellint_Dcomp_e" $ gsl_sf_ellint_Dcomp_e k  (precCode mode)
+foreign import ccall "ellint.h gsl_sf_ellint_Dcomp_e" gsl_sf_ellint_Dcomp_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
+
+-- | wrapper for double gsl_sf_ellint_Dcomp(double k,gsl_mode_t mode);
+--
+--   <http://www.google.com/search?q=gsl_sf_ellint_Dcomp&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
+ellint_Dcomp :: Double -> Precision -> Double
+ellint_Dcomp k mode = gsl_sf_ellint_Dcomp k  (precCode mode)
+foreign import ccall "ellint.h gsl_sf_ellint_Dcomp" gsl_sf_ellint_Dcomp :: Double -> Gsl_mode_t -> Double
+
 -- | wrapper for int gsl_sf_ellint_F_e(double phi,double k,gsl_mode_t mode,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_ellint_F_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 ellint_F_e :: Double -> Double -> Precision -> (Double,Double)
 ellint_F_e phi k mode = createSFR "ellint_F_e" $ gsl_sf_ellint_F_e phi k  (precCode mode)
-foreign import ccall "ellint.h gsl_sf_ellint_F_e" gsl_sf_ellint_F_e :: Double -> Double -> Gsl_mode_t -> Ptr Double -> IO(Int)
+foreign import ccall "ellint.h gsl_sf_ellint_F_e" gsl_sf_ellint_F_e :: Double -> Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_ellint_F(double phi,double k,gsl_mode_t mode);
 --
@@ -87,7 +120,7 @@ foreign import ccall "ellint.h gsl_sf_ellint_F" gsl_sf_ellint_F :: Double -> Dou
 --   <http://www.google.com/search?q=gsl_sf_ellint_E_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 ellint_E_e :: Double -> Double -> Precision -> (Double,Double)
 ellint_E_e phi k mode = createSFR "ellint_E_e" $ gsl_sf_ellint_E_e phi k  (precCode mode)
-foreign import ccall "ellint.h gsl_sf_ellint_E_e" gsl_sf_ellint_E_e :: Double -> Double -> Gsl_mode_t -> Ptr Double -> IO(Int)
+foreign import ccall "ellint.h gsl_sf_ellint_E_e" gsl_sf_ellint_E_e :: Double -> Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_ellint_E(double phi,double k,gsl_mode_t mode);
 --
@@ -101,7 +134,7 @@ foreign import ccall "ellint.h gsl_sf_ellint_E" gsl_sf_ellint_E :: Double -> Dou
 --   <http://www.google.com/search?q=gsl_sf_ellint_P_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 ellint_P_e :: Double -> Double -> Double -> Precision -> (Double,Double)
 ellint_P_e phi k n mode = createSFR "ellint_P_e" $ gsl_sf_ellint_P_e phi k n  (precCode mode)
-foreign import ccall "ellint.h gsl_sf_ellint_P_e" gsl_sf_ellint_P_e :: Double -> Double -> Double -> Gsl_mode_t -> Ptr Double -> IO(Int)
+foreign import ccall "ellint.h gsl_sf_ellint_P_e" gsl_sf_ellint_P_e :: Double -> Double -> Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_ellint_P(double phi,double k,double n,gsl_mode_t mode);
 --
@@ -115,7 +148,7 @@ foreign import ccall "ellint.h gsl_sf_ellint_P" gsl_sf_ellint_P :: Double -> Dou
 --   <http://www.google.com/search?q=gsl_sf_ellint_D_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 ellint_D_e :: Double -> Double -> Double -> Precision -> (Double,Double)
 ellint_D_e phi k n mode = createSFR "ellint_D_e" $ gsl_sf_ellint_D_e phi k n  (precCode mode)
-foreign import ccall "ellint.h gsl_sf_ellint_D_e" gsl_sf_ellint_D_e :: Double -> Double -> Double -> Gsl_mode_t -> Ptr Double -> IO(Int)
+foreign import ccall "ellint.h gsl_sf_ellint_D_e" gsl_sf_ellint_D_e :: Double -> Double -> Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_ellint_D(double phi,double k,double n,gsl_mode_t mode);
 --
@@ -129,7 +162,7 @@ foreign import ccall "ellint.h gsl_sf_ellint_D" gsl_sf_ellint_D :: Double -> Dou
 --   <http://www.google.com/search?q=gsl_sf_ellint_RC_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 ellint_RC_e :: Double -> Double -> Precision -> (Double,Double)
 ellint_RC_e x y mode = createSFR "ellint_RC_e" $ gsl_sf_ellint_RC_e x y  (precCode mode)
-foreign import ccall "ellint.h gsl_sf_ellint_RC_e" gsl_sf_ellint_RC_e :: Double -> Double -> Gsl_mode_t -> Ptr Double -> IO(Int)
+foreign import ccall "ellint.h gsl_sf_ellint_RC_e" gsl_sf_ellint_RC_e :: Double -> Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_ellint_RC(double x,double y,gsl_mode_t mode);
 --
@@ -143,7 +176,7 @@ foreign import ccall "ellint.h gsl_sf_ellint_RC" gsl_sf_ellint_RC :: Double -> D
 --   <http://www.google.com/search?q=gsl_sf_ellint_RD_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 ellint_RD_e :: Double -> Double -> Double -> Precision -> (Double,Double)
 ellint_RD_e x y z mode = createSFR "ellint_RD_e" $ gsl_sf_ellint_RD_e x y z  (precCode mode)
-foreign import ccall "ellint.h gsl_sf_ellint_RD_e" gsl_sf_ellint_RD_e :: Double -> Double -> Double -> Gsl_mode_t -> Ptr Double -> IO(Int)
+foreign import ccall "ellint.h gsl_sf_ellint_RD_e" gsl_sf_ellint_RD_e :: Double -> Double -> Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_ellint_RD(double x,double y,double z,gsl_mode_t mode);
 --
@@ -157,7 +190,7 @@ foreign import ccall "ellint.h gsl_sf_ellint_RD" gsl_sf_ellint_RD :: Double -> D
 --   <http://www.google.com/search?q=gsl_sf_ellint_RF_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 ellint_RF_e :: Double -> Double -> Double -> Precision -> (Double,Double)
 ellint_RF_e x y z mode = createSFR "ellint_RF_e" $ gsl_sf_ellint_RF_e x y z  (precCode mode)
-foreign import ccall "ellint.h gsl_sf_ellint_RF_e" gsl_sf_ellint_RF_e :: Double -> Double -> Double -> Gsl_mode_t -> Ptr Double -> IO(Int)
+foreign import ccall "ellint.h gsl_sf_ellint_RF_e" gsl_sf_ellint_RF_e :: Double -> Double -> Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_ellint_RF(double x,double y,double z,gsl_mode_t mode);
 --
@@ -171,7 +204,7 @@ foreign import ccall "ellint.h gsl_sf_ellint_RF" gsl_sf_ellint_RF :: Double -> D
 --   <http://www.google.com/search?q=gsl_sf_ellint_RJ_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 ellint_RJ_e :: Double -> Double -> Double -> Double -> Precision -> (Double,Double)
 ellint_RJ_e x y z p mode = createSFR "ellint_RJ_e" $ gsl_sf_ellint_RJ_e x y z p  (precCode mode)
-foreign import ccall "ellint.h gsl_sf_ellint_RJ_e" gsl_sf_ellint_RJ_e :: Double -> Double -> Double -> Double -> Gsl_mode_t -> Ptr Double -> IO(Int)
+foreign import ccall "ellint.h gsl_sf_ellint_RJ_e" gsl_sf_ellint_RJ_e :: Double -> Double -> Double -> Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_ellint_RJ(double x,double y,double z,double p,gsl_mode_t mode);
 --

@@ -60,7 +60,9 @@ main = do
     --mapM_ (putStrLn.showFull (name ++".h")) parsed
     let exports = rep (")",") where") $ rep ("(\n","(\n  ") $ rep (",\n",", ") $ unlines $ ["("]++intersperse "," (map (\(Header _ n _) -> hName n) (filter safe parsed))++[")"]
     let defs = unlines $ map (showFull (name ++".h")) parsed
-    let imports = "\nimport Foreign(Ptr)\nimport Numeric.GSL.Special.Internal\n"
+    let imports = "\nimport Foreign(Ptr)\n"
+                ++"import Foreign.C.Types(CInt)\n"
+                ++"import Numeric.GSL.Special.Internal\n"
     let mod = modhead name ++ "module Numeric.GSL.Special."++ upperFirst name++exports++imports++defs
     writeFile (upperFirst name ++ ".hs") mod
 
@@ -178,12 +180,15 @@ showCa (t, a) = showCt t ++" "++ a
 
 showH hc h@(Header t n args) = "foreign import ccall \""++hc++" "++n++"\" "++n++" :: "++ (concat$intersperse" -> "$map showHa args) ++" -> " ++ t'
     where t' | pure h = showHt t
-             | otherwise = "IO("++showHt t++")"
+             | otherwise = "IO "++showHt t
 
-showHt (Normal (s:ss)) = toUpper s : ss
-showHt (Pointer "gsl_sf_result") = "Ptr Double"
+ht "int" = "CInt"
+ht (s:ss) = toUpper s : ss
+
+showHt (Normal t) = ht t
+showHt (Pointer "gsl_sf_result") = "Ptr ()"
 showHt (Pointer "gsl_sf_result_e10") = "Ptr ()"
-showHt (Pointer (s:ss)) = "Ptr "++toUpper s : ss
+showHt (Pointer t) = "Ptr "++ht t
 
 showHa (t,a) = showHt t
 

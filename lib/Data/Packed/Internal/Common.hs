@@ -73,7 +73,7 @@ app4 f w1 o1 w2 o2 w3 o3 w4 o4 s = ww4 w1 o1 w2 o2 w3 o3 w4 o4 $
 
 -- GSL error codes are <= 1024
 -- | error codes for the auxiliary functions required by the wrappers
-errorCode :: Int -> String
+errorCode :: CInt -> String
 errorCode 2000 = "bad size"
 errorCode 2001 = "bad function code"
 errorCode 2002 = "memory problem"
@@ -85,7 +85,7 @@ errorCode 2007 = "not yet supported in this OS"
 errorCode n    = "code "++show n
 
 -- | check the error code
-check :: String -> IO Int -> IO ()
+check :: String -> IO CInt -> IO ()
 check msg f = do
     err <- f
     when (err/=0) $ if err > 1024
@@ -97,7 +97,7 @@ check msg f = do
     return ()
 
 -- | description of GSL error codes
-foreign import ccall "auxi.h gsl_strerror" gsl_strerror :: Int -> IO (Ptr CChar)
+foreign import ccall "auxi.h gsl_strerror" gsl_strerror :: CInt -> IO (Ptr CChar)
 
 
 {- | conversion of Haskell functions into function pointers that can be used in the C side
@@ -112,10 +112,10 @@ foreign import ccall "wrapper" mkfun:: (Double -> Ptr() -> Double) -> IO( FunPtr
 ------------------------------------------------
 type PD = Ptr Double                          --
 type PC = Ptr (Complex Double)                --
-type TV = Int -> PD -> IO Int                 --
+type TV = Int -> PD -> IO CInt                --
 type TVV = Int -> PD -> TV                    --
 type TVVV = Int -> PD -> TVV                  --
-type TM = Int -> Int -> PD -> IO Int          --
+type TM = Int -> Int -> PD -> IO CInt         --
 type TMM =  Int -> Int -> PD -> TM            --
 type TMMM =  Int -> Int -> PD -> TMM          --
 type TVM = Int -> PD -> TM                    --
@@ -123,7 +123,7 @@ type TVVM = Int -> PD -> TVM                  --
 type TMV = Int -> Int -> PD -> TV             --
 type TMVM = Int -> Int -> PD -> TVM           --
 type TMMVM = Int -> Int -> PD -> TMVM         --
-type TCM = Int -> Int -> PC -> IO Int         --
+type TCM = Int -> Int -> PC -> IO CInt        --
 type TCVCM = Int -> PC -> TCM                 --
 type TCMCVCM = Int -> Int -> PC -> TCVCM      --
 type TMCMCVCM = Int -> Int -> PD -> TCMCVCM   --
@@ -133,7 +133,7 @@ type TVCM = Int -> PD -> TCM                  --
 type TCMVCM = Int -> Int -> PC -> TVCM        --
 type TCMCMVCM = Int -> Int -> PC -> TCMVCM    --
 type TCMCMCM = Int -> Int -> PC -> TCMCM      --
-type TCV = Int -> PC -> IO Int                --
+type TCV = Int -> PC -> IO CInt               --
 type TCVCV = Int -> PC -> TCV                 --
 type TCVCVCV = Int -> PC -> TCVCV             --
 type TCMCV = Int -> Int -> PC -> TCV          --

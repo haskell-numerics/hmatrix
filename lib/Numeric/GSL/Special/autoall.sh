@@ -32,7 +32,7 @@ runhaskell auto gegenbauer
 runhaskell auto hyperg
 runhaskell auto laguerre
 runhaskell auto lambert
-#runhaskell auto legendre
+#runhaskell auto legendre legendre.h
 #runhaskell auto log
 runhaskell auto pow_int
 runhaskell auto psi

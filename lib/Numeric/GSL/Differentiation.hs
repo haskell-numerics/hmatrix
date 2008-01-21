@@ -23,6 +23,7 @@ module Numeric.GSL.Differentiation (
 ) where
 
 import Foreign
+import Foreign.C.Types(CInt)
 import Data.Packed.Internal(mkfun,check,(//))
 
 derivGen ::
@@ -46,7 +47,7 @@ derivGen c h f x = unsafePerformIO $ do
 
 foreign import ccall "gsl-aux.h deriv" 
  c_deriv :: Int -> FunPtr (Double -> Ptr () -> Double) -> Double -> Double 
-                    -> Ptr Double -> Ptr Double -> IO Int
+                    -> Ptr Double -> Ptr Double -> IO CInt
 
 
 {- | Adaptive central difference algorithm, /gsl_deriv_central/. For example:
