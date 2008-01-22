@@ -179,10 +179,6 @@ unpackQR' (qrp,tau) = unsafePerformIO $ do
         c = cols qrp
 foreign import ccall "gsl-aux.h QRunpack" c_qrUnpack :: TMVMM
 
-
-type TMMV = Int -> Int -> PD -> TMV
-type TMVMM = Int -> Int -> PD -> Int -> PD -> TMM
-
 {- | Cholesky decomposition of a symmetric positive definite real matrix using /gsl_linalg_cholesky_decomp/.
 
 @\> chol $ (2><2) [1,2,

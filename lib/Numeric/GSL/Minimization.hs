@@ -86,7 +86,7 @@ minimizeNMSimplex f xi sz tol maxit = unsafePerformIO $ do
     fp <- mkVecfun (iv (f.toList))
     rawpath <- ww2 withVector xiv withVector szv $ \xiv' szv' ->
                    createMIO maxit (n+3)
-                         (c_minimizeNMSimplex fp tol (fromIntegral maxit) // xiv' // szv')
+                         (c_minimizeNMSimplex fp tol (fi maxit) // xiv' // szv')
                          "minimizeNMSimplex"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
@@ -96,8 +96,7 @@ minimizeNMSimplex f xi sz tol maxit = unsafePerformIO $ do
 
 
 foreign import ccall "gsl-aux.h minimize"
-    c_minimizeNMSimplex:: FunPtr (CInt -> Ptr Double -> Double) -> Double -> CInt
-                       -> TVVM
+    c_minimizeNMSimplex:: FunPtr (CInt -> Ptr Double -> Double) -> Double -> CInt -> TVVM
 
 ----------------------------------------------------------------------------------
 
@@ -152,7 +151,7 @@ minimizeConjugateGradient istep minimpar tol maxit f df xi = unsafePerformIO $ d
     dfp <- mkVecVecfun (aux_vTov df')
     rawpath <- withVector xiv $ \xiv' ->
                     createMIO maxit (n+2)
-                         (c_minimizeConjugateGradient fp dfp istep minimpar tol (fromIntegral maxit) // xiv')
+                         (c_minimizeConjugateGradient fp dfp istep minimpar tol (fi maxit) // xiv')
                          "minimizeDerivV"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
@@ -172,7 +171,7 @@ foreign import ccall "gsl-aux.h minimizeWithDeriv"
 iv :: (Vector Double -> Double) -> (CInt -> Ptr Double -> Double)
 iv f n p = f (createV (fromIntegral n) copy "iv") where
     copy n' q = do
-        copyArray q p n'
+        copyArray q p (fromIntegral n')
         return 0
 
 -- | conversion of Haskell functions into function pointers that can be used in the C side
@@ -190,7 +189,7 @@ aux_vTov f n p r = g where
     V {fptr = pr} = f x
     x = createV (fromIntegral n) copy "aux_vTov"
     copy n' q = do
-        copyArray q p n'
+        copyArray q p (fromIntegral n')
         return 0
     g = withForeignPtr pr $ \p' -> copyArray r p' (fromIntegral n)
 

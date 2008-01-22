@@ -83,13 +83,13 @@ mat = withMatrix
 withMatrix MC {rows = r, cols = c, cdat = d } f =
     withForeignPtr (fptr d) $ \p -> do
         let m g = do
-            g r c p
+            g (fi r) (fi c) p
         f m
 
 withMatrix MF {rows = r, cols = c, fdat = d } f =
     withForeignPtr (fptr d) $ \p -> do
         let m g = do
-            g r c p
+            g (fi r) (fi c) p
         f m
 
 {- | Creates a vector by concatenation of rows
@@ -247,22 +247,20 @@ transdataAux fun c1 d c2 =
             v <- createVector (dim d)
             withForeignPtr (fptr d) $ \pd ->
                 withForeignPtr (fptr v) $ \pv ->
-                    fun r1 c1 pd r2 c2 pv // check "transdataAux"
+                    fun (fi r1) (fi c1) pd (fi r2) (fi c2) pv // check "transdataAux"
             -- putStrLn $ "---> transdataAux" ++ show (toList d) ++ show (toList v)
             return v
   where r1 = dim d `div` c1
         r2 = dim d `div` c2
         noneed = r1 == 1 || c1 == 1
 
-foreign import ccall unsafe "auxi.h transR"
-    ctransR :: TMM -- Double ::> Double ::> IO Int
-foreign import ccall unsafe "auxi.h transC"
-    ctransC :: TCMCM -- Complex Double ::> Complex Double ::> IO Int
+foreign import ccall unsafe "auxi.h transR" ctransR :: TMM
+foreign import ccall unsafe "auxi.h transC" ctransC :: TCMCM
 
 ------------------------------------------------------------------
 
-gmatC MF { rows = r, cols = c } p f = f 1 c r p
-gmatC MC { rows = r, cols = c } p f = f 0 r c p
+gmatC MF { rows = r, cols = c } p f = f 1 (fi c) (fi r) p
+gmatC MC { rows = r, cols = c } p f = f 0 (fi r) (fi c) p
 
 dtt MC { cdat = d } = d
 dtt MF { fdat = d } = d
@@ -277,18 +275,10 @@ multiplyAux fun a b = unsafePerformIO $ do
     return r
 
 multiplyR = multiplyAux cmultiplyR
-foreign import ccall unsafe "auxi.h multiplyR"
-    cmultiplyR :: Int -> Int -> Int -> Ptr Double
-               -> Int -> Int -> Int -> Ptr Double
-               -> Int -> Int -> Ptr Double
-               -> IO CInt
+foreign import ccall unsafe "auxi.h multiplyR" cmultiplyR :: TauxMul Double
 
 multiplyC = multiplyAux cmultiplyC
-foreign import ccall unsafe "auxi.h multiplyC"
-    cmultiplyC :: Int -> Int -> Int -> Ptr (Complex Double)
-               -> Int -> Int -> Int -> Ptr (Complex Double)
-               -> Int -> Int -> Ptr (Complex Double)
-               -> IO CInt
+foreign import ccall unsafe "auxi.h multiplyC" cmultiplyC :: TauxMul (Complex Double)
 
 -- | matrix product
 multiply :: (Element a) => Matrix a -> Matrix a -> Matrix a
@@ -301,9 +291,9 @@ subMatrixR :: (Int,Int) -> (Int,Int) -> Matrix Double -> Matrix Double
 subMatrixR (r0,c0) (rt,ct) x' = unsafePerformIO $ do
     r <- createMatrix RowMajor rt ct
     let x = cmat x'
-    app2 (c_submatrixR r0 (r0+rt-1) c0 (c0+ct-1)) mat x mat r "subMatrixR"
+    app2 (c_submatrixR (fi r0) (fi $ r0+rt-1) (fi c0) (fi $ c0+ct-1)) mat x mat r "subMatrixR"
     return r
-foreign import ccall "auxi.h submatrixR" c_submatrixR :: Int -> Int -> Int -> Int -> TMM
+foreign import ccall "auxi.h submatrixR" c_submatrixR :: CInt -> CInt -> CInt -> CInt -> TMM
 
 -- | extraction of a submatrix from a complex matrix
 subMatrixC :: (Int,Int) -> (Int,Int) -> Matrix (Complex Double) -> Matrix (Complex Double)
@@ -353,13 +343,11 @@ constantAux fun x n = unsafePerformIO $ do
 
 constantR :: Double -> Int -> Vector Double
 constantR = constantAux cconstantR
-foreign import ccall "auxi.h constantR"
-    cconstantR :: Ptr Double -> TV -- Double :> IO Int
+foreign import ccall "auxi.h constantR" cconstantR :: Ptr Double -> TV
 
 constantC :: Complex Double -> Int -> Vector (Complex Double)
 constantC = constantAux cconstantC
-foreign import ccall "auxi.h constantC"
-    cconstantC :: Ptr (Complex Double) -> TCV -- Complex Double :> IO Int
+foreign import ccall "auxi.h constantC" cconstantC :: Ptr (Complex Double) -> TCV
 
 {- | creates a vector with a given number of equal components:
 

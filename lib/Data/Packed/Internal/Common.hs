@@ -59,6 +59,10 @@ common f = commonval . map f where
 infixl 0 //
 (//) = flip ($)
 
+-- | specialized fromIntegral
+fi :: Int -> CInt
+fi = fromIntegral
+
 -- hmm..
 ww2 w1 o1 w2 o2 f = w1 o1 $ \a1 -> w2 o2 $ \a2 -> f a1 a2
 ww3 w1 o1 w2 o2 w3 o3 f = w1 o1 $ \a1 -> ww2 w2 o2 w3 o3 (f a1)
@@ -103,37 +107,45 @@ foreign import ccall "auxi.h gsl_strerror" gsl_strerror :: CInt -> IO (Ptr CChar
 -- ugly, but my haddock version doesn't understand
 -- yet infix type constructors
 ---------------------------------------------------
----------- signatures of the C functions -------
-------------------------------------------------
-type PD = Ptr Double                          --
-type PC = Ptr (Complex Double)                --
-type TV = Int -> PD -> IO CInt                --
-type TVV = Int -> PD -> TV                    --
-type TVVV = Int -> PD -> TVV                  --
-type TM = Int -> Int -> PD -> IO CInt         --
-type TMM =  Int -> Int -> PD -> TM            --
-type TMMM =  Int -> Int -> PD -> TMM          --
-type TVM = Int -> PD -> TM                    --
-type TVVM = Int -> PD -> TVM                  --
-type TMV = Int -> Int -> PD -> TV             --
-type TMVM = Int -> Int -> PD -> TVM           --
-type TMMVM = Int -> Int -> PD -> TMVM         --
-type TCM = Int -> Int -> PC -> IO CInt        --
-type TCVCM = Int -> PC -> TCM                 --
-type TCMCVCM = Int -> Int -> PC -> TCVCM      --
-type TMCMCVCM = Int -> Int -> PD -> TCMCVCM   --
-type TCMCMCVCM = Int -> Int -> PC -> TCMCVCM  --
-type TCMCM = Int -> Int -> PC -> TCM          --
-type TVCM = Int -> PD -> TCM                  --
-type TCMVCM = Int -> Int -> PC -> TVCM        --
-type TCMCMVCM = Int -> Int -> PC -> TCMVCM    --
-type TCMCMCM = Int -> Int -> PC -> TCMCM      --
-type TCV = Int -> PC -> IO CInt               --
-type TCVCV = Int -> PC -> TCV                 --
-type TCVCVCV = Int -> PC -> TCVCV             --
-type TCMCV = Int -> Int -> PC -> TCV          --
-type TVCV = Int -> PD -> TCV                  --
-type TCVM = Int -> PC -> TM                   --
-type TMCVM = Int -> Int -> PD -> TCVM         --
-type TMMCVM = Int -> Int -> PD -> TMCVM       --
-------------------------------------------------
+---------- signatures of the C functions ---------
+--------------------------------------------------
+type PD = Ptr Double                            --
+type PC = Ptr (Complex Double)                  --
+type TV = CInt -> PD -> IO CInt                 --
+type TVV = CInt -> PD -> TV                     --
+type TVVV = CInt -> PD -> TVV                   --
+type TM = CInt -> CInt -> PD -> IO CInt         --
+type TMM =  CInt -> CInt -> PD -> TM            --
+type TVMM = CInt -> PD -> TMM                   --
+type TMVMM = CInt -> CInt -> PD -> TVMM         --
+type TMMM =  CInt -> CInt -> PD -> TMM          --
+type TVM = CInt -> PD -> TM                     --
+type TVVM = CInt -> PD -> TVM                   --
+type TMV = CInt -> CInt -> PD -> TV             --
+type TMMV = CInt -> CInt -> PD -> TMV           --
+type TMVM = CInt -> CInt -> PD -> TVM           --
+type TMMVM = CInt -> CInt -> PD -> TMVM         --
+type TCM = CInt -> CInt -> PC -> IO CInt        --
+type TCVCM = CInt -> PC -> TCM                  --
+type TCMCVCM = CInt -> CInt -> PC -> TCVCM      --
+type TMCMCVCM = CInt -> CInt -> PD -> TCMCVCM   --
+type TCMCMCVCM = CInt -> CInt -> PC -> TCMCVCM  --
+type TCMCM = CInt -> CInt -> PC -> TCM          --
+type TVCM = CInt -> PD -> TCM                   --
+type TCMVCM = CInt -> CInt -> PC -> TVCM        --
+type TCMCMVCM = CInt -> CInt -> PC -> TCMVCM    --
+type TCMCMCM = CInt -> CInt -> PC -> TCMCM      --
+type TCV = CInt -> PC -> IO CInt                --
+type TCVCV = CInt -> PC -> TCV                  --
+type TCVCVCV = CInt -> PC -> TCVCV              --
+type TCMCV = CInt -> CInt -> PC -> TCV          --
+type TVCV = CInt -> PD -> TCV                   --
+type TCVM = CInt -> PC -> TM                    --
+type TMCVM = CInt -> CInt -> PD -> TCVM         --
+type TMMCVM = CInt -> CInt -> PD -> TMCVM       --
+--------------------------------------------------
+
+type TauxMul a = CInt -> CInt -> CInt -> Ptr a
+               -> CInt -> CInt -> CInt -> Ptr a
+               -> CInt -> CInt -> Ptr a
+               -> IO CInt

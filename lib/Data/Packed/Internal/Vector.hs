@@ -26,20 +26,11 @@ data Vector t = V { dim  :: Int              -- ^ number of elements
                   , fptr :: ForeignPtr t     -- ^ foreign pointer to the memory block
                   }
 
---ptr (V _ fptr) = unsafeForeignPtrToPtr fptr
-
--- | signature of foreign functions admitting C-style vectors
-type Vc t s = Int -> Ptr t -> s
--- not yet admitted by my haddock version
--- infixr 5 :>
--- type t :> s = Vc t s
-
-
 vec = withVector
 
 withVector (V n fp) f = withForeignPtr fp $ \p -> do
     let v g = do
-        g n p
+        g (fi n) p
     f v
 
 -- | allocates memory for a new vector
