@@ -21,14 +21,16 @@ type CM = Matrix (Complex Double)
 
 -- relative error
 dist :: (Normed t, Num t) => t -> t -> Double
-dist a b = f nab na nb
+dist a b = r
     where norm = pnorm Infinity
           na = norm a
           nb = norm b
           nab = norm (a-b)
-          f _ a 0 = a
-          f _ 0 b = b
-          f d a b = d / max a b
+          mx = max na nb
+          mn = min na nb
+          r = if mn < eps
+                then mx
+                else nab/mx
 
 infixl 4 |~|
 a |~| b = a :~10~: b

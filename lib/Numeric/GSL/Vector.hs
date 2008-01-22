@@ -27,7 +27,7 @@ import Complex
 import Foreign
 import Foreign.C.Types(CInt)
 
-fromei = fromIntegral . fromei
+fromei x = fromIntegral (fromEnum x)
 
 data FunCodeV = Sin
               | Cos
