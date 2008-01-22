@@ -22,8 +22,12 @@ module Numeric.GSL.Integration (
 
 import Foreign
 import Foreign.C.Types(CInt)
-import Data.Packed.Internal(mkfun,check,(//))
+import Data.Packed.Internal(check,(//))
 
+
+{- | conversion of Haskell functions into function pointers that can be used in the C side
+-}
+foreign import ccall "wrapper" mkfun:: (Double -> Ptr() -> Double) -> IO( FunPtr (Double -> Ptr() -> Double)) 
 
 --------------------------------------------------------------------
 {- | Numerical integration using /gsl_integration_qags/ (adaptive integration with singularities). For example:
@@ -45,7 +49,7 @@ integrateQAGS prec n f a b = unsafePerformIO $ do
     r <- malloc
     e <- malloc
     fp <- mkfun (\x _ -> f x) 
-    c_integrate_qags fp a b prec n r e // check "integrate_qags"
+    c_integrate_qags fp a b prec (fromIntegral n) r e // check "integrate_qags"
     vr <- peek r
     ve <- peek e
     let result = (vr,ve)
@@ -55,7 +59,7 @@ integrateQAGS prec n f a b = unsafePerformIO $ do
     return result
 
 foreign import ccall "gsl-aux.h integrate_qags" 
- c_integrate_qags :: FunPtr (Double-> Ptr() -> Double) -> Double -> Double -> Double -> Int 
+ c_integrate_qags :: FunPtr (Double-> Ptr() -> Double) -> Double -> Double -> Double -> CInt
                      -> Ptr Double -> Ptr Double -> IO CInt
 
 -----------------------------------------------------------------
@@ -88,4 +92,3 @@ integrateQNG prec f a b = unsafePerformIO $ do
 foreign import ccall "gsl-aux.h integrate_qng" 
  c_integrate_qng :: FunPtr (Double-> Ptr() -> Double) -> Double -> Double -> Double 
                     -> Ptr Double -> Ptr Double -> IO CInt
-

@@ -99,11 +99,6 @@ check msg f = do
 -- | description of GSL error codes
 foreign import ccall "auxi.h gsl_strerror" gsl_strerror :: CInt -> IO (Ptr CChar)
 
-
-{- | conversion of Haskell functions into function pointers that can be used in the C side
--}
-foreign import ccall "wrapper" mkfun:: (Double -> Ptr() -> Double) -> IO( FunPtr (Double -> Ptr() -> Double)) 
-
 ---------------------------------------------------
 -- ugly, but my haddock version doesn't understand
 -- yet infix type constructors

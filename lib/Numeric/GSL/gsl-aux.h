@@ -50,7 +50,7 @@ int fft(int code, KCVEC(a), CVEC(b));
 int integrate_qng(double f(double, void*), double a, double b, double prec,
                    double *result, double*error);
 
-int integrate_qags(double f(double,void*), double a, double b, double prec, int w, 
+int integrate_qags(double f(double,void*), double a, double b, double prec, int w,
                double *result, double* error);
 
 int polySolve(KRVEC(a), CVEC(z));

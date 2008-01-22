@@ -23,13 +23,14 @@ module Numeric.GSL.Fourier (
 import Data.Packed.Internal
 import Complex
 import Foreign
+import Foreign.C.Types(CInt)
 
 genfft code v = unsafePerformIO $ do
     r <- createVector (dim v)
     app2 (c_fft code) vec v vec r "fft"
     return r
 
-foreign import ccall "gsl-aux.h fft" c_fft ::  Int -> TCVCV
+foreign import ccall "gsl-aux.h fft" c_fft ::  CInt -> TCVCV
 
 
 {- | Fast 1D Fourier transform of a 'Vector' @(@'Complex' 'Double'@)@ using /gsl_fft_complex_forward/. It uses the same scaling conventions as GNU Octave.

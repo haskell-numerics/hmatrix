@@ -24,10 +24,10 @@ module Numeric.GSL.Differentiation (
 
 import Foreign
 import Foreign.C.Types(CInt)
-import Data.Packed.Internal(mkfun,check,(//))
+import Data.Packed.Internal(check,(//))
 
 derivGen ::
-    Int                   -- ^ type: 0 central, 1 forward, 2 backward
+    CInt                   -- ^ type: 0 central, 1 forward, 2 backward
     -> Double             -- ^ initial step size
     -> (Double -> Double) -- ^ function
     -> Double             -- ^ point where the derivative is taken
@@ -46,7 +46,7 @@ derivGen c h f x = unsafePerformIO $ do
     return result
 
 foreign import ccall "gsl-aux.h deriv" 
- c_deriv :: Int -> FunPtr (Double -> Ptr () -> Double) -> Double -> Double 
+ c_deriv :: CInt -> FunPtr (Double -> Ptr () -> Double) -> Double -> Double 
                     -> Ptr Double -> Ptr Double -> IO CInt
 
 
@@ -78,3 +78,7 @@ derivBackward ::Double                  -- ^ initial step size
                 -> Double               -- ^ point where the derivative is taken
                 -> (Double, Double)     -- ^ result and absolute error
 derivBackward = derivGen 2
+
+{- | conversion of Haskell functions into function pointers that can be used in the C side
+-}
+foreign import ccall "wrapper" mkfun:: (Double -> Ptr() -> Double) -> IO( FunPtr (Double -> Ptr() -> Double)) 
