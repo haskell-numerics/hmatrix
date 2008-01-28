@@ -69,7 +69,7 @@ import Data.List(foldl1')
 import Data.Array
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
-class (Normed (Matrix t), Linear Matrix t) => Field t where
+class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
     -- | Singular value decomposition using lapack's dgesvd or zgesvd.
     svd         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     luPacked    :: Matrix t -> (Matrix t, [Int])

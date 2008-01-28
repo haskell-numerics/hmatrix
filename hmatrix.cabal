@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.2.0.1
+Version:            0.2.0.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -13,7 +13,7 @@ Description:        A purely functional interface to basic linear algebra comput
                     .
                     More information: <http://alberrto.googlepages.com/gslhaskell>
 Category:           Numerical, Math
-tested-with:        GHC ==6.6.1, GHC ==6.8.1, GHC ==6.8.2
+tested-with:        GHC ==6.8.2
 
 cabal-version:      >=1.2
 build-type:         Simple
@@ -23,9 +23,9 @@ flag splitBase
 
 library
     if flag(splitBase)
-      build-depends:    base >= 3, array, storable-complex
+      build-depends:    base >= 3, array
     else
-      build-depends:    base < 3, storable-complex
+      build-depends:    base < 3
 
     ghc-options:        -O
 
@@ -85,7 +85,8 @@ library
                         Numeric.LinearAlgebra.Instances,
                         Numeric.LinearAlgebra.Interface,
                         Numeric.LinearAlgebra.Algorithms,
-                        Graphics.Plot
+                        Graphics.Plot,
+                        Numeric.LinearAlgebra.Testing
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Vector,

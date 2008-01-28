@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# OPTIONS_GHC -fglasgow-exts -fallow-undecidable-instances #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Linear
@@ -60,18 +60,7 @@ instance Linear Vector (Complex Double) where
     divide = vectorZipC Div
     equal u v = dim u == dim v && vectorMax (liftVector magnitude (sub u v)) == 0.0
 
-instance Linear Matrix Double where
-    scale x = liftMatrix (scale x)
-    scaleRecip x = liftMatrix (scaleRecip x)
-    addConstant x = liftMatrix (addConstant x)
-    add = liftMatrix2 add
-    sub = liftMatrix2 sub
-    mul = liftMatrix2 mul
-    divide = liftMatrix2 divide
-    equal a b = cols a == cols b && flatten a `equal` flatten b
-
-
-instance Linear Matrix (Complex Double) where
+instance (Linear Vector a, Container Matrix a) => (Linear Matrix a) where
     scale x = liftMatrix (scale x)
     scaleRecip x = liftMatrix (scaleRecip x)
     addConstant x = liftMatrix (addConstant x)
