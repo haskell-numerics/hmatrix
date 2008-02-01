@@ -1,3 +1,5 @@
+#!/usr/bin/env runhaskell
+
 -- automatic generation of wrappers for simple GSL special functions
 
 import Text.ParserCombinators.Parsec

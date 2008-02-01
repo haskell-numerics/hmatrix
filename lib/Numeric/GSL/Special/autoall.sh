@@ -1,7 +1,10 @@
 #!/bin/bash
 
-#Airy.hs
-#  include Precision (..) in the export list
+function rep {
+    ./replace.hs "$1" "$2" < $3 > /tmp/tmp-rep
+    cp /tmp/tmp-rep $3
+}
+
 #Exp.hs
 #  remove extern inline definition, qualify name
 #Coupling
@@ -13,29 +16,31 @@
 #Log.hs
 #  remove extern inline, qualify name
 
-#runhaskell auto airy
-runhaskell auto bessel
-runhaskell auto clausen
-runhaskell auto coulomb
-#runhaskell auto coupling
-runhaskell auto dawson
-runhaskell auto debye
-runhaskell auto dilog
-runhaskell auto elementary
-runhaskell auto ellint
-runhaskell auto erf
+./auto.hs airy
+rep ') where' ', Precision(..)\n) where' Airy.hs
+./auto.hs bessel
+./auto.hs clausen
+./auto.hs coulomb
+runhaskell auto coupling
+rep ', coupling_6j_INCORRECT_e\n, coupling_6j_INCORRECT\n' '' Coupling.hs
+./auto.hs dawson
+./auto.hs debye
+./auto.hs dilog
+./auto.hs elementary
+./auto.hs ellint
+./auto.hs erf
 #runhaskell auto exp
-runhaskell auto expint
-runhaskell auto fermi_dirac
-runhaskell auto gamma
-runhaskell auto gegenbauer
-runhaskell auto hyperg
-runhaskell auto laguerre
-runhaskell auto lambert
+./auto.hs expint
+./auto.hs fermi_dirac
+./auto.hs gamma
+./auto.hs gegenbauer
+./auto.hs hyperg
+./auto.hs laguerre
+./auto.hs lambert
 #runhaskell auto legendre legendre.h
 #runhaskell auto log
-runhaskell auto pow_int
-runhaskell auto psi
-runhaskell auto synchrotron
+./auto.hs pow_int
+./auto.hs psi
+./auto.hs synchrotron
 #runhaskell auto trig
-runhaskell auto zeta
+./auto.hs zeta
