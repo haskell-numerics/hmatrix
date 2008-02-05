@@ -34,12 +34,12 @@ dist a b = r
                 else nab/mx
 
 infixl 4 |~|
---a |~| b = a :~10~: b
-a |~| b = dist a b < 10^^(-10)
+a |~| b = a :~10~: b
+--a |~| b = dist a b < 10^^(-10)
 
---data Aprox a = (:~) a Int
---(~:) :: (Normed a, Num a) => Aprox a -> a -> Bool
---a :~n~: b = dist a b < 10^^(-n)
+data Aprox a = (:~) a Int
+(~:) :: (Normed a, Num a) => Aprox a -> a -> Bool
+a :~n~: b = dist a b < 10^^(-n)
 
 ------------------------------------------------------
 
@@ -48,3 +48,7 @@ square m = rows m == cols m
 unitary m = square m && m <> ctrans m |~| ident (rows m)
 
 hermitian m = square m && m |~| ctrans m
+
+degenerate m = rank m < min (rows m) (cols m)
+
+wellCond m = rcond m > 1/100
