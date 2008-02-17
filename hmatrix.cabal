@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.2.0.0
+Version:            0.2.0.1
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -16,15 +16,16 @@ Category:           Numerical, Math
 tested-with:        GHC ==6.6.1, GHC ==6.8.1, GHC ==6.8.2
 
 cabal-version:      >=1.2
+build-type:         Simple
 
 flag splitBase
     description:    Choose the new smaller, split-up base package.
 
 library
     if flag(splitBase)
-      build-depends:    base >= 3, array
+      build-depends:    base >= 3, array, storable-complex
     else
-      build-depends:    base < 3
+      build-depends:    base < 3, storable-complex
 
     ghc-options:        -O
 

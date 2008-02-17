@@ -22,16 +22,8 @@ import Control.Monad(when)
 import Debug.Trace
 import Foreign.C.String(peekCString)
 import Foreign.C.Types
+import Foreign.Storable.Complex
 
-----------------------------------------------------------------------
-instance (Storable a, RealFloat a) => Storable (Complex a) where    --
-    alignment x = alignment (realPart x)                            --
-    sizeOf x    = 2 * sizeOf (realPart x)                           --
-    peek p = do                                                     --
-        [re,im] <- peekArray 2 (castPtr p)                          --
-        return (re :+ im)                                           --
-    poke p (a :+ b) = pokeArray (castPtr p) [a,b]                   --
-----------------------------------------------------------------------
 
 -- | @debug x = trace (show x) x@
 debug :: (Show a) => a -> a
