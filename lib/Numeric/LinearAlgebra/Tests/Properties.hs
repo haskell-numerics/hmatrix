@@ -52,3 +52,8 @@ hermitian m = square m && m |~| ctrans m
 degenerate m = rank m < min (rows m) (cols m)
 
 wellCond m = rcond m > 1/100
+
+-----------------------------------------------------
+
+luTest m = m |~| p <> l <> u && det p == s
+    where (l,u,p,s) = lu m
