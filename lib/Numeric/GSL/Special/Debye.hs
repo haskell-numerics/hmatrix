@@ -23,10 +23,10 @@ module Numeric.GSL.Special.Debye(
 , debye_3
 , debye_4_e
 , debye_4
---, debye_5_e
---, debye_5
---, debye_6_e
---, debye_6
+, debye_5_e
+, debye_5
+, debye_6_e
+, debye_6
 ) where
 
 import Foreign(Ptr)
@@ -92,27 +92,27 @@ foreign import ccall "debye.h gsl_sf_debye_4" gsl_sf_debye_4 :: Double -> Double
 -- | wrapper for int gsl_sf_debye_5_e(double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_debye_5_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
---debye_5_e :: Double -> (Double,Double)
---debye_5_e x = createSFR "debye_5_e" $ gsl_sf_debye_5_e x
---foreign import ccall "debye.h gsl_sf_debye_5_e" gsl_sf_debye_5_e :: Double -> Ptr () -> IO CInt
+debye_5_e :: Double -> (Double,Double)
+debye_5_e x = createSFR "debye_5_e" $ gsl_sf_debye_5_e x
+foreign import ccall "debye.h gsl_sf_debye_5_e" gsl_sf_debye_5_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_debye_5(double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_debye_5&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
---debye_5 :: Double -> Double
---debye_5 = gsl_sf_debye_5
---foreign import ccall "debye.h gsl_sf_debye_5" gsl_sf_debye_5 :: Double -> Double
+debye_5 :: Double -> Double
+debye_5 = gsl_sf_debye_5
+foreign import ccall "debye.h gsl_sf_debye_5" gsl_sf_debye_5 :: Double -> Double
 
 -- | wrapper for int gsl_sf_debye_6_e(double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_debye_6_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
---debye_6_e :: Double -> (Double,Double)
---debye_6_e x = createSFR "debye_6_e" $ gsl_sf_debye_6_e x
---foreign import ccall "debye.h gsl_sf_debye_6_e" gsl_sf_debye_6_e :: Double -> Ptr () -> IO CInt
+debye_6_e :: Double -> (Double,Double)
+debye_6_e x = createSFR "debye_6_e" $ gsl_sf_debye_6_e x
+foreign import ccall "debye.h gsl_sf_debye_6_e" gsl_sf_debye_6_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_debye_6(double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_debye_6&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
---debye_6 :: Double -> Double
---debye_6 = gsl_sf_debye_6
---foreign import ccall "debye.h gsl_sf_debye_6" gsl_sf_debye_6 :: Double -> Double
+debye_6 :: Double -> Double
+debye_6 = gsl_sf_debye_6
+foreign import ccall "debye.h gsl_sf_debye_6" gsl_sf_debye_6 :: Double -> Double

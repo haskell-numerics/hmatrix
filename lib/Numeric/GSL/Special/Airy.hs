@@ -38,8 +38,8 @@ module Numeric.GSL.Special.Airy(
 , airy_zero_Ai_deriv_e
 , airy_zero_Ai_deriv
 , airy_zero_Bi_deriv_e
-, airy_zero_Bi_deriv,
-Precision(..)
+, airy_zero_Bi_deriv
+, Precision(..)
 ) where
 
 import Foreign(Ptr)
