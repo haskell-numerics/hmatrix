@@ -19,7 +19,7 @@ rep ', coupling_6j_INCORRECT_e\n, coupling_6j_INCORRECT\n' '' Coupling.hs
 ./auto.hs elementary
 ./auto.hs ellint
 ./auto.hs erf
-./auto.hs exp gsl_sf_exp.h
+./auto.hs exp
 rep ', exp\n' ', Numeric.GSL.Special.Exp.exp\n' Exp.hs
 ./auto.hs expint
 ./auto.hs fermi_dirac
@@ -29,7 +29,7 @@ rep ', exp\n' ', Numeric.GSL.Special.Exp.exp\n' Exp.hs
 ./auto.hs laguerre
 ./auto.hs lambert
 ./auto.hs legendre gsl_sf_legendre.h
-./auto.hs log gsl_sf_log.h
+./auto.hs log
 rep ', log\n' ', Numeric.GSL.Special.Log.log\n' Log.hs
 ./auto.hs pow_int
 ./auto.hs psi
