@@ -443,7 +443,7 @@ tests = do
     putStrLn "--------- chol ------"
     runTestTT $ TestList
      [ test "cholR" cholRTest
-     , test "cholC" cholRTest
+     , test "cholC" cholCTest
      ]
     putStrLn "--------- qr ---------"
     quickCheck (qrTest GSL.qr)

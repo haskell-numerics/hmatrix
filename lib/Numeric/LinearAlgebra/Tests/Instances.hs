@@ -14,10 +14,13 @@ Arbitrary instances for vectors, matrices.
 -}
 
 module Numeric.LinearAlgebra.Tests.Instances(
-    Sq(..),
-    Rot(..),
-    Her(..),
-    WC(..)
+    Sq(..),     rSq,cSq,
+    Rot(..),    rRot,cRot,
+    Her(..),    rHer,cHer,
+    WC(..),     rWC,cWC,
+    SqWC(..),   rSqWC, cSqWC,
+    PosDef(..), rPosDef, cPosDef,
+    RM,CM, rM,cM
 ) where
 
 import Numeric.LinearAlgebra
@@ -74,7 +77,7 @@ instance (Field a, Arbitrary a) => Arbitrary (Her a) where
         return $ Her (m' + ctrans m')
     coarbitrary = undefined
 
--- a well-conditioned matrix (the singular values are between 1 and 100)
+-- a well-conditioned general matrix (the singular values are between 1 and 100)
 newtype (WC a) = WC (Matrix a) deriving Show
 instance (Field a, Arbitrary a) => Arbitrary (WC a) where
     arbitrary = do
@@ -87,3 +90,53 @@ instance (Field a, Arbitrary a) => Arbitrary (WC a) where
         let s = diagRect (fromList sv) r c
         return $ WC (u <> real s <> trans v)
     coarbitrary = undefined
+
+-- a well-conditioned square matrix (the singular values are between 1 and 100)
+newtype (SqWC a) = SqWC (Matrix a) deriving Show
+instance (Field a, Arbitrary a) => Arbitrary (SqWC a) where
+    arbitrary = do
+        Sq m <- arbitrary
+        let (u,_,v) = svd m
+            n = rows m
+        sv <- replicateM n (choose (1,100))
+        let s = diag (fromList sv)
+        return $ SqWC (u <> real s <> trans v)
+    coarbitrary = undefined
+
+-- a positive definite square matrix (the eigenvalues are between 0 and 100)
+newtype (PosDef a) = PosDef (Matrix a) deriving Show
+instance (Field a, Arbitrary a) => Arbitrary (PosDef a) where
+    arbitrary = do
+        Her m <- arbitrary
+        let (_,v) = eigSH m
+            n = rows m
+        l <- replicateM n (choose (0,100))
+        let s = diag (fromList l)
+            p = v <> real s <> ctrans v
+        return $ PosDef (0.5 .* p + 0.5 .* ctrans p)
+    coarbitrary = undefined
+
+type RM = Matrix Double
+type CM = Matrix (Complex Double)
+
+rM m = m :: RM
+cM m = m :: CM
+
+rHer (Her m) = m :: RM
+cHer (Her m) = m :: CM
+
+rRot (Rot m) = m :: RM
+cRot (Rot m) = m :: CM
+
+rSq  (Sq m)  = m :: RM
+cSq  (Sq m)  = m :: CM
+
+rWC (WC m) = m :: RM
+cWC (WC m) = m :: CM
+
+rSqWC (SqWC m) = m :: RM
+cSqWC (SqWC m) = m :: CM
+
+rPosDef (PosDef m) = m :: RM
+cPosDef (PosDef m) = m :: CM
+

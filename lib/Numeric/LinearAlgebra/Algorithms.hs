@@ -142,7 +142,7 @@ eigSH m | m `equal` ctrans m = eigSH' m
 
 -- | Cholesky factorization of a positive definite hermitian or symmetric matrix using lapack's dpotrf or zportrf.
 --
--- If @c = chol m@ then @m == c \<> ctrans c@.
+-- If @c = chol m@ then @m == ctrans c \<> c@.
 chol :: Field t => Matrix t ->  Matrix t
 chol m | m `equal` ctrans m = cholSH m
        | otherwise = error "chol requires positive definite complex hermitian or real symmetric matrix"
