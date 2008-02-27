@@ -9,13 +9,33 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  portable
 
-Arbitrary instances for vectors, matrices.
+Testing properties.
 
 -}
 
-module Numeric.LinearAlgebra.Tests.Properties
-
-where
+module Numeric.LinearAlgebra.Tests.Properties (
+    dist, (|~|), (~:), Aprox((:~)),
+    zeros, ones,
+    square,
+    unitary,
+    hermitian,
+    wellCond,
+    positiveDefinite,
+    upperTriang,
+    upperHessenberg,
+    luProp,
+    invProp,
+    pinvProp,
+    detProp,
+    nullspaceProp,
+    svdProp1, svdProp2,
+    eigProp, eigSHProp,
+    qrProp,
+    hessProp,
+    schurProp1, schurProp2,
+    cholProp,
+    expmDiagProp
+) where
 
 import Numeric.LinearAlgebra
 import Numeric.LinearAlgebra.Tests.Instances(Sq(..),Her(..),Rot(..))
@@ -49,8 +69,6 @@ square m = rows m == cols m
 unitary m = square m && m <> ctrans m |~| ident (rows m)
 
 hermitian m = square m && m |~| ctrans m
-
-degenerate m = rank m < min (rows m) (cols m)
 
 wellCond m = rcond m > 1/100
 
@@ -125,3 +143,7 @@ schurProp2 m = m |~| u <> s <> ctrans u && unitary u && upperHessenberg s -- fix
 cholProp m = m |~| ctrans c <> c && upperTriang c
     where c = chol m
           pos = positiveDefinite m
+
+expmDiagProp m = expm (logm m) |~| complex m
+    where logm m = matFunc log m
+
