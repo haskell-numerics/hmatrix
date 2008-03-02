@@ -33,20 +33,30 @@ obtained by this library are correct.
 
 INSTALLATION --------------------------------------
 
-$ runhaskell Setup.lhs configure --prefix=$HOME --user
-$ runhaskell Setup.lhs build
-$ runhaskell Setup.lhs haddock
-$ runhaskell Setup.lhs install
+Automatic (using cabal-install and HackageDB):
+
+    $ cabal install hmatrix
+
+Manual:
+
+    Install storable-complex from HackageDB and then
+
+    $ runhaskell Setup.lhs configure --prefix=$HOME --user
+    $ runhaskell Setup.lhs build
+    $ runhaskell Setup.lhs haddock
+    $ runhaskell Setup.lhs install
 
 See below for installation on Windows.
 
 TESTS ---------------------------------------------
 
-$ runhaskell examples/tests
+$ ghci
+GHCi, version 6.8.2: http://www.haskell.org/ghc/  :? for help
+Prelude> Numeric.LinearAlgebra.Tests.runTests 20
 
 Additional tests with big matrices (taking a few minutes):
 
-$ runhaskell examples/tests --big
+$ runhaskell examples/experiments bigtests
 
 EXAMPLES ------------------------------------------------------
 
