@@ -13,8 +13,8 @@ Some tests.
 -}
 
 module Numeric.LinearAlgebra.Tests(
-  module Numeric.LinearAlgebra.Tests.Instances,
-  module Numeric.LinearAlgebra.Tests.Properties,
+--  module Numeric.LinearAlgebra.Tests.Instances,
+--  module Numeric.LinearAlgebra.Tests.Properties,
   qCheck, runTests
 --, runBigTests
 ) where
@@ -116,7 +116,8 @@ rotTest = fun (10^5) :~12~: rot 5E4
               where angles = toList $ linspace n (0,1)
 
 
--- | It runs all the tests.
+-- | All tests must pass with a maximum dimension of about 20
+--  (some tests may fail with bigger sizes due to precision loss).
 runTests :: Int  -- ^ maximum dimension
          -> IO ()
 runTests n = do

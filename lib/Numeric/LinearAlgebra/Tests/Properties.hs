@@ -144,6 +144,6 @@ cholProp m = m |~| ctrans c <> c && upperTriang c
     where c = chol m
           pos = positiveDefinite m
 
-expmDiagProp m = expm (logm m) |~| complex m
+expmDiagProp m = expm (logm m) :~ 7 ~: complex m
     where logm m = matFunc log m
 
