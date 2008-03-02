@@ -27,13 +27,11 @@ library
     else
       build-depends:    base < 3, QuickCheck, HUnit, storable-complex
 
-    ghc-options:        -O
-
     if os(windows)
-      ghc-options:      -fasm
+      ghc-options:
     else
       if arch(x86_64)
-         ghc-options:   -fasm
+         ghc-options:
       else
          ghc-options:   -fvia-C
 
