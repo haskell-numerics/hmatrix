@@ -26,7 +26,7 @@ pca n dataSet = (encode,decode)
     decode x = x <> vp + m
     m = mean dataSet
     c = cov dataSet
-    (_,v) = eigSH c
+    (_,v) = eigSH' c
     vp = takeRows n (trans v)
 
 norm = pnorm PNorm2
