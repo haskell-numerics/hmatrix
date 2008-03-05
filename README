@@ -4,20 +4,21 @@
 
 REQUIREMENTS ----------------------------
 
-Development packages of:
+1) GNU Scientific Library (http://www.gnu.org/software/gsl).
+   In Ubuntu we need the package "libgsl0-dev".
 
-1) GNU Scientific Library (http://www.gnu.org/software/gsl)
+2) BLAS/LAPACK (http://www.netlib.org/lapack).
+   An optimized implementation is recommended. I have tested:
 
-2) BLAS and LAPACK (http://www.netlib.org/lapack)
+   - Intel's MKL (http://www.intel.com/cd/software/products).
+     There is a free noncommercial download of MKL for Linux.
 
-3) ATLAS (recommended) (http://math-atlas.sourceforge.net/)
-
-For example, in Ubuntu Linux we need:
-
-- libgsl0-dev
-- refblas3-dev
-- lapack3-dev
-- atlas3-base-dev (or a version specifically tuned for your machine)
+   - ATLAS (http://math-atlas.sourceforge.net).
+     In Ubuntu the required packages are "refblas3-dev", "lapack3-dev",
+     and "atlas3-base-dev" (or a version tuned for your machine).
+     Please note that ATLAS currently requires compilation -fviaC in 32bit
+     machines. Otherwise many functions fail, producing strange NaN's.
+     Even with -fvia-C we may get wrong behavior in some cases.
 
 For ghc-6.8.x you may also need:
 
@@ -45,6 +46,19 @@ Manual:
     $ runhaskell Setup.lhs build
     $ runhaskell Setup.lhs haddock
     $ runhaskell Setup.lhs install
+
+Using Intel's MKL:
+
+    - add/modify environment variables (e.g. in your .bashrc):
+          export LD_LIBRARY_PATH=/path/to/mkl/lib/arch
+          export    LIBRARY_PATH=/path/to/mkl/lib/arch
+      where arch = "32" or "em64t"
+
+    - add the "-fmkl" flag in the cabal configuration command:
+           $ runhaskell Setup.lhs configure --prefix=$HOME --user -fmkl
+           $ runhaskell Setup.lhs build
+           $ runhaskell Setup.lhs install
+
 
 See below for installation on Windows.
 
@@ -88,7 +102,7 @@ KNOWN PROBLEMS / BUGS -------------------------------
   NaN's results on certain blas/lapack calls. In these machines
   the library is automatically compiled -fvia-C, which apparently
   solves the problem.
-  On 64-bit the default and faster -fasm seems to work well.
+  On 64-bit, or using MKL, the default and faster -fasm seems to work well.
 
 - On 64-bit machines the example "minimize.hs", when run from ghci,
   produces a segmentation fault. It happens in the call to
@@ -109,6 +123,9 @@ KNOWN PROBLEMS / BUGS -------------------------------
   Fortunately, atlas3-sse2-dev seems to work well on Ubuntu 7.10 Gutsy.
   A similar problem was reported at:
       http://article.gmane.org/gmane.linux.debian.devel.bugs.general/323065
+
+- On distributions with old GSL versions you should comment out a couple of functions
+  in the export lists of Ellint.hs and Debye.hs
 
 CHANGES ---------------------------------------------------------
 

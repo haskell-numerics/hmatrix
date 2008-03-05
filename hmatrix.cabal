@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.2.1.0
+Version:            0.2.1.1
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -21,19 +21,19 @@ build-type:         Simple
 flag splitBase
     description:    Choose the new smaller, split-up base package.
 
+flag mkl
+    description:    Link with Intel's MKL optimized libraries.
+    default:        False
+
 library
     if flag(splitBase)
       build-depends:    base >= 3, array, QuickCheck, HUnit, storable-complex
     else
       build-depends:    base < 3, QuickCheck, HUnit, storable-complex
 
-    if os(windows)
-      ghc-options:
-    else
-      if arch(x86_64)
-         ghc-options:
-      else
-         ghc-options:   -fvia-C
+    if !flag(mkl)
+      if !os(x86_64)
+        ghc-options:    -fvia-C
 
     Build-Depends:      haskell98
     Extensions:         ForeignFunctionInterface
@@ -95,6 +95,13 @@ library
     C-sources:          lib/Data/Packed/Internal/auxi.c,
                         lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
-    extra-libraries:    gsl blas lapack
+    if flag(mkl)
+      if arch(x86_64)
+        extra-libraries:   gsl mkl_lapack mkl_intel_lp64 mkl_sequential mkl_core
+      else
+        extra-libraries:   gsl mkl_lapack mkl_intel mkl_sequential mkl_core
+    else
+      extra-libraries:  gsl blas lapack
+
     cc-options:         -O4
     ghc-prof-options:   -auto-all

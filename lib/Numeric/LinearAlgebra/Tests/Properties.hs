@@ -40,6 +40,9 @@ module Numeric.LinearAlgebra.Tests.Properties (
 import Numeric.LinearAlgebra
 import Numeric.LinearAlgebra.Tests.Instances(Sq(..),Her(..),Rot(..))
 import Test.QuickCheck
+import Debug.Trace
+
+debug x = trace (show x) x
 
 -- relative error
 dist :: (Normed t, Num t) => t -> t -> Double
@@ -89,8 +92,9 @@ ones (r,c) = zeros (r,c) + 1
 
 -----------------------------------------------------
 
-luProp m = m |~| p <> l <> u && det p == s
+luProp m = m |~| p <> l <> u && f (det p) |~| f s
     where (l,u,p,s) = lu m
+          f x = fromList [x]
 
 invProp m = m <> inv m |~| ident (rows m)
 
