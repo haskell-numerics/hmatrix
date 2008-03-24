@@ -1483,7 +1483,7 @@
 	doublereal *wi, doublereal *z__, integer *ldz, doublereal *work, 
 	integer *lwork, integer *info);
  
-/* Subroutine */ int dlabad_(doublereal *small, doublereal *large);
+/* Subroutine */ int dlabad_(doublereal *smalll, doublereal *large); /* !? */
  
 /* Subroutine */ int dlabrd_(integer *m, integer *n, integer *nb, doublereal *
 	a, integer *lda, doublereal *d__, doublereal *e, doublereal *tauq, 
@@ -2858,7 +2858,7 @@ integer izmax1_(integer *n, doublecomplex *cx, integer *incx);
 	 integer *ihi, real *h__, integer *ldh, real *wr, real *wi, real *z__,
 	 integer *ldz, real *work, integer *lwork, integer *info);
  
-/* Subroutine */ int slabad_(real *small, real *large);
+/* Subroutine */ int slabad_(real *smalll, real *large); /* !? */
  
 /* Subroutine */ int slabrd_(integer *m, integer *n, integer *nb, real *a, 
 	integer *lda, real *d__, real *e, real *tauq, real *taup, real *x, 
