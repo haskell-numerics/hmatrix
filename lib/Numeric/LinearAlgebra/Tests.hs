@@ -174,6 +174,11 @@ runTests n = do
     test (\u -> sin u ** 2 + cos u ** 2 |~| (1::RM))
     test (\u -> cos u * tan u |~| sin (u::RM))
     test (\u -> (cos u * tan u) |~| sin (u::CM))
+    putStrLn "------ read . show"
+    test (\m -> (m::RM) == read (show m))
+    test (\m -> (m::CM) == read (show m))
+    test (\m -> toRows (m::RM) == read (show (toRows m)))
+    test (\m -> toRows (m::CM) == read (show (toRows m)))
     putStrLn "------ some unit tests"
     runTestTT $ TestList
         [ utest "1E5 rots" rotTest
