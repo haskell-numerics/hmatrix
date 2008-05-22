@@ -219,3 +219,5 @@ lists for their help.
 
 - Xiao-Yong Jin reported a bug on x86_64 caused by the assumptions in f2c.h,
   which are wrong for this architecture.
+
+- Jason Schroeder reported an error in the documentation.
