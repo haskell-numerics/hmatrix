@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.2.1.1
+Version:            0.3.0.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -32,7 +32,7 @@ library
       build-depends:    base < 3, QuickCheck, HUnit, storable-complex
 
     if !flag(mkl)
-      if !os(x86_64)
+      if !arch(x86_64)
         ghc-options:    -fvia-C
 
     Build-Depends:      haskell98
