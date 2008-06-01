@@ -17,6 +17,7 @@ module Data.Packed.Vector (
     fromList, (|>), toList,
     dim, (@>),
     subVector, join,
+    updateVector,
     constant, linspace,
     vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex,
     liftVector, liftVector2

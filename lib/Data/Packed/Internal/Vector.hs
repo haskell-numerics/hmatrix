@@ -146,3 +146,23 @@ liftVector2 :: (Storable a, Storable b, Storable c) => (a-> b -> c) -> Vector a 
 liftVector2 f u v = fromList $ zipWith f (toList u) (toList v)
 
 -----------------------------------------------------------------
+
+{- | creates a new vector with a desired position updated with a modification function
+
+@> updateVector 3 (+7) (fromList [1..5])
+5 |> [1.0,2.0,3.0,11.0,5.0]@
+
+-}
+updateVector :: Storable t => Int       -- ^ position
+                           -> (t->t)    -- ^ modification function
+                           -> Vector t  -- ^ source
+                           -> Vector t  -- ^ result
+updateVector k h (v@V {dim=n})
+    | k<0 || k >= n = error $ "updateVector out of range (dim="++show n++", pos="++show k++")"
+    | otherwise = unsafePerformIO $ do
+        r <- createVector n
+        let f _ s _ d =  copyArray d s n
+                      >> pokeElemOff d k (h (v`at'`k))
+                      >> return 0
+        app2 f vec v vec r "updateVector"
+        return r
