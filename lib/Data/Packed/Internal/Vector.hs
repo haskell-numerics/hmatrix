@@ -166,3 +166,12 @@ updateVector k h (v@V {dim=n})
                       >> return 0
         app2 f vec v vec r "updateVector"
         return r
+
+-----------------------------------------------------------------
+
+cloneVector :: Storable t => Vector t -> IO (Vector t)
+cloneVector (v@V {dim=n}) = do
+        r <- createVector n
+        let f _ s _ d =  copyArray d s n >> return 0
+        app2 f vec v vec r "cloneVector"
+        return r
