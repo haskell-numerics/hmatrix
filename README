@@ -198,8 +198,8 @@ The examples using graphics do not yet work in windows.
 
 ACKNOWLEDGEMENTS -----------------------------------------------------
 
-I thank Henning Thielemann and all the people in the Haskell mailing
-lists for their help.
+I thank Henning Thielemann, Bulat Ziganshin and all the people
+in the Haskell mailing lists for their help.
 
 - Nico Mahlo discovered a bug in the eigendecomposition wrapper.
 
@@ -221,3 +221,6 @@ lists for their help.
   which are wrong for this architecture.
 
 - Jason Schroeder reported an error in the documentation.
+
+- Bulat Ziganshin gave invaluable help for the ST monad interface to
+  in-place modifications.
