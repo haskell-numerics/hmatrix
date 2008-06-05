@@ -86,6 +86,7 @@ library
                         Graphics.Plot,
                         Numeric.LinearAlgebra.Tests
                         Data.Packed.Convert
+                        Data.Packed.ST
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Vector,
