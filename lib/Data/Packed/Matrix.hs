@@ -28,7 +28,6 @@ module Data.Packed.Matrix (
     subMatrix, takeRows, dropRows, takeColumns, dropColumns,
     extractRows,
     ident, diag, diagRect, takeDiag,
-    updateMatrix,
     liftMatrix, liftMatrix2,
     format, readMatrix, fromFile, fromArray2D
 ) where
