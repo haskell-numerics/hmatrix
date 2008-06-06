@@ -254,8 +254,8 @@ transdataAux fun c1 d c2 =
         r2 = dim d `div` c2
         noneed = r1 == 1 || c1 == 1
 
-foreign import ccall unsafe "auxi.h transR" ctransR :: TMM
-foreign import ccall unsafe "auxi.h transC" ctransC :: TCMCM
+foreign import ccall "auxi.h transR" ctransR :: TMM
+foreign import ccall "auxi.h transC" ctransC :: TCMCM
 
 ------------------------------------------------------------------
 
@@ -275,10 +275,10 @@ multiplyAux fun a b = unsafePerformIO $ do
     return r
 
 multiplyR = multiplyAux cmultiplyR
-foreign import ccall unsafe "auxi.h multiplyR" cmultiplyR :: TauxMul Double
+foreign import ccall "auxi.h multiplyR" cmultiplyR :: TauxMul Double
 
 multiplyC = multiplyAux cmultiplyC
-foreign import ccall unsafe "auxi.h multiplyC" cmultiplyC :: TauxMul (Complex Double)
+foreign import ccall "auxi.h multiplyC" cmultiplyC :: TauxMul (Complex Double)
 
 -- | matrix product
 multiply :: (Element a) => Matrix a -> Matrix a -> Matrix a
