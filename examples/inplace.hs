@@ -23,9 +23,6 @@ main = sequence_[
 -- helper functions
 vector l = fromList l :: Vector Double
 norm v = pnorm PNorm2 v
-zeros n m = reshape m (constant 0 (n*m))
-newMatrix n m = thawMatrix (zeros n m)
-
 
 -- hmatrix vector and matrix
 v = vector [1..10]
@@ -47,7 +44,7 @@ test2 = antiDiag 5 8 [1..] :: Matrix Double
 
 antiDiag :: (Element b) => Int -> Int -> [b] -> Matrix b
 antiDiag r c l = runSTMatrix $ do
-    m <- newMatrix r c
+    m <- newMatrix 0 r c
     let d = min r c - 1
     sequence_ $ zipWith (\i v -> writeMatrix m i (c-1-i) v) [0..d] l
     return m
@@ -115,4 +112,3 @@ test0 = do
     print m
     --print hv
     --print hm
-
