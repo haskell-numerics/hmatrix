@@ -21,9 +21,12 @@ import Foreign
 import Complex
 import Control.Monad(when)
 
+import GHC.Base
+import GHC.IOBase
+
 -- | A one-dimensional array of objects stored in a contiguous memory block.
-data Vector t = V { dim  :: Int              -- ^ number of elements
-                  , fptr :: ForeignPtr t     -- ^ foreign pointer to the memory block
+data Vector t = V { dim  :: {-# UNPACK #-} !Int              -- ^ number of elements
+                  , fptr :: {-# UNPACK #-}!(ForeignPtr t)    -- ^ foreign pointer to the memory block
                   }
 
 vec = withVector
@@ -53,7 +56,12 @@ fromList l = unsafePerformIO $ do
     app1 f vec v "fromList"
     return v
 
-safeRead v = unsafePerformIO . withForeignPtr (fptr v)
+safeRead v = inlinePerformIO . withForeignPtr (fptr v)
+{-# INLINE safeRead #-}
+
+inlinePerformIO :: IO a -> a
+inlinePerformIO (IO m) = case m realWorld# of (# _, r #) -> r
+{-# INLINE inlinePerformIO #-}
 
 {- | extracts the Vector elements to a list
 
@@ -77,6 +85,7 @@ at' v n = safeRead v $ flip peekElemOff n
 at :: Storable a => Vector a -> Int -> a
 at v n | n >= 0 && n < dim v = at' v n
        | otherwise          = error "vector index out of range"
+{-# INLINE at #-}
 
 {- | takes a number of consecutive elements from a Vector
 
