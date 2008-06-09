@@ -198,7 +198,7 @@ The examples using graphics do not yet work in windows.
 
 ACKNOWLEDGEMENTS -----------------------------------------------------
 
-I thank Henning Thielemann, Bulat Ziganshin and all the people
+I thank Don Stewart, Henning Thielemann, Bulat Ziganshin and all the people
 in the Haskell mailing lists for their help.
 
 - Nico Mahlo discovered a bug in the eigendecomposition wrapper.
@@ -224,3 +224,7 @@ in the Haskell mailing lists for their help.
 
 - Bulat Ziganshin gave invaluable help for the ST monad interface to
   in-place modifications.
+
+- Don Stewart fixed the implementation of the internal data structures
+  to achieve excellent, C-like performance in Haskell functions which
+  explicitly work with the elements of vectors and matrices.
