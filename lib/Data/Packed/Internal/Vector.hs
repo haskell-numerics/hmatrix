@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts -fallow-undecidable-instances #-}
+{-# LANGUAGE MagicHash, CPP, UnboxedTuples #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Vector
@@ -21,13 +21,20 @@ import Foreign
 import Complex
 import Control.Monad(when)
 
+#if __GLASGOW_HASKELL__ >= 605
+import GHC.ForeignPtr           (mallocPlainForeignPtrBytes)
+#else
+import Foreign.ForeignPtr       (mallocForeignPtrBytes)
+#endif
+
 import GHC.Base
 import GHC.IOBase
 
 -- | A one-dimensional array of objects stored in a contiguous memory block.
-data Vector t = V { dim  :: {-# UNPACK #-} !Int              -- ^ number of elements
-                  , fptr :: {-# UNPACK #-}!(ForeignPtr t)    -- ^ foreign pointer to the memory block
-                  }
+data Vector t =
+    V { dim  :: {-# UNPACK #-} !Int               -- ^ number of elements
+      , fptr :: {-# UNPACK #-} !(ForeignPtr t)    -- ^ foreign pointer to the memory block
+      }
 
 vec = withVector
 
@@ -40,8 +47,20 @@ withVector (V n fp) f = withForeignPtr fp $ \p -> do
 createVector :: Storable a => Int -> IO (Vector a)
 createVector n = do
     when (n <= 0) $ error ("trying to createVector of dim "++show n)
-    fp <- mallocForeignPtrArray n
+    fp <- doMalloc undefined
     return $ V n fp
+  where
+    --
+    -- Use the much cheaper Haskell heap allocated storage
+    -- for foreign pointer space we control
+    --
+    doMalloc :: Storable b => b -> IO (ForeignPtr b)
+    doMalloc dummy = do
+#if __GLASGOW_HASKELL__ >= 605
+        mallocPlainForeignPtrBytes (n * sizeOf dummy)
+#else
+        mallocForeignPtrBytes      (n * sizeOf dummy)
+#endif
 
 {- | creates a Vector from a list:
 
