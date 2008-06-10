@@ -300,12 +300,12 @@ multiplicative factor of the default tolerance used by GNU-Octave (see 'pinv').
 @\> let m = 'fromLists' [[1,0,    0]
                     ,[0,1,    0]
                     ,[0,0,1e-10]]
-\ 
+\  --
 \> 'pinv' m 
 1. 0.           0.
 0. 1.           0.
 0. 0. 10000000000.
-\ 
+\  --
 \> pinvTol 1E8 m
 1. 0. 0.
 0. 1. 0.

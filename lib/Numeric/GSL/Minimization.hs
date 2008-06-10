@@ -31,14 +31,14 @@ import Foreign.C.Types(CInt)
 {- | The method of Nelder and Mead, implemented by /gsl_multimin_fminimizer_nmsimplex/. The gradient of the function is not required. This is the example in the GSL manual:
 
 @minimize f xi = minimizeNMSimplex f xi (replicate (length xi) 1) 1e-2 100
-\ 
+\  -- 
 f [x,y] = 10*(x-1)^2 + 20*(y-2)^2 + 30
-\ 
+\  --
 main = do
     let (s,p) = minimize f [5,7]
     print s
     print p
-\ 
+\  --
 \> main
 [0.9920430849306285,1.9969168063253164]
 0. 512.500    1.082 6.500    5.
@@ -104,14 +104,14 @@ foreign import ccall "gsl-aux.h minimize"
 
 @minimize = minimizeConjugateGradient 1E-2 1E-4 1E-3 30
 f [x,y] = 10*(x-1)^2 + 20*(y-2)^2 + 30
-\ 
+\  --
 df [x,y] = [20*(x-1), 40*(y-2)]
-\  
+\   --
 main = do
     let (s,p) = minimize f df [5,7]
     print s
     print p
-\ 
+\  --
 \> main
 [1.0,2.0]
  0. 687.848 4.996 6.991

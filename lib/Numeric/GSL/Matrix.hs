@@ -299,7 +299,7 @@ L \* U obtains a permuted version of the original matrix:
   2.+3.i   -7.   0.
       1.    2.  -3.
       1.  -1.i  2.i
-\ 
+\ -- CPP
 \> l \<\> u
  2.+3.i   -7.   0.
      1.    2.  -3.
