@@ -100,10 +100,24 @@ n |> l = if length l == n then fromList l else error "|> with wrong size"
 at' :: Storable a => Vector a -> Int -> a
 at' v n = safeRead v $ flip peekElemOff n
 
+--
+-- turn off bounds checking with -funsafe at configure time.
+-- ghc will optimise away the salways true case at compile time.
+--
+#if defined(UNSAFE)
+safe :: Bool
+safe = False
+#else
+safe = True
+#endif
+
 -- | access to Vector elements with range checking.
 at :: Storable a => Vector a -> Int -> a
-at v n | n >= 0 && n < dim v = at' v n
-       | otherwise          = error "vector index out of range"
+at v n
+    | safe      = if n >= 0 && n < dim v
+                    then at' v n
+                    else error "vector index out of range"
+    | otherwise = at' v n
 {-# INLINE at #-}
 
 {- | takes a number of consecutive elements from a Vector

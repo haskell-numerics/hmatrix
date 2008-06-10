@@ -25,6 +25,10 @@ flag mkl
     description:    Link with Intel's MKL optimized libraries.
     default:        False
 
+flag unsafe
+    description: Compile the library with bound checking disabled.
+    default: False
+
 library
     if flag(splitBase)
       build-depends:    base >= 3, array, QuickCheck, HUnit, storable-complex
@@ -36,7 +40,8 @@ library
         ghc-options:    -fvia-C
 
     Build-Depends:      haskell98
-    Extensions:         ForeignFunctionInterface
+    Extensions:         ForeignFunctionInterface,
+                        CPP
 
     hs-source-dirs:     lib
     Exposed-modules:    Data.Packed,
@@ -107,3 +112,7 @@ library
 
     cc-options:         -O4
     ghc-prof-options:   -auto-all
+
+    if flag(unsafe)
+        cpp-options: -DUNSAFE
+

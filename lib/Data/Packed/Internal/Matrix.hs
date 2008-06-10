@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fglasgow-exts #-}
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Matrix
@@ -61,8 +62,13 @@ import Data.List(transpose)
 data MatrixOrder = RowMajor | ColumnMajor deriving (Show,Eq)
 
 -- | Matrix representation suitable for GSL and LAPACK computations.
-data Matrix t = MC { rows :: Int, cols :: Int, cdat :: Vector t }
-              | MF { rows :: Int, cols :: Int, fdat :: Vector t }
+data Matrix t = MC { rows :: {-# UNPACK #-} !Int
+                   , cols :: {-# UNPACK #-} !Int
+                   , cdat :: {-# UNPACK #-} !(Vector t) }
+
+              | MF { rows :: {-# UNPACK #-} !Int
+                   , cols :: {-# UNPACK #-} !Int
+                   , fdat :: {-# UNPACK #-} !(Vector t) }
 
 -- MC: preferred by C, fdat may require a transposition
 -- MF: preferred by LAPACK, cdat may require a transposition
@@ -100,7 +106,6 @@ withMatrix MF {rows = r, cols = c, fdat = d } f =
 flatten :: Element t => Matrix t -> Vector t
 flatten = cdat . cmat
 
-
 type Mt t s = Int -> Int -> Ptr t -> s
 -- not yet admitted by my haddock version
 -- infixr 6 ::>
@@ -133,7 +138,6 @@ fromColumns m = trans . fromRows $ m
 toColumns :: Element t => Matrix t -> [Vector t]
 toColumns m = toRows . trans $ m
 
-
 -- | Reads a matrix position.
 (@@>) :: Storable t => Matrix t -> (Int,Int) -> t
 infixl 9 @@>
@@ -142,12 +146,17 @@ infixl 9 @@>
 --    | otherwise   = cdat m `at` (i*c+j)
 
 MC {rows = r, cols = c, cdat = v} @@> (i,j)
-    | i<0 || i>=r || j<0 || j>=c = error "matrix indexing out of range"
-    | otherwise                  = v `at` (i*c+j)
+    | safe      = if i<0 || i>=r || j<0 || j>=c
+                    then error "matrix indexing out of range"
+                    else v `at` (i*c+j)
+    | otherwise = v `at` (i*c+j)
 
 MF {rows = r, cols = c, fdat = v} @@> (i,j)
-    | i<0 || i>=r || j<0 || j>=c = error "matrix indexing out of range"
-    | otherwise                  = v `at` (j*r+i)
+    | safe      = if i<0 || i>=r || j<0 || j>=c
+                    then error "matrix indexing out of range"
+                    else v `at` (j*r+i)
+    | otherwise = v `at` (j*r+i)
+{-# INLINE (@@>) #-}
 
 ------------------------------------------------------------------
 
