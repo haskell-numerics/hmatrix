@@ -1,8 +1,8 @@
 {-# OPTIONS -fbang-patterns #-}
 
 -- compile as:
--- ghc --make -O2 -optc-O2 -fvia-C  benchmarks.hs -o benchmarks
--- ghc --make -O benchmarks.hs -o benchmarks
+-- ghc --make -O2 -optc-O2 -fvia-C benchmarks.hs
+-- ghc --make -O benchmarks.hs
 
 import Numeric.LinearAlgebra
 import System.Time
@@ -15,13 +15,7 @@ time act = do
     t0 <- getCPUTime
     act
     t1 <- getCPUTime
-    printf "%.2f CPU seconds\n" $ (fromIntegral ((t1 - t0) `div` (10^10)) / 100 :: Double) :: IO ()
-
-time' act = do
-    t0 <- getClockTime
-    act
-    t1 <- getClockTime
-    putStrLn $ timeDiffToString $ normalizeTimeDiff $ diffClockTimes t1 t0
+    printf "%.3f s CPU\n" $ (fromIntegral (t1 - t0) / (10^12 :: Double)) :: IO ()
 
 --------------------------------------------------------------------------------
 
@@ -31,7 +25,7 @@ w :: Vector Double
 w = constant 1 30000000
 
 bench1 = do
-    putStrLn "sum of a vector with 30 million doubles:"
+    putStrLn "Sum of a vector with 30M doubles:"
     print$ vectorMax w -- evaluate it
     time $ printf "     BLAS: %.2f: " $ sumVB w
     time $ printf "  Haskell: %.2f: " $ sumVH w
@@ -51,11 +45,11 @@ sumVH v = go (d - 1) 0
 
 bench2 = do
     putStrLn "-------------------------------------------------------"
-    putStrLn "multiplication of one million different 3x3 matrices"
-    putStrLn "from [[]]"
-    time $ print $ fun (10^6) rot'
-    putStrLn "from []"
-    time $ print $ fun (10^6) rot
+    putStrLn "Multiplication of 1M different 3x3 matrices:"
+--     putStrLn "from [[]]"
+--     time $ print $ fun (10^6) rot'
+--     putStrLn "from []"
+    time $ print $ manymult (10^6) rot
     print $ cos (10^6/2)
 
 
@@ -74,5 +68,5 @@ rot a = (3><3) [ c,0,s
     where c = cos a
           s = sin a
 
-fun n r = foldl1' (<>) (map r angles)
+manymult n r = foldl1' (<>) (map r angles)
     where angles = toList $ linspace n (0,1)
