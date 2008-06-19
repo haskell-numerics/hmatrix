@@ -18,6 +18,7 @@ main = sequence_[
     test5,
     test6,
     print test7,
+    test8,
     test0]
 
 -- helper functions
@@ -112,3 +113,29 @@ test0 = do
     print m
     --print hv
     --print hm
+
+-------------------------------------------------
+
+histogram n ds = runSTVector $ do
+    h <- newVector (0::Double) n -- number of bins
+    let inc k = modifyVector h k (+1)
+    mapM_ inc ds
+    return h
+
+-- check that newVector is really called with a fresh new array
+histoCheck ds = runSTVector $ do
+    h <- newVector (0::Double) 15 -- > constant for this test
+    let inc k = modifyVector h k (+1)
+    mapM_ inc ds
+    return h
+
+
+test8 = do
+    let ds = [0..14]
+    print $ histogram 15 ds
+    print $ histogram 15 ds
+    print $ histogram 15 ds
+    print $ histoCheck ds
+    print $ histoCheck ds
+    print $ histoCheck ds
+    putStrLn "----------------------"

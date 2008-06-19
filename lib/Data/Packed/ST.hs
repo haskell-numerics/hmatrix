@@ -89,6 +89,7 @@ readVector = safeIndexV unsafeReadVector
 writeVector :: Storable t => STVector s t -> Int -> t -> ST s ()
 writeVector = safeIndexV unsafeWriteVector
 
+{-# NOINLINE newVector #-}
 newVector :: Element t => t -> Int -> ST s (STVector s t)
 newVector v = unsafeThawVector . constant v
 
@@ -154,5 +155,6 @@ readMatrix = safeIndexM unsafeReadMatrix
 writeMatrix :: Storable t => STMatrix s t -> Int -> Int -> t -> ST s ()
 writeMatrix = safeIndexM unsafeWriteMatrix
 
+{-# NOINLINE newMatrix #-}
 newMatrix :: Element t => t -> Int -> Int -> ST s (STMatrix s t)
 newMatrix v r c = unsafeThawMatrix . reshape c . constant v $ r*c
