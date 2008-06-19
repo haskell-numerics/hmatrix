@@ -19,7 +19,7 @@ time act = do
 
 --------------------------------------------------------------------------------
 
-main = sequence_ [bench1,bench2]
+main = sequence_ [bench1,bench2,bench3]
 
 w :: Vector Double
 w = constant 1 30000000
@@ -70,3 +70,20 @@ rot a = (3><3) [ c,0,s
 
 manymult n r = foldl1' (<>) (map r angles)
     where angles = toList $ linspace n (0,1)
+
+--------------------------------------------------------------------------------
+
+bench3 = do
+    putStrLn "-------------------------------------------------------"
+    putStrLn "foldVector:"
+    let v = flatten $ ident 555 :: Vector Double
+    print $ vectorMax v  -- evaluate it
+    let getPos k s = if k `rem` 555 < 200 && v@>k > 0 then k:s else s
+    time $ print $ sum $ foldVector getPos [] v
+    time $ print $ foldVector (\k s -> w@>k + s) 0.0 w
+
+foldVector f s v = go (d - 1) s
+     where
+       d = dim v
+       go 0 s = f (0::Int) s
+       go !j !s = go (j - 1) (f j s)
