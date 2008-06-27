@@ -8,7 +8,7 @@
 -- Stability   :  provisional
 -- Portability :  portable (uses FFI)
 --
--- A few linear algebra computations based on the Numeric.GSL (<http://www.gnu.org/software/Numeric.GSL>).
+-- A few linear algebra computations based on GSL.
 --
 -----------------------------------------------------------------------------
 -- #hide

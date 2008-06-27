@@ -5,15 +5,15 @@ License-file:       LICENSE
 Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          provisional
-Homepage:           http://alberrto.googlepages.com/gslhaskell
+Homepage:           http://www.hmatrix.googlepages.com
 Synopsis:           Linear algebra and numerical computations
 Description:        A purely functional interface to basic linear algebra computations
                     and other numerical routines, internally implemented using
                     GSL, BLAS and LAPACK.
                     .
-                    More information: <http://alberrto.googlepages.com/gslhaskell>
+                    More information: <http://www.hmatrix.googlepages.com>
 Category:           Numerical, Math
-tested-with:        GHC ==6.8.2
+tested-with:        GHC ==6.8.3
 
 cabal-version:      >=1.2
 build-type:         Simple
@@ -47,13 +47,12 @@ library
     Exposed-modules:    Data.Packed,
                         Data.Packed.Vector,
                         Data.Packed.Matrix,
-                        Numeric.GSL.Vector,
-                        Numeric.GSL.Matrix,
                         Numeric.GSL.Differentiation,
                         Numeric.GSL.Integration,
                         Numeric.GSL.Fourier,
                         Numeric.GSL.Polynomials,
                         Numeric.GSL.Minimization,
+                        Numeric.GSL.Vector,
                         Numeric.GSL.Special,
                         Numeric.GSL.Special.Gamma,
                         Numeric.GSL.Special.Erf,
@@ -97,7 +96,8 @@ library
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix,
                         Numeric.GSL.Special.Internal,
-                        Numeric.LinearAlgebra.Tests.Instances
+                        Numeric.GSL.Matrix,
+                        Numeric.LinearAlgebra.Tests.Instances,
                         Numeric.LinearAlgebra.Tests.Properties
     C-sources:          lib/Data/Packed/Internal/auxi.c,
                         lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,

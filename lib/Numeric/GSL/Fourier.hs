@@ -35,7 +35,7 @@ foreign import ccall "gsl-aux.h fft" c_fft ::  CInt -> TCVCV
 
 {- | Fast 1D Fourier transform of a 'Vector' @(@'Complex' 'Double'@)@ using /gsl_fft_complex_forward/. It uses the same scaling conventions as GNU Octave.
 
-@> fft ('GSL.Matrix.fromList' [1,2,3,4])
+@> fft ('fromList' [1,2,3,4])
 vector (4) [10.0 :+ 0.0,(-2.0) :+ 2.0,(-2.0) :+ 0.0,(-2.0) :+ (-2.0)]@
 
 -}

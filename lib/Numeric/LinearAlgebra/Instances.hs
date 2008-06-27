@@ -9,7 +9,7 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  portable
 
-This module exports Show, Eq, Num, Fractional, and Floating instances for Vector and Matrix.
+This module exports Show, Read, Eq, Num, Fractional, and Floating instances for Vector and Matrix.
 
 In the context of the standard numeric operators, one-component vectors and matrices automatically expand to match the dimensions of the other operand.
 

@@ -129,6 +129,14 @@ histoCheck ds = runSTVector $ do
     mapM_ inc ds
     return h
 
+hc = fromList [1 .. 15::Double]
+
+-- check that thawVector creates a new array
+histoCheck2 ds = runSTVector $ do
+    h <- thawVector hc
+    let inc k = modifyVector h k (+1)
+    mapM_ inc ds
+    return h
 
 test8 = do
     let ds = [0..14]
@@ -138,4 +146,7 @@ test8 = do
     print $ histoCheck ds
     print $ histoCheck ds
     print $ histoCheck ds
+    print $ histoCheck2 ds
+    print $ histoCheck2 ds
+    print $ histoCheck2 ds
     putStrLn "----------------------"
