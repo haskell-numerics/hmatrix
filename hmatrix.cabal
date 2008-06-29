@@ -25,6 +25,10 @@ flag mkl
     description:    Link with Intel's MKL optimized libraries.
     default:        False
 
+flag gsl
+    description:    Link with GSL unoptimized blas.
+    default:        False
+
 flag unsafe
     description: Compile the library with bound checking disabled.
     default: False
@@ -108,7 +112,10 @@ library
       else
         extra-libraries:   gsl mkl_lapack mkl_intel mkl_sequential mkl_core
     else
-      extra-libraries:  gsl blas lapack
+      if flag(gsl)
+        extra-libraries:  gsl gslcblas lapack
+      else
+        extra-libraries:  gsl blas lapack
 
     cc-options:         -O4
     ghc-prof-options:   -auto-all

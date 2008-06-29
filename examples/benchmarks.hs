@@ -70,20 +70,34 @@ rot a = (3><3) [ c,0,s
 
 manymult n r = foldl1' (<>) (map r angles)
     where angles = toList $ linspace n (0,1)
+          -- angles = map (k*) [0..n']
+          -- n' = fromIntegral n - 1
+          -- k  = recip n'
 
 --------------------------------------------------------------------------------
 
 bench3 = do
     putStrLn "-------------------------------------------------------"
-    putStrLn "foldVector:"
-    let v = flatten $ ident 555 :: Vector Double
+    putStrLn "foldVector"
+    let v = flatten $ ident 500 :: Vector Double
     print $ vectorMax v  -- evaluate it
-    let getPos k s = if k `rem` 555 < 200 && v@>k > 0 then k:s else s
-    time $ print $ sum $ foldVector getPos [] v
-    time $ print $ foldVector (\k s -> w@>k + s) 0.0 w
+    let getPos k s = if k `mod` 500 < 200 && v@>k > 0 then k:s else s
+    putStrLn "indices extraction, dim=0.25M:"
+    time $ print $ (`divMod` 500) $ maximum $ foldLoop getPos [] (dim v)
+    putStrLn "sum, dim=30M:"
+    --time $ print $ foldLoop (\k s -> w@>k + s) 0.0 (dim w)
+    time $ print $ foldVector (\k v s -> v k + s) 0.0 w
+    putStrLn "sum, dim=0.25M:"
+    --time $ print $ foldVector (\k v s -> v k + s) 0.0 v
+    time $ print $ foldLoop (\k s -> v@>k + s) 0.0 (dim v)
 
-foldVector f s v = go (d - 1) s
+-- foldVector is slower if it is used in two places. (!?)
+-- this does not happen with foldLoop
+
+foldLoop f s d = go (d - 1) s
      where
-       d = dim v
        go 0 s = f (0::Int) s
        go !j !s = go (j - 1) (f j s)
+
+foldVector f s v = foldLoop g s (dim v)
+    where g !k !s = f k (v@>) s

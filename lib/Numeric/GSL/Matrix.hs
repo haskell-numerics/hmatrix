@@ -92,23 +92,6 @@ foreign import ccall "gsl-aux.h eigensystemC" c_eigH :: TCMVCM
 
 {- | Singular value decomposition of a real matrix, using /gsl_linalg_SV_decomp_mod/:
 
-@\> let (u,s,v) = svdg $ 'fromLists' [[1,2,3],[-4,1,7]]
-\
-\> u
-0.310 -0.951
-0.951  0.310
-\
-\> s
-8.497 2.792
-\
-\> v
--0.411 -0.785
- 0.185 -0.570
- 0.893 -0.243
-\
-\> u \<\> 'diag' s \<\> 'trans' v
- 1. 2. 3.
--4. 1. 7.@
 
 -}
 svdg :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
@@ -127,20 +110,6 @@ svd' x = unsafePerformIO $ do
 foreign import ccall "gsl-aux.h svd" c_svd :: TMMVM
 
 {- | QR decomposition of a real matrix using /gsl_linalg_QR_decomp/ and /gsl_linalg_QR_unpack/.
-
-@\> let (q,r) = qr $ 'fromLists' [[1,3,5,7],[2,0,-2,4]]
-\
-\> q
--0.447 -0.894
--0.894  0.447
-\
-\> r
--2.236 -1.342 -0.447 -6.708
-    0. -2.683 -5.367 -4.472
-\
-\> q \<\> r
-1.000 3.000  5.000 7.000
-2.000    0. -2.000 4.000@
 
 -}
 qr :: Matrix Double -> (Matrix Double, Matrix Double)
