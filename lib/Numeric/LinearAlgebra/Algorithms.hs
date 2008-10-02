@@ -20,6 +20,7 @@ imported from "Numeric.LinearAlgebra.LAPACK".
 
 module Numeric.LinearAlgebra.Algorithms (
 -- * Linear Systems
+    multiply, dot,
     linearSolve,
     inv, pinv,
     pinvTol, det, rank, rcond,
@@ -51,6 +52,8 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Misc
     ctrans,
     eps, i,
+    outer, kronecker,
+    mulH,
 -- * Util
     haussholder,
     unpackQR, unpackHess,
@@ -60,13 +63,14 @@ module Numeric.LinearAlgebra.Algorithms (
 
 import Data.Packed.Internal hiding (fromComplex, toComplex, comp, conj, (//))
 import Data.Packed
-import qualified Numeric.GSL.Matrix as GSL
 import Numeric.GSL.Vector
 import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Complex
 import Numeric.LinearAlgebra.Linear
 import Data.List(foldl1')
 import Data.Array
+import Foreign
+import Foreign.C.Types
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
 class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
@@ -105,6 +109,7 @@ class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
     schur       :: Matrix t -> (Matrix t, Matrix t)
     -- | Conjugate transpose.
     ctrans :: Matrix t -> Matrix t
+    multiply :: Matrix t -> Matrix t -> Matrix t
 
 
 instance Field Double where
@@ -116,9 +121,10 @@ instance Field Double where
     eig = eigR
     eigSH' = eigS
     cholSH = cholS
-    qr = GSL.unpackQR . qrR
+    qr = unpackQR . qrR
     hess = unpackHess hessR
     schur = schurR
+    multiply = multiplyR3
 
 instance Field (Complex Double) where
     svd = svdC
@@ -132,6 +138,8 @@ instance Field (Complex Double) where
     qr = unpackQR . qrC
     hess = unpackHess hessC
     schur = schurC
+    multiply = mulCW -- workaround
+               -- multiplyC3
 
 -- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev.
 --
@@ -501,3 +509,162 @@ luFact (lu,perm) | r <= c    = (l ,u ,p, s)
     u' = takeRows c (lu |*| tu)
     (|+|) = add
     (|*|) = mul
+
+--------------------------------------------------
+
+-- | euclidean inner product
+dot :: (Field t) => Vector t -> Vector t -> t
+dot u v = multiply r c  @@> (0,0)
+    where r = asRow u
+          c = asColumn v
+
+
+{- | Outer product of two vectors.
+
+@\> 'fromList' [1,2,3] \`outer\` 'fromList' [5,2,3]
+(3><3)
+ [  5.0, 2.0, 3.0
+ , 10.0, 4.0, 6.0
+ , 15.0, 6.0, 9.0 ]@
+-}
+outer :: (Field t) => Vector t -> Vector t -> Matrix t
+outer u v = asColumn u `multiply` asRow v
+
+{- | Kronecker product of two matrices.
+
+@m1=(2><3)
+ [ 1.0,  2.0, 0.0
+ , 0.0, -1.0, 3.0 ]
+m2=(4><3)
+ [  1.0,  2.0,  3.0
+ ,  4.0,  5.0,  6.0
+ ,  7.0,  8.0,  9.0
+ , 10.0, 11.0, 12.0 ]@
+
+@\> kronecker m1 m2
+(8><9)
+ [  1.0,  2.0,  3.0,   2.0,   4.0,   6.0,  0.0,  0.0,  0.0
+ ,  4.0,  5.0,  6.0,   8.0,  10.0,  12.0,  0.0,  0.0,  0.0
+ ,  7.0,  8.0,  9.0,  14.0,  16.0,  18.0,  0.0,  0.0,  0.0
+ , 10.0, 11.0, 12.0,  20.0,  22.0,  24.0,  0.0,  0.0,  0.0
+ ,  0.0,  0.0,  0.0,  -1.0,  -2.0,  -3.0,  3.0,  6.0,  9.0
+ ,  0.0,  0.0,  0.0,  -4.0,  -5.0,  -6.0, 12.0, 15.0, 18.0
+ ,  0.0,  0.0,  0.0,  -7.0,  -8.0,  -9.0, 21.0, 24.0, 27.0
+ ,  0.0,  0.0,  0.0, -10.0, -11.0, -12.0, 30.0, 33.0, 36.0 ]@
+-}
+kronecker :: (Field t) => Matrix t -> Matrix t -> Matrix t
+kronecker a b = fromBlocks
+              . partit (cols a)
+              . map (reshape (cols b))
+              . toRows
+              $ flatten a `outer` flatten b
+
+---------------------------------------------------------------------
+-- reference multiply
+---------------------------------------------------------------------
+
+mulH a b = fromLists [[ dot ai bj | bj <- toColumns b] | ai <- toRows a ]
+    where dot u v = sum $ zipWith (*) (toList u) (toList v)
+
+-----------------------------------------------------------------------------------
+-- workaround
+-----------------------------------------------------------------------------------
+
+mulCW a b = toComplex (rr,ri)
+    where rr = multiply ar br `sub` multiply ai bi
+          ri = multiply ar bi `add` multiply ai br
+          (ar,ai) = fromComplex a
+          (br,bi) = fromComplex b
+
+-----------------------------------------------------------------------------------
+-- Direct CBLAS
+-----------------------------------------------------------------------------------
+
+newtype CBLASOrder = CBLASOrder CInt deriving (Eq, Show)
+newtype CBLASTrans = CBLASTrans CInt deriving (Eq, Show)
+
+rowMajor, colMajor :: CBLASOrder
+rowMajor = CBLASOrder 101
+colMajor = CBLASOrder 102
+
+noTrans, trans', conjTrans :: CBLASTrans
+noTrans   = CBLASTrans 111
+trans'     = CBLASTrans 112
+conjTrans = CBLASTrans 113
+
+foreign import ccall "cblas.h cblas_dgemm"
+    dgemm  :: CBLASOrder -> CBLASTrans -> CBLASTrans -> CInt -> CInt -> CInt -> Double -> Ptr Double -> CInt -> Ptr Double -> CInt -> Double -> Ptr Double -> CInt -> IO ()
+
+
+multiplyR3 :: Matrix Double -> Matrix Double -> Matrix Double
+multiplyR3 a b = multiply3 dgemm "cblas_dgemm" (fmat a) (fmat b)
+    where
+        multiply3 f st a b
+            | cols a == rows b = unsafePerformIO $ do
+                s <- createMatrix ColumnMajor (rows a) (cols b)
+                let g ar ac ap br bc bp rr rc rp = f colMajor noTrans noTrans ar bc ac 1 ap ar bp br 0 rp rr >> return 0
+                app3 g mat a mat b mat s st
+                return s
+            | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"
+
+
+foreign import ccall "cblas.h cblas_zgemm"
+    zgemm  :: CBLASOrder -> CBLASTrans -> CBLASTrans -> CInt -> CInt -> CInt -> Ptr (Complex Double) -> Ptr (Complex Double) -> CInt -> Ptr (Complex Double) -> CInt -> Ptr (Complex Double) -> Ptr (Complex Double) -> CInt -> IO ()
+
+multiplyC3 :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
+multiplyC3 a b = unsafePerformIO $ multiply3 zgemm "cblas_zgemm" (fmat a) (fmat b)
+    where
+        multiply3 f st a b
+            | cols a == rows b = do
+                s <- createMatrix ColumnMajor (rows a) (cols b)
+                palpha <- new 1
+                pbeta  <- new 0
+                let g ar ac ap br bc bp rr rc rp = f colMajor noTrans noTrans ar bc ac palpha ap ar bp br pbeta rp rr >> return 0
+                app3 g mat a mat b mat s st
+                free palpha
+                free pbeta
+                return s
+                -- if toLists s== toLists s then return s else error $ "HORROR " ++ (show (toLists s))
+            | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"
+
+-----------------------------------------------------------------------------------
+-- BLAS via auxiliary C
+-----------------------------------------------------------------------------------
+
+foreign import ccall "multiply.h multiplyR2" dgemmc :: TMMM
+foreign import ccall "multiply.h multiplyC2" zgemmc :: TCMCMCM
+
+multiply2 f st a b
+    | cols a == rows b = unsafePerformIO $ do
+        s <- createMatrix ColumnMajor (rows a) (cols b)
+        app3 f mat a mat b mat s st 
+        if toLists s== toLists s then return s else error $ "AYYY " ++ (show (toLists s))
+    | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"
+
+multiplyR2 :: Matrix Double -> Matrix Double -> Matrix Double
+multiplyR2 a b = multiply2 dgemmc "dgemmc" (fmat a) (fmat b)
+
+multiplyC2 :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
+multiplyC2 a b = multiply2 zgemmc "zgemmc" (fmat a) (fmat b)
+
+-----------------------------------------------------------------------------------
+-- direct C multiplication
+-----------------------------------------------------------------------------------
+
+foreign import ccall "multiply.h multiplyR" cmultiplyR :: TMMM
+foreign import ccall "multiply.h multiplyC" cmultiplyC :: TCMCMCM
+
+cmultiply f st a b
+--    | cols a == rows b = 
+      = unsafePerformIO $ do
+        s <- createMatrix RowMajor (rows a) (cols b)
+        app3 f mat a mat b mat s st
+        if toLists s== toLists s then return s else error $ "BRUTAL " ++ (show (toLists s))
+        -- return s
+--    | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"
+
+multiplyR :: Matrix Double -> Matrix Double -> Matrix Double
+multiplyR a b = cmultiply cmultiplyR "cmultiplyR" (cmat a) (cmat b)
+
+multiplyC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
+multiplyC a b = cmultiply cmultiplyC "cmultiplyR" (cmat a) (cmat b)

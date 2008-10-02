@@ -20,6 +20,7 @@ module Numeric.LinearAlgebra.Tests.Instances(
     WC(..),     rWC,cWC,
     SqWC(..),   rSqWC, cSqWC,
     PosDef(..), rPosDef, cPosDef,
+    Consistent(..), rConsist, cConsist,
     RM,CM, rM,cM
 ) where
 
@@ -116,6 +117,19 @@ instance (Field a, Arbitrary a) => Arbitrary (PosDef a) where
         return $ PosDef (0.5 .* p + 0.5 .* ctrans p)
     coarbitrary = undefined
 
+-- a pair of matrices that can be multiplied
+newtype (Consistent a) = Consistent (Matrix a, Matrix a) deriving Show
+instance (Field a, Arbitrary a) => Arbitrary (Consistent a) where
+    arbitrary = do
+        n <- chooseDim
+        k <- chooseDim
+        m <- chooseDim
+        la <- vector (n*k)
+        lb <- vector (k*m)
+        return $ Consistent ((n><k) la, (k><m) lb)
+    coarbitrary = undefined
+
+
 type RM = Matrix Double
 type CM = Matrix (Complex Double)
 
@@ -140,3 +154,5 @@ cSqWC (SqWC m) = m :: CM
 rPosDef (PosDef m) = m :: RM
 cPosDef (PosDef m) = m :: CM
 
+rConsist (Consistent (a,b)) = (a,b::RM)
+cConsist (Consistent (a,b)) = (a,b::CM)

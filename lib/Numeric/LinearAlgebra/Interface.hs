@@ -29,7 +29,7 @@ import Numeric.LinearAlgebra.Algorithms
 class Mul a b c | a b -> c where
  infixl 7 <>
  -- | matrix product
- (<>) :: Element t => a t -> b t -> c t
+ (<>) :: Field t => a t -> b t -> c t
 
 instance Mul Matrix Matrix Matrix where
     (<>) = multiply
@@ -43,7 +43,7 @@ instance Mul Vector Matrix Vector where
 ---------------------------------------------------
 
 -- | @u \<.\> v = dot u v@
-(<.>) :: (Element t) => Vector t -> Vector t -> t
+(<.>) :: (Field t) => Vector t -> Vector t -> t
 infixl 7 <.>
 (<.>) = dot
 

@@ -19,18 +19,20 @@ time act = do
 
 --------------------------------------------------------------------------------
 
-main = sequence_ [bench1,bench2,bench3]
+main = sequence_ [bench1,bench2,bench3,bench4]
 
 w :: Vector Double
 w = constant 1 30000000
+w2 = 1 * w
 
 bench1 = do
     putStrLn "Sum of a vector with 30M doubles:"
-    print$ vectorMax w -- evaluate it
+    print$ vectorMax (w+w2) -- evaluate it
     time $ printf "     BLAS: %.2f: " $ sumVB w
     time $ printf "  Haskell: %.2f: " $ sumVH w
     time $ printf "     BLAS: %.2f: " $ sumVB w
     time $ printf "  Haskell: %.2f: " $ sumVH w
+    --time $ printf "   innerH: %.2f: " $ innerH w w2
 
 sumVB v = constant 1 (dim v) <.> v
 
@@ -40,6 +42,13 @@ sumVH v = go (d - 1) 0
        go :: Int -> Double -> Double
        go 0 s = s + (v @> 0)
        go !j !s = go (j - 1) (s + (v @> j))
+
+innerH u v = go (d - 1) 0
+     where
+       d = dim u
+       go :: Int -> Double -> Double
+       go 0 s = s + (u @> 0) * (v @> 0)
+       go !j !s = go (j - 1) (s + (u @> j) * (v @> j))
 
 --------------------------------------------------------------------------------
 
@@ -101,3 +110,13 @@ foldLoop f s d = go (d - 1) s
 
 foldVector f s v = foldLoop g s (dim v)
     where g !k !s = f k (v@>) s
+
+--------------------------------------------------------------------------------
+
+bench4 = do
+    putStrLn "-------------------------------------------------------"
+    putStrLn "1000x1000 inverse"
+    let a = ident 1000 :: Matrix Double
+    let b = 2*a
+    print $ vectorMax $ flatten (a+b) -- evaluate it
+    time $ print $ vectorMax $ flatten $ linearSolve a b

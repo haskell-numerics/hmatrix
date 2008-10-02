@@ -28,7 +28,7 @@ module Graphics.Plot(
 
 import Data.Packed.Vector
 import Data.Packed.Matrix
-import Numeric.LinearAlgebra.Linear(outer)
+import Numeric.LinearAlgebra(outer)
 import Numeric.GSL.Vector(FunCodeS(Max,Min),toScalarR)
 import Data.List(intersperse)
 import System

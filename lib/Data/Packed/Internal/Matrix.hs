@@ -212,7 +212,6 @@ compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
 class (Storable a, Floating a) => Element a where
     constantD :: a -> Int -> Vector a
     transdata :: Int -> Vector a -> Int -> Vector a
-    multiplyD :: Matrix a -> Matrix a -> Matrix a
     subMatrixD :: (Int,Int) -- ^ (r0,c0) starting position 
                -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
                -> Matrix a -> Matrix a
@@ -221,14 +220,12 @@ class (Storable a, Floating a) => Element a where
 instance Element Double where
     constantD  = constantR
     transdata = transdataR
-    multiplyD  = multiplyR
     subMatrixD = subMatrixR
     diagD      = diagR
 
 instance Element (Complex Double) where
     constantD  = constantC
     transdata  = transdataC
-    multiplyD  = multiplyC
     subMatrixD = subMatrixC
     diagD      = diagC
 
@@ -265,33 +262,6 @@ transdataAux fun c1 d c2 =
 
 foreign import ccall "auxi.h transR" ctransR :: TMM
 foreign import ccall "auxi.h transC" ctransC :: TCMCM
-
-------------------------------------------------------------------
-
-gmatC MF { rows = r, cols = c } p f = f 1 (fi c) (fi r) p
-gmatC MC { rows = r, cols = c } p f = f 0 (fi r) (fi c) p
-
-dtt MC { cdat = d } = d
-dtt MF { fdat = d } = d
-
-multiplyAux fun a b = unsafePerformIO $ do
-    when (cols a /= rows b) $ error $ "inconsistent dimensions in contraction "++
-                                      show (rows a,cols a) ++ " x " ++ show (rows b, cols b)
-    r <- createMatrix RowMajor (rows a) (cols b)
-    withForeignPtr (fptr (dtt a)) $ \pa -> withForeignPtr (fptr (dtt b)) $ \pb ->
-        withMatrix r $ \r' ->
-            fun // gmatC a pa // gmatC b pb // r' // check "multiplyAux"
-    return r
-
-multiplyR = multiplyAux cmultiplyR
-foreign import ccall "auxi.h multiplyR" cmultiplyR :: TauxMul Double
-
-multiplyC = multiplyAux cmultiplyC
-foreign import ccall "auxi.h multiplyC" cmultiplyC :: TauxMul (Complex Double)
-
--- | matrix product
-multiply :: (Element a) => Matrix a -> Matrix a -> Matrix a
-multiply = multiplyD
 
 ----------------------------------------------------------------------
 
@@ -370,7 +340,12 @@ constant = constantD
 
 -- | obtains the complex conjugate of a complex vector
 conj :: Vector (Complex Double) -> Vector (Complex Double)
-conj v = asComplex $ flatten $ reshape 2 (asReal v) `multiply` diag (fromList [1,-1])
+conj v = unsafePerformIO $ do
+    r <- createVector (dim v)
+    app2 cconjugate vec v vec r "cconjugate"
+    return r
+foreign import ccall "auxi.h conjugate" cconjugate :: TCVCV
+
 
 -- | creates a complex vector from vectors with real and imaginary parts
 toComplex :: (Vector Double, Vector Double) ->  Vector (Complex Double)

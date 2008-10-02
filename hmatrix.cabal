@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.4.0.0
+Version:            0.4.1.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -38,10 +38,6 @@ library
       build-depends:    base >= 3, array, QuickCheck, HUnit, storable-complex
     else
       build-depends:    base < 3, QuickCheck, HUnit, storable-complex
-
-    if !flag(mkl)
-      if !arch(x86_64)
-        ghc-options:    -fvia-C
 
     Build-Depends:      haskell98
     Extensions:         ForeignFunctionInterface,
@@ -100,7 +96,6 @@ library
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix,
                         Numeric.GSL.Special.Internal,
-                        Numeric.GSL.Matrix,
                         Numeric.LinearAlgebra.Tests.Instances,
                         Numeric.LinearAlgebra.Tests.Properties
     C-sources:          lib/Data/Packed/Internal/auxi.c,
@@ -117,7 +112,6 @@ library
       else
         extra-libraries:  gsl blas lapack
 
-    cc-options:         -O4
     ghc-prof-options:   -auto-all
 
     if flag(unsafe)

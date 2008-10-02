@@ -4,14 +4,9 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>
-#include <gsl/gsl_fft_complex.h>
-#include <gsl/gsl_eigen.h>
-#include <gsl/gsl_integration.h>
-#include <gsl/gsl_deriv.h>
-#include <gsl/gsl_poly.h>
-#include <gsl/gsl_multimin.h>
 #include <gsl/gsl_complex.h>
 #include <gsl/gsl_complex_math.h>
+#include <gsl/gsl_cblas.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -118,78 +113,6 @@ int constantC(gsl_complex* pval, CVEC(r)) {
 }
 
 
-int multiplyR(int ta, KRMAT(a), int tb, KRMAT(b),RMAT(r)) {
-    //printf("%d %d %d %d %d %d\n",ar,ac,br,bc,rr,rc);
-    //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
-    DEBUGMSG("multiplyR (gsl_blas_dgemm)");
-    KDMVIEW(a);
-    KDMVIEW(b);
-    DMVIEW(r);
-    int k;
-    for(k=0;k<rr*rc;k++) rp[k]=0;
-    int debug = 0;
-    if(debug) {
-        printf("---------------------------\n");
-        printf("%p: ",ap); for(k=0;k<ar*ac;k++) printf("%f ",ap[k]); printf("\n");
-        printf("%p: ",bp); for(k=0;k<br*bc;k++) printf("%f ",bp[k]); printf("\n");
-        printf("%p: ",rp); for(k=0;k<rr*rc;k++) printf("%f ",rp[k]); printf("\n");
-    }
-    int res = gsl_blas_dgemm(
-         ta?CblasTrans:CblasNoTrans,
-         tb?CblasTrans:CblasNoTrans,
-         1.0, M(a), M(b),
-         0.0, M(r));
-    if(debug) {
-        printf("--------------\n");
-        printf("%p: ",ap); for(k=0;k<ar*ac;k++) printf("%f ",ap[k]); printf("\n");
-        printf("%p: ",bp); for(k=0;k<br*bc;k++) printf("%f ",bp[k]); printf("\n");
-        printf("%p: ",rp); for(k=0;k<rr*rc;k++) printf("%f ",rp[k]); printf("\n");
-    }
-    CHECK(res,res);
-    OK
-}
-
-int multiplyC(int ta, KCMAT(a), int tb, KCMAT(b),CMAT(r)) {
-    //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
-    DEBUGMSG("multiplyC (gsl_blas_zgemm)");
-    KCMVIEW(a);
-    KCMVIEW(b);
-    CMVIEW(r);
-    int k;
-    gsl_complex alpha, beta;
-    GSL_SET_COMPLEX(&alpha,1.,0.);
-    GSL_SET_COMPLEX(&beta,0.,0.);
-    //double *TEMP = (double*)malloc(rr*rc*2*sizeof(double));
-    //gsl_matrix_complex_view T = gsl_matrix_complex_view_array(TEMP,rr,rc);
-    for(k=0;k<rr*rc;k++) rp[k]=beta;
-    //for(k=0;k<2*rr*rc;k++) TEMP[k]=0;
-    int debug = 0;
-    if(debug) {
-        printf("---------------------------\n");
-        printf("%p: ",ap); for(k=0;k<2*ar*ac;k++) printf("%f ",((double*)ap)[k]); printf("\n");
-        printf("%p: ",bp); for(k=0;k<2*br*bc;k++) printf("%f ",((double*)bp)[k]); printf("\n");
-        printf("%p: ",rp); for(k=0;k<2*rr*rc;k++) printf("%f ",((double*)rp)[k]); printf("\n");
-        //printf("%p: ",T); for(k=0;k<2*rr*rc;k++) printf("%f ",TEMP[k]); printf("\n");
-    }
-    int res = gsl_blas_zgemm(
-         ta?CblasTrans:CblasNoTrans,
-         tb?CblasTrans:CblasNoTrans,
-         alpha, M(a), M(b),
-         beta, M(r)); 
-         //&T.matrix);
-    //memcpy(rp,TEMP,2*rr*rc*sizeof(double));
-    if(debug) {
-        printf("--------------\n");
-        printf("%p: ",ap); for(k=0;k<2*ar*ac;k++) printf("%f ",((double*)ap)[k]); printf("\n");
-        printf("%p: ",bp); for(k=0;k<2*br*bc;k++) printf("%f ",((double*)bp)[k]); printf("\n");
-        printf("%p: ",rp); for(k=0;k<2*rr*rc;k++) printf("%f ",((double*)rp)[k]); printf("\n");
-        //printf("%p: ",T); for(k=0;k<2*rr*rc;k++) printf("%f ",TEMP[k]); printf("\n");
-    }
-    CHECK(res,res);
-    OK
-}
-
-
 int diagR(KRVEC(d),RMAT(r)) {
     REQUIRES(dn==rr && rr==rc,BAD_SIZE);
     DEBUGMSG("diagR");
@@ -212,6 +135,17 @@ int diagC(KCVEC(d),CMAT(r)) {
         for(j=0;j<rc;j++) {
             rp[i*rc+j] = i==j?dp[i]:zero;
         }
+    }
+    OK
+}
+
+int conjugate(KCVEC(x),CVEC(t)) {
+    REQUIRES(xn==tn,BAD_SIZE);
+    DEBUGMSG("conjugate");
+    int k;
+    for (k=0; k<xn; k++) {
+        tp[k].dat[0] =   xp[k].dat[0];
+        tp[k].dat[1] = - xp[k].dat[1];
     }
     OK
 }

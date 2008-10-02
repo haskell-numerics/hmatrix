@@ -15,12 +15,11 @@ Basic optimized operations on vectors and matrices.
 -----------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.Linear (
-    Linear(..),
-    multiply, dot, outer, kronecker
+    Linear(..)
 ) where
 
 
-import Data.Packed.Internal(multiply,partit)
+import Data.Packed.Internal(partit)
 import Data.Packed
 import Numeric.GSL.Vector
 import Complex
@@ -69,52 +68,3 @@ instance (Linear Vector a, Container Matrix a) => (Linear Matrix a) where
     mul = liftMatrix2 mul
     divide = liftMatrix2 divide
     equal a b = cols a == cols b && flatten a `equal` flatten b
-
---------------------------------------------------
-
--- | euclidean inner product
-dot :: (Element t) => Vector t -> Vector t -> t
-dot u v = multiply r c  @@> (0,0)
-    where r = asRow u
-          c = asColumn v
-
-
-{- | Outer product of two vectors.
-
-@\> 'fromList' [1,2,3] \`outer\` 'fromList' [5,2,3]
-(3><3)
- [  5.0, 2.0, 3.0
- , 10.0, 4.0, 6.0
- , 15.0, 6.0, 9.0 ]@
--}
-outer :: (Element t) => Vector t -> Vector t -> Matrix t
-outer u v = asColumn u `multiply` asRow v
-
-{- | Kronecker product of two matrices.
-
-@m1=(2><3)
- [ 1.0,  2.0, 0.0
- , 0.0, -1.0, 3.0 ]
-m2=(4><3)
- [  1.0,  2.0,  3.0
- ,  4.0,  5.0,  6.0
- ,  7.0,  8.0,  9.0
- , 10.0, 11.0, 12.0 ]@
-
-@\> kronecker m1 m2
-(8><9)
- [  1.0,  2.0,  3.0,   2.0,   4.0,   6.0,  0.0,  0.0,  0.0
- ,  4.0,  5.0,  6.0,   8.0,  10.0,  12.0,  0.0,  0.0,  0.0
- ,  7.0,  8.0,  9.0,  14.0,  16.0,  18.0,  0.0,  0.0,  0.0
- , 10.0, 11.0, 12.0,  20.0,  22.0,  24.0,  0.0,  0.0,  0.0
- ,  0.0,  0.0,  0.0,  -1.0,  -2.0,  -3.0,  3.0,  6.0,  9.0
- ,  0.0,  0.0,  0.0,  -4.0,  -5.0,  -6.0, 12.0, 15.0, 18.0
- ,  0.0,  0.0,  0.0,  -7.0,  -8.0,  -9.0, 21.0, 24.0, 27.0
- ,  0.0,  0.0,  0.0, -10.0, -11.0, -12.0, 30.0, 33.0, 36.0 ]@
--}
-kronecker :: (Element t) => Matrix t -> Matrix t -> Matrix t
-kronecker a b = fromBlocks
-              . partit (cols a)
-              . map (reshape (cols b))
-              . toRows
-              $ flatten a `outer` flatten b

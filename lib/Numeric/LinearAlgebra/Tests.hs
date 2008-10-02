@@ -123,6 +123,11 @@ runTests :: Int  -- ^ maximum dimension
 runTests n = do
     setErrorHandlerOff
     let test p = qCheck n p
+    putStrLn "------ mult"
+    test (multProp1  . rConsist)
+    test (multProp1  . cConsist)
+    test (multProp2  . rConsist)
+    test (multProp2  . cConsist)
     putStrLn "------ lu"
     test (luProp    . rM)
     test (luProp    . cM)

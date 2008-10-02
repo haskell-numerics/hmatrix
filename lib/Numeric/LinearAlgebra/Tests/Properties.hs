@@ -34,7 +34,8 @@ module Numeric.LinearAlgebra.Tests.Properties (
     hessProp,
     schurProp1, schurProp2,
     cholProp,
-    expmDiagProp
+    expmDiagProp,
+    multProp1, multProp2
 ) where
 
 import Numeric.LinearAlgebra
@@ -151,3 +152,6 @@ cholProp m = m |~| ctrans c <> c && upperTriang c
 expmDiagProp m = expm (logm m) :~ 7 ~: complex m
     where logm m = matFunc log m
 
+multProp1 (a,b) = a <> b |~| mulH a b
+
+multProp2 (a,b) = trans (a <> b) |~| trans b <> trans a
