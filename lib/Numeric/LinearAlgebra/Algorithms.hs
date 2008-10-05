@@ -1,4 +1,5 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# OPTIONS_GHC -XFlexibleContexts -XFlexibleInstances #-}
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Algorithms
@@ -138,8 +139,12 @@ instance Field (Complex Double) where
     qr = unpackQR . qrC
     hess = unpackHess hessC
     schur = schurC
-    multiply = mulCW -- workaround
-               -- multiplyC3
+
+#if defined(WORKAROUND)
+    multiply = mulCW
+#else
+    multiply = multiplyC3
+#endif
 
 -- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev.
 --

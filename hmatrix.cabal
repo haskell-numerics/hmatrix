@@ -110,10 +110,12 @@ library
       if flag(gsl)
         extra-libraries:  gsl gslcblas lapack
       else
-        extra-libraries:  gsl blas lapack
+        extra-libraries:  gsl lapack
 
     ghc-prof-options:   -auto-all
 
     if flag(unsafe)
         cpp-options: -DUNSAFE
 
+    if arch(i386)
+        cpp-options: -DWORKAROUND
