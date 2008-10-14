@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts -fallow-undecidable-instances #-}
+{-# LANGUAGE UndecidableInstances, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Instances
@@ -188,3 +188,4 @@ instance (Storable a) => Monoid (Vector a) where
     mconcat = j . filter ((>0).dim)
         where j [] = mempty
               j l  = join l
+

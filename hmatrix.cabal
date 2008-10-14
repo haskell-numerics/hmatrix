@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.4.1.0
+Version:            0.5.0.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -25,12 +25,12 @@ flag mkl
     description:    Link with Intel's MKL optimized libraries.
     default:        False
 
-flag gsl
-    description:    Link with GSL unoptimized blas.
-    default:        False
-
 flag unsafe
     description: Compile the library with bound checking disabled.
+    default: False
+
+flag no-workaround
+    description:    Expose the NaN problem
     default: False
 
 library
@@ -101,21 +101,32 @@ library
     C-sources:          lib/Data/Packed/Internal/auxi.c,
                         lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
-    if flag(mkl)
-      if arch(x86_64)
-        extra-libraries:   gsl mkl_lapack mkl_intel_lp64 mkl_sequential mkl_core
-      else
-        extra-libraries:   gsl mkl_lapack mkl_intel mkl_sequential mkl_core
-    else
-      if flag(gsl)
-        extra-libraries:  gsl gslcblas lapack
-      else
-        extra-libraries:  gsl lapack
 
     ghc-prof-options:   -auto-all
 
     if flag(unsafe)
         cpp-options: -DUNSAFE
 
-    if arch(i386)
+    if arch(i386) && !flag(no-workaround) && !flag(mkl)
         cpp-options: -DWORKAROUND
+
+    if flag(mkl)
+      if arch(x86_64)
+        extra-libraries:   gsl mkl_lapack mkl_intel_lp64 mkl_sequential mkl_core
+      else
+        extra-libraries:   gsl mkl_lapack mkl_intel mkl_sequential mkl_core
+    else
+
+        extra-libraries: gsl lapack
+
+        -- Include here additional libraries if they are
+        -- required by your system to link -lgsl -llapack
+        -- Examples:
+
+            -- blas                       -- (cblas included in blas), not required in ubuntu/debian,
+                                          -- automatically linked by lapack
+
+            -- gslcblas                   -- nonoptimized cblas in gsl
+
+            -- f77blas cblas atlas gcc_s  -- for atlas-lapack in Arch Linux
+            -- blas gslcblas gfortran     -- for normal blas and lapack in Arch Linux

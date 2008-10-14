@@ -16,7 +16,6 @@ module Numeric.LinearAlgebra (
     module Data.Packed,
     module Numeric.LinearAlgebra.Linear,
     module Numeric.LinearAlgebra.Algorithms,
-    module Numeric.LinearAlgebra.Instances,
     module Numeric.LinearAlgebra.Interface
 ) where
 

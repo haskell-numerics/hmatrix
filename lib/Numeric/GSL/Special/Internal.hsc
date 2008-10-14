@@ -1,4 +1,4 @@
-{-# OPTIONS -ffi #-}
+ {-# LANGUAGE ForeignFunctionInterface #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.GSL.Special.Internal

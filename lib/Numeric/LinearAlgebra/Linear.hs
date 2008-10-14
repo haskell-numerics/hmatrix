@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts -fallow-undecidable-instances #-}
+{-# LANGUAGE UndecidableInstances, MultiParamTypeClasses, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Linear
