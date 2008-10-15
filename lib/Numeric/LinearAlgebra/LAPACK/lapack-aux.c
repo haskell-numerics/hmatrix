@@ -817,20 +817,21 @@ int lu_l_C(KCMAT(a), DVEC(ipiv), CMAT(r)) {
 
 ////////////////////////////////////////////////////////////
 
-int multiplyR(KDMAT(a),KDMAT(b),DMAT(r)) {
-    REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
-    int i,j,k;
-    for (i=0;i<ar;i++) {
-        for(j=0;j<bc;j++) {
-            double temp = 0;
-            for(k=0;k<ac;k++) {
-                temp += ap[i*ac+k]*bp[k*bc+j];
-            }
-            rp[i*rc+j] = temp;
-        }
-    }
-    OK
-}
+// int multiplyR(KDMAT(a),KDMAT(b),DMAT(r)) {
+//     REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
+//     int i,j,k;
+//     for (i=0;i<ar;i++) {
+//         for(j=0;j<bc;j++) {
+//             double temp = 0;
+//             for(k=0;k<ac;k++) {
+//                 temp += ap[i*ac+k]*bp[k*bc+j];
+//             }
+//             rp[i*rc+j] = temp;
+//         }
+//     }
+//     OK
+// }
+
 
 int multiplyC(KCMAT(a),KCMAT(b),CMAT(r)) {
     REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
@@ -839,52 +840,55 @@ int multiplyC(KCMAT(a),KCMAT(b),CMAT(r)) {
         for(j=0;j<bc;j++) {
             doublecomplex temp = {0,0};
             for(k=0;k<ac;k++) {
-                doublecomplex aik = ((doublecomplex*)ap)[i*ac+k];
-                doublecomplex bkj = ((doublecomplex*)bp)[k*bc+j];
-                //double w = aik.r+aik.i+bkj.r+bkj.i;
-                //if (w>w) exit(1);
-                //printf("%d",w>w);
-                temp.r += aik.r * bkj.r - aik.i * bkj.i;
-                temp.i += aik.r * bkj.i + aik.i * bkj.r;
-                //printf("%f %f %f %f \n",aik.r,aik.i,bkj.r,bkj.i);
-                //printf("%f %f %f \n",w,temp.r,temp.i);
-
+                doublecomplex A = ((doublecomplex*)ap)[i*ac+k];
+                doublecomplex B = ((doublecomplex*)bp)[k*bc+j];
+                double w = A.r * B.r - A.i * B.i;
+                double w1 = A.r * B.r;
+                double w2 = A.i * B.i;
+                if(w != w) {
+                    printf("at : %d %d %d\n",i,j,k);
+                    printf("%f %f %f\n",A.i,B.i, A.i * B.i);
+                    printf("%f %f %f\n",A.i,B.i, w2);
+                    exit(1);
+                }
+                temp.r += (w + w1-w2)/2;
+                //temp.r += w;
+                temp.i += A.r * B.i + A.i * B.r;
             }
             ((doublecomplex*)rp)[i*rc+j] = temp;
-            //printf("%f %f\n",temp.r,temp.i);
         }
     }
     OK
 }
 
-void dgemm_(char *, char *, integer *, integer *, integer *,
-           double *, const double *, integer *, const double *,
-           integer *, double *, double *, integer *);
-
-void zgemm_(char *, char *, integer *, integer *, integer *,
-           doublecomplex *, const doublecomplex *, integer *, const doublecomplex *,
-           integer *, doublecomplex *, doublecomplex *, integer *);
-
-
-int multiplyR2(KDMAT(a),KDMAT(b),DMAT(r)) {
-    REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
-    double alpha = 1;
-    double beta = 0;
-    integer m = ar;
-    integer n = bc;
-    integer k = ac;
-    int i,j;
-    dgemm_("N","N",&m,&n,&k,&alpha,ap,&m,bp,&k,&beta,rp,&m);
-    OK
-}
-
-int multiplyC2(KCMAT(a),KCMAT(b),CMAT(r)) {
-    REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
-    integer m = ar;
-    integer n = bc;
-    integer k = ac;
-    doublecomplex alpha = {1,0};
-    doublecomplex beta = {0,0};
-    zgemm_("N","N",&m,&n,&k,&alpha,(doublecomplex*)ap,&m,(doublecomplex*)bp,&k,&beta,(doublecomplex*)rp,&m);
-    OK
-}
+// void dgemm_(char *, char *, integer *, integer *, integer *,
+//            double *, const double *, integer *, const double *,
+//            integer *, double *, double *, integer *);
+// 
+// void zgemm_(char *, char *, integer *, integer *, integer *,
+//            doublecomplex *, const doublecomplex *, integer *, const doublecomplex *,
+//            integer *, doublecomplex *, doublecomplex *, integer *);
+// 
+// 
+// int multiplyR2(KDMAT(a),KDMAT(b),DMAT(r)) {
+//     REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
+//     double alpha = 1;
+//     double beta = 0;
+//     integer m = ar;
+//     integer n = bc;
+//     integer k = ac;
+//     int i,j;
+//     dgemm_("N","N",&m,&n,&k,&alpha,ap,&m,bp,&k,&beta,rp,&m);
+//     OK
+// }
+// 
+// int multiplyC2(KCMAT(a),KCMAT(b),CMAT(r)) {
+//     REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
+//     integer m = ar;
+//     integer n = bc;
+//     integer k = ac;
+//     doublecomplex alpha = {1,0};
+//     doublecomplex beta = {0,0};
+//     zgemm_("N","N",&m,&n,&k,&alpha,(doublecomplex*)ap,&m,(doublecomplex*)bp,&k,&beta,(doublecomplex*)rp,&m);
+//     OK
+// }

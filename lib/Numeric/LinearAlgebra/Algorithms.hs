@@ -589,6 +589,7 @@ mulCW a b = toComplex (rr,ri)
 -- Direct CBLAS
 -----------------------------------------------------------------------------------
 
+-- taken from Patrick Perry's BLAS package
 newtype CBLASOrder = CBLASOrder CInt deriving (Eq, Show)
 newtype CBLASTrans = CBLASTrans CInt deriving (Eq, Show)
 
@@ -602,8 +603,9 @@ trans'     = CBLASTrans 112
 conjTrans = CBLASTrans 113
 
 foreign import ccall "cblas.h cblas_dgemm"
-    dgemm  :: CBLASOrder -> CBLASTrans -> CBLASTrans -> CInt -> CInt -> CInt -> Double -> Ptr Double -> CInt -> Ptr Double -> CInt -> Double -> Ptr Double -> CInt -> IO ()
-
+    dgemm  :: CBLASOrder -> CBLASTrans -> CBLASTrans -> CInt -> CInt -> CInt
+              -> Double -> Ptr Double -> CInt -> Ptr Double -> CInt -> Double
+              -> Ptr Double -> CInt -> IO ()
 
 multiplyR3 :: Matrix Double -> Matrix Double -> Matrix Double
 multiplyR3 a b = multiply3 dgemm "cblas_dgemm" (fmat a) (fmat b)
@@ -618,7 +620,9 @@ multiplyR3 a b = multiply3 dgemm "cblas_dgemm" (fmat a) (fmat b)
 
 
 foreign import ccall "cblas.h cblas_zgemm"
-    zgemm  :: CBLASOrder -> CBLASTrans -> CBLASTrans -> CInt -> CInt -> CInt -> Ptr (Complex Double) -> Ptr (Complex Double) -> CInt -> Ptr (Complex Double) -> CInt -> Ptr (Complex Double) -> Ptr (Complex Double) -> CInt -> IO ()
+    zgemm  :: CBLASOrder -> CBLASTrans -> CBLASTrans -> CInt -> CInt -> CInt
+              -> Ptr (Complex Double) -> Ptr (Complex Double) -> CInt -> Ptr (Complex Double) -> CInt -> Ptr (Complex Double)
+              -> Ptr (Complex Double) -> CInt -> IO ()
 
 multiplyC3 :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
 multiplyC3 a b = unsafePerformIO $ multiply3 zgemm "cblas_zgemm" (fmat a) (fmat b)
@@ -640,27 +644,27 @@ multiplyC3 a b = unsafePerformIO $ multiply3 zgemm "cblas_zgemm" (fmat a) (fmat 
 -- BLAS via auxiliary C
 -----------------------------------------------------------------------------------
 
-foreign import ccall "multiply.h multiplyR2" dgemmc :: TMMM
-foreign import ccall "multiply.h multiplyC2" zgemmc :: TCMCMCM
-
-multiply2 f st a b
-    | cols a == rows b = unsafePerformIO $ do
-        s <- createMatrix ColumnMajor (rows a) (cols b)
-        app3 f mat a mat b mat s st 
-        if toLists s== toLists s then return s else error $ "AYYY " ++ (show (toLists s))
-    | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"
-
-multiplyR2 :: Matrix Double -> Matrix Double -> Matrix Double
-multiplyR2 a b = multiply2 dgemmc "dgemmc" (fmat a) (fmat b)
-
-multiplyC2 :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
-multiplyC2 a b = multiply2 zgemmc "zgemmc" (fmat a) (fmat b)
+-- foreign import ccall "multiply.h multiplyR2" dgemmc :: TMMM
+-- foreign import ccall "multiply.h multiplyC2" zgemmc :: TCMCMCM
+-- 
+-- multiply2 f st a b
+--     | cols a == rows b = unsafePerformIO $ do
+--         s <- createMatrix ColumnMajor (rows a) (cols b)
+--         app3 f mat a mat b mat s st 
+--         if toLists s== toLists s then return s else error $ "AYYY " ++ (show (toLists s))
+--     | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"
+-- 
+-- multiplyR2 :: Matrix Double -> Matrix Double -> Matrix Double
+-- multiplyR2 a b = multiply2 dgemmc "dgemmc" (fmat a) (fmat b)
+-- 
+-- multiplyC2 :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
+-- multiplyC2 a b = multiply2 zgemmc "zgemmc" (fmat a) (fmat b)
 
 -----------------------------------------------------------------------------------
--- direct C multiplication
+-- direct C multiplication, to expose the NaN bug
 -----------------------------------------------------------------------------------
 
-foreign import ccall "multiply.h multiplyR" cmultiplyR :: TMMM
+-- foreign import ccall "multiply.h multiplyR" cmultiplyR :: TMMM
 foreign import ccall "multiply.h multiplyC" cmultiplyC :: TCMCMCM
 
 cmultiply f st a b
@@ -674,8 +678,8 @@ cmultiply f st a b
         -- return s
 --    | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"
 
-multiplyR :: Matrix Double -> Matrix Double -> Matrix Double
-multiplyR a b = cmultiply cmultiplyR "cmultiplyR" (cmat a) (cmat b)
+-- multiplyR :: Matrix Double -> Matrix Double -> Matrix Double
+-- multiplyR a b = cmultiply cmultiplyR "cmultiplyR" (cmat a) (cmat b)
 
 multiplyC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
 multiplyC a b = cmultiply cmultiplyC "cmultiplyR" (cmat a) (cmat b)
