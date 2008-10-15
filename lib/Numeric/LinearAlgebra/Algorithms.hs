@@ -143,7 +143,11 @@ instance Field (Complex Double) where
 #if defined(WORKAROUND)
     multiply = mulCW
 #else
+#if defined(EXPOSEBUG)
+    multiply = multiplyC
+#else
     multiply = multiplyC3
+#endif
 #endif
 
 -- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev.
@@ -664,7 +668,9 @@ cmultiply f st a b
       = unsafePerformIO $ do
         s <- createMatrix RowMajor (rows a) (cols b)
         app3 f mat a mat b mat s st
-        if toLists s== toLists s then return s else error $ "BRUTAL " ++ (show (toLists s))
+        if toLists s== toLists s
+            then return s
+            else error $ "NaN FOUND!! " ++ (show (toLists s))
         -- return s
 --    | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"
 
