@@ -1,4 +1,4 @@
-{-# OPTIONS -fbang-patterns #-}
+{-# LANGUAGE BangPatterns #-}
 
 -- compile as:
 -- ghc --make -O2 -optc-O2 -fvia-C benchmarks.hs
@@ -32,7 +32,7 @@ bench1 = do
     time $ printf "  Haskell: %.2f: " $ sumVH w
     time $ printf "     BLAS: %.2f: " $ sumVB w
     time $ printf "  Haskell: %.2f: " $ sumVH w
-    --time $ printf "   innerH: %.2f: " $ innerH w w2
+    time $ printf "   innerH: %.2f: " $ innerH w w2
 
 sumVB v = constant 1 (dim v) <.> v
 
@@ -55,9 +55,9 @@ innerH u v = go (d - 1) 0
 bench2 = do
     putStrLn "-------------------------------------------------------"
     putStrLn "Multiplication of 1M different 3x3 matrices:"
---     putStrLn "from [[]]"
---     time $ print $ fun (10^6) rot'
---     putStrLn "from []"
+--    putStrLn "from [[]]"
+--    time $ print $ manymult (10^6) rot'
+--    putStrLn "from (3><3) []"
     time $ print $ manymult (10^6) rot
     print $ cos (10^6/2)
 
@@ -90,18 +90,18 @@ bench3 = do
     putStrLn "foldVector"
     let v = flatten $ ident 500 :: Vector Double
     print $ vectorMax v  -- evaluate it
-    let getPos k s = if k `mod` 500 < 200 && v@>k > 0 then k:s else s
-    putStrLn "indices extraction, dim=0.25M:"
-    time $ print $ (`divMod` 500) $ maximum $ foldLoop getPos [] (dim v)
-    putStrLn "sum, dim=30M:"
-    --time $ print $ foldLoop (\k s -> w@>k + s) 0.0 (dim w)
-    time $ print $ foldVector (\k v s -> v k + s) 0.0 w
-    putStrLn "sum, dim=0.25M:"
-    --time $ print $ foldVector (\k v s -> v k + s) 0.0 v
-    time $ print $ foldLoop (\k s -> v@>k + s) 0.0 (dim v)
 
--- foldVector is slower if it is used in two places. (!?)
--- this does not happen with foldLoop
+    putStrLn "sum, dim=30M:"
+    -- time $ print $ foldLoop (\k s -> w@>k + s) 0.0 (dim w)
+    time $ print $ sumVector w
+
+    putStrLn "sum, dim=0.25M:"
+    --time $ print $ foldLoop (\k s -> v@>k + s) 0.0 (dim v)
+    time $ print $ sumVector v
+
+    let getPos k s = if k `mod` 500 < 200 && v@>k > 0 then k:s else s
+    putStrLn "foldLoop for element selection, dim=0.25M:"
+    time $ print $ (`divMod` 500) $ maximum $ foldLoop getPos [] (dim v)
 
 foldLoop f s d = go (d - 1) s
      where
@@ -110,7 +110,12 @@ foldLoop f s d = go (d - 1) s
 
 foldVector f s v = foldLoop g s (dim v)
     where g !k !s = f k (v@>) s
+          {-# INLINE g #-} -- Thanks Ryan Ingram (http://permalink.gmane.org/gmane.comp.lang.haskell.cafe/46479)
 
+sumVector = foldVector (\k v s -> v k + s) 0.0
+
+-- foldVector is slower if it is used in two places unles we use the above INLINE
+-- this does not happen with foldLoop
 --------------------------------------------------------------------------------
 
 bench4 = do
