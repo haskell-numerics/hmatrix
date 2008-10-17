@@ -83,18 +83,26 @@ compat' m1 m2 = rows m1 == 1 && cols m1 == 1
 instance (Eq a, Element a) => Eq (Vector a) where
     a == b = dim a == dim b && toList a == toList b
 
-instance (Linear Vector a) => Num (Vector a) where
+instance Num (Vector Double) where
     (+) = adaptScalar addConstant add (flip addConstant)
     negate = scale (-1)
     (*) = adaptScalar scale mul (flip scale)
-    signum = liftVector signum
-    abs = liftVector abs
+    signum = vectorMapR Sign
+    abs = vectorMapR Abs
+    fromInteger = fromList . return . fromInteger
+
+instance Num (Vector (Complex Double)) where
+    (+) = adaptScalar addConstant add (flip addConstant)
+    negate = scale (-1)
+    (*) = adaptScalar scale mul (flip scale)
+    signum = vectorMapC Sign
+    abs = vectorMapC Abs
     fromInteger = fromList . return . fromInteger
 
 instance (Eq a, Element a) => Eq (Matrix a) where
     a == b = cols a == cols b && flatten a == flatten b
 
-instance (Linear Vector a) => Num (Matrix a) where
+instance (Linear Matrix a, Num (Vector a)) => Num (Matrix a) where
     (+) = liftMatrix2' (+)
     (-) = liftMatrix2' (-)
     negate = liftMatrix negate
@@ -105,7 +113,7 @@ instance (Linear Vector a) => Num (Matrix a) where
 
 ---------------------------------------------------
 
-instance (Linear Vector a) => Fractional (Vector a) where
+instance (Linear Vector a, Num (Vector a)) => Fractional (Vector a) where
     fromRational n = fromList [fromRational n]
     (/) = adaptScalar f divide g where
         r `f` v = scaleRecip r v
@@ -113,7 +121,7 @@ instance (Linear Vector a) => Fractional (Vector a) where
 
 -------------------------------------------------------
 
-instance (Linear Vector a, Fractional (Vector a)) => Fractional (Matrix a) where
+instance (Linear Vector a, Fractional (Vector a), Num (Matrix a)) => Fractional (Matrix a) where
     fromRational n = (1><1) [fromRational n]
     (/) = liftMatrix2' (/)
 
@@ -161,7 +169,7 @@ instance Floating (Vector (Complex Double)) where
 
 -----------------------------------------------------------
 
-instance (Linear Vector a, Floating (Vector a)) => Floating (Matrix a) where
+instance (Linear Vector a, Floating (Vector a), Fractional (Matrix a)) => Floating (Matrix a) where
     sin   = liftMatrix sin
     cos   = liftMatrix cos
     tan   = liftMatrix tan

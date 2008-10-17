@@ -1,4 +1,4 @@
-{-# OPTIONS #-}
+{-# LANGUAGE FlexibleContexts, UndecidableInstances #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Tests.Instances
@@ -71,7 +71,7 @@ instance (Field a, Arbitrary a) => Arbitrary (Rot a) where
 
 -- a complex hermitian or real symmetric matrix
 newtype (Her a) = Her (Matrix a) deriving Show
-instance (Field a, Arbitrary a) => Arbitrary (Her a) where
+instance (Field a, Arbitrary a, Num (Vector a)) => Arbitrary (Her a) where
     arbitrary = do
         Sq m <- arbitrary
         let m' = m/2
@@ -106,7 +106,7 @@ instance (Field a, Arbitrary a) => Arbitrary (SqWC a) where
 
 -- a positive definite square matrix (the eigenvalues are between 0 and 100)
 newtype (PosDef a) = PosDef (Matrix a) deriving Show
-instance (Field a, Arbitrary a) => Arbitrary (PosDef a) where
+instance (Field a, Arbitrary a, Num (Vector a)) => Arbitrary (PosDef a) where
     arbitrary = do
         Her m <- arbitrary
         let (_,v) = eigSH m
