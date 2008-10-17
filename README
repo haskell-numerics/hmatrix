@@ -10,15 +10,12 @@ REQUIREMENTS ----------------------------
 2) BLAS/LAPACK (http://www.netlib.org/lapack).
    An optimized implementation is recommended. I have tested:
 
-   - Intel's MKL (http://www.intel.com/cd/software/products).
-     There is a free noncommercial download of MKL for Linux.
-
    - ATLAS (http://math-atlas.sourceforge.net).
      In Ubuntu the required packages are "refblas3-dev", "lapack3-dev",
      and "atlas3-base-dev" (or a version tuned for your machine).
-     Please note that ATLAS currently requires compilation -fviaC in 32bit
-     machines. Otherwise many functions fail, producing strange NaN's.
-     Even with -fvia-C we may get wrong behavior in some cases.
+
+   - Intel's MKL (http://www.intel.com/cd/software/products).
+     There is a free noncommercial download of MKL for Linux.
 
 For ghc-6.8.x you may also need:
 
@@ -59,6 +56,7 @@ Using Intel's MKL:
            $ runhaskell Setup.lhs build
            $ runhaskell Setup.lhs install
 
+More information: http://www.hmatrix.googlepages.com/installation
 
 See below for installation on Windows.
 
@@ -70,7 +68,7 @@ Prelude> Numeric.LinearAlgebra.Tests.runTests 20
 
 Additional tests with big matrices (taking a few minutes):
 
-$ runhaskell examples/experiments bigtests
+$ runhaskell examples/experiments/bigtests
 
 EXAMPLES ------------------------------------------------------
 
@@ -99,10 +97,8 @@ A number of illustrative programs are included in the examples folder.
 KNOWN PROBLEMS / BUGS -------------------------------
 
 - Compilation with -O -fasm on 32-bit machines produces strange
-  NaN's results on certain blas/lapack calls. In these machines
-  the library is automatically compiled -fvia-C, which apparently
-  solves the problem.
-  On 64-bit, or using MKL, the default and faster -fasm seems to work well.
+  NaN's results on certain foreign calls. More info at
+  http://www.hmatrix.googlepages.com/bugs
 
 - On 64-bit machines the example "minimize.hs", when run from ghci,
   produces a segmentation fault. It happens in the call to
@@ -228,3 +224,6 @@ in the Haskell mailing lists for their help.
 - Don Stewart fixed the implementation of the internal data structures
   to achieve excellent, C-like performance in Haskell functions which
   explicitly work with the elements of vectors and matrices.
+
+- Dylan Alex Simon improved the numeric instances to allow optimized
+  implementations of signum and abs on Vectors.

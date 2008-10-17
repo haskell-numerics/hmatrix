@@ -95,6 +95,26 @@ inline double sign(double x) {
     }
 }
 
+inline gsl_complex complex_abs(gsl_complex z) {
+    gsl_complex r;
+    r.dat[0] = gsl_complex_abs(z);
+    r.dat[1] = 0;
+    return r;
+}
+
+inline gsl_complex complex_signum(gsl_complex z) {
+    gsl_complex r;
+    double mag;
+    if (z.dat[0] == 0 && z.dat[1] == 0) {
+        r.dat[0] = 0;
+        r.dat[1] = 0;
+    } else {
+        mag = gsl_complex_abs(z);
+        r.dat[0] = z.dat[0]/mag;
+        r.dat[1] = z.dat[1]/mag;
+    }
+    return r;
+}
 
 #define OP(C,F) case C: { for(k=0;k<xn;k++) rp[k] = F(xp[k]); OK }
 #define OPV(C,E) case C: { for(k=0;k<xn;k++) rp[k] = E; OK }
@@ -124,6 +144,7 @@ int mapR(int code, KRVEC(x), RVEC(r)) {
     }
 }
 
+
 int mapCAux(int code, KGCVEC(x), GCVEC(r)) {
     int k;
     REQUIRES(xn == rn,BAD_SIZE);
@@ -132,7 +153,7 @@ int mapCAux(int code, KGCVEC(x), GCVEC(r)) {
         OP(0,gsl_complex_sin)
         OP(1,gsl_complex_cos)
         OP(2,gsl_complex_tan)
-
+        OP(3,complex_abs)
         OP(4,gsl_complex_arcsin)
         OP(5,gsl_complex_arccos)
         OP(6,gsl_complex_arctan)
@@ -144,7 +165,7 @@ int mapCAux(int code, KGCVEC(x), GCVEC(r)) {
         OP(12,gsl_complex_arctanh)
         OP(13,gsl_complex_exp)
         OP(14,gsl_complex_log)
-
+        OP(15,complex_signum)
         OP(16,gsl_complex_sqrt)
 
         // gsl_complex_arg
