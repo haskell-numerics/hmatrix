@@ -39,11 +39,10 @@ module Numeric.LinearAlgebra.Tests.Properties (
 ) where
 
 import Numeric.LinearAlgebra
-import Numeric.LinearAlgebra.Tests.Instances(Sq(..),Her(..),Rot(..))
 import Test.QuickCheck
-import Debug.Trace
+-- import Debug.Trace
 
-debug x = trace (show x) x
+-- debug x = trace (show x) x
 
 -- relative error
 dist :: (Normed t, Num t) => t -> t -> Double
@@ -77,7 +76,7 @@ hermitian m = square m && m |~| ctrans m
 wellCond m = rcond m > 1/100
 
 positiveDefinite m = minimum (toList e) > 0
-    where (e,v) = eigSH m
+    where (e,_v) = eigSH m
 
 upperTriang m = rows m == 1 || down == z
     where down = fromList $ concat $ zipWith drop [1..] (toLists (ctrans m))
@@ -107,8 +106,8 @@ pinvProp m =  m <> p <> m |~| m
 
 detProp m = s d1 |~| s d2
     where d1 = det m
-          d2 = det' m * det q
-          det' m = product $ toList $ takeDiag r
+          d2 = det' * det q
+          det' = product $ toList $ takeDiag r
           (q,r) = qr m
           s x = fromList [x]
 
@@ -147,10 +146,10 @@ schurProp2 m = m |~| u <> s <> ctrans u && unitary u && upperHessenberg s -- fix
 
 cholProp m = m |~| ctrans c <> c && upperTriang c
     where c = chol m
-          pos = positiveDefinite m
+          -- pos = positiveDefinite m
 
 expmDiagProp m = expm (logm m) :~ 7 ~: complex m
-    where logm m = matFunc log m
+    where logm = matFunc log
 
 multProp1 (a,b) = a <> b |~| mulH a b
 

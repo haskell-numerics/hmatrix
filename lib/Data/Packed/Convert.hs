@@ -29,7 +29,6 @@ import Data.Array.Storable
 import Foreign
 import Control.Monad.ST
 import Data.Array.ST
-import Data.Array.IArray
 import Data.Array.Unboxed
 
 -- | Creates a StorableArray indexed from 0 to dim -1.
@@ -88,7 +87,7 @@ vectorFromMArray x = fmap vectorFromArray (unsafeFreeze' x)
 matrixFromArray :: UArray (Int, Int) Double -> Matrix Double
 matrixFromArray m = reshape c . fromList . elems $ m
     where ((r1,c1),(r2,c2)) = bounds m
-          r = r2-r1+1
+          _r = r2-r1+1
           c = c2-c1+1
 
 arrayFromMatrix :: Matrix Double -> UArray (Int, Int) Double

@@ -22,10 +22,8 @@ import Data.Packed.Internal.Vector
 
 import Foreign hiding (xor)
 import Complex
-import Control.Monad(when)
 import Foreign.C.String
 import Foreign.C.Types
-import Data.List(transpose)
 
 -----------------------------------------------------------------
 

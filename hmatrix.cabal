@@ -12,7 +12,7 @@ Description:        A purely functional interface to basic linear algebra comput
                     GSL, BLAS and LAPACK.
                     .
                     More information: <http://www.hmatrix.googlepages.com>
-Category:           Numerical, Math
+Category:           Math
 tested-with:        GHC ==6.10.0
 
 cabal-version:      >=1.2
@@ -107,6 +107,8 @@ library
                         lib/Numeric/GSL/gsl-aux.c
 
     ghc-prof-options:   -auto-all
+
+    ghc-options:        -Wall -fno-warn-missing-signatures -fno-warn-orphans -fno-warn-unused-binds
 
     if flag(unsafe)
         cpp-options: -DUNSAFE

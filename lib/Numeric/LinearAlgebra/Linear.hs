@@ -18,8 +18,6 @@ module Numeric.LinearAlgebra.Linear (
     Linear(..)
 ) where
 
-
-import Data.Packed.Internal(partit)
 import Data.Packed
 import Numeric.GSL.Vector
 import Complex

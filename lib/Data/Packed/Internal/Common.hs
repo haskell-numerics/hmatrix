@@ -22,7 +22,7 @@ import Control.Monad(when)
 import Debug.Trace
 import Foreign.C.String(peekCString)
 import Foreign.C.Types
-import Foreign.Storable.Complex
+import Foreign.Storable.Complex()
 
 
 -- | @debug x = trace (show x) x@

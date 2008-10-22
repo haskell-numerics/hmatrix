@@ -30,9 +30,9 @@ import Control.Monad(replicateM)
 
 instance (Arbitrary a, RealFloat a) => Arbitrary (Complex a) where
     arbitrary = do
-        r <- arbitrary
-        i <- arbitrary
-        return (r:+i)
+        re <- arbitrary
+        im <- arbitrary
+        return (re :+ im)
     coarbitrary = undefined
 
 chooseDim = sized $ \m -> choose (1,max 1 m)

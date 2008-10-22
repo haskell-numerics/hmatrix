@@ -168,9 +168,9 @@ square m = rows m == cols m
 
 -- | determinant of a square matrix, computed from the LU decomposition.
 det :: Field t => Matrix t -> t
-det m | square m = s * (product $ toList $ takeDiag $ lu)
+det m | square m = s * (product $ toList $ takeDiag $ lup)
       | otherwise = error "det of nonsquare matrix"
-    where (lu,perm) = luPacked m
+    where (lup,perm) = luPacked m
           s = signlp (rows m) perm
 
 -- | LU factorization of a general matrix using lapack's dgetrf or zgetrf.
@@ -501,21 +501,21 @@ fixPerm r vals = (fromColumns $ elems res, sign)
           s = toColumns (ident r)
           (res,sign) = foldl swap (listArray (0,r-1) s, 1) (zip v vals)
 
-triang r c h v = reshape c $ fromList [el i j | i<-[0..r-1], j<-[0..c-1]]
-    where el i j = if j-i>=h then v else 1 - v
+triang r c h v = (r><c) [el s t | s<-[0..r-1], t<-[0..c-1]]
+    where el p q = if q-p>=h then v else 1 - v
 
-luFact (lu,perm) | r <= c    = (l ,u ,p, s)
-                 | otherwise = (l',u',p, s)
+luFact (l_u,perm) | r <= c    = (l ,u ,p, s)
+                  | otherwise = (l',u',p, s)
   where
-    r = rows lu
-    c = cols lu
+    r = rows l_u
+    c = cols l_u
     tu = triang r c 0 1
     tl = triang r c 0 0
-    l = takeColumns r (lu |*| tl) |+| diagRect (constant 1 r) r r
-    u = lu |*| tu
+    l = takeColumns r (l_u |*| tl) |+| diagRect (constant 1 r) r r
+    u = l_u |*| tu
     (p,s) = fixPerm r perm
-    l' = (lu |*| tl) |+| diagRect (constant 1 c) r c
-    u' = takeRows c (lu |*| tu)
+    l' = (l_u |*| tl) |+| diagRect (constant 1 c) r c
+    u' = takeRows c (l_u |*| tu)
     (|+|) = add
     (|*|) = mul
 
@@ -572,8 +572,8 @@ kronecker a b = fromBlocks
 -- reference multiply
 ---------------------------------------------------------------------
 
-mulH a b = fromLists [[ dot ai bj | bj <- toColumns b] | ai <- toRows a ]
-    where dot u v = sum $ zipWith (*) (toList u) (toList v)
+mulH a b = fromLists [[ doth ai bj | bj <- toColumns b] | ai <- toRows a ]
+    where doth u v = sum $ zipWith (*) (toList u) (toList v)
 
 -----------------------------------------------------------------------------------
 -- workaround
@@ -599,7 +599,7 @@ colMajor = CBLASOrder 102
 
 noTrans, trans', conjTrans :: CBLASTrans
 noTrans   = CBLASTrans 111
-trans'     = CBLASTrans 112
+trans'    = CBLASTrans 112
 conjTrans = CBLASTrans 113
 
 foreign import ccall "cblas.h cblas_dgemm"
@@ -608,12 +608,12 @@ foreign import ccall "cblas.h cblas_dgemm"
               -> Ptr Double -> CInt -> IO ()
 
 multiplyR3 :: Matrix Double -> Matrix Double -> Matrix Double
-multiplyR3 a b = multiply3 dgemm "cblas_dgemm" (fmat a) (fmat b)
+multiplyR3 x y = multiply3 dgemm "cblas_dgemm" (fmat x) (fmat y)
     where
         multiply3 f st a b
             | cols a == rows b = unsafePerformIO $ do
                 s <- createMatrix ColumnMajor (rows a) (cols b)
-                let g ar ac ap br bc bp rr rc rp = f colMajor noTrans noTrans ar bc ac 1 ap ar bp br 0 rp rr >> return 0
+                let g ar ac ap br bc bp rr _rc rp = f colMajor noTrans noTrans ar bc ac 1 ap ar bp br 0 rp rr >> return 0
                 app3 g mat a mat b mat s st
                 return s
             | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"
@@ -625,14 +625,14 @@ foreign import ccall "cblas.h cblas_zgemm"
               -> Ptr (Complex Double) -> CInt -> IO ()
 
 multiplyC3 :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
-multiplyC3 a b = unsafePerformIO $ multiply3 zgemm "cblas_zgemm" (fmat a) (fmat b)
+multiplyC3 x y = unsafePerformIO $ multiply3 zgemm "cblas_zgemm" (fmat x) (fmat y)
     where
         multiply3 f st a b
             | cols a == rows b = do
                 s <- createMatrix ColumnMajor (rows a) (cols b)
                 palpha <- new 1
                 pbeta  <- new 0
-                let g ar ac ap br bc bp rr rc rp = f colMajor noTrans noTrans ar bc ac palpha ap ar bp br pbeta rp rr >> return 0
+                let g ar ac ap br bc bp rr _rc rp = f colMajor noTrans noTrans ar bc ac palpha ap ar bp br pbeta rp rr >> return 0
                 app3 g mat a mat b mat s st
                 free palpha
                 free pbeta

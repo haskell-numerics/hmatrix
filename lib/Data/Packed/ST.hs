@@ -30,9 +30,7 @@ module Data.Packed.ST (
 ) where
 
 import Data.Packed.Internal
-import Data.Array.Storable
 import Control.Monad.ST
-import Data.Array.ST
 import Foreign
 
 {-# INLINE ioReadV #-}
@@ -97,13 +95,13 @@ newVector v = unsafeThawVector . constant v
 
 {-# INLINE ioReadM #-}
 ioReadM :: Storable t => Matrix t -> Int -> Int -> IO t
-ioReadM (MC nr nc cv) r c = ioReadV cv (r*nc+c)
-ioReadM (MF nr nc fv) r c = ioReadV fv (c*nr+r)
+ioReadM (MC _ nc cv) r c = ioReadV cv (r*nc+c)
+ioReadM (MF nr _ fv) r c = ioReadV fv (c*nr+r)
 
 {-# INLINE ioWriteM #-}
 ioWriteM :: Storable t => Matrix t -> Int -> Int -> t -> IO ()
-ioWriteM (MC nr nc cv) r c val = ioWriteV cv (r*nc+c) val
-ioWriteM (MF nr nc fv) r c val = ioWriteV fv (c*nr+r) val
+ioWriteM (MC _ nc cv) r c val = ioWriteV cv (r*nc+c) val
+ioWriteM (MF nr _ fv) r c val = ioWriteV fv (c*nr+r) val
 
 newtype STMatrix s t = STMatrix (Matrix t)
 

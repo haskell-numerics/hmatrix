@@ -22,11 +22,15 @@ module Numeric.LinearAlgebra.Tests(
 import Numeric.LinearAlgebra
 import Numeric.LinearAlgebra.Tests.Instances
 import Numeric.LinearAlgebra.Tests.Properties
-import Test.QuickCheck
+import Test.QuickCheck hiding (test)
 import Test.HUnit hiding ((~:),test)
 import System.Info
 import Data.List(foldl1')
 import Numeric.GSL hiding (sin,cos,exp,choose)
+import Prelude hiding ((^))
+import qualified Prelude
+
+a ^ b = a Prelude.^ (b :: Int)
 
 qCheck n = check defaultConfig {configSize = const n}
 
@@ -73,7 +77,7 @@ besselTest = utest "bessel_J0_e" ( abs (r-expected) < e )
           expected = -0.17759677131433830434739701
 
 exponentialTest = utest "exp_e10_e" ( abs (v*10^e - expected) < 4E-2 )
-    where (v,e,err) = exp_e10_e 30.0
+    where (v,e,_err) = exp_e10_e 30.0
           expected = exp 30.0
 
 ---------------------------------------------------------------------

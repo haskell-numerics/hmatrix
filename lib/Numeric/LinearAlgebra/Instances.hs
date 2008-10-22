@@ -22,7 +22,6 @@ module Numeric.LinearAlgebra.Instances(
 import Numeric.LinearAlgebra.Linear
 import Numeric.GSL.Vector
 import Data.Packed.Matrix
-import Data.Packed.Vector
 import Complex
 import Data.List(transpose,intersperse)
 import Foreign(Storable)
@@ -49,11 +48,11 @@ instance (Show a, Storable a) => (Show (Vector a)) where
 ------------------------------------------------------------------
 
 instance (Element a, Read a) => Read (Matrix a) where
-    readsPrec _ s = [((rows><cols) . read $ listnums, rest)]
+    readsPrec _ s = [((rs><cs) . read $ listnums, rest)]
         where (thing,rest) = breakAt ']' s
               (dims,listnums) = breakAt ')' thing
-              cols = read . init . fst. breakAt ')' . snd . breakAt '<' $ dims
-              rows = read . snd . breakAt '(' .init . fst . breakAt '>' $ dims
+              cs = read . init . fst. breakAt ')' . snd . breakAt '<' $ dims
+              rs = read . snd . breakAt '(' .init . fst . breakAt '>' $ dims
 
 instance (Element a, Read a) => Read (Vector a) where
     readsPrec _ s = [((d |>) . read $ listnums, rest)]
