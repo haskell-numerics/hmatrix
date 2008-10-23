@@ -96,10 +96,6 @@ A number of illustrative programs are included in the examples folder.
 
 KNOWN PROBLEMS / BUGS -------------------------------
 
-- Compilation with -O -fasm on 32-bit machines produces strange
-  NaN's results on certain foreign calls. More info at
-  http://www.hmatrix.googlepages.com/bugs
-
 - On 64-bit machines the example "minimize.hs", when run from ghci,
   produces a segmentation fault. It happens in the call to
   gsl_multimin_fdfminimizer_alloc, inside the C wrapper.
@@ -108,17 +104,8 @@ KNOWN PROBLEMS / BUGS -------------------------------
   program seems to work perfectly well.
 
 - On Ubuntu 6.06 LTS (Dapper) atlas3-sse2-dev (3.6.0-20)
-  produces segmentation faults when working with big matrices 
-  on compiled programs. To expose the problem:
-
-  $ cd examples
-  $ ghc --make -O -fvia-C tests.hs
-  $ ./tests --big
-
-  If this crashes, just uninstall atlas3-sse2 and use atlas3-base-dev instead.
-  Fortunately, atlas3-sse2-dev seems to work well on Ubuntu 7.10 Gutsy.
-  A similar problem was reported at:
-      http://article.gmane.org/gmane.linux.debian.devel.bugs.general/323065
+  produced segmentation faults when working with big matrices
+  on compiled programs.
 
 - On distributions with old GSL versions you should comment out a couple of functions
   in the export lists of Ellint.hs and Debye.hs
@@ -227,3 +214,6 @@ in the Haskell mailing lists for their help.
 
 - Dylan Alex Simon improved the numeric instances to allow optimized
   implementations of signum and abs on Vectors.
+
+- Pedro E. López de Teruel discovered the need of asm("finit") to
+  avoid the wrong NaNs produced by foreign functions.

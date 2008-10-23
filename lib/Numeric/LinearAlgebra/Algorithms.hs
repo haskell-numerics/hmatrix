@@ -139,16 +139,8 @@ instance Field (Complex Double) where
     qr = unpackQR . qrC
     hess = unpackHess hessC
     schur = schurC
-
-#if defined(WORKAROUND)
-    multiply = mulCW
-#else
-#if defined(EXPOSEBUG)
-    multiply = multiplyC
-#else
     multiply = multiplyC3
-#endif
-#endif
+
 
 -- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev.
 --
@@ -639,47 +631,3 @@ multiplyC3 x y = unsafePerformIO $ multiply3 zgemm "cblas_zgemm" (fmat x) (fmat 
                 return s
                 -- if toLists s== toLists s then return s else error $ "HORROR " ++ (show (toLists s))
             | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"
-
------------------------------------------------------------------------------------
--- BLAS via auxiliary C
------------------------------------------------------------------------------------
-
--- foreign import ccall "multiply.h multiplyR2" dgemmc :: TMMM
--- foreign import ccall "multiply.h multiplyC2" zgemmc :: TCMCMCM
--- 
--- multiply2 f st a b
---     | cols a == rows b = unsafePerformIO $ do
---         s <- createMatrix ColumnMajor (rows a) (cols b)
---         app3 f mat a mat b mat s st 
---         if toLists s== toLists s then return s else error $ "AYYY " ++ (show (toLists s))
---     | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"
--- 
--- multiplyR2 :: Matrix Double -> Matrix Double -> Matrix Double
--- multiplyR2 a b = multiply2 dgemmc "dgemmc" (fmat a) (fmat b)
--- 
--- multiplyC2 :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
--- multiplyC2 a b = multiply2 zgemmc "zgemmc" (fmat a) (fmat b)
-
------------------------------------------------------------------------------------
--- direct C multiplication, to expose the NaN bug
------------------------------------------------------------------------------------
-
--- foreign import ccall "multiply.h multiplyR" cmultiplyR :: TMMM
-foreign import ccall "multiply.h multiplyC" cmultiplyC :: TCMCMCM
-
-cmultiply f st a b
---    | cols a == rows b = 
-      = unsafePerformIO $ do
-        s <- createMatrix RowMajor (rows a) (cols b)
-        app3 f mat a mat b mat s st
-        if toLists s== toLists s
-            then return s
-            else error $ "NaN FOUND!! " ++ (show (toLists s))
-        -- return s
---    | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"
-
--- multiplyR :: Matrix Double -> Matrix Double -> Matrix Double
--- multiplyR a b = cmultiply cmultiplyR "cmultiplyR" (cmat a) (cmat b)
-
-multiplyC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
-multiplyC a b = cmultiply cmultiplyC "cmultiplyR" (cmat a) (cmat b)

@@ -80,9 +80,14 @@ errorCode 2006 = "the input matrix is not positive definite"
 errorCode 2007 = "not yet supported in this OS"
 errorCode n    = "code "++show n
 
+
+-- | clear the fpu
+foreign import ccall "auxi.h asm_finit" finit :: IO ()
+
 -- | check the error code
 check :: String -> IO CInt -> IO ()
 check msg f = do
+    finit
     err <- f
     when (err/=0) $ if err > 1024
                       then (error (msg++": "++errorCode err)) -- our errors

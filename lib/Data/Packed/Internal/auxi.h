@@ -26,3 +26,5 @@ const char * gsl_strerror (const int gsl_errno);
 int matrix_fscanf(char*filename, RMAT(a));
 
 int conjugate(KCVEC(x),CVEC(t));
+
+void asm_finit();

@@ -29,13 +29,6 @@ flag unsafe
     description: Compile the library with bound checking disabled.
     default: False
 
-flag no-workaround
-    description:    Expose the NaN problem
-    default: False
-
-flag expose-bug
-    description:    Expose the NaN problem with debug information
-    default: False
 
 library
     if flag(splitBase)
@@ -112,12 +105,6 @@ library
 
     if flag(unsafe)
         cpp-options: -DUNSAFE
-
-    if arch(i386) && !flag(no-workaround) && !flag(expose-bug) && !flag(mkl)
-        cpp-options: -DWORKAROUND
-
-    if flag(expose-bug)
-        cpp-options: -DEXPOSEBUG
 
 
     if flag(mkl)
