@@ -19,7 +19,7 @@ module Numeric.LinearAlgebra.LAPACK (
     linearSolveR, linearSolveC,
     linearSolveLSR, linearSolveLSC,
     linearSolveSVDR, linearSolveSVDC,
-    luR, luC,
+    luR, luC, lusR,
     cholS, cholH,
     qrR, qrC,
     hessR, hessC,
@@ -337,3 +337,18 @@ luAux f st a = unsafePerformIO $ do
     return (lu, map (pred.round) (toList piv))
   where n = rows a
         m = cols a
+
+
+-----------------------------------------------------------------------------------
+foreign import ccall "LAPACK/lapack-aux.h luS_l_R" dgetrs :: TMVMM
+
+lusR :: Matrix Double -> [Int] -> Matrix Double -> Matrix Double
+lusR a piv b = lusR' (fmat a) piv (fmat b)
+
+lusR' a piv b = unsafePerformIO $ do
+         x <- createMatrix ColumnMajor n m
+         app4 dgetrs mat a vec piv' mat b mat x "lusR"
+         return x
+    where n = rows b
+          m = cols b
+          piv' = fromList (map (fromIntegral.succ) piv) :: Vector Double

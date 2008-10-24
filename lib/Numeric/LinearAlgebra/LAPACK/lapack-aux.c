@@ -20,6 +20,9 @@
 #define OK return 0;
 #endif
 
+#define TRACEMAT(M) {int q; printf(" %d x %d: ",M##r,M##c); \
+                     for(q=0;q<M##r*M##c;q++) printf("%.1f ",M##p[q]); printf("\n");}
+
 #define CHECK(RES,CODE) MACRO(if(RES) return CODE;)
 
 #define BAD_SIZE 2000
@@ -813,4 +816,30 @@ int lu_l_C(KCMAT(a), DVEC(ipiv), CMAT(r)) {
     }
     free(auxipiv);
     OK
+}
+
+
+//////////////////// LU substitution /////////////////////////
+char charN = 'N';
+
+int luS_l_R(DMAT(a), KDVEC(ipiv), KDMAT(b), DMAT(x)) {
+  integer m = ar;
+  integer n = ac;
+  integer mrhs = br;
+  integer nrhs = bc;
+
+  REQUIRES(m==n && m==mrhs && m==ipivn,BAD_SIZE);
+  integer* auxipiv = (integer*)malloc(n*sizeof(integer));
+  int k;
+  for (k=0; k<n; k++) {
+    auxipiv[k] = (integer)ipivp[k];
+  }
+  integer res;
+  memcpy(xp,bp,mrhs*nrhs*sizeof(double));
+  integer ldb = mrhs;
+  integer lda = n;
+  dgetrs_ (&charN,&n,&nrhs,ap,&lda,auxipiv,xp,&ldb,&res);
+  CHECK(res,res);
+  free(auxipiv);
+  OK
 }

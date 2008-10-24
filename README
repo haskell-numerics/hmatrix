@@ -217,3 +217,5 @@ in the Haskell mailing lists for their help.
 
 - Pedro E. López de Teruel discovered the need of asm("finit") to
   avoid the wrong NaNs produced by foreign functions.
+
+- Reiner Pope added support for luSolve, based on (d|z)getrs.
