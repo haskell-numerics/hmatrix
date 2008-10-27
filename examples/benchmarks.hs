@@ -1,8 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 
--- compile as:
--- ghc --make -O2 -optc-O2 -fvia-C benchmarks.hs
--- ghc --make -O benchmarks.hs
+-- $ ghc --make -O2 benchmarks.hs
+
 
 import Numeric.LinearAlgebra
 import System.Time
@@ -22,11 +21,11 @@ time act = do
 main = sequence_ [bench1,bench2,bench3,bench4]
 
 w :: Vector Double
-w = constant 1 30000000
+w = constant 1 5000000
 w2 = 1 * w
 
 bench1 = do
-    putStrLn "Sum of a vector with 30M doubles:"
+    putStrLn "Sum of a vector with 5M doubles:"
     print$ vectorMax (w+w2) -- evaluate it
     time $ printf "     BLAS: %.2f: " $ sumVB w
     time $ printf "  Haskell: %.2f: " $ sumVH w
@@ -91,7 +90,7 @@ bench3 = do
     let v = flatten $ ident 500 :: Vector Double
     print $ vectorMax v  -- evaluate it
 
-    putStrLn "sum, dim=30M:"
+    putStrLn "sum, dim=5M:"
     -- time $ print $ foldLoop (\k s -> w@>k + s) 0.0 (dim w)
     time $ print $ sumVector w
 
@@ -114,7 +113,7 @@ foldVector f s v = foldLoop g s (dim v)
 
 sumVector = foldVector (\k v s -> v k + s) 0.0
 
--- foldVector is slower if it is used in two places unles we use the above INLINE
+-- foldVector is slower if used in two places unless we use the above INLINE
 -- this does not happen with foldLoop
 --------------------------------------------------------------------------------
 

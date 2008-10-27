@@ -2,63 +2,16 @@
  A simple scientific library for Haskell
 -----------------------------------------
 
-REQUIREMENTS ----------------------------
+INSTALLATION
 
-1) GNU Scientific Library (http://www.gnu.org/software/gsl).
-   In Ubuntu we need the package "libgsl0-dev".
-
-2) BLAS/LAPACK (http://www.netlib.org/lapack).
-   An optimized implementation is recommended. I have tested:
-
-   - ATLAS (http://math-atlas.sourceforge.net).
-     In Ubuntu the required packages are "refblas3-dev", "lapack3-dev",
-     and "atlas3-base-dev" (or a version tuned for your machine).
-
-   - Intel's MKL (http://www.intel.com/cd/software/products).
-     There is a free noncommercial download of MKL for Linux.
-
-For ghc-6.8.x you may also need:
-
-- libgmp3-dev.
-
-The following packages are used for simple graphics:
-
-- gnuplot
-- imagemagick
-
-GNU-Octave can be used to check if the results
-obtained by this library are correct.
-
-INSTALLATION --------------------------------------
-
-Automatic (using cabal-install and HackageDB):
-
+Recommended method (ok in Ubuntu/Debian systems):
+    $ sudo apt-get install libgsl0-dev refblas3-dev lapack3-dev atlas3-[your_arch]-dev
     $ cabal install hmatrix
 
-Manual:
+Detailed installation instructions:
+    http://www.hmatrix.googlepages.com/installation
 
-    Install storable-complex from HackageDB and then
-
-    $ runhaskell Setup.lhs configure --prefix=$HOME --user
-    $ runhaskell Setup.lhs build
-    $ runhaskell Setup.lhs haddock
-    $ runhaskell Setup.lhs install
-
-Using Intel's MKL:
-
-    - add/modify environment variables (e.g. in your .bashrc):
-          export LD_LIBRARY_PATH=/path/to/mkl/lib/arch
-          export    LIBRARY_PATH=/path/to/mkl/lib/arch
-      where arch = "32" or "em64t"
-
-    - add the "-fmkl" flag in the cabal configuration command:
-           $ runhaskell Setup.lhs configure --prefix=$HOME --user -fmkl
-           $ runhaskell Setup.lhs build
-           $ runhaskell Setup.lhs install
-
-More information: http://www.hmatrix.googlepages.com/installation
-
-See below for installation on Windows.
+For installation in Windows see the companion INSTALL file.
 
 TESTS ---------------------------------------------
 
@@ -109,75 +62,6 @@ KNOWN PROBLEMS / BUGS -------------------------------
 
 - On distributions with old GSL versions you should comment out a couple of functions
   in the export lists of Ellint.hs and Debye.hs
-
-CHANGES ---------------------------------------------------------
-
-This is a new version of the library previously known as GSLHaskell.
-It has been renamed to "hmatrix" because only a small part of GSL is actually
-available, and most linear algebra is based on LAPACK.
-
-The code has been extensively refactored. There is a new internal representation
-which admits both C and Fortran matrices and avoids many transposes.
-
-There are only minor API changes:
-
-- The matrix product operator (<>) is now overloaded only for matrix-matrix,
-  matrix-vector and vector-matrix, with the same base type. Dot product and scaling
-  of vectors or matrices is now denoted by `dot` or (<.>) and `scale` or (.*).
-  Conversions from real to complex objects must now be explicit.
-
-- Most linear algebra functions admit both real and complex objects. Utilities such as
-  ident or constant are now polymorphic.
-
-- Runtime errors produced by GSL or LAPACK can be handled using Control.Exeception.catch.
-
-Old GSLHaskell code will work with small modifications.
-
-INSTALLATION ON WINDOWS ----------------------------------------
-
-1) Download the developer files gsl-1.8-lib.zip from
-   http://gnuwin32.sourceforge.net/packages/gsl.htm
-   and copy the gsl headers folder (under include) to:
-       C:\ghc\ghc.6.x.1\include
-   These headers are also available from:
-       http://perception.inf.um.es/~aruiz/darcs/hmatrix/gsl.zip
-
-2) Copy libgsl.dll, libcblas.dll (from the binaries package gsl-1.8.bin.zip)
-   and liblapack.dll (borrowed from the R system) to the ghc folder, e.g.:
-       C:\ghc\ghc-6.x.x.
-   Rename libcblas.dll to libblas.dll.
-   They are needed to compile programs.
-   These three dlls are available from:
-       http://perception.inf.um.es/~aruiz/darcs/hmatrix/dll1.zip
-
-2.5) Remove the following functions from the export list of
-     lib/Numeric/GSL/Special/Ellint.hs:
-     ellint_Pcomp_e, ellint_Pcomp, ellint_Dcomp_e, ellint_Dcomp
-
-3) Install the package as usual:
-       runhaskell Setup.lhs configure
-       runhaskell Setup.lhs build
-       runhaskell Setup.lhs install
-
-3.5) If configure cannot find ld please see:
-       http://article.gmane.org/gmane.comp.lang.haskell.cafe/32025
-
-4) Copy the dlls available from:
-       http://perception.inf.um.es/~aruiz/darcs/hmatrix/dll2.zip
-   to the working directory or C:\windows\system
-   They are required to run the programs and ghci.
-
-5) run the tests
-
-Unfortunately the lapack dll supplied by the R system does not include
-zgels_, zgelss_, and zgees_, so the functions depending on them
-(linearSolveLS, linearSolveSVD, and schur for complex data)
-will produce a "non supported in this OS" runtime error.
-
-If you find an alternative free and complete lapack.dll which works well
-for this system please let me know.
-
-The examples using graphics do not yet work in windows.
 
 ACKNOWLEDGEMENTS -----------------------------------------------------
 

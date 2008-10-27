@@ -1,0 +1,58 @@
+-----------------------------------------
+ A simple scientific library for Haskell
+-----------------------------------------
+
+INSTALLATION
+
+Recommended method:
+    $ sudo apt-get install libgsl0-dev refblas3-dev lapack3-dev atlas3-[your arch]-dev
+    $ cabal install hmatrix
+
+Detailed installation instructions:
+    http://www.hmatrix.googlepages.com/installation
+
+INSTALLATION ON WINDOWS ----------------------------------------
+
+1) Download the developer files gsl-1.8-lib.zip from
+   http://gnuwin32.sourceforge.net/packages/gsl.htm
+   and copy the gsl headers folder (under include) to:
+       C:\ghc\ghc.6.x.1\include
+   These headers are also available from:
+       http://perception.inf.um.es/~aruiz/darcs/hmatrix/gsl.zip
+
+2) Copy libgsl.dll, libcblas.dll (from the binaries package gsl-1.8.bin.zip)
+   and liblapack.dll (borrowed from the R system) to the ghc folder, e.g.:
+       C:\ghc\ghc-6.x.x.
+   Rename libcblas.dll to libblas.dll.
+   They are needed to compile programs.
+   These three dlls are available from:
+       http://perception.inf.um.es/~aruiz/darcs/hmatrix/dll1.zip
+
+2.5) Remove the following functions from the export list of
+     lib/Numeric/GSL/Special/Ellint.hs:
+     ellint_Pcomp_e, ellint_Pcomp, ellint_Dcomp_e, ellint_Dcomp
+
+3) Install the package as usual:
+       runhaskell Setup.lhs configure
+       runhaskell Setup.lhs build
+       runhaskell Setup.lhs install
+
+3.5) If configure cannot find ld please see:
+       http://article.gmane.org/gmane.comp.lang.haskell.cafe/32025
+
+4) Copy the dlls available from:
+       http://perception.inf.um.es/~aruiz/darcs/hmatrix/dll2.zip
+   to the working directory or C:\windows\system
+   They are required to run the programs and ghci.
+
+5) run the tests
+
+Unfortunately the lapack dll supplied by the R system does not include
+zgels_, zgelss_, and zgees_, so the functions depending on them
+(linearSolveLS, linearSolveSVD, and schur for complex data)
+will produce a "non supported in this OS" runtime error.
+
+If you find an alternative free and complete lapack.dll which works well
+for this system please let me know.
+
+The examples using graphics do not yet work in windows.
