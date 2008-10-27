@@ -40,7 +40,7 @@ module Numeric.LinearAlgebra.Algorithms (
 -- ** Schur
     schur,
 -- ** LU
-    lu,
+    lu, luPacked, luSolve,
 -- * Matrix functions
     expm,
     sqrtm,
@@ -77,8 +77,13 @@ import Foreign.C.Types
 class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
     -- | Singular value decomposition using lapack's dgesvd or zgesvd.
     svd         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
+    -- | Obtains the LU decomposition of a matrix in a compact data structure suitable for 'luSolve'.
     luPacked    :: Matrix t -> (Matrix t, [Int])
-    -- | Solution of a general linear system (for several right-hand sides) using lapacks' dgesv and zgesv.
+    -- | Solution of a linear system (for several right hand sides) from the precomputed LU factorization
+    --   obtained by 'luPacked'.
+    luSolve     :: (Matrix t, [Int]) -> Matrix t -> Matrix t
+    -- | Solution of a general linear system (for several right-hand sides) using lapacks' dgesv or zgesv.
+    -- It is similar to 'luSolve' . 'luPacked', but @linearSolve@ raises an error if called on a singular system.
     --  See also other versions of linearSolve in "Numeric.LinearAlgebra.LAPACK".
     linearSolve :: Matrix t -> Matrix t -> Matrix t
     linearSolveSVD :: Matrix t -> Matrix t -> Matrix t
@@ -110,13 +115,15 @@ class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
     schur       :: Matrix t -> (Matrix t, Matrix t)
     -- | Conjugate transpose.
     ctrans :: Matrix t -> Matrix t
+    -- | Matrix product.
     multiply :: Matrix t -> Matrix t -> Matrix t
 
 
 instance Field Double where
     svd = svdR
     luPacked = luR
-    linearSolve = linearSolveR
+    luSolve (l_u,perm) = lusR l_u perm
+    linearSolve = linearSolveR                 -- (luSolve . luPacked) ??
     linearSolveSVD = linearSolveSVDR Nothing
     ctrans = trans
     eig = eigR
@@ -130,6 +137,7 @@ instance Field Double where
 instance Field (Complex Double) where
     svd = svdC
     luPacked = luC
+    luSolve (l_u,perm) = lusC l_u perm
     linearSolve = linearSolveC
     linearSolveSVD = linearSolveSVDC Nothing
     ctrans = conj . trans
@@ -165,7 +173,7 @@ det m | square m = s * (product $ toList $ takeDiag $ lup)
     where (lup,perm) = luPacked m
           s = signlp (rows m) perm
 
--- | LU factorization of a general matrix using lapack's dgetrf or zgetrf.
+-- | Explicit LU factorization of a general matrix using lapack's dgetrf or zgetrf.
 --
 -- If @(l,u,p,s) = lu m@ then @m == p \<> l \<> u@, where l is lower triangular,
 -- u is upper triangular, p is a permutation matrix and s is the signature of the permutation.
@@ -513,7 +521,7 @@ luFact (l_u,perm) | r <= c    = (l ,u ,p, s)
 
 --------------------------------------------------
 
--- | euclidean inner product
+-- | Euclidean inner product.
 dot :: (Field t) => Vector t -> Vector t -> t
 dot u v = multiply r c  @@> (0,0)
     where r = asRow u
@@ -629,5 +637,4 @@ multiplyC3 x y = unsafePerformIO $ multiply3 zgemm "cblas_zgemm" (fmat x) (fmat 
                 free palpha
                 free pbeta
                 return s
-                -- if toLists s== toLists s then return s else error $ "HORROR " ++ (show (toLists s))
             | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"

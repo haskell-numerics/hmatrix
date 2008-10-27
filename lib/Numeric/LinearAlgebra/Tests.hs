@@ -119,7 +119,6 @@ rotTest = fun (10^5) :~12~: rot 5E4
     where fun n = foldl1' (<>) (map rot angles)
               where angles = toList $ linspace n (0,1)
 
-
 -- | All tests must pass with a maximum dimension of about 20
 --  (some tests may fail with bigger sizes due to precision loss).
 runTests :: Int  -- ^ maximum dimension
@@ -135,10 +134,13 @@ runTests n = do
     putStrLn "------ lu"
     test (luProp    . rM)
     test (luProp    . cM)
-    putStrLn "------ inv"
+    putStrLn "------ inv (linearSolve)"
     test (invProp   . rSqWC)
     test (invProp   . cSqWC)
-    putStrLn "------ pinv"
+    putStrLn "------ luSolve"
+    test (linearSolveProp (luSolve.luPacked) . rSqWC)
+    test (linearSolveProp (luSolve.luPacked) . cSqWC)
+    putStrLn "------ pinv (linearSolveSVD)"
     test (pinvProp  . rM)
     if os == "mingw32"
         then putStrLn "complex pinvTest skipped in this OS"

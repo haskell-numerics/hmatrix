@@ -19,7 +19,7 @@ module Numeric.LinearAlgebra.LAPACK (
     linearSolveR, linearSolveC,
     linearSolveLSR, linearSolveLSC,
     linearSolveSVDR, linearSolveSVDC,
-    luR, luC, lusR,
+    luR, luC, lusR, lusC,
     cholS, cholH,
     qrR, qrC,
     hessR, hessC,
@@ -34,6 +34,7 @@ import Data.Packed.Matrix
 import Numeric.GSL.Vector(vectorMapValR, FunCodeSV(Scale))
 import Complex
 import Foreign
+import Foreign.C.Types (CInt)
 
 -----------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h svd_l_R" dgesvd :: TMMVM
@@ -338,17 +339,29 @@ luAux f st a = unsafePerformIO $ do
   where n = rows a
         m = cols a
 
-
 -----------------------------------------------------------------------------------
+type TW a = CInt -> PD -> a
+type TQ a = CInt -> CInt -> PC -> a
+
 foreign import ccall "LAPACK/lapack-aux.h luS_l_R" dgetrs :: TMVMM
+foreign import ccall "LAPACK/lapack-aux.h luS_l_C" zgetrs :: TQ (TW (TQ (TQ (IO CInt))))
 
+-- | Wrapper for LAPACK's /dgetrs/, which solves a general real linear system (for several right-hand sides) from a precomputed LU decomposition.
 lusR :: Matrix Double -> [Int] -> Matrix Double -> Matrix Double
-lusR a piv b = lusR' (fmat a) piv (fmat b)
+lusR a piv b = lusAux dgetrs "lusR" (fmat a) piv (fmat b)
 
-lusR' a piv b = unsafePerformIO $ do
+-- | Wrapper for LAPACK's /zgetrs/, which solves a general real linear system (for several right-hand sides) from a precomputed LU decomposition.
+lusC :: Matrix (Complex Double) -> [Int] -> Matrix (Complex Double) -> Matrix (Complex Double)
+lusC a piv b = lusAux zgetrs "lusC" (fmat a) piv (fmat b)
+
+lusAux f st a piv b
+    | n1==n2 && n2==n =unsafePerformIO $ do
          x <- createMatrix ColumnMajor n m
-         app4 dgetrs mat a vec piv' mat b mat x "lusR"
+         app4 f mat a vec piv' mat b mat x st
          return x
-    where n = rows b
-          m = cols b
-          piv' = fromList (map (fromIntegral.succ) piv) :: Vector Double
+    | otherwise = error $ st ++ " on LU factorization of nonsquare matrix"
+  where n1 = rows a
+        n2 = cols a
+        n = rows b
+        m = cols b
+        piv' = fromList (map (fromIntegral.succ) piv) :: Vector Double

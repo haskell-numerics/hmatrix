@@ -820,9 +820,8 @@ int lu_l_C(KCMAT(a), DVEC(ipiv), CMAT(r)) {
 
 
 //////////////////// LU substitution /////////////////////////
-char charN = 'N';
 
-int luS_l_R(DMAT(a), KDVEC(ipiv), KDMAT(b), DMAT(x)) {
+int luS_l_R(KDMAT(a), KDVEC(ipiv), KDMAT(b), DMAT(x)) {
   integer m = ar;
   integer n = ac;
   integer mrhs = br;
@@ -836,10 +835,28 @@ int luS_l_R(DMAT(a), KDVEC(ipiv), KDMAT(b), DMAT(x)) {
   }
   integer res;
   memcpy(xp,bp,mrhs*nrhs*sizeof(double));
-  integer ldb = mrhs;
-  integer lda = n;
-  dgetrs_ (&charN,&n,&nrhs,ap,&lda,auxipiv,xp,&ldb,&res);
+  dgetrs_ ("N",&n,&nrhs,(/*no const (!?)*/ double*)ap,&m,auxipiv,xp,&mrhs,&res);
   CHECK(res,res);
   free(auxipiv);
   OK
+}
+
+int luS_l_C(KCMAT(a), KDVEC(ipiv), KCMAT(b), CMAT(x)) {
+    integer m = ar;
+    integer n = ac;
+    integer mrhs = br;
+    integer nrhs = bc;
+
+    REQUIRES(m==n && m==mrhs && m==ipivn,BAD_SIZE);
+    integer* auxipiv = (integer*)malloc(n*sizeof(integer));
+    int k;
+    for (k=0; k<n; k++) {
+        auxipiv[k] = (integer)ipivp[k];
+    }
+    integer res;
+    memcpy(xp,bp,mrhs*nrhs*sizeof(doublecomplex));
+    zgetrs_ ("N",&n,&nrhs,(doublecomplex*)ap,&m,auxipiv,(doublecomplex*)xp,&mrhs,&res);
+    CHECK(res,res);
+    free(auxipiv);
+    OK
 }

@@ -35,7 +35,8 @@ module Numeric.LinearAlgebra.Tests.Properties (
     schurProp1, schurProp2,
     cholProp,
     expmDiagProp,
-    multProp1, multProp2
+    multProp1, multProp2,
+    linearSolveProp
 ) where
 
 import Numeric.LinearAlgebra
@@ -153,4 +154,6 @@ expmDiagProp m = expm (logm m) :~ 7 ~: complex m
 
 multProp1 (a,b) = a <> b |~| mulH a b
 
-multProp2 (a,b) = trans (a <> b) |~| trans b <> trans a
+multProp2 (a,b) = ctrans (a <> b) |~| ctrans b <> ctrans a
+
+linearSolveProp f m = f m m |~| ident (rows m)

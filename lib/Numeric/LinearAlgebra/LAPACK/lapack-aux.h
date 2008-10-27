@@ -85,4 +85,5 @@ int schur_l_C(KCMAT(a), CMAT(u), CMAT(s));
 int lu_l_R(KDMAT(a), DVEC(ipiv), DMAT(r));
 int lu_l_C(KCMAT(a), DVEC(ipiv), CMAT(r));
 
-int luS_l_R(DMAT(a), KDVEC(ipiv), KDMAT(b), DMAT(x));
+int luS_l_R(KDMAT(a), KDVEC(ipiv), KDMAT(b), DMAT(x));
+int luS_l_C(KCMAT(a), KDVEC(ipiv), KCMAT(b), CMAT(x));
