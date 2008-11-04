@@ -860,3 +860,44 @@ int luS_l_C(KCMAT(a), KDVEC(ipiv), KCMAT(b), CMAT(x)) {
     free(auxipiv);
     OK
 }
+
+//////////////////// Matrix Product /////////////////////////
+
+void dgemm_(char *, char *, integer *, integer *, integer *,
+           double *, const double *, integer *, const double *,
+           integer *, double *, double *, integer *);
+
+int multiplyR(int ta, int tb, KDMAT(a),KDMAT(b),DMAT(r)) {
+    //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
+    integer m = ta?ac:ar;
+    integer n = tb?br:bc;
+    integer k = ta?ar:ac;
+    integer lda = ar;
+    integer ldb = br;
+    integer ldc = rr;
+    double alpha = 1;
+    double beta = 0;
+    dgemm_(ta?"T":"N",tb?"T":"N",&m,&n,&k,&alpha,ap,&lda,bp,&ldb,&beta,rp,&ldc);
+    OK
+}
+
+void zgemm_(char *, char *, integer *, integer *, integer *,
+           doublecomplex *, const doublecomplex *, integer *, const doublecomplex *,
+           integer *, doublecomplex *, doublecomplex *, integer *);
+
+int multiplyC(int ta, int tb, KCMAT(a),KCMAT(b),CMAT(r)) {
+    //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
+    integer m = ta?ac:ar;
+    integer n = tb?br:bc;
+    integer k = ta?ar:ac;
+    integer lda = ar;
+    integer ldb = br;
+    integer ldc = rr;
+    doublecomplex alpha = {1,0};
+    doublecomplex beta = {0,0};
+    zgemm_(ta?"T":"N",tb?"T":"N",&m,&n,&k,&alpha,
+           (doublecomplex*)ap,&lda,
+           (doublecomplex*)bp,&ldb,&beta,
+           (doublecomplex*)rp,&ldc);
+    OK
+}

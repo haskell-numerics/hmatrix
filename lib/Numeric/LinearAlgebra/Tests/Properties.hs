@@ -152,6 +152,10 @@ cholProp m = m |~| ctrans c <> c && upperTriang c
 expmDiagProp m = expm (logm m) :~ 7 ~: complex m
     where logm = matFunc log
 
+-- reference multiply
+mulH a b = fromLists [[ doth ai bj | bj <- toColumns b] | ai <- toRows a ]
+    where doth u v = sum $ zipWith (*) (toList u) (toList v)
+
 multProp1 (a,b) = a <> b |~| mulH a b
 
 multProp2 (a,b) = ctrans (a <> b) |~| ctrans b <> ctrans a

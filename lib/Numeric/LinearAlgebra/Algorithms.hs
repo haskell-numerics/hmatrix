@@ -54,7 +54,6 @@ module Numeric.LinearAlgebra.Algorithms (
     ctrans,
     eps, i,
     outer, kronecker,
-    mulH,
 -- * Util
     haussholder,
     unpackQR, unpackHess,
@@ -70,8 +69,8 @@ import Complex
 import Numeric.LinearAlgebra.Linear
 import Data.List(foldl1')
 import Data.Array
-import Foreign
-import Foreign.C.Types
+
+
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
 class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
@@ -132,7 +131,7 @@ instance Field Double where
     qr = unpackQR . qrR
     hess = unpackHess hessR
     schur = schurR
-    multiply = multiplyR3
+    multiply = multiplyR
 
 instance Field (Complex Double) where
     svd = svdC
@@ -147,7 +146,7 @@ instance Field (Complex Double) where
     qr = unpackQR . qrC
     hess = unpackHess hessC
     schur = schurC
-    multiply = multiplyC3
+    multiply = multiplyC
 
 
 -- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev.
@@ -567,74 +566,3 @@ kronecker a b = fromBlocks
               . map (reshape (cols b))
               . toRows
               $ flatten a `outer` flatten b
-
----------------------------------------------------------------------
--- reference multiply
----------------------------------------------------------------------
-
-mulH a b = fromLists [[ doth ai bj | bj <- toColumns b] | ai <- toRows a ]
-    where doth u v = sum $ zipWith (*) (toList u) (toList v)
-
------------------------------------------------------------------------------------
--- workaround
------------------------------------------------------------------------------------
-
-mulCW a b = toComplex (rr,ri)
-    where rr = multiply ar br `sub` multiply ai bi
-          ri = multiply ar bi `add` multiply ai br
-          (ar,ai) = fromComplex a
-          (br,bi) = fromComplex b
-
------------------------------------------------------------------------------------
--- Direct CBLAS
------------------------------------------------------------------------------------
-
--- taken from Patrick Perry's BLAS package
-newtype CBLASOrder = CBLASOrder CInt deriving (Eq, Show)
-newtype CBLASTrans = CBLASTrans CInt deriving (Eq, Show)
-
-rowMajor, colMajor :: CBLASOrder
-rowMajor = CBLASOrder 101
-colMajor = CBLASOrder 102
-
-noTrans, trans', conjTrans :: CBLASTrans
-noTrans   = CBLASTrans 111
-trans'    = CBLASTrans 112
-conjTrans = CBLASTrans 113
-
-foreign import ccall "cblas.h cblas_dgemm"
-    dgemm  :: CBLASOrder -> CBLASTrans -> CBLASTrans -> CInt -> CInt -> CInt
-              -> Double -> Ptr Double -> CInt -> Ptr Double -> CInt -> Double
-              -> Ptr Double -> CInt -> IO ()
-
-multiplyR3 :: Matrix Double -> Matrix Double -> Matrix Double
-multiplyR3 x y = multiply3 dgemm "cblas_dgemm" (fmat x) (fmat y)
-    where
-        multiply3 f st a b
-            | cols a == rows b = unsafePerformIO $ do
-                s <- createMatrix ColumnMajor (rows a) (cols b)
-                let g ar ac ap br bc bp rr _rc rp = f colMajor noTrans noTrans ar bc ac 1 ap ar bp br 0 rp rr >> return 0
-                app3 g mat a mat b mat s st
-                return s
-            | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"
-
-
-foreign import ccall "cblas.h cblas_zgemm"
-    zgemm  :: CBLASOrder -> CBLASTrans -> CBLASTrans -> CInt -> CInt -> CInt
-              -> Ptr (Complex Double) -> Ptr (Complex Double) -> CInt -> Ptr (Complex Double) -> CInt -> Ptr (Complex Double)
-              -> Ptr (Complex Double) -> CInt -> IO ()
-
-multiplyC3 :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
-multiplyC3 x y = unsafePerformIO $ multiply3 zgemm "cblas_zgemm" (fmat x) (fmat y)
-    where
-        multiply3 f st a b
-            | cols a == rows b = do
-                s <- createMatrix ColumnMajor (rows a) (cols b)
-                palpha <- new 1
-                pbeta  <- new 0
-                let g ar ac ap br bc bp rr _rc rp = f colMajor noTrans noTrans ar bc ac palpha ap ar bp br pbeta rp rr >> return 0
-                app3 g mat a mat b mat s st
-                free palpha
-                free pbeta
-                return s
-            | otherwise = error $ st ++ " (matrix product) of nonconformant matrices"

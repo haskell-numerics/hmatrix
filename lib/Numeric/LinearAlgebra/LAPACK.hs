@@ -14,6 +14,7 @@
 -----------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.LAPACK (
+    multiplyR, multiplyC,
     svdR, svdRdd, svdC,
     eigC, eigR, eigS, eigH, eigS', eigH',
     linearSolveR, linearSolveC,
@@ -35,6 +36,33 @@ import Numeric.GSL.Vector(vectorMapValR, FunCodeSV(Scale))
 import Complex
 import Foreign
 import Foreign.C.Types (CInt)
+import Control.Monad(when)
+
+-----------------------------------------------------------------------------------
+
+foreign import ccall "LAPACK/lapack-aux.h multiplyR" dgemmc :: CInt -> CInt -> TMMM
+foreign import ccall "LAPACK/lapack-aux.h multiplyC" zgemmc :: CInt -> CInt -> TCMCMCM
+
+isT MF{} = 0
+isT MC{} = 1
+
+tt x@MF{} = x
+tt x@MC{} = trans x
+
+multiplyAux f st a b = unsafePerformIO $ do
+    when (cols a /= rows b) $ error $ "inconsistent dimensions in matrix product "++
+                                       show (rows a,cols a) ++ " x " ++ show (rows b, cols b)
+    s <- createMatrix ColumnMajor (rows a) (cols b)
+    app3 (f (isT a) (isT b)) mat (tt a) mat (tt b) mat s st
+    return s
+
+-- | Matrix product based on BLAS's /dgemm/.
+multiplyR :: Matrix Double -> Matrix Double -> Matrix Double
+multiplyR a b = multiplyAux dgemmc "dgemmc" a b
+
+-- | Matrix product based on BLAS's /zgemm/.
+multiplyC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
+multiplyC a b = multiplyAux zgemmc "zgemmc" a b
 
 -----------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h svd_l_R" dgesvd :: TMMVM

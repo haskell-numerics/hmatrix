@@ -18,7 +18,7 @@ time act = do
 
 --------------------------------------------------------------------------------
 
-main = sequence_ [bench1,bench2,bench3,bench4]
+main = sequence_ [bench1,bench2,bench3,bench4,bench5 1000000 3]
 
 w :: Vector Double
 w = constant 1 5000000
@@ -48,6 +48,9 @@ innerH u v = go (d - 1) 0
        go :: Int -> Double -> Double
        go 0 s = s + (u @> 0) * (v @> 0)
        go !j !s = go (j - 1) (s + (u @> j) * (v @> j))
+
+-- These functions are much faster if the library
+-- is configured with -funsafe
 
 --------------------------------------------------------------------------------
 
@@ -124,3 +127,23 @@ bench4 = do
     let b = 2*a
     print $ vectorMax $ flatten (a+b) -- evaluate it
     time $ print $ vectorMax $ flatten $ linearSolve a b
+
+--------------------------------------------------------------------------------
+
+op1 a b = a <> trans b
+
+op2 a b = a + trans b
+
+timep = time . print . vectorMax . flatten
+
+bench5 n d = do
+    putStrLn "-------------------------------------------------------"
+    putStrLn "transpose in multiply"
+    let ms = replicate n ((ident d :: Matrix Double))
+    let mz = replicate n (diag (constant (0::Double) d))
+    timep $ foldl1' (<>) ms
+    timep $ foldl1' op1  ms
+    putStrLn "-------------------------------------------------------"
+    putStrLn "transpose in add"
+    timep $ foldl1' (+)  ms
+    timep $ foldl1' op2  ms

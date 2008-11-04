@@ -9,7 +9,9 @@
 -- Portability :  uses gnuplot and ImageMagick
 --
 -- Very basic (and provisional) drawing tools using gnuplot and imageMagick.
---
+-- 
+-- This module is deprecated. It will be replaced by improved drawing tools based
+-- on the Gnuplot package by Henning Thielemann.
 -----------------------------------------------------------------------------
 
 module Graphics.Plot(
