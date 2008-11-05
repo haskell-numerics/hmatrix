@@ -84,19 +84,20 @@ diag v = ST.runSTMatrix $ do
 
 {- | creates a rectangular diagonal matrix
 
-@> diagRect (constant 5 3) 3 4
+@> diagRect (constant 5 3) 3 4 :: Matrix Double
 (3><4)
  [ 5.0, 0.0, 0.0, 0.0
  , 0.0, 5.0, 0.0, 0.0
  , 0.0, 0.0, 5.0, 0.0 ]@
 -}
 diagRect :: (Element t, Num t) => Vector t -> Int -> Int -> Matrix t
-diagRect s r c
-    | dim s < min r c = error "diagRect"
-    | r == c    = diag s
-    | r < c     = trans $ diagRect s c r
-    | otherwise = joinVert  [diag s , zeros (r-c,c)]
-    where zeros (r',c') = reshape c' $ constant 0 (r'*c')
+diagRect v r c
+    | dim v < min r c = error "diagRect called with dim v < min r c"
+    | otherwise = ST.runSTMatrix $ do
+        m <- ST.newMatrix 0 r c
+        let d = min r c
+        mapM_ (\k -> ST.writeMatrix m k k (v@>k)) [0..d-1]
+        return m
 
 -- | extracts the diagonal from a rectangular matrix
 takeDiag :: (Element t) => Matrix t -> Vector t
