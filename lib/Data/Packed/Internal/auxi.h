@@ -13,9 +13,6 @@
 int transR(KRMAT(x),RMAT(t));
 int transC(KCMAT(x),CMAT(t));
 
-int constantR(double *val     , RVEC(r));
-int constantC(gsl_complex *val, CVEC(r));
-
 int submatrixR(int r1, int r2, int c1, int c2, KRMAT(x),RMAT(r));
 
 const char * gsl_strerror (const int gsl_errno);

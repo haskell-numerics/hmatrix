@@ -99,6 +99,7 @@ n |> l = if length l == n then fromList l else error "|> with wrong size"
 -- | access to Vector elements without range checking
 at' :: Storable a => Vector a -> Int -> a
 at' v n = safeRead v $ flip peekElemOff n
+{-# INLINE at' #-}
 
 --
 -- turn off bounds checking with -funsafe at configure time.

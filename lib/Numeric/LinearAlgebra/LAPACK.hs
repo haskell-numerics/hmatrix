@@ -27,11 +27,8 @@ module Numeric.LinearAlgebra.LAPACK (
     schurR, schurC
 ) where
 
-import Data.Packed.Internal
-import Data.Packed.Internal.Vector
-import Data.Packed.Internal.Matrix
-import Data.Packed.Vector
-import Data.Packed.Matrix
+import Data.Packed.Internal hiding (toComplex)
+import Data.Packed
 import Numeric.GSL.Vector(vectorMapValR, FunCodeSV(Scale))
 import Complex
 import Foreign

@@ -1,12 +1,5 @@
 #include "auxi.h"
-#include <gsl/gsl_blas.h>
-#include <gsl/gsl_linalg.h>
 #include <gsl/gsl_matrix.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_complex.h>
-#include <gsl/gsl_complex_math.h>
-#include <gsl/gsl_cblas.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -88,27 +81,6 @@ int submatrixR(int r1, int r2, int c1, int c2, KRMAT(x),RMAT(r)) {
     gsl_matrix_const_view S = gsl_matrix_const_submatrix(M(x),r1,c1,rr,rc);
     int res = gsl_matrix_memcpy(M(r),M(S));
     CHECK(res,res);
-    OK
-}
-
-
-int constantR(double * pval, RVEC(r)) {
-    DEBUGMSG("constantR")
-    int k;
-    double val = *pval;
-    for(k=0;k<rn;k++) {
-        rp[k]=val;
-    }
-    OK
-}
-
-int constantC(gsl_complex* pval, CVEC(r)) {
-    DEBUGMSG("constantC")
-    int k;
-    gsl_complex val = *pval;
-    for(k=0;k<rn;k++) {
-        rp[k]=val;
-    }
     OK
 }
 

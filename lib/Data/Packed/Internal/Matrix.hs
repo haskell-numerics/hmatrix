@@ -208,19 +208,16 @@ compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
 
 -- | Optimized matrix computations are provided for elements in the Element class.
 class (Storable a, Floating a) => Element a where
-    constantD :: a -> Int -> Vector a
     transdata :: Int -> Vector a -> Int -> Vector a
     subMatrixD :: (Int,Int) -- ^ (r0,c0) starting position 
                -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
                -> Matrix a -> Matrix a
 
 instance Element Double where
-    constantD  = constantR
     transdata = transdataR
     subMatrixD = subMatrixR
 
 instance Element (Complex Double) where
-    constantD  = constantC
     transdata  = transdataC
     subMatrixD = subMatrixC
 
@@ -284,31 +281,6 @@ subMatrix :: Element a
           -> Matrix a -- ^ result
 subMatrix = subMatrixD
 
-------------------------------------------------------------------------
-
-constantAux fun x n = unsafePerformIO $ do
-    v <- createVector n
-    px <- newArray [x]
-    app1 (fun px) vec v "constantAux"
-    free px
-    return v
-
-constantR :: Double -> Int -> Vector Double
-constantR = constantAux cconstantR
-foreign import ccall "auxi.h constantR" cconstantR :: Ptr Double -> TV
-
-constantC :: Complex Double -> Int -> Vector (Complex Double)
-constantC = constantAux cconstantC
-foreign import ccall "auxi.h constantC" cconstantC :: Ptr (Complex Double) -> TCV
-
-{- | creates a vector with a given number of equal components:
-
-@> constant 2 7
-7 |> [2.0,2.0,2.0,2.0,2.0,2.0,2.0]@
--}
-constant :: Element a => a -> Int -> Vector a
-constant = constantD
-
 --------------------------------------------------------------------------
 
 -- | obtains the complex conjugate of a complex vector
@@ -328,10 +300,6 @@ toComplex (r,i) = asComplex $ flatten $ fromColumns [r,i]
 fromComplex :: Vector (Complex Double) -> (Vector Double, Vector Double)
 fromComplex z = (r,i) where
     [r,i] = toColumns $ reshape 2 $ asReal z
-
--- | converts a real vector into a complex representation (with zero imaginary parts)
-comp :: Vector Double -> Vector (Complex Double)
-comp v = toComplex (v,constant 0 (dim v))
 
 -- | loads a matrix efficiently from formatted ASCII text file (the number of rows and columns must be known in advance).
 fromFile :: FilePath -> (Int,Int) -> IO (Matrix Double)

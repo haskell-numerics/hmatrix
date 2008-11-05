@@ -61,7 +61,7 @@ module Numeric.LinearAlgebra.Algorithms (
 ) where
 
 
-import Data.Packed.Internal hiding (fromComplex, toComplex, comp, conj, (//))
+import Data.Packed.Internal hiding (fromComplex, toComplex, conj, (//))
 import Data.Packed
 import Numeric.GSL.Vector
 import Numeric.LinearAlgebra.LAPACK as LAPACK

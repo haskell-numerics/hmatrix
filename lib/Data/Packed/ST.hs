@@ -1,4 +1,4 @@
-{-# OPTIONS -XTypeOperators -XRank2Types  -XFlexibleContexts #-}
+{-# OPTIONS -XTypeOperators -XRank2Types  -XFlexibleContexts -XBangPatterns #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -23,8 +23,10 @@ module Data.Packed.ST (
     STMatrix, newMatrix, thawMatrix, freezeMatrix, runSTMatrix,
     readMatrix, writeMatrix, modifyMatrix, liftSTMatrix,
     -- * Unsafe functions
+    newUndefinedVector,
     unsafeReadVector, unsafeWriteVector,
     unsafeThawVector, unsafeFreezeVector,
+    newUndefinedMatrix,
     unsafeReadMatrix, unsafeWriteMatrix,
     unsafeThawMatrix, unsafeFreezeMatrix
 ) where
@@ -87,9 +89,17 @@ readVector = safeIndexV unsafeReadVector
 writeVector :: Storable t => STVector s t -> Int -> t -> ST s ()
 writeVector = safeIndexV unsafeWriteVector
 
+{-# NOINLINE newUndefinedVector #-}
+newUndefinedVector :: Element t => Int -> ST s (STVector s t)
+newUndefinedVector = unsafeIOToST . fmap STVector . createVector
+
 {-# NOINLINE newVector #-}
 newVector :: Element t => t -> Int -> ST s (STVector s t)
-newVector v = unsafeThawVector . constant v
+newVector x n = do
+    v <- newUndefinedVector n
+    let go (-1) = return v
+        go !k = unsafeWriteVector v k x >> go (k-1 :: Int)
+    go (n-1)
 
 -------------------------------------------------------------------------
 
@@ -153,6 +163,10 @@ readMatrix = safeIndexM unsafeReadMatrix
 writeMatrix :: Storable t => STMatrix s t -> Int -> Int -> t -> ST s ()
 writeMatrix = safeIndexM unsafeWriteMatrix
 
+{-# NOINLINE newUndefinedMatrix #-}
+newUndefinedMatrix :: Element t => MatrixOrder -> Int -> Int -> ST s (STMatrix s t)
+newUndefinedMatrix order r c = unsafeIOToST $ fmap STMatrix $ createMatrix order r c
+
 {-# NOINLINE newMatrix #-}
 newMatrix :: Element t => t -> Int -> Int -> ST s (STMatrix s t)
-newMatrix v r c = unsafeThawMatrix . reshape c . constant v $ r*c
+newMatrix v r c = unsafeThawMatrix $ reshape c $ runSTVector $ newVector v (r*c)

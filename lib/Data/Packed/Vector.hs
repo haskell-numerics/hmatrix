@@ -24,6 +24,7 @@ module Data.Packed.Vector (
 
 import Data.Packed.Internal
 import Numeric.GSL.Vector
+import Data.Packed.ST
 
 {- | Creates a real vector containing a range of values:
 
@@ -47,3 +48,11 @@ vectorMaxIndex = round . toScalarR MaxIdx
 
 vectorMinIndex :: Vector Double -> Int
 vectorMinIndex = round . toScalarR MinIdx
+
+{- | creates a vector with a given number of equal components:
+
+@> constant 2 7
+7 |> [2.0,2.0,2.0,2.0,2.0,2.0,2.0]@
+-}
+constant :: Element a => a -> Int -> Vector a
+constant x n = runSTVector (newVector x n)

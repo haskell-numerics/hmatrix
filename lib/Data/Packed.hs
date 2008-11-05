@@ -24,7 +24,7 @@ module Data.Packed (
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import Data.Complex
-import Data.Packed.Internal(fromComplex,toComplex,comp,conj)
+import Data.Packed.Internal(fromComplex,toComplex,conj)
 
 -- | conversion utilities
 class (Element e) => Container c e where
@@ -38,7 +38,7 @@ class (Element e) => Container c e where
 instance Container Vector Double where
     toComplex = Data.Packed.Internal.toComplex
     fromComplex = Data.Packed.Internal.fromComplex
-    comp = Data.Packed.Internal.comp
+    comp = internalcomp
     conj = Data.Packed.Internal.conj
     real = id
     complex = Data.Packed.comp
@@ -56,7 +56,7 @@ instance Container Matrix Double where
     fromComplex z = (reshape c r, reshape c i)
         where (r,i) = Data.Packed.fromComplex (flatten z)
               c = cols z
-    comp = liftMatrix Data.Packed.Internal.comp
+    comp = liftMatrix internalcomp
     conj = liftMatrix Data.Packed.Internal.conj
     real = id
     complex = Data.Packed.comp
@@ -68,3 +68,8 @@ instance Container Matrix (Complex Double) where
     conj = undefined
     real = Data.Packed.comp
     complex = id
+
+
+-- | converts a real vector into a complex representation (with zero imaginary parts)
+internalcomp :: Vector Double -> Vector (Complex Double)
+internalcomp v = Data.Packed.Internal.toComplex (v,constant 0 (dim v))
