@@ -113,32 +113,6 @@ int constantC(gsl_complex* pval, CVEC(r)) {
 }
 
 
-int diagR(KRVEC(d),RMAT(r)) {
-    REQUIRES(dn==rr && rr==rc,BAD_SIZE);
-    DEBUGMSG("diagR");
-    int i,j;
-    for (i=0;i<rr;i++) {
-        for(j=0;j<rc;j++) {
-            rp[i*rc+j] = i==j?dp[i]:0.;
-        }
-    }
-    OK
-}
-
-int diagC(KCVEC(d),CMAT(r)) {
-    REQUIRES(dn==rr && rr==rc,BAD_SIZE);
-    DEBUGMSG("diagC");
-    int i,j;
-    gsl_complex zero;
-    GSL_SET_COMPLEX(&zero,0.,0.);
-    for (i=0;i<rr;i++) {
-        for(j=0;j<rc;j++) {
-            rp[i*rc+j] = i==j?dp[i]:zero;
-        }
-    }
-    OK
-}
-
 int conjugate(KCVEC(x),CVEC(t)) {
     REQUIRES(xn==tn,BAD_SIZE);
     DEBUGMSG("conjugate");

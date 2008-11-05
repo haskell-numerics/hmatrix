@@ -213,19 +213,16 @@ class (Storable a, Floating a) => Element a where
     subMatrixD :: (Int,Int) -- ^ (r0,c0) starting position 
                -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
                -> Matrix a -> Matrix a
-    diagD :: Vector a -> Matrix a
 
 instance Element Double where
     constantD  = constantR
     transdata = transdataR
     subMatrixD = subMatrixR
-    diagD      = diagR
 
 instance Element (Complex Double) where
     constantD  = constantC
     transdata  = transdataC
     subMatrixD = subMatrixC
-    diagD      = diagC
 
 ------------------------------------------------------------------
 
@@ -286,28 +283,6 @@ subMatrix :: Element a
           -> Matrix a -- ^ input matrix
           -> Matrix a -- ^ result
 subMatrix = subMatrixD
-
-
----------------------------------------------------------------------
-
-diagAux fun msg (v@V {dim = n}) = unsafePerformIO $ do
-    m <- createMatrix RowMajor n n
-    app2 fun vec v mat m msg
-    return m
-
--- | diagonal matrix from a real vector
-diagR :: Vector Double -> Matrix Double
-diagR = diagAux c_diagR "diagR"
-foreign import ccall "auxi.h diagR" c_diagR :: TVM
-
--- | diagonal matrix from a real vector
-diagC :: Vector (Complex Double) -> Matrix (Complex Double)
-diagC = diagAux c_diagC "diagC"
-foreign import ccall "auxi.h diagC" c_diagC :: TCVCM
-
--- | creates a square matrix with the given diagonal
-diag :: Element a => Vector a -> Matrix a
-diag = diagD
 
 ------------------------------------------------------------------------
 

@@ -18,9 +18,6 @@ int constantC(gsl_complex *val, CVEC(r));
 
 int submatrixR(int r1, int r2, int c1, int c2, KRMAT(x),RMAT(r));
 
-int diagR(KRVEC(d),RMAT(r));
-int diagC(KCVEC(d),CMAT(r));
-
 const char * gsl_strerror (const int gsl_errno);
 
 int matrix_fscanf(char*filename, RMAT(a));

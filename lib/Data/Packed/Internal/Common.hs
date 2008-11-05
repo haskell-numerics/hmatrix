@@ -101,9 +101,6 @@ check msg f = do
 foreign import ccall "auxi.h gsl_strerror" gsl_strerror :: CInt -> IO (Ptr CChar)
 
 ---------------------------------------------------
--- ugly, but my haddock version doesn't understand
--- yet infix type constructors
----------------------------------------------------
 ---------- signatures of the C functions ---------
 --------------------------------------------------
 type PD = Ptr Double                            --
@@ -141,8 +138,3 @@ type TCVM = CInt -> PC -> TM                    --
 type TMCVM = CInt -> CInt -> PD -> TCVM         --
 type TMMCVM = CInt -> CInt -> PD -> TMCVM       --
 --------------------------------------------------
-
-type TauxMul a = CInt -> CInt -> CInt -> Ptr a
-               -> CInt -> CInt -> CInt -> Ptr a
-               -> CInt -> CInt -> Ptr a
-               -> IO CInt

@@ -33,6 +33,7 @@ module Data.Packed.Matrix (
 ) where
 
 import Data.Packed.Internal
+import qualified Data.Packed.ST as ST
 import Data.Packed.Vector
 import Data.List(transpose,intersperse)
 import Data.Array
@@ -73,6 +74,14 @@ fliprl m = fromColumns . reverse . toColumns $ m
 
 ------------------------------------------------------------
 
+-- | Creates a square matrix with a given diagonal.
+diag :: Element a => Vector a -> Matrix a
+diag v = ST.runSTMatrix $ do
+    let d = dim v
+    m <- ST.newMatrix 0 d d
+    mapM_ (\k -> ST.writeMatrix m k k (v@>k)) [0..d-1]
+    return m
+
 {- | creates a rectangular diagonal matrix
 
 @> diagRect (constant 5 3) 3 4
@@ -87,7 +96,7 @@ diagRect s r c
     | r == c    = diag s
     | r < c     = trans $ diagRect s c r
     | otherwise = joinVert  [diag s , zeros (r-c,c)]
-    where zeros (r',c') = reshape c' $ constantD 0 (r'*c')
+    where zeros (r',c') = reshape c' $ constant 0 (r'*c')
 
 -- | extracts the diagonal from a rectangular matrix
 takeDiag :: (Element t) => Matrix t -> Vector t
