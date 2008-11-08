@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fglasgow-exts #-}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, BangPatterns #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Matrix
@@ -71,6 +71,12 @@ data Matrix t = MC { rows :: {-# UNPACK #-} !Int
 -- MC: preferred by C, fdat may require a transposition
 -- MF: preferred by LAPACK, cdat may require a transposition
 
+xdat MC {cdat = d } = d
+xdat MF {fdat = d } = d
+
+orderOf MF{} = ColumnMajor
+orderOf MC{} = RowMajor
+
 -- | Matrix transpose.
 trans :: Matrix t -> Matrix t
 trans MC {rows = r, cols = c, cdat = d } = MF {rows = c, cols = r, fdat = d }
@@ -84,16 +90,10 @@ fmat MC {rows = r, cols = c, cdat = d } = MF {rows = r, cols = c, fdat = transda
 
 mat = withMatrix
 
-withMatrix MC {rows = r, cols = c, cdat = d } f =
-    withForeignPtr (fptr d) $ \p -> do
+withMatrix a f =
+    withForeignPtr (fptr (xdat a)) $ \p -> do
         let m g = do
-            g (fi r) (fi c) p
-        f m
-
-withMatrix MF {rows = r, cols = c, fdat = d } f =
-    withForeignPtr (fptr d) $ \p -> do
-        let m g = do
-            g (fi r) (fi c) p
+            g (fi (rows a)) (fi (cols a)) p
         f m
 
 {- | Creates a vector by concatenation of rows
@@ -156,6 +156,11 @@ MF {rows = r, cols = c, fdat = v} @@> (i,j)
     | otherwise = v `at` (j*r+i)
 {-# INLINE (@@>) #-}
 
+-- | Unsafe matrix access without range checking
+atM' MC {cols = c, cdat = v} i j = v `at'` (i*c+j)
+atM' MF {rows = r, fdat = v} i j = v `at'` (j*r+i)
+{-# INLINE atM' #-}
+
 ------------------------------------------------------------------
 
 matrixFromVector RowMajor c v = MC { rows = r, cols = c, cdat = v }
@@ -204,56 +209,52 @@ liftMatrix2 f m1 m2
 compat :: Matrix a -> Matrix b -> Bool
 compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
 
-----------------------------------------------------------------
+------------------------------------------------------------------
 
--- | Optimized matrix computations are provided for elements in the Element class.
+-- | Auxiliary class.
 class (Storable a, Floating a) => Element a where
-    transdata :: Int -> Vector a -> Int -> Vector a
     subMatrixD :: (Int,Int) -- ^ (r0,c0) starting position 
                -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
                -> Matrix a -> Matrix a
+    transdata :: Int -> Vector a -> Int -> Vector a
 
 instance Element Double where
-    transdata = transdataR
     subMatrixD = subMatrixR
+    transdata  = transdata'
 
 instance Element (Complex Double) where
-    transdata  = transdataC
     subMatrixD = subMatrixC
-
-------------------------------------------------------------------
-
-(>|<) :: (Element a) => Int -> Int -> [a] -> Matrix a
-r >|< c = f where
-    f l | dim v == r*c = matrixFromVector ColumnMajor c v
-        | otherwise    = error $ "inconsistent list size = "
-                                 ++show (dim v) ++" in ("++show r++"><"++show c++")"
-        where v = fromList l
+    transdata  = transdata'
 
 -------------------------------------------------------------------
 
-transdataR :: Int -> Vector Double -> Int -> Vector Double
-transdataR = transdataAux ctransR
-
-transdataC :: Int -> Vector (Complex Double) -> Int -> Vector (Complex Double)
-transdataC = transdataAux ctransC
-
-transdataAux fun c1 d c2 =
+transdata' :: Storable a => Int -> Vector a -> Int -> Vector a
+transdata' c1 v c2 =
     if noneed
-        then d
+        then v
         else unsafePerformIO $ do
-            v <- createVector (dim d)
-            withForeignPtr (fptr d) $ \pd ->
-                withForeignPtr (fptr v) $ \pv ->
-                    fun (fi r1) (fi c1) pd (fi r2) (fi c2) pv // check "transdataAux"
-            -- putStrLn $ "---> transdataAux" ++ show (toList d) ++ show (toList v)
-            return v
-  where r1 = dim d `div` c1
-        r2 = dim d `div` c2
+                w <- createVector (r2*c2)
+                let p = unsafeForeignPtrToPtr (fptr v)
+                    q = unsafeForeignPtrToPtr (fptr w)
+                    go (-1) _ = return ()
+                    go !i (-1) = go (i-1) (c1-1)
+                    go !i !j = do x <- peekElemOff p (i*c1+j)
+                                  pokeElemOff      q (j*c2+i) x
+                                  go i (j-1)
+                go (r1-1) (c1-1)
+                touchForeignPtr (fptr w)
+                return w
+  where r1 = dim v `div` c1
+        r2 = dim v `div` c2
         noneed = r1 == 1 || c1 == 1
 
-foreign import ccall "auxi.h transR" ctransR :: TMM
-foreign import ccall "auxi.h transC" ctransC :: TCMCM
+
+-- {-# SPECIALIZE transdata' :: Int -> Vector Double -> Int ->  Vector Double #-}
+-- {-# SPECIALIZE transdata' :: Int -> Vector (Complex Double) -> Int -> Vector (Complex Double) #-}
+
+-- I don't know how to specialize...
+-- The above pragmas only seem to work on top level defs
+-- Fortunately everything seems to work using the above class
 
 ----------------------------------------------------------------------
 

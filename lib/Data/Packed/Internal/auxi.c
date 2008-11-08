@@ -51,26 +51,6 @@
 #define MEM      2002
 #define BAD_FILE 2003
 
-int transR(KRMAT(x),RMAT(t)) {
-    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
-    DEBUGMSG("transR");
-    KDMVIEW(x);
-    DMVIEW(t);
-    int res = gsl_matrix_transpose_memcpy(M(t),M(x));
-    CHECK(res,res);
-    OK
-}
-
-int transC(KCMAT(x),CMAT(t)) {
-    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
-    DEBUGMSG("transC");
-    KCMVIEW(x);
-    CMVIEW(t);
-    int res = gsl_matrix_complex_transpose_memcpy(M(t),M(x));
-    CHECK(res,res);
-    OK
-}
-
 
 int submatrixR(int r1, int r2, int c1, int c2, KRMAT(x),RMAT(r)) {
     REQUIRES(0<=r1 && r1<=r2 && r2<xr && 0<=c1 && c1<=c2 && c2<xc &&

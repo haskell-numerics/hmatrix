@@ -18,7 +18,9 @@ time act = do
 
 --------------------------------------------------------------------------------
 
-main = sequence_ [bench1,bench2,bench3,bench4,bench5 1000000 3]
+main = sequence_ [bench1,bench2,bench3,bench4,
+                  bench5 1000000 3,
+                  bench5 100000 50]
 
 w :: Vector Double
 w = constant 1 5000000
@@ -131,19 +133,18 @@ bench4 = do
 --------------------------------------------------------------------------------
 
 op1 a b = a <> trans b
-
-op2 a b = a + trans b
+op2 a b = a  + trans b
 
 timep = time . print . vectorMax . flatten
 
 bench5 n d = do
     putStrLn "-------------------------------------------------------"
-    putStrLn "transpose in multiply"
-    let ms = replicate n ((ident d :: Matrix Double))
-    let mz = replicate n (diag (constant (0::Double) d))
-    timep $ foldl1' (<>) ms
-    timep $ foldl1' op1  ms
-    putStrLn "-------------------------------------------------------"
     putStrLn "transpose in add"
+    let ms = replicate n ((ident d :: Matrix Double))
     timep $ foldl1' (+)  ms
     timep $ foldl1' op2  ms
+    putStrLn "-------------------------------------------------------"
+    putStrLn "transpose in multiply"
+
+    timep $ foldl1' (<>) ms
+    timep $ foldl1' op1  ms
