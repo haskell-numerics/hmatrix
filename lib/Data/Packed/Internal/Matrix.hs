@@ -234,20 +234,18 @@ transdata' c1 v c2 =
         then v
         else unsafePerformIO $ do
                 w <- createVector (r2*c2)
-                let p = unsafeForeignPtrToPtr (fptr v)
-                    q = unsafeForeignPtrToPtr (fptr w)
-                    go (-1) _ = return ()
-                    go !i (-1) = go (i-1) (c1-1)
-                    go !i !j = do x <- peekElemOff p (i*c1+j)
-                                  pokeElemOff      q (j*c2+i) x
-                                  go i (j-1)
-                go (r1-1) (c1-1)
-                touchForeignPtr (fptr w)
+                withForeignPtr (fptr v) $ \p ->
+                    withForeignPtr (fptr w) $ \q -> do
+                        let go (-1) _ = return ()
+                            go !i (-1) = go (i-1) (c1-1)
+                            go !i !j = do x <- peekElemOff p (i*c1+j)
+                                          pokeElemOff      q (j*c2+i) x
+                                          go i (j-1)
+                        go (r1-1) (c1-1)
                 return w
   where r1 = dim v `div` c1
         r2 = dim v `div` c2
         noneed = r1 == 1 || c1 == 1
-
 
 -- {-# SPECIALIZE transdata' :: Int -> Vector Double -> Int ->  Vector Double #-}
 -- {-# SPECIALIZE transdata' :: Int -> Vector (Complex Double) -> Int -> Vector (Complex Double) #-}
