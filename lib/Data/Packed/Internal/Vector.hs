@@ -1,4 +1,4 @@
-{-# LANGUAGE MagicHash, CPP, UnboxedTuples #-}
+{-# LANGUAGE MagicHash, CPP, UnboxedTuples, BangPatterns #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Vector
@@ -182,7 +182,7 @@ asComplex v = V { dim = dim v `div` 2, fptr =  castForeignPtr (fptr v) }
 
 -- | map on Vectors
 liftVector :: (Storable a, Storable b) => (a-> b) -> Vector a -> Vector b
-liftVector  f = fromList . map f . toList
+liftVector = mapVector
 
 -- | zipWith for Vectors
 liftVector2 :: (Storable a, Storable b, Storable c) => (a-> b -> c) -> Vector a -> Vector b -> Vector c
@@ -196,3 +196,35 @@ cloneVector (v@V {dim=n}) = do
         let f _ s _ d =  copyArray d s n >> return 0
         app2 f vec v vec r "cloneVector"
         return r
+
+------------------------------------------------------------------
+
+mapVector f v = unsafePerformIO $ do
+    w <- createVector (dim v)
+    withForeignPtr (fptr v) $ \p ->
+        withForeignPtr (fptr w) $ \q -> do
+            let go (-1) = return ()
+                go !k = do x <- peekElemOff p k
+                           pokeElemOff      q k (f x)
+                           go (k-1)
+            go (dim v -1)
+    return w
+{-# INLINE mapVector #-}
+
+foldVector f x v = unsafePerformIO $
+    withForeignPtr (fptr (v::Vector Double)) $ \p -> do
+        let go (-1) s = return s
+            go !k !s = do y <- peekElemOff p k
+                          go (k-1::Int) (f y s)
+        go (dim v -1) x
+{-# INLINE foldVector #-}
+
+foldLoop f s0 d = go (d - 1) s0
+     where
+       go 0 s = f (0::Int) s
+       go !j !s = go (j - 1) (f j s)
+
+foldVectorG f s0 v = foldLoop g s0 (dim v)
+    where g !k !s = f k (at' v) s
+          {-# INLINE g #-} -- Thanks to Ryan Ingram (http://permalink.gmane.org/gmane.comp.lang.haskell.cafe/46479)
+{-# INLINE foldVectorG #-}

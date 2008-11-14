@@ -18,7 +18,7 @@ time act = do
 
 --------------------------------------------------------------------------------
 
-main = sequence_ [bench1,bench2,bench3,bench4,
+main = sequence_ [bench1,bench2,bench4,
                   bench5 1000000 3,
                   bench5 100000 50]
 
@@ -26,16 +26,25 @@ w :: Vector Double
 w = constant 1 5000000
 w2 = 1 * w
 
-bench1 = do
-    putStrLn "Sum of a vector with 5M doubles:"
-    print$ vectorMax (w+w2) -- evaluate it
-    time $ printf "     BLAS: %.2f: " $ sumVB w
-    time $ printf "  Haskell: %.2f: " $ sumVH w
-    time $ printf "     BLAS: %.2f: " $ sumVB w
-    time $ printf "  Haskell: %.2f: " $ sumVH w
-    time $ printf "   innerH: %.2f: " $ innerH w w2
+v = flatten $ ident 500 :: Vector Double
 
-sumVB v = constant 1 (dim v) <.> v
+
+bench1 = do
+    time $ print$ vectorMax (w+w2) -- evaluate it
+    putStrLn "Sum of a vector with 5M doubles:"
+    print $ vectorMax v  -- evaluate it
+--     time $ printf "     BLAS: %.2f: " $ sumVB w
+    time $ printf "   Haskell: %.2f: " $ sumVH w
+    time $ printf "      BLAS: %.2f: " $ w <.> w2
+    time $ printf "   Haskell: %.2f: " $ sumVH w
+    time $ printf "    innerH: %.2f: " $ innerH w w2
+    time $ printf "foldVector: %.2f: " $ sumVector w
+    let getPos k s = if k `mod` 500 < 200 && w@>k > 0 then k:s else s
+    putStrLn "foldLoop for element selection:"
+    time $ print $ (`divMod` 500) $ maximum $ foldLoop getPos [] (dim w)
+    putStrLn "constant 5M:"
+    time $ print $ constant (1::Double) 5000001 @> 7
+    time $ print $ constant           i 5000001 @> 7
 
 sumVH v = go (d - 1) 0
      where
@@ -51,8 +60,10 @@ innerH u v = go (d - 1) 0
        go 0 s = s + (u @> 0) * (v @> 0)
        go !j !s = go (j - 1) (s + (u @> j) * (v @> j))
 
--- These functions are much faster if the library
--- is configured with -funsafe
+
+-- sumVector = foldVectorG (\k v s -> v k + s) 0.0
+sumVector = foldVector (+) 0.0
+
 
 --------------------------------------------------------------------------------
 
@@ -87,39 +98,6 @@ manymult n r = foldl1' (<>) (map r angles)
           -- n' = fromIntegral n - 1
           -- k  = recip n'
 
---------------------------------------------------------------------------------
-
-bench3 = do
-    putStrLn "-------------------------------------------------------"
-    putStrLn "foldVector"
-    let v = flatten $ ident 500 :: Vector Double
-    print $ vectorMax v  -- evaluate it
-
-    putStrLn "sum, dim=5M:"
-    -- time $ print $ foldLoop (\k s -> w@>k + s) 0.0 (dim w)
-    time $ print $ sumVector w
-
-    putStrLn "sum, dim=0.25M:"
-    --time $ print $ foldLoop (\k s -> v@>k + s) 0.0 (dim v)
-    time $ print $ sumVector v
-
-    let getPos k s = if k `mod` 500 < 200 && v@>k > 0 then k:s else s
-    putStrLn "foldLoop for element selection, dim=0.25M:"
-    time $ print $ (`divMod` 500) $ maximum $ foldLoop getPos [] (dim v)
-
-foldLoop f s d = go (d - 1) s
-     where
-       go 0 s = f (0::Int) s
-       go !j !s = go (j - 1) (f j s)
-
-foldVector f s v = foldLoop g s (dim v)
-    where g !k !s = f k (v@>) s
-          {-# INLINE g #-} -- Thanks Ryan Ingram (http://permalink.gmane.org/gmane.comp.lang.haskell.cafe/46479)
-
-sumVector = foldVector (\k v s -> v k + s) 0.0
-
--- foldVector is slower if used in two places unless we use the above INLINE
--- this does not happen with foldLoop
 --------------------------------------------------------------------------------
 
 bench4 = do

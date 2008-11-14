@@ -93,7 +93,7 @@ writeVector = safeIndexV unsafeWriteVector
 newUndefinedVector :: Element t => Int -> ST s (STVector s t)
 newUndefinedVector = unsafeIOToST . fmap STVector . createVector
 
-{-# NOINLINE newVector #-}
+{-# INLINE newVector #-}
 newVector :: Element t => t -> Int -> ST s (STVector s t)
 newVector x n = do
     v <- newUndefinedVector n

@@ -19,12 +19,13 @@ module Data.Packed.Vector (
     subVector, join,
     constant, linspace,
     vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex,
-    liftVector, liftVector2
+    liftVector, liftVector2,
+    foldLoop, foldVector, foldVectorG, mapVector
 ) where
 
 import Data.Packed.Internal
 import Numeric.GSL.Vector
-import Data.Packed.ST
+-- import Data.Packed.ST
 
 {- | Creates a real vector containing a range of values:
 
@@ -55,4 +56,5 @@ vectorMinIndex = round . toScalarR MinIdx
 7 |> [2.0,2.0,2.0,2.0,2.0,2.0,2.0]@
 -}
 constant :: Element a => a -> Int -> Vector a
-constant x n = runSTVector (newVector x n)
+-- constant x n = runSTVector (newVector x n)
+constant = constantD -- about 2x faster

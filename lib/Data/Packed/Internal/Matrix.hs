@@ -217,14 +217,17 @@ class (Storable a, Floating a) => Element a where
                -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
                -> Matrix a -> Matrix a
     transdata :: Int -> Vector a -> Int -> Vector a
+    constantD  :: a -> Int -> Vector a
 
 instance Element Double where
     subMatrixD = subMatrixR
     transdata  = transdata'
+    constantD   = constant'
 
 instance Element (Complex Double) where
     subMatrixD = subMatrixC
     transdata  = transdata'
+    constantD   = constant'
 
 -------------------------------------------------------------------
 
@@ -253,6 +256,16 @@ transdata' c1 v c2 =
 -- I don't know how to specialize...
 -- The above pragmas only seem to work on top level defs
 -- Fortunately everything seems to work using the above class
+
+----------------------------------------------------------------------
+
+constant' v n = unsafePerformIO $ do
+    w <- createVector n
+    withForeignPtr (fptr w) $ \p -> do
+        let go (-1) = return ()
+            go !k = pokeElemOff p k v >> go (k-1)
+        go (n-1)
+    return w
 
 ----------------------------------------------------------------------
 
