@@ -45,6 +45,7 @@ bench1 = do
     putStrLn "constant 5M:"
     time $ print $ constant (1::Double) 5000001 @> 7
     time $ print $ constant           i 5000001 @> 7
+    time $ print $ conj (constant i 5000001) @> 7
 
 sumVH v = go (d - 1) 0
      where
@@ -63,7 +64,6 @@ innerH u v = go (d - 1) 0
 
 -- sumVector = foldVectorG (\k v s -> v k + s) 0.0
 sumVector = foldVector (+) 0.0
-
 
 --------------------------------------------------------------------------------
 

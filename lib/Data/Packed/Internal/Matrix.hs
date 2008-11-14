@@ -297,12 +297,7 @@ subMatrix = subMatrixD
 
 -- | obtains the complex conjugate of a complex vector
 conj :: Vector (Complex Double) -> Vector (Complex Double)
-conj v = unsafePerformIO $ do
-    r <- createVector (dim v)
-    app2 cconjugate vec v vec r "cconjugate"
-    return r
-foreign import ccall "auxi.h conjugate" cconjugate :: TCVCV
-
+conj = mapVector conjugate
 
 -- | creates a complex vector from vectors with real and imaginary parts
 toComplex :: (Vector Double, Vector Double) ->  Vector (Complex Double)

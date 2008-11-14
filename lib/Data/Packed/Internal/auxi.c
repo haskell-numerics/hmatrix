@@ -64,18 +64,6 @@ int submatrixR(int r1, int r2, int c1, int c2, KRMAT(x),RMAT(r)) {
     OK
 }
 
-
-int conjugate(KCVEC(x),CVEC(t)) {
-    REQUIRES(xn==tn,BAD_SIZE);
-    DEBUGMSG("conjugate");
-    int k;
-    for (k=0; k<xn; k++) {
-        tp[k].dat[0] =   xp[k].dat[0];
-        tp[k].dat[1] = - xp[k].dat[1];
-    }
-    OK
-}
-
 //---------------------------------------
 void asm_finit() {
     asm("finit");
