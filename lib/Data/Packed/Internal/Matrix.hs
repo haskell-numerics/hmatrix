@@ -220,12 +220,12 @@ class (Storable a, Floating a) => Element a where
     constantD  :: a -> Int -> Vector a
 
 instance Element Double where
-    subMatrixD = subMatrixR
+    subMatrixD = subMatrix'
     transdata  = transdata'
     constantD   = constant'
 
 instance Element (Complex Double) where
-    subMatrixD = subMatrixC
+    subMatrixD = subMatrix'
     transdata  = transdata'
     constantD   = constant'
 
@@ -269,29 +269,32 @@ constant' v n = unsafePerformIO $ do
 
 ----------------------------------------------------------------------
 
--- | extraction of a submatrix from a real matrix
-subMatrixR :: (Int,Int) -> (Int,Int) -> Matrix Double -> Matrix Double
-subMatrixR (r0,c0) (rt,ct) x' = unsafePerformIO $ do
-    r <- createMatrix RowMajor rt ct
-    let x = cmat x'
-    app2 (c_submatrixR (fi r0) (fi $ r0+rt-1) (fi c0) (fi $ c0+ct-1)) mat x mat r "subMatrixR"
-    return r
-foreign import ccall "auxi.h submatrixR" c_submatrixR :: CInt -> CInt -> CInt -> CInt -> TMM
-
--- | extraction of a submatrix from a complex matrix
-subMatrixC :: (Int,Int) -> (Int,Int) -> Matrix (Complex Double) -> Matrix (Complex Double)
-subMatrixC (r0,c0) (rt,ct) x =
-    reshape ct . asComplex . flatten .
-    subMatrixR (r0,2*c0) (rt,2*ct) .
-    reshape (2*cols x) . asReal . flatten $ x
-
 -- | Extracts a submatrix from a matrix.
 subMatrix :: Element a
           => (Int,Int) -- ^ (r0,c0) starting position 
           -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
           -> Matrix a -- ^ input matrix
           -> Matrix a -- ^ result
-subMatrix = subMatrixD
+subMatrix (r0,c0) (rt,ct) m
+    | 0 <= r0 && 0 < rt && r0+rt <= (rows m) &&
+      0 <= c0 && 0 < ct && c0+ct <= (cols m) = subMatrixD (r0,c0) (rt,ct) m
+    | otherwise = error $ "wrong subMatrix "++
+                          show ((r0,c0),(rt,ct))++" of "++show(rows m)++"x"++ show (cols m)
+
+subMatrix'' (r0,c0) (rt,ct) c v = unsafePerformIO $ do
+    w <- createVector (rt*ct)
+    withForeignPtr (fptr v) $ \p ->
+        withForeignPtr (fptr w) $ \q -> do
+            let go (-1) _ = return ()
+                go !i (-1) = go (i-1) (ct-1)
+                go !i !j = do x <- peekElemOff p ((i+r0)*c+j+c0)
+                              pokeElemOff      q (i*ct+j) x
+                              go i (j-1)
+            go (rt-1) (ct-1)
+    return w
+
+subMatrix' (r0,c0) (rt,ct) (MC _r c v) = MC rt ct $ subMatrix'' (r0,c0) (rt,ct) c v
+subMatrix' (r0,c0) (rt,ct) m = trans $ subMatrix' (c0,r0) (ct,rt) (trans m)
 
 --------------------------------------------------------------------------
 
@@ -316,4 +319,4 @@ fromFile filename (r,c) = do
     app1 (c_gslReadMatrix charname) mat res "gslReadMatrix"
     --free charname  -- TO DO: free the auxiliary CString
     return res
-foreign import ccall "auxi.h matrix_fscanf" c_gslReadMatrix:: Ptr CChar -> TM
+foreign import ccall "matrix_fscanf" c_gslReadMatrix:: Ptr CChar -> TM

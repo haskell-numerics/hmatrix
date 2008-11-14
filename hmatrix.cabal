@@ -95,8 +95,7 @@ library
                         Numeric.GSL.Special.Internal,
                         Numeric.LinearAlgebra.Tests.Instances,
                         Numeric.LinearAlgebra.Tests.Properties
-    C-sources:          lib/Data/Packed/Internal/auxi.c,
-                        lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
+    C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
 
     ghc-prof-options:   -auto-all
