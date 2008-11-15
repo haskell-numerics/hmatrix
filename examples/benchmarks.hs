@@ -32,12 +32,11 @@ v = flatten $ ident 500 :: Vector Double
 bench1 = do
     time $ print$ vectorMax (w+w2) -- evaluate it
     putStrLn "Sum of a vector with 5M doubles:"
-    print $ vectorMax v  -- evaluate it
---     time $ printf "     BLAS: %.2f: " $ sumVB w
-    time $ printf "   Haskell: %.2f: " $ sumVH w
-    time $ printf "      BLAS: %.2f: " $ w <.> w2
-    time $ printf "   Haskell: %.2f: " $ sumVH w
-    time $ printf "    innerH: %.2f: " $ innerH w w2
+    print$ vectorMax (w+w2) -- evaluate it
+    time $ printf "         BLAS: %.2f: " $ sumVB w
+    time $ printf "BLAS only dot: %.2f: " $ w <.> w2
+    time $ printf "      Haskell: %.2f: " $ sumVH w
+    time $ printf "       innerH: %.2f: " $ innerH w w2
     time $ printf "foldVector: %.2f: " $ sumVector w
     let getPos k s = if k `mod` 500 < 200 && w@>k > 0 then k:s else s
     putStrLn "foldLoop for element selection:"
@@ -46,16 +45,18 @@ bench1 = do
     time $ print $ constant (1::Double) 5000001 @> 7
     time $ print $ constant           i 5000001 @> 7
     time $ print $ conj (constant i 5000001) @> 7
-    putStrLn "some zips:"
+    putStrLn "zips C vs H:"
     time $ print $ (w / w2) @> 7
     time $ print $ (zipVector (/) w w2) @> 7
-    putStrLn "some folds:"
+    putStrLn "folds C/BLAS vs H:"
     let t = constant (1::Double) 5000002
     print $ t @> 7
     time $ print $ foldVector max (t@>0) t
     time $ print $ vectorMax t
     time $ print $ sqrt $ foldVector (\v s -> v*v+s) 0 t
     time $ print $ pnorm PNorm2 t
+
+sumVB v = constant 1 (dim v) <.> v
 
 sumVH v = go (d - 1) 0
      where

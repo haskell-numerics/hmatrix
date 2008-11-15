@@ -7,11 +7,9 @@ Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          provisional
 Homepage:           http://www.hmatrix.googlepages.com
 Synopsis:           Linear algebra and numerical computations
-Description:        A purely functional interface to basic linear algebra computations
-                    and other numerical routines, internally implemented using
+Description:        This library provides a purely functional interface to basic linear algebra
+                    and other numerical computations, internally implemented using
                     GSL, BLAS and LAPACK.
-                    .
-                    More information: <http://www.hmatrix.googlepages.com>
 Category:           Math
 tested-with:        GHC ==6.10.1
 
