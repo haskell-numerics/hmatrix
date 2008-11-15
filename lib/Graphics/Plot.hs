@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Graphics.Plot
--- Copyright   :  (c) Alberto Ruiz 2005
+-- Copyright   :  (c) Alberto Ruiz 2005-8
 -- License     :  GPL-style
 -- 
 -- Maintainer  :  Alberto Ruiz (aruiz at um dot es)
@@ -28,14 +28,10 @@ module Graphics.Plot(
 
 ) where
 
-import Data.Packed.Vector
-import Data.Packed.Matrix
+import Data.Packed
 import Numeric.LinearAlgebra(outer)
-import Numeric.GSL.Vector(FunCodeS(Max,Min),toScalarR)
 import Data.List(intersperse)
 import System
-import Foreign hiding (rotate)
-
 
 size = dim
 
@@ -154,8 +150,8 @@ matrixToPGM m = header ++ unlines (map unwords ll) where
     r = rows m
     header = "P2 "++show c++" "++show r++" "++show (round maxgray :: Int)++"\n"
     maxgray = 255.0
-    maxval = toScalarR Max $ flatten $ m
-    minval = toScalarR Min $ flatten $ m
+    maxval = vectorMax $ flatten $ m
+    minval = vectorMin $ flatten $ m
     scale = if (maxval == minval) 
         then 0.0
         else maxgray / (maxval - minval)

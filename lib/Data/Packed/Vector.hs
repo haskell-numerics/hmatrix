@@ -20,7 +20,7 @@ module Data.Packed.Vector (
     constant, linspace,
     vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex,
     liftVector, liftVector2,
-    foldLoop, foldVector, foldVectorG, mapVector
+    foldLoop, foldVector, foldVectorG, mapVector, zipVector
 ) where
 
 import Data.Packed.Internal

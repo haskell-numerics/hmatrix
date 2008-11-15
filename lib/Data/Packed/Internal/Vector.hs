@@ -180,13 +180,9 @@ asComplex v = V { dim = dim v `div` 2, fptr =  castForeignPtr (fptr v) }
 
 ----------------------------------------------------------------
 
--- | map on Vectors
-liftVector :: (Storable a, Storable b) => (a-> b) -> Vector a -> Vector b
-liftVector = mapVector
+liftVector f x = mapVector f x
 
--- | zipWith for Vectors
-liftVector2 :: (Storable a, Storable b, Storable c) => (a-> b -> c) -> Vector a -> Vector b -> Vector c
-liftVector2 f u v = fromList $ zipWith f (toList u) (toList v)
+liftVector2 f u v = zipVector f u v
 
 -----------------------------------------------------------------
 
@@ -199,6 +195,8 @@ cloneVector (v@V {dim=n}) = do
 
 ------------------------------------------------------------------
 
+-- | map on Vectors
+mapVector :: (Storable a, Storable b) => (a-> b) -> Vector a -> Vector b
 mapVector f v = unsafePerformIO $ do
     w <- createVector (dim v)
     withForeignPtr (fptr v) $ \p ->
@@ -210,6 +208,23 @@ mapVector f v = unsafePerformIO $ do
             go (dim v -1)
     return w
 {-# INLINE mapVector #-}
+
+-- | zipWith for Vectors
+zipVector :: (Storable a, Storable b, Storable c) => (a-> b -> c) -> Vector a -> Vector b -> Vector c
+zipVector f u v = unsafePerformIO $ do
+    let n = min (dim u) (dim v)
+    w <- createVector n
+    withForeignPtr (fptr u) $ \pu ->
+        withForeignPtr (fptr v) $ \pv ->
+            withForeignPtr (fptr w) $ \pw -> do
+                let go (-1) = return ()
+                    go !k = do x <- peekElemOff pu k
+                               y <- peekElemOff pv k
+                               pokeElemOff      pw k (f x y)
+                               go (k-1)
+                go (n -1)
+    return w
+{-# INLINE zipVector #-}
 
 foldVector f x v = unsafePerformIO $
     withForeignPtr (fptr (v::Vector Double)) $ \p -> do

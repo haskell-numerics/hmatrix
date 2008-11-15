@@ -46,6 +46,16 @@ bench1 = do
     time $ print $ constant (1::Double) 5000001 @> 7
     time $ print $ constant           i 5000001 @> 7
     time $ print $ conj (constant i 5000001) @> 7
+    putStrLn "some zips:"
+    time $ print $ (w / w2) @> 7
+    time $ print $ (zipVector (/) w w2) @> 7
+    putStrLn "some folds:"
+    let t = constant (1::Double) 5000002
+    print $ t @> 7
+    time $ print $ foldVector max (t@>0) t
+    time $ print $ vectorMax t
+    time $ print $ sqrt $ foldVector (\v s -> v*v+s) 0 t
+    time $ print $ pnorm PNorm2 t
 
 sumVH v = go (d - 1) 0
      where
@@ -56,7 +66,7 @@ sumVH v = go (d - 1) 0
 
 innerH u v = go (d - 1) 0
      where
-       d = dim u
+       d = min (dim u) (dim v)
        go :: Int -> Double -> Double
        go 0 s = s + (u @> 0) * (v @> 0)
        go !j !s = go (j - 1) (s + (u @> j) * (v @> j))
