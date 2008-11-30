@@ -30,9 +30,9 @@ flag unsafe
 
 library
     if flag(splitBase)
-      build-depends:    base >= 3, array, QuickCheck, HUnit, storable-complex
+      build-depends:    base >= 3, array, QuickCheck < 2, HUnit, storable-complex
     else
-      build-depends:    base < 3, QuickCheck, HUnit, storable-complex
+      build-depends:    base < 3, QuickCheck < 2, HUnit, storable-complex
 
     Build-Depends:      haskell98
     Extensions:         ForeignFunctionInterface,

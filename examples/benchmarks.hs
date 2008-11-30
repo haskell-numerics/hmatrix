@@ -55,6 +55,9 @@ bench1 = do
     time $ print $ vectorMax t
     time $ print $ sqrt $ foldVector (\v s -> v*v+s) 0 t
     time $ print $ pnorm PNorm2 t
+    putStrLn "scale C/BLAS vs H:"
+    time $ print $ mapVector (*2) t @> 7
+    time $ print $ (2 * t) @> 7
 
 sumVB v = constant 1 (dim v) <.> v
 
