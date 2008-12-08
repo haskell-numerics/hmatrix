@@ -23,6 +23,10 @@ flag mkl
     description:    Link with Intel's MKL optimized libraries.
     default:        False
 
+flag accelerate
+    description:    Use the accelerate framework for LAPACK/BLAS on OS X
+    default:        False
+
 flag unsafe
     description: Compile the library with bound checking disabled.
     default: False
@@ -110,6 +114,10 @@ library
       else
         extra-libraries:   gsl mkl_lapack mkl_intel mkl_sequential mkl_core
     else
+      if flag(accelerate)
+        frameworks: Accelerate
+        extra-libraries: gsl
+      else
 
         extra-libraries: gsl lapack
 

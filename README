@@ -105,4 +105,5 @@ in the Haskell mailing lists for their help.
 - Reiner Pope added support for luSolve, based on (d|z)getrs.
 
 - Simon Beaumont reported the need of QuickCheck<2 and the invalid
-  asm("finit") on ppc.
+  asm("finit") on ppc. He also contributed the configuration options
+  for the accelerate framework on OS X.
