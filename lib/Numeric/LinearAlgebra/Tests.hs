@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Tests
@@ -22,17 +24,15 @@ module Numeric.LinearAlgebra.Tests(
 import Numeric.LinearAlgebra
 import Numeric.LinearAlgebra.Tests.Instances
 import Numeric.LinearAlgebra.Tests.Properties
-import Test.QuickCheck hiding (test)
-import Test.HUnit hiding ((~:),test)
+import Test.HUnit hiding ((~:),test,Testable)
 import System.Info
 import Data.List(foldl1')
 import Numeric.GSL hiding (sin,cos,exp,choose)
 import Prelude hiding ((^))
 import qualified Prelude
+#include "Tests/quickCheckCompat.h"
 
 a ^ b = a Prelude.^ (b :: Int)
-
-qCheck n = check defaultConfig {configSize = const n}
 
 utest str b = TestCase $ assertBool str b
 

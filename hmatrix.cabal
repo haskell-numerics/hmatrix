@@ -15,6 +15,8 @@ tested-with:        GHC ==6.10.1
 
 cabal-version:      >=1.2
 build-type:         Simple
+extra-source-files: lib/Numeric/LinearAlgebra/Tests/quickCheckCompat.h
+
 
 flag splitBase
     description:    Choose the new smaller, split-up base package.
@@ -34,9 +36,9 @@ flag unsafe
 
 library
     if flag(splitBase)
-      build-depends:    base >= 3, array, QuickCheck < 2, HUnit, storable-complex
+      build-depends:    base >= 3, array, QuickCheck, HUnit, storable-complex
     else
-      build-depends:    base < 3, QuickCheck < 2, HUnit, storable-complex
+      build-depends:    base < 3, QuickCheck, HUnit, storable-complex
 
     Build-Depends:      haskell98
     Extensions:         ForeignFunctionInterface,

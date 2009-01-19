@@ -1,4 +1,5 @@
-{-# OPTIONS #-}
+{-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Tests.Properties
@@ -40,7 +41,7 @@ module Numeric.LinearAlgebra.Tests.Properties (
 ) where
 
 import Numeric.LinearAlgebra
-import Test.QuickCheck
+#include "quickCheckCompat.h"
 -- import Debug.Trace
 
 -- debug x = trace (show x) x
