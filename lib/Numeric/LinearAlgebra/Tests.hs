@@ -182,9 +182,10 @@ runTests n = do
     test (\v -> ifft (fft v) |~| v)
     putStrLn "------ vector operations"
     test (\u -> sin u ^ 2 + cos u ^ 2 |~| (1::RM))
+    test $ (\u -> sin u ^ 2 + cos u ^ 2 |~| (1::CM)) . liftMatrix makeUnitary
     test (\u -> sin u ** 2 + cos u ** 2 |~| (1::RM))
     test (\u -> cos u * tan u |~| sin (u::RM))
-    test (\u -> (cos u * tan u) |~| sin (u::CM))
+    test $ (\u -> cos u * tan u |~| sin (u::CM)) . liftMatrix makeUnitary
     putStrLn "------ read . show"
     test (\m -> (m::RM) == read (show m))
     test (\m -> (m::CM) == read (show m))
@@ -207,6 +208,10 @@ runTests n = do
         , utest "polySolve" (polySolveProp [1,2,3,4])
         ]
     return ()
+
+makeUnitary v | realPart n > 1    = v */ n
+              | otherwise = v
+    where n = sqrt (conj v <.> v)
 
 -- -- | Some additional tests on big matrices. They take a few minutes.
 -- runBigTests :: IO ()

@@ -107,3 +107,7 @@ in the Haskell mailing lists for their help.
 - Simon Beaumont reported the need of QuickCheck<2 and the invalid
   asm("finit") on ppc. He also contributed the configuration options
   for the accelerate framework on OS X.
+
+- Daniel Schüssler added compatibility with QuickCheck 2 as well
+  as QuickCheck 1 using the C preprocessor. He also added some
+  implementations for the new "shrink" method of class Arbitrary.
