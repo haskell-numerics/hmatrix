@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Common
@@ -87,7 +87,9 @@ foreign import ccall "asm_finit" finit :: IO ()
 -- | check the error code
 check :: String -> IO CInt -> IO ()
 check msg f = do
+#if FINIT
     finit
+#endif
     err <- f
     when (err/=0) $ if err > 1024
                       then (error (msg++": "++errorCode err)) -- our errors
