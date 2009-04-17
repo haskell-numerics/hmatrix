@@ -221,13 +221,13 @@ class (Storable a, Floating a) => Element a where
 
 instance Element Double where
     subMatrixD = subMatrix'
-    transdata  = transdata'
-    constantD   = constant'
+    transdata  = transdataAux ctransR     -- transdata'
+    constantD  = constantAux cconstantR   -- constant'
 
 instance Element (Complex Double) where
     subMatrixD = subMatrix'
-    transdata  = transdata'
-    constantD   = constant'
+    transdata  = transdataAux ctransC     -- transdata'
+    constantD  = constantAux cconstantC   -- constant'
 
 -------------------------------------------------------------------
 
@@ -257,6 +257,23 @@ transdata' c1 v c2 =
 -- The above pragmas only seem to work on top level defs
 -- Fortunately everything seems to work using the above class
 
+-- C versions, still a little faster:
+
+transdataAux fun c1 d c2 =
+    if noneed
+        then d
+        else unsafePerformIO $ do
+            v <- createVector (dim d)
+            withForeignPtr (fptr d) $ \pd ->
+                withForeignPtr (fptr v) $ \pv ->
+                    fun (fi r1) (fi c1) pd (fi r2) (fi c2) pv // check "transdataAux"
+            return v
+  where r1 = dim d `div` c1
+        r2 = dim d `div` c2
+        noneed = r1 == 1 || c1 == 1
+
+foreign import ccall "transR" ctransR :: TMM
+foreign import ccall "transC" ctransC :: TCMCM
 ----------------------------------------------------------------------
 
 constant' v n = unsafePerformIO $ do
@@ -267,6 +284,22 @@ constant' v n = unsafePerformIO $ do
         go (n-1)
     return w
 
+-- C versions
+
+constantAux fun x n = unsafePerformIO $ do
+    v <- createVector n
+    px <- newArray [x]
+    app1 (fun px) vec v "constantAux"
+    free px
+    return v
+
+constantR :: Double -> Int -> Vector Double
+constantR = constantAux cconstantR
+foreign import ccall "constantR" cconstantR :: Ptr Double -> TV
+
+constantC :: Complex Double -> Int -> Vector (Complex Double)
+constantC = constantAux cconstantC
+foreign import ccall "constantC" cconstantC :: Ptr (Complex Double) -> TCV
 ----------------------------------------------------------------------
 
 -- | Extracts a submatrix from a matrix.

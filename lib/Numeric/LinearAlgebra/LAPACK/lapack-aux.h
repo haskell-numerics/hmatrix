@@ -55,6 +55,12 @@ typedef short ftnlen;
 int multiplyR(int ta, int tb, KDMAT(a),KDMAT(b),DMAT(r));
 int multiplyC(int ta, int tb, KCMAT(a),KCMAT(b),CMAT(r));
 
+int transR(KDMAT(x),DMAT(t));
+int transC(KCMAT(x),CMAT(t));
+
+int constantR(double * pval, DVEC(r));
+int constantC(doublecomplex* pval, CVEC(r));
+
 int svd_l_R(KDMAT(x),DMAT(u),DVEC(s),DMAT(v));
 int svd_l_Rdd(KDMAT(x),DMAT(u),DVEC(s),DMAT(v));
 int svd_l_C(KCMAT(a),CMAT(u),DVEC(s),CMAT(v));

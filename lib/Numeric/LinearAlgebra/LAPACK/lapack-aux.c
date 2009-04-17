@@ -908,3 +908,51 @@ int multiplyC(int ta, int tb, KCMAT(a),KCMAT(b),CMAT(r)) {
            (doublecomplex*)rp,&ldc);
     OK
 }
+
+//////////////////// transpose /////////////////////////
+
+int transR(KDMAT(x),DMAT(t)) {
+    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
+    DEBUGMSG("transR");
+    int i,j;
+    for (i=0; i<tr; i++) {
+        for (j=0; j<tc; j++) {
+        tp[i*tc+j] = xp[j*xc+i];
+        }
+    }
+    OK
+}
+
+int transC(KCMAT(x),CMAT(t)) {
+    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
+    DEBUGMSG("transC");
+    int i,j;
+    for (i=0; i<tr; i++) {
+        for (j=0; j<tc; j++) {
+        ((doublecomplex*)tp)[i*tc+j] = ((doublecomplex*)xp)[j*xc+i];
+        }
+    }
+    OK
+}
+
+//////////////////// constant /////////////////////////
+
+int constantR(double * pval, DVEC(r)) {
+    DEBUGMSG("constantR")
+    int k;
+    double val = *pval;
+    for(k=0;k<rn;k++) {
+        rp[k]=val;
+    }
+    OK
+}
+
+int constantC(doublecomplex* pval, CVEC(r)) {
+    DEBUGMSG("constantC")
+    int k;
+    doublecomplex val = *pval;
+    for(k=0;k<rn;k++) {
+        ((doublecomplex*)rp)[k]=val;
+    }
+    OK
+}

@@ -18,9 +18,11 @@ time act = do
 
 --------------------------------------------------------------------------------
 
-main = sequence_ [bench1,bench2,bench4,
-                  bench5 1000000 3,
-                  bench5 100000 50]
+main = sequence_ [bench1,
+                  bench2,
+                  bench4,
+                  bench5 1000000 3, bench5 100000 50,
+                  bench6 100 (100000::Double), bench6 100000 (100::Double), bench6 10000 (1000::Double)]
 
 w :: Vector Double
 w = constant 1 5000000
@@ -140,3 +142,10 @@ bench5 n d = do
 
     timep $ foldl1' (<>) ms
     timep $ foldl1' op1  ms
+
+--------------------------------------------------------------------------------
+
+bench6 sz n = do
+    putStrLn "-------------------------------------------------------"
+    putStrLn "many constants"
+    time $ print $ sum $ map ((@>0). flip constant sz) [1..n]
