@@ -441,7 +441,7 @@ void fdf_aux_min(const gsl_vector * x, void * pars, double * f, gsl_vector * g) 
 }
 
 // conjugate gradient
-int minimizeWithDeriv(double f(int, double*), void df(int, double*, double*), 
+int minimizeWithDeriv(int method, double f(int, double*), void df(int, double*, double*), 
                       double initstep, double minimpar, double tolgrad, int maxit, 
                       KRVEC(xi), RMAT(sol)) {
     REQUIRES(solr == maxit && solc == 2+xin,BAD_SIZE);
@@ -463,7 +463,11 @@ int minimizeWithDeriv(double f(int, double*), void df(int, double*, double*),
     // Starting point
     KDVVIEW(xi);
     // conjugate gradient fr
-    T = gsl_multimin_fdfminimizer_conjugate_fr;
+    switch(method) {
+        case 0 : {T = gsl_multimin_fdfminimizer_conjugate_fr; break; }
+        case 1 : {T = gsl_multimin_fdfminimizer_vector_bfgs2; break; }
+        default: ERROR(BAD_CODE);
+    }
     s = gsl_multimin_fdfminimizer_alloc (T, my_func.n);
     gsl_multimin_fdfminimizer_set (s, &my_func, V(xi), initstep, minimpar);
     do {

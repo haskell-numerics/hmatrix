@@ -1,9 +1,9 @@
 {-# LANGUAGE CPP #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports -fno-warn-incomplete-patterns #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Tests
-Copyright   :  (c) Alberto Ruiz 2007
+Copyright   :  (c) Alberto Ruiz 2007-9
 License     :  GPL-style
 
 Maintainer  :  Alberto Ruiz (aruiz at um dot es)
@@ -105,6 +105,16 @@ expmTest2 = expm nd2 :~15~: (2><2)
  , 2.718281828459045
  , 2.718281828459045 ]
 
+---------------------------------------------------------------------
+
+minimizationTest = TestList [ utest "minimization conj grad" (minim1 f df [5,7] ~~ [1,2])
+                            , utest "minimization bg2"       (minim2 f df [5,7] ~~ [1,2])
+                            ]
+    where f [x,y] = 10*(x-1)^2 + 20*(y-2)^2 + 30
+          df [x,y] = [20*(x-1), 40*(y-2)]
+          a ~~ b = fromList a |~| fromList b
+          minim1 g dg ini = fst $ minimizeConjugateGradient 1E-2 1E-4 1E-3 30 g dg ini
+          minim2 g dg ini = fst $ minimizeVectorBFGS2 1E-2 1E-2 1E-3 30 g dg ini
 
 ---------------------------------------------------------------------
 
@@ -206,6 +216,7 @@ runTests n = do
         , exponentialTest
         , utest "integrate" (abs (volSphere 2.5 - 4/3*pi*2.5^3) < 1E-8)
         , utest "polySolve" (polySolveProp [1,2,3,4])
+        , minimizationTest
         ]
     return ()
 

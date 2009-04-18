@@ -2,14 +2,14 @@
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.GSL.Minimization
-Copyright   :  (c) Alberto Ruiz 2006
+Copyright   :  (c) Alberto Ruiz 2006-9
 License     :  GPL-style
 
 Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses ffi
 
-Minimization of a multidimensional function Minimization of a multidimensional function using some of the algorithms described in:
+Minimization of a multidimensional function using some of the algorithms described in:
 
 <http://www.gnu.org/software/gsl/manual/html_node/Multidimensional-Minimization.html>
 
@@ -17,6 +17,7 @@ Minimization of a multidimensional function Minimization of a multidimensional f
 -----------------------------------------------------------------------------
 module Numeric.GSL.Minimization (
     minimizeConjugateGradient,
+    minimizeVectorBFGS2,
     minimizeNMSimplex
 ) where
 
@@ -132,7 +133,7 @@ The path to the solution can be graphically shown by means of:
 
 @'Graphics.Plot.mplot' $ drop 2 ('toColumns' p)@
 
--}     
+-}
 minimizeConjugateGradient ::
        Double        -- ^ initial step size
     -> Double        -- ^ minimization parameter   
@@ -142,7 +143,27 @@ minimizeConjugateGradient ::
     -> ([Double] -> [Double])      -- ^ gradient
     -> [Double]             -- ^ starting point
     -> ([Double], Matrix Double)        -- ^ solution vector, and the optimization trajectory followed by the algorithm
-minimizeConjugateGradient istep minimpar tol maxit f df xi = unsafePerformIO $ do
+minimizeConjugateGradient = minimizeWithDeriv 0
+
+{- | Taken from the GSL manual:
+
+The vector Broyden-Fletcher-Goldfarb-Shanno (BFGS) algorithm. This is a quasi-Newton method which builds up an approximation to the second derivatives of the function f using the difference between successive gradient vectors. By combining the first and second derivatives the algorithm is able to take Newton-type steps towards the function minimum, assuming quadratic behavior in that region.
+
+The bfgs2 version of this minimizer is the most efficient version available, and is a faithful implementation of the line minimization scheme described in Fletcher's Practical Methods of Optimization, Algorithms 2.6.2 and 2.6.4. It supercedes the original bfgs routine and requires substantially fewer function and gradient evaluations. The user-supplied tolerance tol corresponds to the parameter \sigma used by Fletcher. A value of 0.1 is recommended for typical use (larger values correspond to less accurate line searches).
+-}
+minimizeVectorBFGS2 ::
+       Double        -- ^ initial step size
+    -> Double        -- ^ minimization parameter tol
+    -> Double        -- ^ desired precision of the solution (gradient test)
+    -> Int           -- ^ maximum number of iterations allowed
+    -> ([Double] -> Double) -- ^ function to minimize
+    -> ([Double] -> [Double])      -- ^ gradient
+    -> [Double]             -- ^ starting point
+    -> ([Double], Matrix Double)        -- ^ solution vector, and the optimization trajectory followed by the algorithm
+minimizeVectorBFGS2 = minimizeWithDeriv 1
+
+
+minimizeWithDeriv method istep minimpar tol maxit f df xi = unsafePerformIO $ do
     let xiv = fromList xi
         n = dim xiv
         f' = f . toList
@@ -151,7 +172,7 @@ minimizeConjugateGradient istep minimpar tol maxit f df xi = unsafePerformIO $ d
     dfp <- mkVecVecfun (aux_vTov df')
     rawpath <- withVector xiv $ \xiv' ->
                     createMIO maxit (n+2)
-                         (c_minimizeConjugateGradient fp dfp istep minimpar tol (fi maxit) // xiv')
+                         (c_minimizeWithDeriv method fp dfp istep minimpar tol (fi maxit) // xiv')
                          "minimizeDerivV"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
@@ -160,9 +181,8 @@ minimizeConjugateGradient istep minimpar tol maxit f df xi = unsafePerformIO $ d
     freeHaskellFunPtr dfp
     return (sol,path)
 
-
 foreign import ccall "gsl-aux.h minimizeWithDeriv"
-    c_minimizeConjugateGradient :: FunPtr (CInt -> Ptr Double -> Double)
+    c_minimizeWithDeriv :: CInt -> FunPtr (CInt -> Ptr Double -> Double)
                                 -> FunPtr (CInt -> Ptr Double -> Ptr Double -> IO ())
                                 -> Double -> Double -> Double -> CInt
                                 -> TVM

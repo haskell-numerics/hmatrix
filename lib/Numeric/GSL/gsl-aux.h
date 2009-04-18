@@ -39,7 +39,7 @@ int polySolve(KRVEC(a), CVEC(z));
 int minimize(double f(int, double*), double tolsize, int maxit, 
                  KRVEC(xi), KRVEC(sz), RMAT(sol));
 
-int minimizeWithDeriv(double f(int, double*), void df(int, double*, double*),
+int minimizeWithDeriv(int method, double f(int, double*), void df(int, double*, double*),
                       double initstep, double minimpar, double tolgrad, int maxit, 
                       KRVEC(xi), RMAT(sol));
 
