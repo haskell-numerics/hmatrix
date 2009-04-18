@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra
-Copyright   :  (c) Alberto Ruiz 2006-7
+Copyright   :  (c) Alberto Ruiz 2006-9
 License     :  GPL-style
 
 Maintainer  :  Alberto Ruiz (aruiz at um dot es)
@@ -9,6 +9,8 @@ Stability   :  provisional
 Portability :  uses ffi
 
 Basic matrix computations implemented by BLAS, LAPACK and GSL.
+
+This is module reexports the most comon functions (including "Numeric.LinearAlgebra.Instances").
 
 -}
 -----------------------------------------------------------------------------

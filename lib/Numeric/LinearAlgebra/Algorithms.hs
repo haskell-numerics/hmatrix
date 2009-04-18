@@ -3,7 +3,7 @@
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Algorithms
-Copyright   :  (c) Alberto Ruiz 2006-7
+Copyright   :  (c) Alberto Ruiz 2006-9
 License     :  GPL-style
 
 Maintainer  :  Alberto Ruiz (aruiz at um dot es)
@@ -20,27 +20,33 @@ imported from "Numeric.LinearAlgebra.LAPACK".
 -----------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.Algorithms (
--- * Linear Systems
+-- * Supported types
+    Field(),
+-- * Products
     multiply, dot,
+    outer, kronecker,
+-- * Linear Systems
     linearSolve,
+    luSolve,
+    linearSolveSVD,
     inv, pinv,
-    pinvTol, det, rank, rcond,
+    det, rank, rcond,
 -- * Matrix factorizations
 -- ** Singular value decomposition
     svd,
     full, economy, --thin,
 -- ** Eigensystems
-    eig, eigSH,
+    eig, eigSH, eigSH',
 -- ** QR
     qr,
 -- ** Cholesky
-    chol,
+    chol, cholSH,
 -- ** Hessenberg
     hess,
 -- ** Schur
     schur,
 -- ** LU
-    lu, luPacked, luSolve,
+    lu, luPacked,
 -- * Matrix functions
     expm,
     sqrtm,
@@ -53,11 +59,10 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Misc
     ctrans,
     eps, i,
-    outer, kronecker,
 -- * Util
     haussholder,
     unpackQR, unpackHess,
-    Field(linearSolveSVD,eigSH',cholSH)
+    pinvTol
 ) where
 
 
@@ -71,82 +76,120 @@ import Data.List(foldl1')
 import Data.Array
 
 
-
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
 class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
-    -- | Singular value decomposition using lapack's dgesvd or zgesvd.
-    svd         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
-    -- | Obtains the LU decomposition of a matrix in a compact data structure suitable for 'luSolve'.
-    luPacked    :: Matrix t -> (Matrix t, [Int])
-    -- | Solution of a linear system (for several right hand sides) from the precomputed LU factorization
-    --   obtained by 'luPacked'.
-    luSolve     :: (Matrix t, [Int]) -> Matrix t -> Matrix t
-    -- | Solution of a general linear system (for several right-hand sides) using lapacks' dgesv or zgesv.
-    -- It is similar to 'luSolve' . 'luPacked', but @linearSolve@ raises an error if called on a singular system.
-    --  See also other versions of linearSolve in "Numeric.LinearAlgebra.LAPACK".
-    linearSolve :: Matrix t -> Matrix t -> Matrix t
-    linearSolveSVD :: Matrix t -> Matrix t -> Matrix t
-    -- | Eigenvalues and eigenvectors of a general square matrix using lapack's dgeev or zgeev.
-    --
-    -- If @(s,v) = eig m@ then @m \<> v == v \<> diag s@
-    eig         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
-    -- | Similar to eigSH without checking that the input matrix is hermitian or symmetric.
-    eigSH'      :: Matrix t -> (Vector Double, Matrix t)
-    -- | Similar to chol without checking that the input matrix is hermitian or symmetric.
-    cholSH      :: Matrix t -> Matrix t
-    -- | QR factorization using lapack's dgeqr2 or zgeqr2.
-    --
-    -- If @(q,r) = qr m@ then @m == q \<> r@, where q is unitary and r is upper triangular.
-    qr          :: Matrix t -> (Matrix t, Matrix t)
-    -- | Hessenberg factorization using lapack's dgehrd or zgehrd.
-    --
-    -- If @(p,h) = hess m@ then @m == p \<> h \<> ctrans p@, where p is unitary
-    -- and h is in upper Hessenberg form.
-    hess        :: Matrix t -> (Matrix t, Matrix t)
-    -- | Schur factorization using lapack's dgees or zgees.
-    --
-    -- If @(u,s) = schur m@ then @m == u \<> s \<> ctrans u@, where u is unitary
-    -- and s is a Shur matrix. A complex Schur matrix is upper triangular. A real Schur matrix is
-    -- upper triangular in 2x2 blocks.
-    --
-    -- \"Anything that the Jordan decomposition can do, the Schur decomposition
-    -- can do better!\" (Van Loan)
-    schur       :: Matrix t -> (Matrix t, Matrix t)
-    -- | Conjugate transpose.
-    ctrans :: Matrix t -> Matrix t
-    -- | Matrix product.
-    multiply :: Matrix t -> Matrix t -> Matrix t
+    svd'         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
+    luPacked'    :: Matrix t -> (Matrix t, [Int])
+    luSolve'     :: (Matrix t, [Int]) -> Matrix t -> Matrix t
+    linearSolve' :: Matrix t -> Matrix t -> Matrix t
+    linearSolveSVD' :: Matrix t -> Matrix t -> Matrix t
+    eig'         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
+    eigSH''      :: Matrix t -> (Vector Double, Matrix t)
+    cholSH'      :: Matrix t -> Matrix t
+    qr'          :: Matrix t -> (Matrix t, Matrix t)
+    hess'        :: Matrix t -> (Matrix t, Matrix t)
+    schur'       :: Matrix t -> (Matrix t, Matrix t)
+    ctrans'      :: Matrix t -> Matrix t
+    multiply'    :: Matrix t -> Matrix t -> Matrix t
+
+
+-- | Singular value decomposition using lapack's dgesvd or zgesvd.
+svd         :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
+svd = svd'
+
+-- | Obtains the LU decomposition of a matrix in a compact data structure suitable for 'luSolve'.
+luPacked    :: Field t => Matrix t -> (Matrix t, [Int])
+luPacked = luPacked'
+
+-- | Solution of a linear system (for several right hand sides) from the precomputed LU factorization
+--   obtained by 'luPacked'.
+luSolve     :: Field t => (Matrix t, [Int]) -> Matrix t -> Matrix t
+luSolve = luSolve'
+
+-- | Solution of a general linear system (for several right-hand sides) using lapacks' dgesv or zgesv.
+-- It is similar to 'luSolve' . 'luPacked', but @linearSolve@ raises an error if called on a singular system.
+--  See also other versions of linearSolve in "Numeric.LinearAlgebra.LAPACK".
+linearSolve :: Field t => Matrix t -> Matrix t -> Matrix t
+linearSolve = linearSolve'
+linearSolveSVD :: Field t => Matrix t -> Matrix t -> Matrix t
+linearSolveSVD = linearSolveSVD'
+
+-- | Eigenvalues and eigenvectors of a general square matrix using lapack's dgeev or zgeev.
+--
+-- If @(s,v) = eig m@ then @m \<> v == v \<> diag s@
+eig         :: Field t => Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
+eig = eig'
+
+-- | Similar to 'eigSH' without checking that the input matrix is hermitian or symmetric.
+eigSH'      :: Field t => Matrix t -> (Vector Double, Matrix t)
+eigSH' = eigSH''
+
+-- | Similar to 'chol' without checking that the input matrix is hermitian or symmetric.
+cholSH      :: Field t => Matrix t -> Matrix t
+cholSH = cholSH'
+
+-- | QR factorization using lapack's dgeqr2 or zgeqr2.
+--
+-- If @(q,r) = qr m@ then @m == q \<> r@, where q is unitary and r is upper triangular.
+qr          :: Field t => Matrix t -> (Matrix t, Matrix t)
+qr = qr'
+
+-- | Hessenberg factorization using lapack's dgehrd or zgehrd.
+--
+-- If @(p,h) = hess m@ then @m == p \<> h \<> ctrans p@, where p is unitary
+-- and h is in upper Hessenberg form.
+hess        :: Field t => Matrix t -> (Matrix t, Matrix t)
+hess = hess'
+
+-- | Schur factorization using lapack's dgees or zgees.
+--
+-- If @(u,s) = schur m@ then @m == u \<> s \<> ctrans u@, where u is unitary
+-- and s is a Shur matrix. A complex Schur matrix is upper triangular. A real Schur matrix is
+-- upper triangular in 2x2 blocks.
+--
+-- \"Anything that the Jordan decomposition can do, the Schur decomposition
+-- can do better!\" (Van Loan)
+schur       :: Field t => Matrix t -> (Matrix t, Matrix t)
+schur = schur'
+
+-- | Generic conjugate transpose.
+ctrans :: Field t => Matrix t -> Matrix t
+ctrans = ctrans'
+
+-- | Matrix product.
+multiply :: Field t => Matrix t -> Matrix t -> Matrix t
+multiply = multiply'
 
 
 instance Field Double where
-    svd = svdR
-    luPacked = luR
-    luSolve (l_u,perm) = lusR l_u perm
-    linearSolve = linearSolveR                 -- (luSolve . luPacked) ??
-    linearSolveSVD = linearSolveSVDR Nothing
-    ctrans = trans
-    eig = eigR
-    eigSH' = eigS
-    cholSH = cholS
-    qr = unpackQR . qrR
-    hess = unpackHess hessR
-    schur = schurR
-    multiply = multiplyR
+    svd' = svdR
+    luPacked' = luR
+    luSolve' (l_u,perm) = lusR l_u perm
+    linearSolve' = linearSolveR                 -- (luSolve . luPacked) ??
+    linearSolveSVD' = linearSolveSVDR Nothing
+    ctrans' = trans
+    eig' = eigR
+    eigSH'' = eigS
+    cholSH' = cholS
+    qr' = unpackQR . qrR
+    hess' = unpackHess hessR
+    schur' = schurR
+    multiply' = multiplyR
 
 instance Field (Complex Double) where
-    svd = svdC
-    luPacked = luC
-    luSolve (l_u,perm) = lusC l_u perm
-    linearSolve = linearSolveC
-    linearSolveSVD = linearSolveSVDC Nothing
-    ctrans = conj . trans
-    eig = eigC
-    eigSH' = eigH
-    cholSH = cholH
-    qr = unpackQR . qrC
-    hess = unpackHess hessC
-    schur = schurC
-    multiply = multiplyC
+    svd' = svdC
+    luPacked' = luC
+    luSolve' (l_u,perm) = lusC l_u perm
+    linearSolve' = linearSolveC
+    linearSolveSVD' = linearSolveSVDC Nothing
+    ctrans' = conj . trans
+    eig' = eigC
+    eigSH'' = eigH
+    cholSH' = cholH
+    qr' = unpackQR . qrC
+    hess' = unpackHess hessC
+    schur' = schurC
+    multiply' = multiplyC
 
 
 -- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev.
@@ -193,8 +236,8 @@ pinv m = linearSolveSVD m (ident (rows m))
 -- If @(u,d,v) = full svd m@ then @m == u \<> d \<> trans v@.
 full :: Element t 
      => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Matrix Double, Matrix t)
-full svd' m = (u, d ,v) where
-    (u,s,v) = svd' m
+full svdFun m = (u, d ,v) where
+    (u,s,v) = svdFun m
     d = diagRect s r c
     r = rows m
     c = cols m
@@ -204,8 +247,8 @@ full svd' m = (u, d ,v) where
 -- If @(u,s,v) = economy svd m@ then @m == u \<> diag s \<> trans v@.
 economy :: Element t 
         => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Vector Double, Matrix t)
-economy svd' m = (u', subVector 0 d s, v') where
-    (u,s,v) = svd' m
+economy svdFun m = (u', subVector 0 d s, v') where
+    (u,s,v) = svdFun m
     sl@(g:_) = toList s
     s' = fromList . filter (>tol) $ sl
     t = 1
