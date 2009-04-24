@@ -16,7 +16,7 @@
 module Data.Packed.Matrix (
     Element,
     Matrix,rows,cols,
-    (><),
+    (><), (>|<),
     trans,
     reshape, flatten,
     fromLists, toLists,
@@ -125,6 +125,25 @@ r >< c = f where
         | otherwise    = error $ "inconsistent list size = "
                                  ++show (dim v) ++" in ("++show r++"><"++show c++")"
         where v = fromList l
+
+{- | Like '(><)', but explicitly truncates the list, so that it can
+safely be used with lists that are too long (like infinite lists).
+
+Example:
+
+@\> (2>|<3)[1..]
+(2><3)
+ [ 1.0, 2.0, 3.0
+ , 4.0, 5.0, 6.0 ]@
+
+Effectively, a more defined version of '(><)'.
+-}
+(>|<) :: (Element a) => Int -> Int -> [a] -> Matrix a
+r >|< c = f where
+    f l | dim v == r*c = matrixFromVector RowMajor c v
+        | otherwise    = error $ "inconsistent list size = "
+                                 ++show (dim v) ++" in ("++show r++"><"++show c++")"
+        where v = fromList $ take (r*c) l
 
 ----------------------------------------------------------------
 

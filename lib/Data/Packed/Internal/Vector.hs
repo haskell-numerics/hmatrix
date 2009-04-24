@@ -96,6 +96,19 @@ toList v = safeRead v $ peekArray (dim v)
 infixl 9 |>
 n |> l = if length l == n then fromList l else error "|> with wrong size"
 
+{- | Like '(|>)', but explicitly truncates the list, if it is too long.
+
+It may safely be used, for instance, with infinite lists.
+-}
+(|>|) :: (Storable a) => Int -> [a] -> Vector a
+infixl 9 |>|
+n |>| l = if length l' == n then 
+              fromList l' 
+            else 
+              error "|>|: list too short"
+  where l' = take n l
+
+
 -- | access to Vector elements without range checking
 at' :: Storable a => Vector a -> Int -> a
 at' v n = safeRead v $ flip peekElemOff n
