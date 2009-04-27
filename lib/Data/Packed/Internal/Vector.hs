@@ -91,21 +91,17 @@ inlinePerformIO (IO m) = case m realWorld# of (# _, r #) -> r
 toList :: Storable a => Vector a -> [a]
 toList v = safeRead v $ peekArray (dim v)
 
--- | an alternative to 'fromList' with explicit dimension, used also in the instances for Show (Vector a).
+{- | An alternative to 'fromList' with explicit dimension. The input
+     list is explicitly truncated if it is too long, so it may safely
+     be used, for instance, with infinite lists.
+
+     This is the format used in the instances for Show (Vector a).
+-}
 (|>) :: (Storable a) => Int -> [a] -> Vector a
 infixl 9 |>
-n |> l = if length l == n then fromList l else error "|> with wrong size"
-
-{- | Like '(|>)', but explicitly truncates the list, if it is too long.
-
-It may safely be used, for instance, with infinite lists.
--}
-(|>|) :: (Storable a) => Int -> [a] -> Vector a
-infixl 9 |>|
-n |>| l = if length l' == n then 
-              fromList l' 
-            else 
-              error "|>|: list too short"
+n |> l = if length l' == n
+            then fromList l'
+            else error "list too short for |>"
   where l' = take n l
 
 

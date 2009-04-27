@@ -111,3 +111,7 @@ in the Haskell mailing lists for their help.
 - Daniel Schüssler added compatibility with QuickCheck 2 as well
   as QuickCheck 1 using the C preprocessor. He also added some
   implementations for the new "shrink" method of class Arbitrary.
+
+- Tracy Wadleigh improved the definitions of (|>) and (><), which now
+  apply an appropriate 'take' to the given lists so that they may be
+  safely used on lists that are too long (or infinite).

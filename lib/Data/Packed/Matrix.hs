@@ -16,7 +16,7 @@
 module Data.Packed.Matrix (
     Element,
     Matrix,rows,cols,
-    (><), (>|<),
+    (><),
     trans,
     reshape, flatten,
     fromLists, toLists,
@@ -118,15 +118,8 @@ ident n = diag (constant 1 n)
 
 This is the format produced by the instances of Show (Matrix a), which
 can also be used for input.
--}
-(><) :: (Element a) => Int -> Int -> [a] -> Matrix a
-r >< c = f where
-    f l | dim v == r*c = matrixFromVector RowMajor c v
-        | otherwise    = error $ "inconsistent list size = "
-                                 ++show (dim v) ++" in ("++show r++"><"++show c++")"
-        where v = fromList l
 
-{- | Like '(><)', but explicitly truncates the list, so that it can
+The input list is explicitly truncated, so that it can
 safely be used with lists that are too long (like infinite lists).
 
 Example:
@@ -136,10 +129,9 @@ Example:
  [ 1.0, 2.0, 3.0
  , 4.0, 5.0, 6.0 ]@
 
-Effectively, a more defined version of '(><)'.
 -}
-(>|<) :: (Element a) => Int -> Int -> [a] -> Matrix a
-r >|< c = f where
+(><) :: (Element a) => Int -> Int -> [a] -> Matrix a
+r >< c = f where
     f l | dim v == r*c = matrixFromVector RowMajor c v
         | otherwise    = error $ "inconsistent list size = "
                                  ++show (dim v) ++" in ("++show r++"><"++show c++")"

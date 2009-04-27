@@ -14,7 +14,7 @@
 
 module Data.Packed.Vector (
     Vector,
-    fromList, (|>), (|>|), toList,
+    fromList, (|>), toList,
     dim, (@>),
     subVector, join,
     constant, linspace,
