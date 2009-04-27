@@ -1,0 +1,3 @@
+#! /bin/sh
+
+runhaskell configure.hs $*

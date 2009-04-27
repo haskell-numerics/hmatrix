@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.5.1.1
+Version:            0.5.1.2
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -14,9 +14,11 @@ Category:           Math
 tested-with:        GHC ==6.10.2
 
 cabal-version:      >=1.2
-build-type:         Simple
+build-type:         Custom
 extra-source-files: lib/Numeric/LinearAlgebra/Tests/quickCheckCompat.h
 
+extra-source-files: configure configure.hs README INSTALL
+extra-tmp-files:    hmatrix.buildinfo
 
 flag splitBase
     description:    Choose the new smaller, split-up base package.
@@ -30,9 +32,8 @@ flag accelerate
     default:        False
 
 flag unsafe
-    description: Compile the library with bound checking disabled.
-    default: False
-
+    description:    Compile the library with bound checking disabled.
+    default:        False
 
 library
     if flag(splitBase)
@@ -117,30 +118,9 @@ library
         extra-libraries:   gsl mkl_lapack mkl_intel_lp64 mkl_sequential mkl_core
       else
         extra-libraries:   gsl mkl_lapack mkl_intel mkl_sequential mkl_core
-    else
-      if flag(accelerate)
+
+    if flag(accelerate)
         frameworks: Accelerate
         extra-libraries: gsl
-      else
 
-        extra-libraries: gsl lapack
-
-        -- Include additional libraries if they are
-        -- required by your system to link -lgsl -llapack
-
-        -- (In ubuntu/debian cblas is included in blas,
-        --  which is automatically linked by lapack, so
-        -- nothing more is required.)
-
-        -- Examples:
-
-            -------- if blas/cblas are not automatically linked by lapack:
-            -- blas cblas
-
-            -------- Nonoptimized cblas included in gsl:
-            -- gslcblas
-
-            -------- Arch Linux with atlas-lapack:
-            -- f77blas cblas atlas gcc_s
-            -------- Arch Linux with normal blas and lapack:
-            -- blas gslcblas gfortran
+-- the extra-libraries required for gsl and lapack are automatically detected by configure(.hs)
