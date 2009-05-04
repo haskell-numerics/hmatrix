@@ -36,13 +36,21 @@ opts = [ ""                              -- Ubuntu/Debian
        ]
 
 -- compile a simple program with symbols from GSL and LAPACK with the given libs
-testprog libs fmks = "echo \"int main(){zgesvd_(); gsl_sf_gamma();}\" > /tmp/dummy.c; gcc /tmp/dummy.c "
+testprog libs fmks = "echo \"#include <gsl/gsl_math.h>\nint main(){zgesvd_(); gsl_sf_gamma();}\""
+                     ++" > /tmp/dummy.c; gcc /tmp/dummy.c -o /tmp/dummy "
                      ++ f1 libs ++ " " ++ f2 fmks ++ " > /dev/null 2> /dev/null"
 
 f1 = unwords . map ("-l"++) . words
 f2 = unwords . map ("-framework "++) . words
 
 check libs fmks = (ExitSuccess ==) `fmap` system (testprog libs fmks)
+
+-- simple test for GSL
+testGSL = "echo \"#include <gsl/gsl_math.h>\nint main(){gsl_sf_gamma();}\""
+           ++" > /tmp/dummy.c; gcc /tmp/dummy.c -o /tmp/dummy -lgsl -lgslcblas"
+           ++ " > /dev/null 2> /dev/null"
+
+checkGSL = (ExitSuccess ==) `fmap` system (testGSL)
 
 -- test different configurations until the first one works
 try _ _ [] = return Nothing
@@ -80,7 +88,10 @@ main = do
     case r of
         Nothing -> do
             putStrLn " FAIL"
-            putStrLn " *** Sorry, I can't link gsl and lapack."
+            g <- checkGSL
+            if g
+                then putStrLn " *** Sorry, I can't link LAPACK."
+                else putStrLn " *** Sorry, I can't link GSL."
             putStrLn " *** Please make sure that the appropriate -dev packages are installed."
             putStrLn " *** You can also specify the required libraries using"
             putStrLn " *** cabal install hmatrix --configure-option=link:lib1,lib2,lib3,etc."
