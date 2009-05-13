@@ -11,7 +11,7 @@ Description:        This library provides a purely functional interface to basic
                     and other numerical computations, internally implemented using
                     GSL, BLAS and LAPACK.
 Category:           Math
-tested-with:        GHC ==6.10.2
+tested-with:        GHC ==6.10.3
 
 cabal-version:      >=1.2
 build-type:         Custom
@@ -19,6 +19,23 @@ extra-source-files: lib/Numeric/LinearAlgebra/Tests/quickCheckCompat.h
 
 extra-source-files: configure configure.hs README INSTALL
 extra-tmp-files:    hmatrix.buildinfo
+
+extra-source-files: examples/tests.hs
+                    examples/deriv.hs
+                    examples/integrate.hs
+                    examples/minimize.hs
+                    examples/pca1.hs
+                    examples/pca2.hs
+                    examples/pinv.hs
+                    examples/lie.hs
+                    examples/kalman.hs
+                    examples/plot.hs
+                    examples/latexmat.hs
+                    examples/inplace.hs
+                    examples/benchmarks.hs
+                    examples/error.hs
+                    examples/devel/wrappers.hs
+                    examples/devel/functions.hs
 
 flag splitBase
     description:    Choose the new smaller, split-up base package.
@@ -90,9 +107,10 @@ library
                         Numeric.LinearAlgebra.Interface,
                         Numeric.LinearAlgebra.Algorithms,
                         Graphics.Plot,
-                        Numeric.LinearAlgebra.Tests
-                        Data.Packed.Convert
-                        Data.Packed.ST
+                        Numeric.LinearAlgebra.Tests,
+                        Data.Packed.Convert,
+                        Data.Packed.ST,
+                        Data.Packed.Development
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Vector,

@@ -60,6 +60,44 @@ ww2 w1 o1 w2 o2 f = w1 o1 $ \a1 -> w2 o2 $ \a2 -> f a1 a2
 ww3 w1 o1 w2 o2 w3 o3 f = w1 o1 $ \a1 -> ww2 w2 o2 w3 o3 (f a1)
 ww4 w1 o1 w2 o2 w3 o3 w4 o4 f = w1 o1 $ \a1 -> ww3 w2 o2 w3 o3 w4 o4 (f a1)
 
+type Adapt f t r = t -> ((f -> r) -> IO()) -> IO()
+
+app1 :: f
+     -> Adapt f t (IO CInt)
+     -> t
+     -> String
+     -> IO()
+
+app2 :: f
+     -> Adapt f t1 r
+     -> t1
+     -> Adapt r t2 (IO CInt)
+     -> t2
+     -> String
+     -> IO()
+
+app3 :: f
+     -> Adapt f t1 r1
+     -> t1
+     -> Adapt r1 t2 r2
+     -> t2
+     -> Adapt r2 t3 (IO CInt)
+     -> t3
+     -> String
+     -> IO()
+
+app4 :: f
+     -> Adapt f t1 r1
+     -> t1
+     -> Adapt r1 t2 r2
+     -> t2
+     -> Adapt r2 t3 r3
+     -> t3
+     -> Adapt r3 t4 (IO CInt)
+     -> t4
+     -> String
+     -> IO()
+
 app1 f w1 o1 s = w1 o1 $ \a1 -> f // a1 // check s
 app2 f w1 o1 w2 o2 s = ww2 w1 o1 w2 o2 $ \a1 a2 -> f // a1 // a2 // check s
 app3 f w1 o1 w2 o2 w3 o3 s = ww3 w1 o1 w2 o2 w3 o3 $

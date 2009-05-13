@@ -74,6 +74,7 @@ data Matrix t = MC { rows :: {-# UNPACK #-} !Int
 xdat MC {cdat = d } = d
 xdat MF {fdat = d } = d
 
+orderOf :: Matrix t -> MatrixOrder
 orderOf MF{} = ColumnMajor
 orderOf MC{} = RowMajor
 
@@ -82,12 +83,16 @@ trans :: Matrix t -> Matrix t
 trans MC {rows = r, cols = c, cdat = d } = MF {rows = c, cols = r, fdat = d }
 trans MF {rows = r, cols = c, fdat = d } = MC {rows = c, cols = r, cdat = d }
 
+cmat :: (Element t) => Matrix t -> Matrix t
 cmat m@MC{} = m
 cmat MF {rows = r, cols = c, fdat = d } = MC {rows = r, cols = c, cdat = transdata r d c}
 
+fmat :: (Element t) => Matrix t -> Matrix t
 fmat m@MF{} = m
 fmat MC {rows = r, cols = c, cdat = d } = MF {rows = r, cols = c, fdat = transdata c d r}
 
+-- C-Haskell matrix adapter
+mat :: Adapt (CInt -> CInt -> Ptr t -> r) (Matrix t) r
 mat = withMatrix
 
 withMatrix a f =
@@ -156,7 +161,7 @@ MF {rows = r, cols = c, fdat = v} @@> (i,j)
     | otherwise = v `at` (j*r+i)
 {-# INLINE (@@>) #-}
 
--- | Unsafe matrix access without range checking
+--  Unsafe matrix access without range checking
 atM' MC {cols = c, cdat = v} i j = v `at'` (i*c+j)
 atM' MF {rows = r, fdat = v} i j = v `at'` (j*r+i)
 {-# INLINE atM' #-}
@@ -173,6 +178,8 @@ matrixFromVector ColumnMajor c v = MF { rows = r, cols = c, fdat = v }
           r | m==0 = d
             | otherwise = error "matrixFromVector"
 
+-- allocates memory for a new matrix
+createMatrix :: (Storable a) => MatrixOrder -> Int -> Int -> IO (Matrix a)
 createMatrix order r c = do
     p <- createVector (r*c)
     return (matrixFromVector order c p)

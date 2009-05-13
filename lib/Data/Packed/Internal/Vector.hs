@@ -18,6 +18,7 @@ module Data.Packed.Internal.Vector where
 
 import Data.Packed.Internal.Common
 import Foreign
+import Foreign.C.Types(CInt)
 import Complex
 import Control.Monad(when)
 
@@ -36,6 +37,8 @@ data Vector t =
       , fptr :: {-# UNPACK #-} !(ForeignPtr t)    -- ^ foreign pointer to the memory block
       }
 
+-- C-Haskell vector adapter
+vec :: Adapt (CInt -> Ptr t -> r) (Vector t) r
 vec = withVector
 
 withVector (V n fp) f = withForeignPtr fp $ \p -> do
@@ -43,7 +46,7 @@ withVector (V n fp) f = withForeignPtr fp $ \p -> do
         g (fi n) p
     f v
 
--- | allocates memory for a new vector
+-- allocates memory for a new vector
 createVector :: Storable a => Int -> IO (Vector a)
 createVector n = do
     when (n <= 0) $ error ("trying to createVector of dim "++show n)
