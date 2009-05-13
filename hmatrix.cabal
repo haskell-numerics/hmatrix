@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.5.1.2
+Version:            0.5.2.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -27,6 +27,7 @@ extra-source-files: examples/tests.hs
                     examples/pca1.hs
                     examples/pca2.hs
                     examples/pinv.hs
+                    examples/data.txt
                     examples/lie.hs
                     examples/kalman.hs
                     examples/plot.hs
