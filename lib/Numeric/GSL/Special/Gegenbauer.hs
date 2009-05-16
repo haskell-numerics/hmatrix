@@ -34,60 +34,60 @@ import Numeric.GSL.Special.Internal
 --   <http://www.google.com/search?q=gsl_sf_gegenpoly_1_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 gegenpoly_1_e :: Double -> Double -> (Double,Double)
 gegenpoly_1_e lambda x = createSFR "gegenpoly_1_e" $ gsl_sf_gegenpoly_1_e lambda x
-foreign import ccall "gegenbauer.h gsl_sf_gegenpoly_1_e" gsl_sf_gegenpoly_1_e :: Double -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_gegenpoly_1_e" gsl_sf_gegenpoly_1_e :: Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for int gsl_sf_gegenpoly_2_e(double lambda,double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_gegenpoly_2_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 gegenpoly_2_e :: Double -> Double -> (Double,Double)
 gegenpoly_2_e lambda x = createSFR "gegenpoly_2_e" $ gsl_sf_gegenpoly_2_e lambda x
-foreign import ccall "gegenbauer.h gsl_sf_gegenpoly_2_e" gsl_sf_gegenpoly_2_e :: Double -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_gegenpoly_2_e" gsl_sf_gegenpoly_2_e :: Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for int gsl_sf_gegenpoly_3_e(double lambda,double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_gegenpoly_3_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 gegenpoly_3_e :: Double -> Double -> (Double,Double)
 gegenpoly_3_e lambda x = createSFR "gegenpoly_3_e" $ gsl_sf_gegenpoly_3_e lambda x
-foreign import ccall "gegenbauer.h gsl_sf_gegenpoly_3_e" gsl_sf_gegenpoly_3_e :: Double -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_gegenpoly_3_e" gsl_sf_gegenpoly_3_e :: Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_gegenpoly_1(double lambda,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_gegenpoly_1&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 gegenpoly_1 :: Double -> Double -> Double
 gegenpoly_1 = gsl_sf_gegenpoly_1
-foreign import ccall "gegenbauer.h gsl_sf_gegenpoly_1" gsl_sf_gegenpoly_1 :: Double -> Double -> Double
+foreign import ccall "gsl_sf_gegenpoly_1" gsl_sf_gegenpoly_1 :: Double -> Double -> Double
 
 -- | wrapper for double gsl_sf_gegenpoly_2(double lambda,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_gegenpoly_2&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 gegenpoly_2 :: Double -> Double -> Double
 gegenpoly_2 = gsl_sf_gegenpoly_2
-foreign import ccall "gegenbauer.h gsl_sf_gegenpoly_2" gsl_sf_gegenpoly_2 :: Double -> Double -> Double
+foreign import ccall "gsl_sf_gegenpoly_2" gsl_sf_gegenpoly_2 :: Double -> Double -> Double
 
 -- | wrapper for double gsl_sf_gegenpoly_3(double lambda,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_gegenpoly_3&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 gegenpoly_3 :: Double -> Double -> Double
 gegenpoly_3 = gsl_sf_gegenpoly_3
-foreign import ccall "gegenbauer.h gsl_sf_gegenpoly_3" gsl_sf_gegenpoly_3 :: Double -> Double -> Double
+foreign import ccall "gsl_sf_gegenpoly_3" gsl_sf_gegenpoly_3 :: Double -> Double -> Double
 
 -- | wrapper for int gsl_sf_gegenpoly_n_e(int n,double lambda,double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_gegenpoly_n_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 gegenpoly_n_e :: CInt -> Double -> Double -> (Double,Double)
 gegenpoly_n_e n lambda x = createSFR "gegenpoly_n_e" $ gsl_sf_gegenpoly_n_e n lambda x
-foreign import ccall "gegenbauer.h gsl_sf_gegenpoly_n_e" gsl_sf_gegenpoly_n_e :: CInt -> Double -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_gegenpoly_n_e" gsl_sf_gegenpoly_n_e :: CInt -> Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_gegenpoly_n(int n,double lambda,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_gegenpoly_n&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 gegenpoly_n :: CInt -> Double -> Double -> Double
 gegenpoly_n = gsl_sf_gegenpoly_n
-foreign import ccall "gegenbauer.h gsl_sf_gegenpoly_n" gsl_sf_gegenpoly_n :: CInt -> Double -> Double -> Double
+foreign import ccall "gsl_sf_gegenpoly_n" gsl_sf_gegenpoly_n :: CInt -> Double -> Double -> Double
 
 -- | wrapper for int gsl_sf_gegenpoly_array(int nmax,double lambda,double x,double* result_array);
 --
 --   <http://www.google.com/search?q=gsl_sf_gegenpoly_array&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 gegenpoly_array :: CInt -> Double -> Double -> Ptr Double -> CInt
 gegenpoly_array = gsl_sf_gegenpoly_array
-foreign import ccall "gegenbauer.h gsl_sf_gegenpoly_array" gsl_sf_gegenpoly_array :: CInt -> Double -> Double -> Ptr Double -> CInt
+foreign import ccall "gsl_sf_gegenpoly_array" gsl_sf_gegenpoly_array :: CInt -> Double -> Double -> Ptr Double -> CInt

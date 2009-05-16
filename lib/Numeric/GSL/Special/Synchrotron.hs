@@ -30,25 +30,25 @@ import Numeric.GSL.Special.Internal
 --   <http://www.google.com/search?q=gsl_sf_synchrotron_1_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 synchrotron_1_e :: Double -> (Double,Double)
 synchrotron_1_e x = createSFR "synchrotron_1_e" $ gsl_sf_synchrotron_1_e x
-foreign import ccall "synchrotron.h gsl_sf_synchrotron_1_e" gsl_sf_synchrotron_1_e :: Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_synchrotron_1_e" gsl_sf_synchrotron_1_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_synchrotron_1(double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_synchrotron_1&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 synchrotron_1 :: Double -> Double
 synchrotron_1 = gsl_sf_synchrotron_1
-foreign import ccall "synchrotron.h gsl_sf_synchrotron_1" gsl_sf_synchrotron_1 :: Double -> Double
+foreign import ccall "gsl_sf_synchrotron_1" gsl_sf_synchrotron_1 :: Double -> Double
 
 -- | wrapper for int gsl_sf_synchrotron_2_e(double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_synchrotron_2_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 synchrotron_2_e :: Double -> (Double,Double)
 synchrotron_2_e x = createSFR "synchrotron_2_e" $ gsl_sf_synchrotron_2_e x
-foreign import ccall "synchrotron.h gsl_sf_synchrotron_2_e" gsl_sf_synchrotron_2_e :: Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_synchrotron_2_e" gsl_sf_synchrotron_2_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_synchrotron_2(double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_synchrotron_2&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 synchrotron_2 :: Double -> Double
 synchrotron_2 = gsl_sf_synchrotron_2
-foreign import ccall "synchrotron.h gsl_sf_synchrotron_2" gsl_sf_synchrotron_2 :: Double -> Double
+foreign import ccall "gsl_sf_synchrotron_2" gsl_sf_synchrotron_2 :: Double -> Double

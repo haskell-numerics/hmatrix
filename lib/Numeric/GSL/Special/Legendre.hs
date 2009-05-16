@@ -63,305 +63,305 @@ import Numeric.GSL.Special.Internal
 --   <http://www.google.com/search?q=gsl_sf_legendre_Pl_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Pl_e :: CInt -> Double -> (Double,Double)
 legendre_Pl_e l x = createSFR "legendre_Pl_e" $ gsl_sf_legendre_Pl_e l x
-foreign import ccall "legendre.h gsl_sf_legendre_Pl_e" gsl_sf_legendre_Pl_e :: CInt -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_legendre_Pl_e" gsl_sf_legendre_Pl_e :: CInt -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_legendre_Pl(int l,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_Pl&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Pl :: CInt -> Double -> Double
 legendre_Pl = gsl_sf_legendre_Pl
-foreign import ccall "legendre.h gsl_sf_legendre_Pl" gsl_sf_legendre_Pl :: CInt -> Double -> Double
+foreign import ccall "gsl_sf_legendre_Pl" gsl_sf_legendre_Pl :: CInt -> Double -> Double
 
 -- | wrapper for int gsl_sf_legendre_Pl_array(int lmax,double x,double* result_array);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_Pl_array&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Pl_array :: CInt -> Double -> Ptr Double -> CInt
 legendre_Pl_array = gsl_sf_legendre_Pl_array
-foreign import ccall "legendre.h gsl_sf_legendre_Pl_array" gsl_sf_legendre_Pl_array :: CInt -> Double -> Ptr Double -> CInt
+foreign import ccall "gsl_sf_legendre_Pl_array" gsl_sf_legendre_Pl_array :: CInt -> Double -> Ptr Double -> CInt
 
 -- | wrapper for int gsl_sf_legendre_Pl_deriv_array(int lmax,double x,double* result_array,double* result_deriv_array);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_Pl_deriv_array&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Pl_deriv_array :: CInt -> Double -> Ptr Double -> Ptr Double -> CInt
 legendre_Pl_deriv_array = gsl_sf_legendre_Pl_deriv_array
-foreign import ccall "legendre.h gsl_sf_legendre_Pl_deriv_array" gsl_sf_legendre_Pl_deriv_array :: CInt -> Double -> Ptr Double -> Ptr Double -> CInt
+foreign import ccall "gsl_sf_legendre_Pl_deriv_array" gsl_sf_legendre_Pl_deriv_array :: CInt -> Double -> Ptr Double -> Ptr Double -> CInt
 
 -- | wrapper for int gsl_sf_legendre_P1_e(double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_P1_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_P1_e :: Double -> (Double,Double)
 legendre_P1_e x = createSFR "legendre_P1_e" $ gsl_sf_legendre_P1_e x
-foreign import ccall "legendre.h gsl_sf_legendre_P1_e" gsl_sf_legendre_P1_e :: Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_legendre_P1_e" gsl_sf_legendre_P1_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for int gsl_sf_legendre_P2_e(double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_P2_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_P2_e :: Double -> (Double,Double)
 legendre_P2_e x = createSFR "legendre_P2_e" $ gsl_sf_legendre_P2_e x
-foreign import ccall "legendre.h gsl_sf_legendre_P2_e" gsl_sf_legendre_P2_e :: Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_legendre_P2_e" gsl_sf_legendre_P2_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for int gsl_sf_legendre_P3_e(double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_P3_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_P3_e :: Double -> (Double,Double)
 legendre_P3_e x = createSFR "legendre_P3_e" $ gsl_sf_legendre_P3_e x
-foreign import ccall "legendre.h gsl_sf_legendre_P3_e" gsl_sf_legendre_P3_e :: Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_legendre_P3_e" gsl_sf_legendre_P3_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_legendre_P1(double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_P1&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_P1 :: Double -> Double
 legendre_P1 = gsl_sf_legendre_P1
-foreign import ccall "legendre.h gsl_sf_legendre_P1" gsl_sf_legendre_P1 :: Double -> Double
+foreign import ccall "gsl_sf_legendre_P1" gsl_sf_legendre_P1 :: Double -> Double
 
 -- | wrapper for double gsl_sf_legendre_P2(double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_P2&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_P2 :: Double -> Double
 legendre_P2 = gsl_sf_legendre_P2
-foreign import ccall "legendre.h gsl_sf_legendre_P2" gsl_sf_legendre_P2 :: Double -> Double
+foreign import ccall "gsl_sf_legendre_P2" gsl_sf_legendre_P2 :: Double -> Double
 
 -- | wrapper for double gsl_sf_legendre_P3(double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_P3&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_P3 :: Double -> Double
 legendre_P3 = gsl_sf_legendre_P3
-foreign import ccall "legendre.h gsl_sf_legendre_P3" gsl_sf_legendre_P3 :: Double -> Double
+foreign import ccall "gsl_sf_legendre_P3" gsl_sf_legendre_P3 :: Double -> Double
 
 -- | wrapper for int gsl_sf_legendre_Q0_e(double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_Q0_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Q0_e :: Double -> (Double,Double)
 legendre_Q0_e x = createSFR "legendre_Q0_e" $ gsl_sf_legendre_Q0_e x
-foreign import ccall "legendre.h gsl_sf_legendre_Q0_e" gsl_sf_legendre_Q0_e :: Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_legendre_Q0_e" gsl_sf_legendre_Q0_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_legendre_Q0(double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_Q0&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Q0 :: Double -> Double
 legendre_Q0 = gsl_sf_legendre_Q0
-foreign import ccall "legendre.h gsl_sf_legendre_Q0" gsl_sf_legendre_Q0 :: Double -> Double
+foreign import ccall "gsl_sf_legendre_Q0" gsl_sf_legendre_Q0 :: Double -> Double
 
 -- | wrapper for int gsl_sf_legendre_Q1_e(double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_Q1_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Q1_e :: Double -> (Double,Double)
 legendre_Q1_e x = createSFR "legendre_Q1_e" $ gsl_sf_legendre_Q1_e x
-foreign import ccall "legendre.h gsl_sf_legendre_Q1_e" gsl_sf_legendre_Q1_e :: Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_legendre_Q1_e" gsl_sf_legendre_Q1_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_legendre_Q1(double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_Q1&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Q1 :: Double -> Double
 legendre_Q1 = gsl_sf_legendre_Q1
-foreign import ccall "legendre.h gsl_sf_legendre_Q1" gsl_sf_legendre_Q1 :: Double -> Double
+foreign import ccall "gsl_sf_legendre_Q1" gsl_sf_legendre_Q1 :: Double -> Double
 
 -- | wrapper for int gsl_sf_legendre_Ql_e(int l,double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_Ql_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Ql_e :: CInt -> Double -> (Double,Double)
 legendre_Ql_e l x = createSFR "legendre_Ql_e" $ gsl_sf_legendre_Ql_e l x
-foreign import ccall "legendre.h gsl_sf_legendre_Ql_e" gsl_sf_legendre_Ql_e :: CInt -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_legendre_Ql_e" gsl_sf_legendre_Ql_e :: CInt -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_legendre_Ql(int l,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_Ql&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Ql :: CInt -> Double -> Double
 legendre_Ql = gsl_sf_legendre_Ql
-foreign import ccall "legendre.h gsl_sf_legendre_Ql" gsl_sf_legendre_Ql :: CInt -> Double -> Double
+foreign import ccall "gsl_sf_legendre_Ql" gsl_sf_legendre_Ql :: CInt -> Double -> Double
 
 -- | wrapper for int gsl_sf_legendre_Plm_e(int l,int m,double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_Plm_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Plm_e :: CInt -> CInt -> Double -> (Double,Double)
 legendre_Plm_e l m x = createSFR "legendre_Plm_e" $ gsl_sf_legendre_Plm_e l m x
-foreign import ccall "legendre.h gsl_sf_legendre_Plm_e" gsl_sf_legendre_Plm_e :: CInt -> CInt -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_legendre_Plm_e" gsl_sf_legendre_Plm_e :: CInt -> CInt -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_legendre_Plm(int l,int m,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_Plm&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Plm :: CInt -> CInt -> Double -> Double
 legendre_Plm = gsl_sf_legendre_Plm
-foreign import ccall "legendre.h gsl_sf_legendre_Plm" gsl_sf_legendre_Plm :: CInt -> CInt -> Double -> Double
+foreign import ccall "gsl_sf_legendre_Plm" gsl_sf_legendre_Plm :: CInt -> CInt -> Double -> Double
 
 -- | wrapper for int gsl_sf_legendre_Plm_array(int lmax,int m,double x,double* result_array);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_Plm_array&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Plm_array :: CInt -> CInt -> Double -> Ptr Double -> CInt
 legendre_Plm_array = gsl_sf_legendre_Plm_array
-foreign import ccall "legendre.h gsl_sf_legendre_Plm_array" gsl_sf_legendre_Plm_array :: CInt -> CInt -> Double -> Ptr Double -> CInt
+foreign import ccall "gsl_sf_legendre_Plm_array" gsl_sf_legendre_Plm_array :: CInt -> CInt -> Double -> Ptr Double -> CInt
 
 -- | wrapper for int gsl_sf_legendre_Plm_deriv_array(int lmax,int m,double x,double* result_array,double* result_deriv_array);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_Plm_deriv_array&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_Plm_deriv_array :: CInt -> CInt -> Double -> Ptr Double -> Ptr Double -> CInt
 legendre_Plm_deriv_array = gsl_sf_legendre_Plm_deriv_array
-foreign import ccall "legendre.h gsl_sf_legendre_Plm_deriv_array" gsl_sf_legendre_Plm_deriv_array :: CInt -> CInt -> Double -> Ptr Double -> Ptr Double -> CInt
+foreign import ccall "gsl_sf_legendre_Plm_deriv_array" gsl_sf_legendre_Plm_deriv_array :: CInt -> CInt -> Double -> Ptr Double -> Ptr Double -> CInt
 
 -- | wrapper for int gsl_sf_legendre_sphPlm_e(int l,int m,double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_sphPlm_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_sphPlm_e :: CInt -> CInt -> Double -> (Double,Double)
 legendre_sphPlm_e l m x = createSFR "legendre_sphPlm_e" $ gsl_sf_legendre_sphPlm_e l m x
-foreign import ccall "legendre.h gsl_sf_legendre_sphPlm_e" gsl_sf_legendre_sphPlm_e :: CInt -> CInt -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_legendre_sphPlm_e" gsl_sf_legendre_sphPlm_e :: CInt -> CInt -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_legendre_sphPlm(int l,int m,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_sphPlm&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_sphPlm :: CInt -> CInt -> Double -> Double
 legendre_sphPlm = gsl_sf_legendre_sphPlm
-foreign import ccall "legendre.h gsl_sf_legendre_sphPlm" gsl_sf_legendre_sphPlm :: CInt -> CInt -> Double -> Double
+foreign import ccall "gsl_sf_legendre_sphPlm" gsl_sf_legendre_sphPlm :: CInt -> CInt -> Double -> Double
 
 -- | wrapper for int gsl_sf_legendre_sphPlm_array(int lmax,int m,double x,double* result_array);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_sphPlm_array&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_sphPlm_array :: CInt -> CInt -> Double -> Ptr Double -> CInt
 legendre_sphPlm_array = gsl_sf_legendre_sphPlm_array
-foreign import ccall "legendre.h gsl_sf_legendre_sphPlm_array" gsl_sf_legendre_sphPlm_array :: CInt -> CInt -> Double -> Ptr Double -> CInt
+foreign import ccall "gsl_sf_legendre_sphPlm_array" gsl_sf_legendre_sphPlm_array :: CInt -> CInt -> Double -> Ptr Double -> CInt
 
 -- | wrapper for int gsl_sf_legendre_sphPlm_deriv_array(int lmax,int m,double x,double* result_array,double* result_deriv_array);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_sphPlm_deriv_array&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_sphPlm_deriv_array :: CInt -> CInt -> Double -> Ptr Double -> Ptr Double -> CInt
 legendre_sphPlm_deriv_array = gsl_sf_legendre_sphPlm_deriv_array
-foreign import ccall "legendre.h gsl_sf_legendre_sphPlm_deriv_array" gsl_sf_legendre_sphPlm_deriv_array :: CInt -> CInt -> Double -> Ptr Double -> Ptr Double -> CInt
+foreign import ccall "gsl_sf_legendre_sphPlm_deriv_array" gsl_sf_legendre_sphPlm_deriv_array :: CInt -> CInt -> Double -> Ptr Double -> Ptr Double -> CInt
 
 -- | wrapper for int gsl_sf_legendre_array_size(int lmax,int m);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_array_size&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_array_size :: CInt -> CInt -> CInt
 legendre_array_size = gsl_sf_legendre_array_size
-foreign import ccall "legendre.h gsl_sf_legendre_array_size" gsl_sf_legendre_array_size :: CInt -> CInt -> CInt
+foreign import ccall "gsl_sf_legendre_array_size" gsl_sf_legendre_array_size :: CInt -> CInt -> CInt
 
 -- | wrapper for int gsl_sf_conicalP_half_e(double lambda,double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_conicalP_half_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 conicalP_half_e :: Double -> Double -> (Double,Double)
 conicalP_half_e lambda x = createSFR "conicalP_half_e" $ gsl_sf_conicalP_half_e lambda x
-foreign import ccall "legendre.h gsl_sf_conicalP_half_e" gsl_sf_conicalP_half_e :: Double -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_conicalP_half_e" gsl_sf_conicalP_half_e :: Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_conicalP_half(double lambda,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_conicalP_half&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 conicalP_half :: Double -> Double -> Double
 conicalP_half = gsl_sf_conicalP_half
-foreign import ccall "legendre.h gsl_sf_conicalP_half" gsl_sf_conicalP_half :: Double -> Double -> Double
+foreign import ccall "gsl_sf_conicalP_half" gsl_sf_conicalP_half :: Double -> Double -> Double
 
 -- | wrapper for int gsl_sf_conicalP_mhalf_e(double lambda,double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_conicalP_mhalf_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 conicalP_mhalf_e :: Double -> Double -> (Double,Double)
 conicalP_mhalf_e lambda x = createSFR "conicalP_mhalf_e" $ gsl_sf_conicalP_mhalf_e lambda x
-foreign import ccall "legendre.h gsl_sf_conicalP_mhalf_e" gsl_sf_conicalP_mhalf_e :: Double -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_conicalP_mhalf_e" gsl_sf_conicalP_mhalf_e :: Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_conicalP_mhalf(double lambda,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_conicalP_mhalf&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 conicalP_mhalf :: Double -> Double -> Double
 conicalP_mhalf = gsl_sf_conicalP_mhalf
-foreign import ccall "legendre.h gsl_sf_conicalP_mhalf" gsl_sf_conicalP_mhalf :: Double -> Double -> Double
+foreign import ccall "gsl_sf_conicalP_mhalf" gsl_sf_conicalP_mhalf :: Double -> Double -> Double
 
 -- | wrapper for int gsl_sf_conicalP_0_e(double lambda,double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_conicalP_0_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 conicalP_0_e :: Double -> Double -> (Double,Double)
 conicalP_0_e lambda x = createSFR "conicalP_0_e" $ gsl_sf_conicalP_0_e lambda x
-foreign import ccall "legendre.h gsl_sf_conicalP_0_e" gsl_sf_conicalP_0_e :: Double -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_conicalP_0_e" gsl_sf_conicalP_0_e :: Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_conicalP_0(double lambda,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_conicalP_0&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 conicalP_0 :: Double -> Double -> Double
 conicalP_0 = gsl_sf_conicalP_0
-foreign import ccall "legendre.h gsl_sf_conicalP_0" gsl_sf_conicalP_0 :: Double -> Double -> Double
+foreign import ccall "gsl_sf_conicalP_0" gsl_sf_conicalP_0 :: Double -> Double -> Double
 
 -- | wrapper for int gsl_sf_conicalP_1_e(double lambda,double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_conicalP_1_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 conicalP_1_e :: Double -> Double -> (Double,Double)
 conicalP_1_e lambda x = createSFR "conicalP_1_e" $ gsl_sf_conicalP_1_e lambda x
-foreign import ccall "legendre.h gsl_sf_conicalP_1_e" gsl_sf_conicalP_1_e :: Double -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_conicalP_1_e" gsl_sf_conicalP_1_e :: Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_conicalP_1(double lambda,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_conicalP_1&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 conicalP_1 :: Double -> Double -> Double
 conicalP_1 = gsl_sf_conicalP_1
-foreign import ccall "legendre.h gsl_sf_conicalP_1" gsl_sf_conicalP_1 :: Double -> Double -> Double
+foreign import ccall "gsl_sf_conicalP_1" gsl_sf_conicalP_1 :: Double -> Double -> Double
 
 -- | wrapper for int gsl_sf_conicalP_sph_reg_e(int l,double lambda,double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_conicalP_sph_reg_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 conicalP_sph_reg_e :: CInt -> Double -> Double -> (Double,Double)
 conicalP_sph_reg_e l lambda x = createSFR "conicalP_sph_reg_e" $ gsl_sf_conicalP_sph_reg_e l lambda x
-foreign import ccall "legendre.h gsl_sf_conicalP_sph_reg_e" gsl_sf_conicalP_sph_reg_e :: CInt -> Double -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_conicalP_sph_reg_e" gsl_sf_conicalP_sph_reg_e :: CInt -> Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_conicalP_sph_reg(int l,double lambda,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_conicalP_sph_reg&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 conicalP_sph_reg :: CInt -> Double -> Double -> Double
 conicalP_sph_reg = gsl_sf_conicalP_sph_reg
-foreign import ccall "legendre.h gsl_sf_conicalP_sph_reg" gsl_sf_conicalP_sph_reg :: CInt -> Double -> Double -> Double
+foreign import ccall "gsl_sf_conicalP_sph_reg" gsl_sf_conicalP_sph_reg :: CInt -> Double -> Double -> Double
 
 -- | wrapper for int gsl_sf_conicalP_cyl_reg_e(int m,double lambda,double x,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_conicalP_cyl_reg_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 conicalP_cyl_reg_e :: CInt -> Double -> Double -> (Double,Double)
 conicalP_cyl_reg_e m lambda x = createSFR "conicalP_cyl_reg_e" $ gsl_sf_conicalP_cyl_reg_e m lambda x
-foreign import ccall "legendre.h gsl_sf_conicalP_cyl_reg_e" gsl_sf_conicalP_cyl_reg_e :: CInt -> Double -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_conicalP_cyl_reg_e" gsl_sf_conicalP_cyl_reg_e :: CInt -> Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_conicalP_cyl_reg(int m,double lambda,double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_conicalP_cyl_reg&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 conicalP_cyl_reg :: CInt -> Double -> Double -> Double
 conicalP_cyl_reg = gsl_sf_conicalP_cyl_reg
-foreign import ccall "legendre.h gsl_sf_conicalP_cyl_reg" gsl_sf_conicalP_cyl_reg :: CInt -> Double -> Double -> Double
+foreign import ccall "gsl_sf_conicalP_cyl_reg" gsl_sf_conicalP_cyl_reg :: CInt -> Double -> Double -> Double
 
 -- | wrapper for int gsl_sf_legendre_H3d_0_e(double lambda,double eta,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_H3d_0_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_H3d_0_e :: Double -> Double -> (Double,Double)
 legendre_H3d_0_e lambda eta = createSFR "legendre_H3d_0_e" $ gsl_sf_legendre_H3d_0_e lambda eta
-foreign import ccall "legendre.h gsl_sf_legendre_H3d_0_e" gsl_sf_legendre_H3d_0_e :: Double -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_legendre_H3d_0_e" gsl_sf_legendre_H3d_0_e :: Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_legendre_H3d_0(double lambda,double eta);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_H3d_0&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_H3d_0 :: Double -> Double -> Double
 legendre_H3d_0 = gsl_sf_legendre_H3d_0
-foreign import ccall "legendre.h gsl_sf_legendre_H3d_0" gsl_sf_legendre_H3d_0 :: Double -> Double -> Double
+foreign import ccall "gsl_sf_legendre_H3d_0" gsl_sf_legendre_H3d_0 :: Double -> Double -> Double
 
 -- | wrapper for int gsl_sf_legendre_H3d_1_e(double lambda,double eta,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_H3d_1_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_H3d_1_e :: Double -> Double -> (Double,Double)
 legendre_H3d_1_e lambda eta = createSFR "legendre_H3d_1_e" $ gsl_sf_legendre_H3d_1_e lambda eta
-foreign import ccall "legendre.h gsl_sf_legendre_H3d_1_e" gsl_sf_legendre_H3d_1_e :: Double -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_legendre_H3d_1_e" gsl_sf_legendre_H3d_1_e :: Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_legendre_H3d_1(double lambda,double eta);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_H3d_1&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_H3d_1 :: Double -> Double -> Double
 legendre_H3d_1 = gsl_sf_legendre_H3d_1
-foreign import ccall "legendre.h gsl_sf_legendre_H3d_1" gsl_sf_legendre_H3d_1 :: Double -> Double -> Double
+foreign import ccall "gsl_sf_legendre_H3d_1" gsl_sf_legendre_H3d_1 :: Double -> Double -> Double
 
 -- | wrapper for int gsl_sf_legendre_H3d_e(int l,double lambda,double eta,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_H3d_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_H3d_e :: CInt -> Double -> Double -> (Double,Double)
 legendre_H3d_e l lambda eta = createSFR "legendre_H3d_e" $ gsl_sf_legendre_H3d_e l lambda eta
-foreign import ccall "legendre.h gsl_sf_legendre_H3d_e" gsl_sf_legendre_H3d_e :: CInt -> Double -> Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_legendre_H3d_e" gsl_sf_legendre_H3d_e :: CInt -> Double -> Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_legendre_H3d(int l,double lambda,double eta);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_H3d&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_H3d :: CInt -> Double -> Double -> Double
 legendre_H3d = gsl_sf_legendre_H3d
-foreign import ccall "legendre.h gsl_sf_legendre_H3d" gsl_sf_legendre_H3d :: CInt -> Double -> Double -> Double
+foreign import ccall "gsl_sf_legendre_H3d" gsl_sf_legendre_H3d :: CInt -> Double -> Double -> Double
 
 -- | wrapper for int gsl_sf_legendre_H3d_array(int lmax,double lambda,double eta,double* result_array);
 --
 --   <http://www.google.com/search?q=gsl_sf_legendre_H3d_array&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 legendre_H3d_array :: CInt -> Double -> Double -> Ptr Double -> CInt
 legendre_H3d_array = gsl_sf_legendre_H3d_array
-foreign import ccall "legendre.h gsl_sf_legendre_H3d_array" gsl_sf_legendre_H3d_array :: CInt -> Double -> Double -> Ptr Double -> CInt
+foreign import ccall "gsl_sf_legendre_H3d_array" gsl_sf_legendre_H3d_array :: CInt -> Double -> Double -> Ptr Double -> CInt

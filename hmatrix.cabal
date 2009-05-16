@@ -38,6 +38,14 @@ extra-source-files: examples/tests.hs
                     examples/devel/wrappers.hs
                     examples/devel/functions.hs
 
+extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
+                    lib/Numeric/LinearAlgebra/LAPACK/clapack.h,
+                    lib/Numeric/GSL/gsl-aux.h
+
+extra-source-files: lib/Numeric/GSL/Special/auto.hs,
+                    lib/Numeric/GSL/Special/autoall.sh,
+                    lib/Numeric/GSL/Special/replace.hs
+
 flag splitBase
     description:    Choose the new smaller, split-up base package.
 
@@ -121,13 +129,6 @@ library
                         Numeric.LinearAlgebra.Tests.Properties
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
-    extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
-                        lib/Numeric/LinearAlgebra/LAPACK/clapack.h,
-                        lib/Numeric/GSL/gsl-aux.h
-
-    extra-source-files: lib/Numeric/GSL/Special/auto.hs,
-                        lib/Numeric/GSL/Special/autoall.sh,
-                        lib/Numeric/GSL/Special/replace.hs
 
     ghc-prof-options:   -auto-all
 

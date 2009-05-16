@@ -51,165 +51,165 @@ import Numeric.GSL.Special.Internal
 --   <http://www.google.com/search?q=gsl_sf_airy_Ai_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Ai_e :: Double -> Precision -> (Double,Double)
 airy_Ai_e x mode = createSFR "airy_Ai_e" $ gsl_sf_airy_Ai_e x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Ai_e" gsl_sf_airy_Ai_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_airy_Ai_e" gsl_sf_airy_Ai_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_airy_Ai(double x,gsl_mode_t mode);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Ai&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Ai :: Double -> Precision -> Double
 airy_Ai x mode = gsl_sf_airy_Ai x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Ai" gsl_sf_airy_Ai :: Double -> Gsl_mode_t -> Double
+foreign import ccall "gsl_sf_airy_Ai" gsl_sf_airy_Ai :: Double -> Gsl_mode_t -> Double
 
 -- | wrapper for int gsl_sf_airy_Bi_e(double x,gsl_mode_t mode,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Bi_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Bi_e :: Double -> Precision -> (Double,Double)
 airy_Bi_e x mode = createSFR "airy_Bi_e" $ gsl_sf_airy_Bi_e x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Bi_e" gsl_sf_airy_Bi_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_airy_Bi_e" gsl_sf_airy_Bi_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_airy_Bi(double x,gsl_mode_t mode);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Bi&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Bi :: Double -> Precision -> Double
 airy_Bi x mode = gsl_sf_airy_Bi x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Bi" gsl_sf_airy_Bi :: Double -> Gsl_mode_t -> Double
+foreign import ccall "gsl_sf_airy_Bi" gsl_sf_airy_Bi :: Double -> Gsl_mode_t -> Double
 
 -- | wrapper for int gsl_sf_airy_Ai_scaled_e(double x,gsl_mode_t mode,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Ai_scaled_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Ai_scaled_e :: Double -> Precision -> (Double,Double)
 airy_Ai_scaled_e x mode = createSFR "airy_Ai_scaled_e" $ gsl_sf_airy_Ai_scaled_e x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Ai_scaled_e" gsl_sf_airy_Ai_scaled_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_airy_Ai_scaled_e" gsl_sf_airy_Ai_scaled_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_airy_Ai_scaled(double x,gsl_mode_t mode);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Ai_scaled&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Ai_scaled :: Double -> Precision -> Double
 airy_Ai_scaled x mode = gsl_sf_airy_Ai_scaled x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Ai_scaled" gsl_sf_airy_Ai_scaled :: Double -> Gsl_mode_t -> Double
+foreign import ccall "gsl_sf_airy_Ai_scaled" gsl_sf_airy_Ai_scaled :: Double -> Gsl_mode_t -> Double
 
 -- | wrapper for int gsl_sf_airy_Bi_scaled_e(double x,gsl_mode_t mode,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Bi_scaled_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Bi_scaled_e :: Double -> Precision -> (Double,Double)
 airy_Bi_scaled_e x mode = createSFR "airy_Bi_scaled_e" $ gsl_sf_airy_Bi_scaled_e x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Bi_scaled_e" gsl_sf_airy_Bi_scaled_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_airy_Bi_scaled_e" gsl_sf_airy_Bi_scaled_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_airy_Bi_scaled(double x,gsl_mode_t mode);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Bi_scaled&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Bi_scaled :: Double -> Precision -> Double
 airy_Bi_scaled x mode = gsl_sf_airy_Bi_scaled x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Bi_scaled" gsl_sf_airy_Bi_scaled :: Double -> Gsl_mode_t -> Double
+foreign import ccall "gsl_sf_airy_Bi_scaled" gsl_sf_airy_Bi_scaled :: Double -> Gsl_mode_t -> Double
 
 -- | wrapper for int gsl_sf_airy_Ai_deriv_e(double x,gsl_mode_t mode,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Ai_deriv_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Ai_deriv_e :: Double -> Precision -> (Double,Double)
 airy_Ai_deriv_e x mode = createSFR "airy_Ai_deriv_e" $ gsl_sf_airy_Ai_deriv_e x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Ai_deriv_e" gsl_sf_airy_Ai_deriv_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_airy_Ai_deriv_e" gsl_sf_airy_Ai_deriv_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_airy_Ai_deriv(double x,gsl_mode_t mode);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Ai_deriv&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Ai_deriv :: Double -> Precision -> Double
 airy_Ai_deriv x mode = gsl_sf_airy_Ai_deriv x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Ai_deriv" gsl_sf_airy_Ai_deriv :: Double -> Gsl_mode_t -> Double
+foreign import ccall "gsl_sf_airy_Ai_deriv" gsl_sf_airy_Ai_deriv :: Double -> Gsl_mode_t -> Double
 
 -- | wrapper for int gsl_sf_airy_Bi_deriv_e(double x,gsl_mode_t mode,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Bi_deriv_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Bi_deriv_e :: Double -> Precision -> (Double,Double)
 airy_Bi_deriv_e x mode = createSFR "airy_Bi_deriv_e" $ gsl_sf_airy_Bi_deriv_e x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Bi_deriv_e" gsl_sf_airy_Bi_deriv_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_airy_Bi_deriv_e" gsl_sf_airy_Bi_deriv_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_airy_Bi_deriv(double x,gsl_mode_t mode);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Bi_deriv&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Bi_deriv :: Double -> Precision -> Double
 airy_Bi_deriv x mode = gsl_sf_airy_Bi_deriv x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Bi_deriv" gsl_sf_airy_Bi_deriv :: Double -> Gsl_mode_t -> Double
+foreign import ccall "gsl_sf_airy_Bi_deriv" gsl_sf_airy_Bi_deriv :: Double -> Gsl_mode_t -> Double
 
 -- | wrapper for int gsl_sf_airy_Ai_deriv_scaled_e(double x,gsl_mode_t mode,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Ai_deriv_scaled_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Ai_deriv_scaled_e :: Double -> Precision -> (Double,Double)
 airy_Ai_deriv_scaled_e x mode = createSFR "airy_Ai_deriv_scaled_e" $ gsl_sf_airy_Ai_deriv_scaled_e x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Ai_deriv_scaled_e" gsl_sf_airy_Ai_deriv_scaled_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_airy_Ai_deriv_scaled_e" gsl_sf_airy_Ai_deriv_scaled_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_airy_Ai_deriv_scaled(double x,gsl_mode_t mode);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Ai_deriv_scaled&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Ai_deriv_scaled :: Double -> Precision -> Double
 airy_Ai_deriv_scaled x mode = gsl_sf_airy_Ai_deriv_scaled x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Ai_deriv_scaled" gsl_sf_airy_Ai_deriv_scaled :: Double -> Gsl_mode_t -> Double
+foreign import ccall "gsl_sf_airy_Ai_deriv_scaled" gsl_sf_airy_Ai_deriv_scaled :: Double -> Gsl_mode_t -> Double
 
 -- | wrapper for int gsl_sf_airy_Bi_deriv_scaled_e(double x,gsl_mode_t mode,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Bi_deriv_scaled_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Bi_deriv_scaled_e :: Double -> Precision -> (Double,Double)
 airy_Bi_deriv_scaled_e x mode = createSFR "airy_Bi_deriv_scaled_e" $ gsl_sf_airy_Bi_deriv_scaled_e x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Bi_deriv_scaled_e" gsl_sf_airy_Bi_deriv_scaled_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_airy_Bi_deriv_scaled_e" gsl_sf_airy_Bi_deriv_scaled_e :: Double -> Gsl_mode_t -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_airy_Bi_deriv_scaled(double x,gsl_mode_t mode);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_Bi_deriv_scaled&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_Bi_deriv_scaled :: Double -> Precision -> Double
 airy_Bi_deriv_scaled x mode = gsl_sf_airy_Bi_deriv_scaled x  (precCode mode)
-foreign import ccall "airy.h gsl_sf_airy_Bi_deriv_scaled" gsl_sf_airy_Bi_deriv_scaled :: Double -> Gsl_mode_t -> Double
+foreign import ccall "gsl_sf_airy_Bi_deriv_scaled" gsl_sf_airy_Bi_deriv_scaled :: Double -> Gsl_mode_t -> Double
 
 -- | wrapper for int gsl_sf_airy_zero_Ai_e(int s,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_zero_Ai_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_zero_Ai_e :: CInt -> (Double,Double)
 airy_zero_Ai_e s = createSFR "airy_zero_Ai_e" $ gsl_sf_airy_zero_Ai_e s
-foreign import ccall "airy.h gsl_sf_airy_zero_Ai_e" gsl_sf_airy_zero_Ai_e :: CInt -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_airy_zero_Ai_e" gsl_sf_airy_zero_Ai_e :: CInt -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_airy_zero_Ai(int s);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_zero_Ai&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_zero_Ai :: CInt -> Double
 airy_zero_Ai = gsl_sf_airy_zero_Ai
-foreign import ccall "airy.h gsl_sf_airy_zero_Ai" gsl_sf_airy_zero_Ai :: CInt -> Double
+foreign import ccall "gsl_sf_airy_zero_Ai" gsl_sf_airy_zero_Ai :: CInt -> Double
 
 -- | wrapper for int gsl_sf_airy_zero_Bi_e(int s,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_zero_Bi_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_zero_Bi_e :: CInt -> (Double,Double)
 airy_zero_Bi_e s = createSFR "airy_zero_Bi_e" $ gsl_sf_airy_zero_Bi_e s
-foreign import ccall "airy.h gsl_sf_airy_zero_Bi_e" gsl_sf_airy_zero_Bi_e :: CInt -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_airy_zero_Bi_e" gsl_sf_airy_zero_Bi_e :: CInt -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_airy_zero_Bi(int s);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_zero_Bi&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_zero_Bi :: CInt -> Double
 airy_zero_Bi = gsl_sf_airy_zero_Bi
-foreign import ccall "airy.h gsl_sf_airy_zero_Bi" gsl_sf_airy_zero_Bi :: CInt -> Double
+foreign import ccall "gsl_sf_airy_zero_Bi" gsl_sf_airy_zero_Bi :: CInt -> Double
 
 -- | wrapper for int gsl_sf_airy_zero_Ai_deriv_e(int s,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_zero_Ai_deriv_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_zero_Ai_deriv_e :: CInt -> (Double,Double)
 airy_zero_Ai_deriv_e s = createSFR "airy_zero_Ai_deriv_e" $ gsl_sf_airy_zero_Ai_deriv_e s
-foreign import ccall "airy.h gsl_sf_airy_zero_Ai_deriv_e" gsl_sf_airy_zero_Ai_deriv_e :: CInt -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_airy_zero_Ai_deriv_e" gsl_sf_airy_zero_Ai_deriv_e :: CInt -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_airy_zero_Ai_deriv(int s);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_zero_Ai_deriv&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_zero_Ai_deriv :: CInt -> Double
 airy_zero_Ai_deriv = gsl_sf_airy_zero_Ai_deriv
-foreign import ccall "airy.h gsl_sf_airy_zero_Ai_deriv" gsl_sf_airy_zero_Ai_deriv :: CInt -> Double
+foreign import ccall "gsl_sf_airy_zero_Ai_deriv" gsl_sf_airy_zero_Ai_deriv :: CInt -> Double
 
 -- | wrapper for int gsl_sf_airy_zero_Bi_deriv_e(int s,gsl_sf_result* result);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_zero_Bi_deriv_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_zero_Bi_deriv_e :: CInt -> (Double,Double)
 airy_zero_Bi_deriv_e s = createSFR "airy_zero_Bi_deriv_e" $ gsl_sf_airy_zero_Bi_deriv_e s
-foreign import ccall "airy.h gsl_sf_airy_zero_Bi_deriv_e" gsl_sf_airy_zero_Bi_deriv_e :: CInt -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_airy_zero_Bi_deriv_e" gsl_sf_airy_zero_Bi_deriv_e :: CInt -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_airy_zero_Bi_deriv(int s);
 --
 --   <http://www.google.com/search?q=gsl_sf_airy_zero_Bi_deriv&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 airy_zero_Bi_deriv :: CInt -> Double
 airy_zero_Bi_deriv = gsl_sf_airy_zero_Bi_deriv
-foreign import ccall "airy.h gsl_sf_airy_zero_Bi_deriv" gsl_sf_airy_zero_Bi_deriv :: CInt -> Double
+foreign import ccall "gsl_sf_airy_zero_Bi_deriv" gsl_sf_airy_zero_Bi_deriv :: CInt -> Double

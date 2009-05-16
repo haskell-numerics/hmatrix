@@ -28,11 +28,11 @@ import Numeric.GSL.Special.Internal
 --   <http://www.google.com/search?q=gsl_sf_dawson_e&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 dawson_e :: Double -> (Double,Double)
 dawson_e x = createSFR "dawson_e" $ gsl_sf_dawson_e x
-foreign import ccall "dawson.h gsl_sf_dawson_e" gsl_sf_dawson_e :: Double -> Ptr () -> IO CInt
+foreign import ccall "gsl_sf_dawson_e" gsl_sf_dawson_e :: Double -> Ptr () -> IO CInt
 
 -- | wrapper for double gsl_sf_dawson(double x);
 --
 --   <http://www.google.com/search?q=gsl_sf_dawson&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>
 dawson :: Double -> Double
 dawson = gsl_sf_dawson
-foreign import ccall "dawson.h gsl_sf_dawson" gsl_sf_dawson :: Double -> Double
+foreign import ccall "gsl_sf_dawson" gsl_sf_dawson :: Double -> Double

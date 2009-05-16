@@ -54,7 +54,7 @@ main = do
     putStrLn headerfile
     --mapM_ print (headers $ fixlong file)
     let parsed = (headers $ fixlong file)
-    writeFile (name ++".h") (fixC $ unlines $ map showC parsed) 
+    -- writeFile (name ++".h") (fixC $ unlines $ map showC parsed) 
 
     --putStrLn ""
     --mapM (\(Header _ n _) -> putStrLn (drop 7 n ++",")) parsed
@@ -180,7 +180,7 @@ showCt (Pointer s) = s ++ "*"
 
 showCa (t, a) = showCt t ++" "++ a
 
-showH hc h@(Header t n args) = "foreign import ccall \""++hc++" "++n++"\" "++n++" :: "++ (concat$intersperse" -> "$map showHa args) ++" -> " ++ t'
+showH hc h@(Header t n args) = "foreign import ccall \""++n++"\" "++n++" :: "++ (concat$intersperse" -> "$map showHa args) ++" -> " ++ t'
     where t' | pure h = showHt t
              | otherwise = "IO "++showHt t
 
