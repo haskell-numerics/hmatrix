@@ -29,7 +29,9 @@ module Data.Packed.Matrix (
     extractRows,
     ident, diag, diagRect, takeDiag,
     liftMatrix, liftMatrix2,
-    format, readMatrix, fromFile, fromArray2D
+    format,
+    loadMatrix, fromFile, fileDimensions,
+    readMatrix, fromArray2D
 ) where
 
 import Data.Packed.Internal
@@ -37,6 +39,7 @@ import qualified Data.Packed.ST as ST
 import Data.Packed.Vector
 import Data.List(transpose,intersperse)
 import Data.Array
+import System.Process(readProcess)
 
 -- | creates a matrix from a vertical list of matrices
 joinVert :: Element t => [Matrix t] -> Matrix t
@@ -227,9 +230,27 @@ dispC :: Int -> Matrix (Complex Double) -> IO ()
 dispC d m = disp m (shfc d)
 -}
 
--- | creates a matrix from a table of numbers.
+-- | reads a matrix from a string containing a table of numbers.
 readMatrix :: String -> Matrix Double
 readMatrix = fromLists . map (map read). map words . filter (not.null) . lines
+
+{- |  obtains the number of rows and columns in an ASCII data file
+      (provisionally using unix's wc).
+-}
+fileDimensions :: FilePath -> IO (Int,Int)
+fileDimensions fname = do
+    wcres <- readProcess "wc" ["-w",fname] ""
+    contents <- readFile fname
+    let tot = read . head . words $ wcres
+        c   = length . head . dropWhile null . map words . lines $ contents
+    if tot > 0
+        then return (tot `div` c, c)
+        else return (0,0)
+
+{- | loads a matrix from a formatted ASCII file.
+-}
+loadMatrix :: FilePath -> IO (Matrix Double)
+loadMatrix file = fromFile file =<< fileDimensions file
 
 -- | rearranges the rows of a matrix according to the order given in a list of integers. 
 extractRows :: Element t => [Int] -> Matrix t -> Matrix t

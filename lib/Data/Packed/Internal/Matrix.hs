@@ -351,7 +351,7 @@ fromComplex :: Vector (Complex Double) -> (Vector Double, Vector Double)
 fromComplex z = (r,i) where
     [r,i] = toColumns $ reshape 2 $ asReal z
 
--- | loads a matrix efficiently from formatted ASCII text file (the number of rows and columns must be known in advance).
+-- | loads a matrix from an ASCII file (the number of rows and columns must be known in advance).
 fromFile :: FilePath -> (Int,Int) -> IO (Matrix Double)
 fromFile filename (r,c) = do
     charname <- newCString filename
