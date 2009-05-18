@@ -357,6 +357,6 @@ fromFile filename (r,c) = do
     charname <- newCString filename
     res <- createMatrix RowMajor r c
     app1 (c_gslReadMatrix charname) mat res "gslReadMatrix"
-    --free charname  -- TO DO: free the auxiliary CString
+    free charname
     return res
 foreign import ccall "matrix_fscanf" c_gslReadMatrix:: Ptr CChar -> TM
