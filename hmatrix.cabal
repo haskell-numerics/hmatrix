@@ -134,7 +134,9 @@ library
 
     ghc-prof-options:   -auto-all
 
-    ghc-options:        -Wall -fno-warn-missing-signatures -fno-warn-orphans -fno-warn-unused-binds
+    ghc-options:        -Wall -fno-warn-missing-signatures
+                              -fno-warn-orphans
+                              -fno-warn-unused-binds
 
     if flag(unsafe)
         cpp-options: -DUNSAFE
@@ -152,4 +154,8 @@ library
         frameworks: Accelerate
         extra-libraries: gsl
 
--- the extra-libraries required for gsl and lapack are automatically detected by configure(.hs)
+-- The extra-libraries required for GSL and LAPACK
+-- should now be automatically detected by configure(.hs)
+
+    extra-libraries:
+    extra-lib-dirs:

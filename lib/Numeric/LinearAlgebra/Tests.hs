@@ -159,9 +159,7 @@ runTests n = do
     test (linearSolveProp (luSolve.luPacked) . cSqWC)
     putStrLn "------ pinv (linearSolveSVD)"
     test (pinvProp  . rM)
-    if os == "mingw32"
-        then putStrLn "complex pinvTest skipped in this OS"
-        else test (pinvProp  . cM)
+    test (pinvProp  . cM)
     putStrLn "------ det"
     test (detProp   . rSqWC)
     test (detProp   . cSqWC)
@@ -186,9 +184,7 @@ runTests n = do
     test (hessProp   . cSq)
     putStrLn "------ schur"
     test (schurProp2 . rSq)
-    if os == "mingw32"
-        then putStrLn "complex schur skipped in this OS"
-        else test (schurProp1 . cSq)
+    test (schurProp1 . cSq)
     putStrLn "------ chol"
     test (cholProp   . rPosDef)
     test (cholProp   . cPosDef)

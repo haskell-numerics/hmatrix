@@ -435,9 +435,6 @@ int linearSolveLSR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
 //////////////////// least squares complex linear system ////////////
 
 int linearSolveLSC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
-    #ifdef _WIN32
-    return NOSPRTD;
-    #else
     integer m = ar;
     integer n = ac;
     integer nrhs = bc;
@@ -478,7 +475,6 @@ int linearSolveLSC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
     free(work);
     free(AC);
     OK
-    #endif
 }
 
 //////////////////// least squares real linear system using SVD ////////////
@@ -543,9 +539,6 @@ int zgelss_(integer *m, integer *n, integer *nhrs,
     integer *info);
 
 int linearSolveSVDC_l(double rcond, KCMAT(a),KCMAT(b),CMAT(x)) {
-    #ifdef _WIN32
-    return NOSPRTD;
-    #else
     integer m = ar;
     integer n = ac;
     integer nrhs = bc;
@@ -596,7 +589,6 @@ int linearSolveSVDC_l(double rcond, KCMAT(a),KCMAT(b),CMAT(x)) {
     free(S);
     free(AC);
     OK
-    #endif
 }
 
 //////////////////// Cholesky factorization /////////////////////////
@@ -749,9 +741,6 @@ int schur_l_R(KDMAT(a), DMAT(u), DMAT(s)) {
 }
 
 int schur_l_C(KCMAT(a), CMAT(u), CMAT(s)) {
-    #ifdef _WIN32
-    return NOSPRTD;
-    #else
     integer m = ar;
     integer n = ac;
     REQUIRES(m>=1 && n==m && ur==n && uc==n && sr==n && sc==n, BAD_SIZE);
@@ -776,7 +765,6 @@ int schur_l_C(KCMAT(a), CMAT(u), CMAT(s)) {
     free(BWORK);
     free(WORK);
     OK
-    #endif
 }
 
 //////////////////// LU factorization /////////////////////////
