@@ -28,6 +28,8 @@ int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r));
 
 int fft(int code, KCVEC(a), CVEC(b));
 
+int deriv(int code, double f(double, void*), double x, double h, double * result, double * abserr);
+
 int integrate_qng(double f(double, void*), double a, double b, double prec,
                    double *result, double*error);
 
@@ -43,4 +45,6 @@ int minimizeWithDeriv(int method, double f(int, double*), void df(int, double*, 
                       double initstep, double minimpar, double tolgrad, int maxit, 
                       KRVEC(xi), RMAT(sol));
 
-int deriv(int code, double f(double, void*), double x, double h, double * result, double * abserr);
+int root(int method, void f(int, double*, int, double*),
+         double epsabs, int maxit,
+         KRVEC(xi), RMAT(sol));

@@ -24,6 +24,7 @@ extra-source-files: examples/tests.hs
                     examples/deriv.hs
                     examples/integrate.hs
                     examples/minimize.hs
+                    examples/root.hs
                     examples/pca1.hs
                     examples/pca2.hs
                     examples/pinv.hs
@@ -80,6 +81,7 @@ library
                         Numeric.GSL.Fourier,
                         Numeric.GSL.Polynomials,
                         Numeric.GSL.Minimization,
+                        Numeric.GSL.Root,
                         Numeric.GSL.Vector,
                         Numeric.GSL.Special,
                         Numeric.GSL.Special.Gamma,

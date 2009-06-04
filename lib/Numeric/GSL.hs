@@ -18,6 +18,7 @@ module Numeric.GSL (
 , module Numeric.GSL.Fourier
 , module Numeric.GSL.Polynomials
 , module Numeric.GSL.Minimization
+, module Numeric.GSL.Root
 , module Numeric.GSL.Special
 , module Complex
 , setErrorHandlerOff
@@ -29,6 +30,7 @@ import Numeric.GSL.Special
 import Numeric.GSL.Fourier
 import Numeric.GSL.Polynomials
 import Numeric.GSL.Minimization
+import Numeric.GSL.Root
 import Complex
 import Numeric.GSL.Special
 

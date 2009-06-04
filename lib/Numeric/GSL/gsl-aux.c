@@ -7,6 +7,7 @@
 #include <gsl/gsl_deriv.h>
 #include <gsl/gsl_poly.h>
 #include <gsl/gsl_multimin.h>
+#include <gsl/gsl_multiroots.h>
 #include <gsl/gsl_complex.h>
 #include <gsl/gsl_complex_math.h>
 #include <string.h>
@@ -288,6 +289,22 @@ int fft(int code, KCVEC(X), CVEC(R)) {
 }
 
 
+int deriv(int code, double f(double, void*), double x, double h, double * result, double * abserr)
+{
+    gsl_function F;
+    F.function = f;
+    F.params = 0;
+
+    if(code==0) return gsl_deriv_central (&F, x, h, result, abserr);
+
+    if(code==1) return gsl_deriv_forward (&F, x, h, result, abserr);
+
+    if(code==2) return gsl_deriv_backward (&F, x, h, result, abserr);
+
+    return 0;
+}
+
+
 int integrate_qng(double f(double, void*), double a, double b, double prec,
                    double *result, double*error) {
     DEBUGMSG("integrate_qng");
@@ -440,7 +457,7 @@ void fdf_aux_min(const gsl_vector * x, void * pars, double * f, gsl_vector * g) 
     df_aux_min(x,pars,g);
 }
 
-// conjugate gradient
+
 int minimizeWithDeriv(int method, double f(int, double*), void df(int, double*, double*), 
                       double initstep, double minimpar, double tolgrad, int maxit, 
                       KRVEC(xi), RMAT(sol)) {
@@ -492,18 +509,82 @@ int minimizeWithDeriv(int method, double f(int, double*), void df(int, double*, 
     OK
 }
 
+//---------------------------------------------------------------
 
-int deriv(int code, double f(double, void*), double x, double h, double * result, double * abserr)
-{
-    gsl_function F;
-    F.function = f;
-    F.params = 0;
+typedef void TrawfunV(int, double*, double*);
 
-    if(code==0) return gsl_deriv_central (&F, x, h, result, abserr);
+int only_f_aux_root(const gsl_vector*x, void *pars, gsl_vector*y) {
+    TrawfunV * f = (TrawfunV*) pars;
+    double* p = (double*)calloc(x->size,sizeof(double));
+    double* q = (double*)calloc(x->size,sizeof(double));
+    int k;
+    for(k=0;k<x->size;k++) {
+        p[k] = gsl_vector_get(x,k);
+    }
+    f(x->size,p,q);
+    for(k=0;k<y->size;k++) {
+        gsl_vector_set(y,k,q[k]);
+    }
+    free(p);
+    free(q);
+    return 0; //hmmm
+}
 
-    if(code==1) return gsl_deriv_forward (&F, x, h, result, abserr);
+int root(int method, void f(int, double*, int, double*),
+         double epsabs, int maxit,
+         KRVEC(xi), RMAT(sol)) {
+    REQUIRES(solr == maxit && solc == 1+2*xin,BAD_SIZE);
+    DEBUGMSG("root_only_f");
+    gsl_multiroot_function my_func;
+    // extract function from pars
+    my_func.f = only_f_aux_root;
+    my_func.n = xin;
+    my_func.params = f;
+    size_t iter = 0;
+    int status;
+    const gsl_multiroot_fsolver_type *T;
+    gsl_multiroot_fsolver *s;
+    // Starting point
+    KDVVIEW(xi);
+    switch(method) {
+        case 0 : {T = gsl_multiroot_fsolver_hybrids;; break; }
+        case 1 : {T = gsl_multiroot_fsolver_hybrid; break; }
+        case 2 : {T = gsl_multiroot_fsolver_dnewton; break; }
+        case 3 : {T = gsl_multiroot_fsolver_broyden; break; }
+        default: ERROR(BAD_CODE);
+    }
+    s = gsl_multiroot_fsolver_alloc (T, my_func.n);
+    gsl_multiroot_fsolver_set (s, &my_func, V(xi));
 
-    if(code==2) return gsl_deriv_backward (&F, x, h, result, abserr);
+    do {
+           status = gsl_multiroot_fsolver_iterate (s);
 
-    return 0;
+           solp[iter*solc+0] = iter;
+
+           int k;
+           for(k=0;k<xin;k++) {
+               solp[iter*solc+k+1] = gsl_vector_get(s->x,k);
+           }
+           for(k=xin;k<2*xin;k++) {
+               solp[iter*solc+k+1] = gsl_vector_get(s->f,k-xin);
+           }
+
+           iter++;
+           if (status)   /* check if solver is stuck */
+             break;
+
+           status =
+             gsl_multiroot_test_residual (s->f, epsabs);
+        }
+        while (status == GSL_CONTINUE && iter < maxit);
+
+    int i,j;
+    for (i=iter; i<solr; i++) {
+        solp[i*solc+0] = iter;
+        for(j=1;j<solc;j++) {
+            solp[i*solc+j]=0.;
+        }
+    }
+    gsl_multiroot_fsolver_free(s);
+    OK
 }

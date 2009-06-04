@@ -36,6 +36,8 @@ a ^ b = a Prelude.^ (b :: Int)
 
 utest str b = TestCase $ assertBool str b
 
+a ~~ b = fromList a |~| fromList b
+
 feye n = flipud (ident n) :: Matrix Double
 
 detTest1 = det m == 26
@@ -112,9 +114,14 @@ minimizationTest = TestList [ utest "minimization conj grad" (minim1 f df [5,7] 
                             ]
     where f [x,y] = 10*(x-1)^2 + 20*(y-2)^2 + 30
           df [x,y] = [20*(x-1), 40*(y-2)]
-          a ~~ b = fromList a |~| fromList b
           minim1 g dg ini = fst $ minimizeConjugateGradient 1E-2 1E-4 1E-3 30 g dg ini
           minim2 g dg ini = fst $ minimizeVectorBFGS2 1E-2 1E-2 1E-3 30 g dg ini
+
+---------------------------------------------------------------------
+
+rootFindingTest = utest "root Hybrids" (sol ~~ [1,1])
+    where sol = fst $ root Hybrids 1E-7 30 (rosenbrock 1 10) [-10,-5]
+          rosenbrock a b [x,y] = [ a*(1-x), b*(y-x^2) ]
 
 ---------------------------------------------------------------------
 
@@ -217,6 +224,7 @@ runTests n = do
         , utest "integrate" (abs (volSphere 2.5 - 4/3*pi*2.5^3) < 1E-8)
         , utest "polySolve" (polySolveProp [1,2,3,4])
         , minimizationTest
+        , rootFindingTest
         ]
     return ()
 
