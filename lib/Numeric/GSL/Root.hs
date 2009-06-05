@@ -76,7 +76,7 @@ root method epsabs maxit fun xinit = rootGen (fi (fromEnum method)) fun xinit ep
 rootGen m f xi epsabs maxit = unsafePerformIO $ do
     let xiv = fromList xi
         n   = dim xiv
-    fp <- mkVecVecfun (aux_vTov (fromList.f.toList))
+    fp <- mkVecVecfun (aux_vTov (fromList . checkdim n f . toList))
     rawpath <- withVector xiv $ \xiv' ->
                    createMIO maxit (2*n+1)
                          (c_root m fp epsabs (fi maxit) // xiv')
@@ -115,3 +115,9 @@ createMIO r c fun msg = do
     res <- createMatrix RowMajor r c
     app1 fun mat res msg
     return res
+
+checkdim n f x
+    | length y /= n = error $ "Error: "++ show n
+                              ++ " results expected in the function supplied to root"
+    | otherwise = y
+  where y = f x

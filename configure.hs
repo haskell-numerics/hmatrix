@@ -36,7 +36,7 @@ opts = [ ""                              -- Ubuntu/Debian
        ]
 
 -- compile a simple program with symbols from GSL and LAPACK with the given libs
-testprog libs fmks = "echo \"#include <gsl/gsl_math.h>\nint main(){zgesvd_(); gsl_sf_gamma();}\""
+testprog libs fmks = "echo \"#include <gsl/gsl_sf_gamma.h>\nint main(){zgesvd_(); gsl_sf_gamma(5);}\""
                      ++" > /tmp/dummy.c; gcc /tmp/dummy.c -o /tmp/dummy "
                      ++ f1 libs ++ " " ++ f2 fmks ++ " > /dev/null 2> /dev/null"
 
@@ -46,7 +46,7 @@ f2 = unwords . map ("-framework "++) . words
 check libs fmks = (ExitSuccess ==) `fmap` system (testprog libs fmks)
 
 -- simple test for GSL
-testGSL = "echo \"#include <gsl/gsl_math.h>\nint main(){gsl_sf_gamma();}\""
+testGSL = "echo \"#include <gsl/gsl_sf_gamma.h>\nint main(){gsl_sf_gamma(5);}\""
            ++" > /tmp/dummy.c; gcc /tmp/dummy.c -o /tmp/dummy -lgsl -lgslcblas"
            ++ " > /dev/null 2> /dev/null"
 
