@@ -119,9 +119,14 @@ minimizationTest = TestList [ utest "minimization conj grad" (minim1 f df [5,7] 
 
 ---------------------------------------------------------------------
 
-rootFindingTest = utest "root Hybrids" (sol ~~ [1,1])
-    where sol = fst $ root Hybrids 1E-7 30 (rosenbrock 1 10) [-10,-5]
+rootFindingTest = TestList [ utest "root Hybrids" (fst sol1 ~~ [1,1])
+                           , utest "root Newton"  (rows (snd sol2) == 2)
+                           ]
+    where sol1 = root Hybrids 1E-7 30 (rosenbrock 1 10) [-10,-5]
+          sol2 = rootJ Newton 1E-7 30 (rosenbrock 1 10) (jacobian 1 10) [-10,-5]
           rosenbrock a b [x,y] = [ a*(1-x), b*(y-x^2) ]
+          jacobian a b [x,_y] = [ [-a    , 0]
+                                , [-2*b*x, b] ]
 
 ---------------------------------------------------------------------
 

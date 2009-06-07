@@ -511,17 +511,17 @@ int minimizeWithDeriv(int method, double f(int, double*), void df(int, double*, 
 
 //---------------------------------------------------------------
 
-typedef void TrawfunV(int, double*, double*);
+typedef void TrawfunV(int, double*, int, double*);
 
 int only_f_aux_root(const gsl_vector*x, void *pars, gsl_vector*y) {
     TrawfunV * f = (TrawfunV*) pars;
     double* p = (double*)calloc(x->size,sizeof(double));
-    double* q = (double*)calloc(x->size,sizeof(double));
+    double* q = (double*)calloc(y->size,sizeof(double));
     int k;
     for(k=0;k<x->size;k++) {
         p[k] = gsl_vector_get(x,k);
     }
-    f(x->size,p,q);
+    f(x->size,p,y->size,q);
     for(k=0;k<y->size;k++) {
         gsl_vector_set(y,k,q[k]);
     }
@@ -586,5 +586,120 @@ int root(int method, void f(int, double*, int, double*),
         }
     }
     gsl_multiroot_fsolver_free(s);
+    OK
+}
+
+// working with the jacobian
+
+typedef struct {int (*f)(int, double*, int, double *); int (*jf)(int, double*, int, int, double*);} Tfjf;
+
+int f_aux_root(const gsl_vector*x, void *pars, gsl_vector*y) {
+    Tfjf * fjf = ((Tfjf*) pars);
+    double* p = (double*)calloc(x->size,sizeof(double));
+    double* q = (double*)calloc(y->size,sizeof(double));
+    int k;
+    for(k=0;k<x->size;k++) {
+        p[k] = gsl_vector_get(x,k);
+    }
+    (fjf->f)(x->size,p,y->size,q);
+    for(k=0;k<y->size;k++) {
+        gsl_vector_set(y,k,q[k]);
+    }
+    free(p);
+    free(q);
+    return 0;
+}
+
+int jf_aux_root(const gsl_vector * x, void * pars, gsl_matrix * jac) {
+    Tfjf * fjf = ((Tfjf*) pars);
+    double* p = (double*)calloc(x->size,sizeof(double));
+    double* q = (double*)calloc((x->size)*(x->size),sizeof(double));
+    int i,j,k;
+    for(k=0;k<x->size;k++) {
+        p[k] = gsl_vector_get(x,k);
+    }
+
+    (fjf->jf)(x->size,p,x->size,x->size,q);
+
+    k=0;
+    for(i=0;i<x->size;i++) {
+        for(j=0;j<x->size;j++){
+            gsl_matrix_set(jac,i,j,q[k++]);
+        }
+    }
+    free(p);
+    free(q);
+    return 0;
+}
+
+int fjf_aux_root(const gsl_vector * x, void * pars, gsl_vector * f, gsl_matrix * g) {
+    f_aux_root(x,pars,f);
+    jf_aux_root(x,pars,g);
+    return 0;
+}
+
+int rootj(int method, int f(int, double*, int, double*),
+                      int jac(int, double*, int, int, double*),
+         double epsabs, int maxit,
+         KRVEC(xi), RMAT(sol)) {
+    REQUIRES(solr == maxit && solc == 1+2*xin,BAD_SIZE);
+    DEBUGMSG("root_fjf");
+    gsl_multiroot_function_fdf my_func;
+    // extract function from pars
+    my_func.f = f_aux_root;
+    my_func.df = jf_aux_root;
+    my_func.fdf = fjf_aux_root;
+    my_func.n = xin;
+    Tfjf stfjf;
+    stfjf.f = f;
+    stfjf.jf = jac;
+    my_func.params = &stfjf;
+    size_t iter = 0;
+    int status;
+    const gsl_multiroot_fdfsolver_type *T;
+    gsl_multiroot_fdfsolver *s;
+    // Starting point
+    KDVVIEW(xi);
+    switch(method) {
+        case 0 : {T = gsl_multiroot_fdfsolver_hybridsj;; break; }
+        case 1 : {T = gsl_multiroot_fdfsolver_hybridj; break; }
+        case 2 : {T = gsl_multiroot_fdfsolver_newton; break; }
+        case 3 : {T = gsl_multiroot_fdfsolver_gnewton; break; }
+        default: ERROR(BAD_CODE);
+    }
+    s = gsl_multiroot_fdfsolver_alloc (T, my_func.n);
+
+    gsl_multiroot_fdfsolver_set (s, &my_func, V(xi));
+
+    do {
+           status = gsl_multiroot_fdfsolver_iterate (s);
+
+           solp[iter*solc+0] = iter;
+
+           int k;
+           for(k=0;k<xin;k++) {
+               solp[iter*solc+k+1] = gsl_vector_get(s->x,k);
+           }
+           for(k=xin;k<2*xin;k++) {
+               solp[iter*solc+k+1] = gsl_vector_get(s->f,k-xin);
+           }
+
+           iter++;
+           if (status)   /* check if solver is stuck */
+             break;
+
+           status =
+             gsl_multiroot_test_residual (s->f, epsabs);
+        }
+        while (status == GSL_CONTINUE && iter < maxit);
+
+    int i,j;
+    for (i=iter; i<solr; i++) {
+        solp[i*solc+0] = iter;
+        for(j=1;j<solc;j++) {
+            solp[i*solc+j]=0.;
+        }
+    }
+    gsl_multiroot_fdfsolver_free(s);
     OK
 }

@@ -45,7 +45,8 @@ main = do
 -----------------------------------------------------------------------------
 
 module Numeric.GSL.Root (
-    root, RootMethod(..)
+    root, RootMethod(..),
+    rootJ, RootMethodJ(..),
 ) where
 
 import Data.Packed.Internal
@@ -76,7 +77,7 @@ root method epsabs maxit fun xinit = rootGen (fi (fromEnum method)) fun xinit ep
 rootGen m f xi epsabs maxit = unsafePerformIO $ do
     let xiv = fromList xi
         n   = dim xiv
-    fp <- mkVecVecfun (aux_vTov (fromList . checkdim n f . toList))
+    fp <- mkVecVecfun (aux_vTov (checkdim1 n . fromList . f . toList))
     rawpath <- withVector xiv $ \xiv' ->
                    createMIO maxit (2*n+1)
                          (c_root m fp epsabs (fi maxit) // xiv')
@@ -89,22 +90,74 @@ rootGen m f xi epsabs maxit = unsafePerformIO $ do
 
 
 foreign import ccall "root"
-    c_root:: CInt -> FunPtr (CInt -> Ptr Double -> Ptr Double -> IO ()) -> Double -> CInt -> TVM
+    c_root:: CInt -> FunPtr TVV -> Double -> CInt -> TVM
+
+-------------------------------------------------------------------------
+
+data RootMethodJ = HybridsJ
+                 | HybridJ
+                 | Newton
+                 | GNewton
+                deriving (Enum,Eq,Show)
+
+-- | Nonlinear multidimensional root finding using both the function and its derivatives.
+rootJ :: RootMethodJ
+      -> Double                     -- ^ maximum residual
+      -> Int                        -- ^ maximum number of iterations allowed
+      -> ([Double] -> [Double])     -- ^ function to minimize
+      -> ([Double] -> [[Double]])   -- ^ Jacobian
+      -> [Double]                   -- ^ starting point
+      -> ([Double], Matrix Double)  -- ^ solution vector and optimization path
+
+rootJ method epsabs maxit fun jac xinit = rootJGen (fi (fromEnum method)) fun jac xinit epsabs maxit
+
+rootJGen m f jac xi epsabs maxit = unsafePerformIO $ do
+    let xiv = fromList xi
+        n   = dim xiv
+    fp <- mkVecVecfun (aux_vTov (checkdim1 n . fromList . f . toList))
+    jp <- mkVecMatfun (aux_vTom (checkdim2 n . fromLists . jac . toList))
+    rawpath <- withVector xiv $ \xiv' ->
+                   createMIO maxit (2*n+1)
+                         (c_rootj m fp jp epsabs (fi maxit) // xiv')
+                         "root"
+    let it = round (rawpath @@> (maxit-1,0))
+        path = takeRows it rawpath
+        [sol] = toLists $ dropRows (it-1) path
+    freeHaskellFunPtr fp
+    return (take n $ drop 1 sol, path)
+
+
+foreign import ccall "rootj"
+    c_rootj:: CInt -> FunPtr TVV -> FunPtr TVM -> Double -> CInt -> TVM
+
 
 ---------------------------------------------------------------------
 
 foreign import ccall "wrapper"
-    mkVecVecfun :: (CInt -> Ptr Double -> Ptr Double -> IO ())
-                -> IO (FunPtr (CInt -> Ptr Double -> Ptr Double->IO()))
+    mkVecVecfun :: TVV -> IO (FunPtr TVV)
 
-aux_vTov :: (Vector Double -> Vector Double) -> (CInt -> Ptr Double -> Ptr Double -> IO())
-aux_vTov f n p r = g where
+aux_vTov :: (Vector Double -> Vector Double) -> TVV
+aux_vTov f n p nr r = g where
     V {fptr = pr} = f x
     x = createV (fromIntegral n) copy "aux_vTov"
     copy n' q = do
         copyArray q p (fromIntegral n')
         return 0
-    g = withForeignPtr pr $ \p' -> copyArray r p' (fromIntegral n)
+    g = do withForeignPtr pr $ \p' -> copyArray r p' (fromIntegral nr)
+           return 0
+
+foreign import ccall "wrapper"
+    mkVecMatfun :: TVM -> IO (FunPtr TVM)
+
+aux_vTom :: (Vector Double -> Matrix Double) -> TVM
+aux_vTom f n p rr cr r = g where
+    V {fptr = pr} = flatten $ f x
+    x = createV (fromIntegral n) copy "aux_vTov"
+    copy n' q = do
+        copyArray q p (fromIntegral n')
+        return 0
+    g = do withForeignPtr pr $ \p' -> copyArray r p' (fromIntegral $ rr*cr)
+           return 0
 
 createV n fun msg = unsafePerformIO $ do
     r <- createVector n
@@ -116,8 +169,12 @@ createMIO r c fun msg = do
     app1 fun mat res msg
     return res
 
-checkdim n f x
-    | length y /= n = error $ "Error: "++ show n
-                              ++ " results expected in the function supplied to root"
-    | otherwise = y
-  where y = f x
+checkdim1 n v
+    | dim v == n = v
+    | otherwise = error $ "Error: "++ show n
+                        ++ " results expected in the function supplied to root"
+
+checkdim2 n m
+    | rows m == n && cols m == n = m
+    | otherwise = error $ "Error: "++ show n ++ "x" ++ show n
+                        ++ " Jacobian expected in root"
