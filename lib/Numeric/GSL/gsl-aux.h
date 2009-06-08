@@ -38,13 +38,3 @@ int integrate_qags(double f(double,void*), double a, double b, double prec, int 
 
 int polySolve(KRVEC(a), CVEC(z));
 
-int minimize(double f(int, double*), double tolsize, int maxit, 
-                 KRVEC(xi), KRVEC(sz), RMAT(sol));
-
-int minimizeWithDeriv(int method, double f(int, double*), void df(int, double*, double*),
-                      double initstep, double minimpar, double tolgrad, int maxit, 
-                      KRVEC(xi), RMAT(sol));
-
-int root(int method, void f(int, double*, int, double*),
-         double epsabs, int maxit,
-         KRVEC(xi), RMAT(sol));

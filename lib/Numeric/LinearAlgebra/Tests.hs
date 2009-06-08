@@ -109,13 +109,13 @@ expmTest2 = expm nd2 :~15~: (2><2)
 
 ---------------------------------------------------------------------
 
-minimizationTest = TestList [ utest "minimization conj grad" (minim1 f df [5,7] ~~ [1,2])
-                            , utest "minimization bg2"       (minim2 f df [5,7] ~~ [1,2])
+minimizationTest = TestList [ utest "minimization conjugatefr" (minim1 f df [5,7] ~~ [1,2])
+                            , utest "minimization nmsimplex2"       (minim2 f [5,7] == 24)
                             ]
     where f [x,y] = 10*(x-1)^2 + 20*(y-2)^2 + 30
           df [x,y] = [20*(x-1), 40*(y-2)]
-          minim1 g dg ini = fst $ minimizeConjugateGradient 1E-2 1E-4 1E-3 30 g dg ini
-          minim2 g dg ini = fst $ minimizeVectorBFGS2 1E-2 1E-2 1E-3 30 g dg ini
+          minim1 g dg ini = fst $ minimizeD ConjugateFR 1E-3 30 1E-2 1E-4 g dg ini
+          minim2 g ini = rows $ snd $ minimize NMSimplex2 1E-2 30 [1,1] g ini
 
 ---------------------------------------------------------------------
 

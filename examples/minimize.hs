@@ -53,4 +53,20 @@ main = do
     disp p
     mplot $ drop 3 (toColumns p)
 
-disp = putStrLn . format "  " (printf "%.2f")
+    putStrLn "-------------------------"
+    mapM_ test [NMSimplex,NMSimplex2]
+    mapM_ testd [ConjugateFR .. SteepestDescent]
+
+disp = putStrLn . format "  " (printf "%.3f")
+
+test method = do
+    print method
+    let (s,p) = minimize method 1E-2 30 [1,1] f [5,7]
+    print s
+    disp p
+
+testd method = do
+    print method
+    let (s,p) = minimizeD method 1E-3 30 1E-2 1E-4 f df [5,7]
+    print s
+    disp p

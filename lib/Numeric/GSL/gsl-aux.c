@@ -369,7 +369,7 @@ double only_f_aux_min(const gsl_vector*x, void *pars) {
 }
 
 // this version returns info about intermediate steps
-int minimize(double f(int, double*), double tolsize, int maxit, 
+int minimize(int method, double f(int, double*), double tolsize, int maxit, 
                  KRVEC(xi), KRVEC(sz), RMAT(sol)) {
     REQUIRES(xin==szn && solr == maxit && solc == 3+xin,BAD_SIZE);
     DEBUGMSG("minimizeList (nmsimplex)");
@@ -388,7 +388,11 @@ int minimize(double f(int, double*), double tolsize, int maxit,
     // Starting point
     KDVVIEW(xi);
     // Minimizer nmsimplex, without derivatives
-    T = gsl_multimin_fminimizer_nmsimplex;
+    switch(method) {
+        case 0 : {T = gsl_multimin_fminimizer_nmsimplex; break; }
+        case 1 : {T = gsl_multimin_fminimizer_nmsimplex2; break; }
+        default: ERROR(BAD_CODE);
+    }
     s = gsl_multimin_fminimizer_alloc (T, my_func.n);
     gsl_multimin_fminimizer_set (s, &my_func, V(xi), V(sz));
     do {
@@ -458,9 +462,9 @@ void fdf_aux_min(const gsl_vector * x, void * pars, double * f, gsl_vector * g) 
 }
 
 
-int minimizeWithDeriv(int method, double f(int, double*), void df(int, double*, double*), 
-                      double initstep, double minimpar, double tolgrad, int maxit, 
-                      KRVEC(xi), RMAT(sol)) {
+int minimizeD(int method, double f(int, double*), void df(int, double*, double*), 
+              double initstep, double minimpar, double tolgrad, int maxit, 
+              KRVEC(xi), RMAT(sol)) {
     REQUIRES(solr == maxit && solc == 2+xin,BAD_SIZE);
     DEBUGMSG("minimizeWithDeriv (conjugate_fr)");
     gsl_multimin_function_fdf my_func;
@@ -482,7 +486,10 @@ int minimizeWithDeriv(int method, double f(int, double*), void df(int, double*, 
     // conjugate gradient fr
     switch(method) {
         case 0 : {T = gsl_multimin_fdfminimizer_conjugate_fr; break; }
-        case 1 : {T = gsl_multimin_fdfminimizer_vector_bfgs2; break; }
+        case 1 : {T = gsl_multimin_fdfminimizer_conjugate_pr; break; }
+        case 2 : {T = gsl_multimin_fdfminimizer_vector_bfgs; break; }
+        case 3 : {T = gsl_multimin_fdfminimizer_vector_bfgs2; break; }
+        case 4 : {T = gsl_multimin_fdfminimizer_steepest_descent; break; }
         default: ERROR(BAD_CODE);
     }
     s = gsl_multimin_fdfminimizer_alloc (T, my_func.n);
