@@ -31,6 +31,7 @@ extra-source-files: examples/tests.hs
                     examples/data.txt
                     examples/lie.hs
                     examples/kalman.hs
+                    examples/parallel.hs
                     examples/plot.hs
                     examples/latexmat.hs
                     examples/inplace.hs
@@ -64,7 +65,7 @@ flag unsafe
 
 library
     if flag(splitBase)
-      build-depends:    base >= 3, array, QuickCheck, HUnit, storable-complex, process
+      build-depends:    base >= 3 && < 5, array, QuickCheck, HUnit, storable-complex, process
     else
       build-depends:    base < 3, QuickCheck, HUnit, storable-complex, process
 
@@ -126,6 +127,7 @@ library
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix,
+                        Numeric.GSL.Internal,
                         Numeric.GSL.Special.Internal,
                         Numeric.LinearAlgebra.Tests.Instances,
                         Numeric.LinearAlgebra.Tests.Properties

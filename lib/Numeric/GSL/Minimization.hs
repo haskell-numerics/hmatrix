@@ -63,6 +63,7 @@ import Data.Packed.Internal
 import Data.Packed.Matrix
 import Foreign
 import Foreign.C.Types(CInt)
+import Numeric.GSL.Internal
 
 ------------------------------------------------------------------------
 
@@ -79,7 +80,7 @@ minimizeVectorBFGS2 step tol eps maxit f g xi = minimizeD VectorBFGS2 eps maxit 
 
 data MinimizeMethod = NMSimplex
                     | NMSimplex2
-                    deriving (Enum,Eq,Show)
+                    deriving (Enum,Eq,Show,Bounded)
 
 -- | Minimization without derivatives.
 minimize :: MinimizeMethod
@@ -97,7 +98,7 @@ data MinimizeMethodD = ConjugateFR
                      | VectorBFGS
                      | VectorBFGS2
                      | SteepestDescent
-                     deriving (Enum,Eq,Show)
+                     deriving (Enum,Eq,Show,Bounded)
 
 -- | Minimization with derivatives.
 minimizeD :: MinimizeMethodD
@@ -143,13 +144,13 @@ minimizeDGen method eps maxit istep tol f df xi = unsafePerformIO $ do
     let xiv = fromList xi
         n = dim xiv
         f' = f . toList
-        df' = (fromList . df . toList)
+        df' = (checkdim1 n .fromList . df . toList)
     fp <- mkVecfun (iv f')
     dfp <- mkVecVecfun (aux_vTov df')
     rawpath <- withVector xiv $ \xiv' ->
                     createMIO maxit (n+2)
-                         (c_minimizeWithDeriv method fp dfp istep tol eps (fi maxit) // xiv')
-                         "minimizeDerivV"
+                         (c_minimizeD method fp dfp istep tol eps (fi maxit) // xiv')
+                         "minimizeD"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
         sol = toList $ cdat $ dropColumns 2 $ dropRows (it-1) path
@@ -158,45 +159,15 @@ minimizeDGen method eps maxit istep tol f df xi = unsafePerformIO $ do
     return (sol,path)
 
 foreign import ccall "gsl-aux.h minimizeD"
-    c_minimizeWithDeriv :: CInt -> FunPtr (CInt -> Ptr Double -> Double)
-                                -> FunPtr (CInt -> Ptr Double -> Ptr Double -> IO ())
-                                -> Double -> Double -> Double -> CInt
-                                -> TVM
+    c_minimizeD :: CInt
+                -> FunPtr (CInt -> Ptr Double -> Double)
+                -> FunPtr TVV
+                -> Double -> Double -> Double -> CInt
+                -> TVM
 
 ---------------------------------------------------------------------
-iv :: (Vector Double -> Double) -> (CInt -> Ptr Double -> Double)
-iv f n p = f (createV (fromIntegral n) copy "iv") where
-    copy n' q = do
-        copyArray q p (fromIntegral n')
-        return 0
 
--- | conversion of Haskell functions into function pointers that can be used in the C side
-foreign import ccall "wrapper"
-    mkVecfun :: (CInt -> Ptr Double -> Double)
-             -> IO( FunPtr (CInt -> Ptr Double -> Double))
-
--- | another required conversion
-foreign import ccall "wrapper"
-    mkVecVecfun :: (CInt -> Ptr Double -> Ptr Double -> IO ())
-                -> IO (FunPtr (CInt -> Ptr Double -> Ptr Double->IO()))
-
-aux_vTov :: (Vector Double -> Vector Double) -> (CInt -> Ptr Double -> Ptr Double -> IO())
-aux_vTov f n p r = g where
-    V {fptr = pr} = f x
-    x = createV (fromIntegral n) copy "aux_vTov"
-    copy n' q = do
-        copyArray q p (fromIntegral n')
-        return 0
-    g = withForeignPtr pr $ \p' -> copyArray r p' (fromIntegral n)
-
---------------------------------------------------------------------
-
-createV n fun msg = unsafePerformIO $ do
-    r <- createVector n
-    app1 fun vec r msg
-    return r
-
-createMIO r c fun msg = do
-    res <- createMatrix RowMajor r c
-    app1 fun mat res msg
-    return res
+checkdim1 n v
+    | dim v == n = v
+    | otherwise = error $ "Error: "++ show n
+                        ++ " components expected in the result of the gradient supplied to minimizeD"

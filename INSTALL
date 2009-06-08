@@ -40,10 +40,10 @@ INSTALLATION ON WINDOWS ----------------------------------------
      line 17:      build-type:         Custom
      change to:    build-type:         Simple
 
-     line 160:     extra-libraries:
+     line 162:     extra-libraries:
      add:          extra-libraries: libgsl-0 blas lapack
 
-     line 161:     extra-lib-dirs:
+     line 163:     extra-lib-dirs:
      add:          extra-lib-dirs: c:\ghc\ghc-6.10.3\bin
 
 8) Open a terminal, cd to the hmatrix folder, and run

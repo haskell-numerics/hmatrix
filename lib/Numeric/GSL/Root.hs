@@ -53,6 +53,7 @@ import Data.Packed.Internal
 import Data.Packed.Matrix
 import Foreign
 import Foreign.C.Types(CInt)
+import Numeric.GSL.Internal
 
 -------------------------------------------------------------------------
 
@@ -60,7 +61,7 @@ data RootMethod = Hybrids
                 | Hybrid
                 | DNewton
                 | Broyden
-                deriving (Enum,Eq,Show)
+                deriving (Enum,Eq,Show,Bounded)
 
 -- | Nonlinear multidimensional root finding using algorithms that do not require 
 -- any derivative information to be supplied by the user.
@@ -98,7 +99,7 @@ data RootMethodJ = HybridsJ
                  | HybridJ
                  | Newton
                  | GNewton
-                deriving (Enum,Eq,Show)
+                deriving (Enum,Eq,Show,Bounded)
 
 -- | Nonlinear multidimensional root finding using both the function and its derivatives.
 rootJ :: RootMethodJ
@@ -124,57 +125,21 @@ rootJGen m f jac xi epsabs maxit = unsafePerformIO $ do
         path = takeRows it rawpath
         [sol] = toLists $ dropRows (it-1) path
     freeHaskellFunPtr fp
+    freeHaskellFunPtr jp
     return (take n $ drop 1 sol, path)
 
 
 foreign import ccall "rootj"
     c_rootj:: CInt -> FunPtr TVV -> FunPtr TVM -> Double -> CInt -> TVM
 
-
----------------------------------------------------------------------
-
-foreign import ccall "wrapper"
-    mkVecVecfun :: TVV -> IO (FunPtr TVV)
-
-aux_vTov :: (Vector Double -> Vector Double) -> TVV
-aux_vTov f n p nr r = g where
-    V {fptr = pr} = f x
-    x = createV (fromIntegral n) copy "aux_vTov"
-    copy n' q = do
-        copyArray q p (fromIntegral n')
-        return 0
-    g = do withForeignPtr pr $ \p' -> copyArray r p' (fromIntegral nr)
-           return 0
-
-foreign import ccall "wrapper"
-    mkVecMatfun :: TVM -> IO (FunPtr TVM)
-
-aux_vTom :: (Vector Double -> Matrix Double) -> TVM
-aux_vTom f n p rr cr r = g where
-    V {fptr = pr} = flatten $ f x
-    x = createV (fromIntegral n) copy "aux_vTov"
-    copy n' q = do
-        copyArray q p (fromIntegral n')
-        return 0
-    g = do withForeignPtr pr $ \p' -> copyArray r p' (fromIntegral $ rr*cr)
-           return 0
-
-createV n fun msg = unsafePerformIO $ do
-    r <- createVector n
-    app1 fun vec r msg
-    return r
-
-createMIO r c fun msg = do
-    res <- createMatrix RowMajor r c
-    app1 fun mat res msg
-    return res
+-------------------------------------------------------
 
 checkdim1 n v
     | dim v == n = v
     | otherwise = error $ "Error: "++ show n
-                        ++ " results expected in the function supplied to root"
+                        ++ " components expected in the result of the function supplied to root"
 
 checkdim2 n m
     | rows m == n && cols m == n = m
     | otherwise = error $ "Error: "++ show n ++ "x" ++ show n
-                        ++ " Jacobian expected in root"
+                        ++ " Jacobian expected in rootJ"

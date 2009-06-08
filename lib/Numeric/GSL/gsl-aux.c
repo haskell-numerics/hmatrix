@@ -423,7 +423,7 @@ int minimize(int method, double f(int, double*), double tolsize, int maxit,
 
 // working with the gradient
 
-typedef struct {double (*f)(int, double*); void (*df)(int, double*, double*);} Tfdf;
+typedef struct {double (*f)(int, double*); int (*df)(int, double*, int, double*);} Tfdf;
 
 double f_aux_min(const gsl_vector*x, void *pars) {
     Tfdf * fdf = ((Tfdf*) pars);
@@ -441,13 +441,13 @@ double f_aux_min(const gsl_vector*x, void *pars) {
 void df_aux_min(const gsl_vector * x, void * pars, gsl_vector * g) {
     Tfdf * fdf = ((Tfdf*) pars);  
     double* p = (double*)calloc(x->size,sizeof(double));
-    double* q = (double*)calloc(x->size,sizeof(double));
+    double* q = (double*)calloc(g->size,sizeof(double));
     int k;
     for(k=0;k<x->size;k++) {
         p[k] = gsl_vector_get(x,k);
     }
 
-    fdf->df(x->size,p,q);
+    fdf->df(x->size,p,g->size,q);
 
     for(k=0;k<x->size;k++) {
         gsl_vector_set(g,k,q[k]);
@@ -462,7 +462,7 @@ void fdf_aux_min(const gsl_vector * x, void * pars, double * f, gsl_vector * g) 
 }
 
 
-int minimizeD(int method, double f(int, double*), void df(int, double*, double*), 
+int minimizeD(int method, double f(int, double*), int df(int, double*, int, double*),
               double initstep, double minimpar, double tolgrad, int maxit, 
               KRVEC(xi), RMAT(sol)) {
     REQUIRES(solr == maxit && solc == 2+xin,BAD_SIZE);

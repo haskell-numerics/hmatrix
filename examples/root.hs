@@ -28,7 +28,4 @@ main = do
     test DNewton
     test Broyden
 
-    testJ HybridsJ
-    testJ HybridJ
-    testJ Newton
-    testJ GNewton
+    mapM_ testJ [HybridsJ .. GNewton]
