@@ -21,6 +21,7 @@ rep ', coupling_6j_INCORRECT_e\n, coupling_6j_INCORRECT\n' '' Coupling.hs
 ./auto.hs erf
 ./auto.hs exp
 rep ', exp\n' ', Numeric.GSL.Special.Exp.exp\n' Exp.hs
+rep ', exprel_n_CF_e' '-- , exprel_n_CF_e' Exp.hs
 ./auto.hs expint
 ./auto.hs fermi_dirac
 ./auto.hs gamma

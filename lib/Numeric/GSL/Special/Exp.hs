@@ -29,7 +29,7 @@ module Numeric.GSL.Special.Exp(
 , exprel_2
 , exprel_n_e
 , exprel_n
-, exprel_n_CF_e
+-- , exprel_n_CF_e
 , exp_err_e
 , exp_err_e10_e
 , exp_mult_err_e
