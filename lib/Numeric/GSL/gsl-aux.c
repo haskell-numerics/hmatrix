@@ -390,7 +390,11 @@ int minimize(int method, double f(int, double*), double tolsize, int maxit,
     // Minimizer nmsimplex, without derivatives
     switch(method) {
         case 0 : {T = gsl_multimin_fminimizer_nmsimplex; break; }
+#ifdef GSL110
+        case 1 : {T = gsl_multimin_fminimizer_nmsimplex; break; }
+#else
         case 1 : {T = gsl_multimin_fminimizer_nmsimplex2; break; }
+#endif
         default: ERROR(BAD_CODE);
     }
     s = gsl_multimin_fminimizer_alloc (T, my_func.n);

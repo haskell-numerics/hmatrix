@@ -46,11 +46,17 @@ f2 = unwords . map ("-framework "++) . words
 check libs fmks = (ExitSuccess ==) `fmap` system (testprog libs fmks)
 
 -- simple test for GSL
-testGSL = "echo \"#include <gsl/gsl_sf_gamma.h>\nint main(){gsl_sf_gamma(5);}\""
+gsl = "echo \"#include <gsl/gsl_sf_gamma.h>\nint main(){gsl_sf_gamma(5);}\""
            ++" > /tmp/dummy.c; gcc /tmp/dummy.c -o /tmp/dummy -lgsl -lgslcblas"
            ++ " > /dev/null 2> /dev/null"
 
-checkGSL = (ExitSuccess ==) `fmap` system (testGSL)
+-- test for gsl >= 1.12
+gsl112 = "echo \"#include <gsl/gsl_sf_exp.h>\nint main(){gsl_sf_exprel_n_CF_e(1,1,0);}\""
+           ++" > /tmp/dummy.c; gcc /tmp/dummy.c -o /tmp/dummy -lgsl -lgslcblas"
+           ++ " > /dev/null 2> /dev/null"
+
+
+checkCommand c = (ExitSuccess ==) `fmap` system c
 
 -- test different configurations until the first one works
 try _ _ [] = return Nothing
@@ -88,7 +94,7 @@ main = do
     case r of
         Nothing -> do
             putStrLn " FAIL"
-            g <- checkGSL
+            g  <- checkCommand gsl
             if g
                 then putStrLn " *** Sorry, I can't link LAPACK."
                 else putStrLn " *** Sorry, I can't link GSL."
@@ -98,4 +104,9 @@ main = do
             writeFile "hmatrix.buildinfo" ("buildable: False\n")
         Just ops -> do
             putStrLn " OK"
-            writeFile "hmatrix.buildinfo" ("extra-libraries: " ++ ops++"\n")
+            g <- checkCommand gsl112
+            writeFile "hmatrix.buildinfo" $ "extra-libraries: " ++
+                ops ++ "\n" ++
+                if g
+                    then ""
+                    else "cc-options: -DGSL110\n"
