@@ -411,8 +411,9 @@ int minimize(int method, double f(int, double*), double tolsize, int maxit,
         for(k=0;k<xin;k++) {
             solp[iter*solc+k+3] = gsl_vector_get(s->x,k);
         }
-        status = gsl_multimin_test_size (size, tolsize);
         iter++;
+        if (status) break;
+        status = gsl_multimin_test_size (size, tolsize);
     } while (status == GSL_CONTINUE && iter < maxit);
     int i,j;
     for (i=iter; i<solr; i++) {
@@ -506,8 +507,9 @@ int minimizeD(int method, double f(int, double*), int df(int, double*, int, doub
         for(k=0;k<xin;k++) {
             solp[iter*solc+k+2] = gsl_vector_get(s->x,k);
         }
-        status = gsl_multimin_test_gradient (s->gradient, tolgrad);
         iter++;
+        if (status) break;
+        status = gsl_multimin_test_gradient (s->gradient, tolgrad);
     } while (status == GSL_CONTINUE && iter < maxit);
     int i,j;
     for (i=iter; i<solr; i++) {
