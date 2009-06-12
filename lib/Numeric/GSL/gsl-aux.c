@@ -403,7 +403,7 @@ int minimize(int method, double f(int, double*), double tolsize, int maxit,
         status = gsl_multimin_fminimizer_iterate (s);
         size = gsl_multimin_fminimizer_size (s);
 
-        solp[iter*solc+0] = iter;
+        solp[iter*solc+0] = iter+1;
         solp[iter*solc+1] = s->fval;
         solp[iter*solc+2] = size;
 
@@ -414,7 +414,7 @@ int minimize(int method, double f(int, double*), double tolsize, int maxit,
         iter++;
         if (status) break;
         status = gsl_multimin_test_size (size, tolsize);
-    } while (status == GSL_CONTINUE && iter < maxit);
+    } while (status == GSL_CONTINUE && iter <= maxit);
     int i,j;
     for (i=iter; i<solr; i++) {
         solp[i*solc+0] = iter;
@@ -501,7 +501,7 @@ int minimizeD(int method, double f(int, double*), int df(int, double*, int, doub
     gsl_multimin_fdfminimizer_set (s, &my_func, V(xi), initstep, minimpar);
     do {
         status = gsl_multimin_fdfminimizer_iterate (s);
-        solp[iter*solc+0] = iter;
+        solp[iter*solc+0] = iter+1;
         solp[iter*solc+1] = s->f;
         int k;
         for(k=0;k<xin;k++) {
@@ -510,7 +510,7 @@ int minimizeD(int method, double f(int, double*), int df(int, double*, int, doub
         iter++;
         if (status) break;
         status = gsl_multimin_test_gradient (s->gradient, tolgrad);
-    } while (status == GSL_CONTINUE && iter < maxit);
+    } while (status == GSL_CONTINUE && iter <= maxit);
     int i,j;
     for (i=iter; i<solr; i++) {
         solp[i*solc+0] = iter;
@@ -572,7 +572,7 @@ int root(int method, void f(int, double*, int, double*),
     do {
            status = gsl_multiroot_fsolver_iterate (s);
 
-           solp[iter*solc+0] = iter;
+           solp[iter*solc+0] = iter+1;
 
            int k;
            for(k=0;k<xin;k++) {
@@ -589,7 +589,7 @@ int root(int method, void f(int, double*, int, double*),
            status =
              gsl_multiroot_test_residual (s->f, epsabs);
         }
-        while (status == GSL_CONTINUE && iter < maxit);
+        while (status == GSL_CONTINUE && iter <= maxit);
 
     int i,j;
     for (i=iter; i<solr; i++) {
@@ -687,7 +687,7 @@ int rootj(int method, int f(int, double*, int, double*),
     do {
            status = gsl_multiroot_fdfsolver_iterate (s);
 
-           solp[iter*solc+0] = iter;
+           solp[iter*solc+0] = iter+1;
 
            int k;
            for(k=0;k<xin;k++) {
@@ -704,7 +704,7 @@ int rootj(int method, int f(int, double*, int, double*),
            status =
              gsl_multiroot_test_residual (s->f, epsabs);
         }
-        while (status == GSL_CONTINUE && iter < maxit);
+        while (status == GSL_CONTINUE && iter <= maxit);
 
     int i,j;
     for (i=iter; i<solr; i++) {
