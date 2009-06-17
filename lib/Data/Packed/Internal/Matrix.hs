@@ -22,7 +22,6 @@ import Data.Packed.Internal.Vector
 
 import Foreign hiding (xor)
 import Complex
-import Foreign.C.String
 import Foreign.C.Types
 
 -----------------------------------------------------------------
@@ -353,10 +352,4 @@ fromComplex z = (r,i) where
 
 -- | loads a matrix from an ASCII file (the number of rows and columns must be known in advance).
 fromFile :: FilePath -> (Int,Int) -> IO (Matrix Double)
-fromFile filename (r,c) = do
-    charname <- newCString filename
-    res <- createMatrix RowMajor r c
-    app1 (c_gslReadMatrix charname) mat res "gslReadMatrix"
-    free charname
-    return res
-foreign import ccall "matrix_fscanf" c_gslReadMatrix:: Ptr CChar -> TM
+fromFile filename (r,c) = reshape c `fmap` fscanfVector filename (r*c)

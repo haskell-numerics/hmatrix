@@ -8,7 +8,7 @@
 -- Stability   :  provisional
 -- Portability :  portable
 --
--- A representation of 1D arrays suitable for numeric computations using external libraries.
+-- 1D arrays suitable for numeric computations using external libraries.
 --
 -----------------------------------------------------------------------------
 
@@ -19,8 +19,10 @@ module Data.Packed.Vector (
     subVector, join,
     constant, linspace,
     vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex,
+    mapVector, zipVector,
+    fscanfVector, fprintfVector, freadVector, fwriteVector,
     liftVector, liftVector2,
-    foldLoop, foldVector, foldVectorG, mapVector, zipVector
+    foldLoop, foldVector, foldVectorG
 ) where
 
 import Data.Packed.Internal

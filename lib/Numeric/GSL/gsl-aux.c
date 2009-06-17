@@ -1,4 +1,15 @@
-#include "gsl-aux.h"
+#include <gsl/gsl_complex.h>
+
+#define RVEC(A) int A##n, double*A##p
+#define RMAT(A) int A##r, int A##c, double* A##p
+#define KRVEC(A) int A##n, const double*A##p
+#define KRMAT(A) int A##r, int A##c, const double* A##p
+
+#define CVEC(A) int A##n, gsl_complex*A##p
+#define CMAT(A) int A##r, int A##c, gsl_complex* A##p
+#define KCVEC(A) int A##n, const gsl_complex*A##p
+#define KCMAT(A) int A##r, int A##c, const gsl_complex* A##p
+
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>
@@ -8,7 +19,6 @@
 #include <gsl/gsl_poly.h>
 #include <gsl/gsl_multimin.h>
 #include <gsl/gsl_multiroots.h>
-#include <gsl/gsl_complex.h>
 #include <gsl/gsl_complex_math.h>
 #include <string.h>
 #include <stdio.h>
@@ -340,13 +350,45 @@ int polySolve(KRVEC(a), CVEC(z)) {
     OK;
 }
 
-int matrix_fscanf(char*filename, RMAT(a)) {
+int vector_fscanf(char*filename, RVEC(a)) {
     DEBUGMSG("gsl_matrix_fscanf");
-    //printf(filename); printf("\n");
-    DMVIEW(a);
+    DVVIEW(a);
     FILE * f = fopen(filename,"r");
     CHECK(!f,BAD_FILE);
-    int res = gsl_matrix_fscanf(f, M(a));
+    int res = gsl_vector_fscanf(f,V(a));
+    CHECK(res,res);
+    fclose (f);
+    OK
+}
+
+int vector_fprintf(char*filename, char*fmt, RVEC(a)) {
+    DEBUGMSG("gsl_vector_fprintf");
+    DVVIEW(a);
+    FILE * f = fopen(filename,"w");
+    CHECK(!f,BAD_FILE);
+    int res = gsl_vector_fprintf(f,V(a),fmt);
+    CHECK(res,res);
+    fclose (f);
+    OK
+}
+
+int vector_fread(char*filename, RVEC(a)) {
+    DEBUGMSG("gsl_matrix_fscanf");
+    DVVIEW(a);
+    FILE * f = fopen(filename,"r");
+    CHECK(!f,BAD_FILE);
+    int res = gsl_vector_fread(f,V(a));
+    CHECK(res,res);
+    fclose (f);
+    OK
+}
+
+int vector_fwrite(char*filename, RVEC(a)) {
+    DEBUGMSG("gsl_vector_fprintf");
+    DVVIEW(a);
+    FILE * f = fopen(filename,"w");
+    CHECK(!f,BAD_FILE);
+    int res = gsl_vector_fwrite(f,V(a));
     CHECK(res,res);
     fclose (f);
     OK

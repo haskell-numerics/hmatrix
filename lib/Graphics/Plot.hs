@@ -40,8 +40,8 @@ size = dim
 --fromFile filename = readFile filename >>= return . readMatrix read
 
 -- | Saves a real matrix to a formatted ascii text file
-toFile :: FilePath -> Matrix Double -> IO ()
-toFile filename matrix = writeFile filename (unlines . map unwords. map (map show) . toLists $ matrix)
+toFile' :: FilePath -> Matrix Double -> IO ()
+toFile' filename matrix = writeFile filename (unlines . map unwords. map (map show) . toLists $ matrix)
 
 ------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ mesh m = gnuplotX (command++dat) where
 mesh' :: Matrix Double -> IO ()
 mesh' m = do
     writeFile "splot-gnu-command" "splot \"splot-tmp.txt\" matrix with lines; pause -1"; 
-    toFile "splot-tmp.txt" m
+    toFile' "splot-tmp.txt" m
     putStr "Press [Return] to close the graphic and continue... "
     system "gnuplot -persist splot-gnu-command"
     system "rm splot-tmp.txt splot-gnu-command"
