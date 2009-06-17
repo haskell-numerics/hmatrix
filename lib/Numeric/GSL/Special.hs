@@ -25,6 +25,7 @@ module Numeric.GSL.Special (
 , module Numeric.GSL.Special.Dilog
 , module Numeric.GSL.Special.Elementary
 , module Numeric.GSL.Special.Ellint
+, module Numeric.GSL.Special.Elljac
 , module Numeric.GSL.Special.Erf
 , module Numeric.GSL.Special.Exp
 , module Numeric.GSL.Special.Expint
@@ -39,6 +40,7 @@ module Numeric.GSL.Special (
 , module Numeric.GSL.Special.Pow_int
 , module Numeric.GSL.Special.Psi
 , module Numeric.GSL.Special.Synchrotron
+, module Numeric.GSL.Special.Transport
 , module Numeric.GSL.Special.Trig
 , module Numeric.GSL.Special.Zeta
 )
@@ -54,6 +56,7 @@ import Numeric.GSL.Special.Debye
 import Numeric.GSL.Special.Dilog
 import Numeric.GSL.Special.Elementary
 import Numeric.GSL.Special.Ellint
+import Numeric.GSL.Special.Elljac
 import Numeric.GSL.Special.Erf
 import Numeric.GSL.Special.Exp
 import Numeric.GSL.Special.Expint
@@ -68,5 +71,6 @@ import Numeric.GSL.Special.Log
 import Numeric.GSL.Special.Pow_int
 import Numeric.GSL.Special.Psi
 import Numeric.GSL.Special.Synchrotron
+import Numeric.GSL.Special.Transport
 import Numeric.GSL.Special.Trig
 import Numeric.GSL.Special.Zeta

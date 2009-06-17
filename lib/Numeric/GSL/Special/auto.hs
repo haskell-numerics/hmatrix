@@ -67,23 +67,26 @@ main = do
                 ++"import Numeric.GSL.Special.Internal\n"
     let mod = modhead name ++ "module Numeric.GSL.Special."++ upperFirst name++exports++imports++defs
     writeFile (upperFirst name ++ ".hs") mod
+--     appendFile "funs.txt" $ rep ("(\n ","-- * "
+--                                      ++map toUpper name
+--                                 --   ++"\n"++google ( "gsl_sf_"++name++".h")++"\n"
+--                                      ++"\n,") $ rep (") where","") $ exports
 
 
 google name = "<http://www.google.com/search?q="
                ++name
                ++"&as_sitesearch=www.gnu.org/software/gsl/manual&btnI=Lucky>"
 
-modhead name = replicate 60 '-' ++ "\n"
-             ++"{- |\n"
-             ++"Module      :  Numeric.GSL.Special."++upperFirst name++"\n"
-             ++"Copyright   :  (c) Alberto Ruiz 2006\n"
-             ++"License     :  GPL-style\n"
-             ++"Maintainer  :  Alberto Ruiz (aruiz at um dot es)\n"
-             ++"Stability   :  provisional\n"
-             ++"Portability :  uses ffi\n"
-             ++"\nWrappers for selected functions described at:\n\n"
-             ++ google ( "gsl_sf_"++name++".h")
-             ++"\n\n-}\n"
+modhead name = replicate 60 '-' ++ "\n-- |\n"
+             ++"-- Module      :  Numeric.GSL.Special."++upperFirst name++"\n"
+             ++"-- Copyright   :  (c) Alberto Ruiz 2006\n"
+             ++"-- License     :  GPL\n"
+             ++"-- Maintainer  :  Alberto Ruiz (aruiz at um dot es)\n"
+             ++"-- Stability   :  provisional\n"
+             ++"-- Portability :  uses ffi\n"
+             ++"--\n"
+             ++"-- Wrappers for selected functions described at:\n--\n-- "
+             ++ google ( "gsl_sf_"++name++".h")++"\n"
              ++ replicate 60 '-' ++ "\n\n"
 
 upperFirst (x:xs) = toUpper x : xs
@@ -194,10 +197,11 @@ showHt (Pointer t) = "Ptr "++ht t
 
 showHa (t,a) = showHt t
 
-showFull hc h@(Header t n args) = "\n-- | wrapper for "++showC h
-                                ++"\n--\n--   "++google n ++"\n"
-                                ++ boiler h ++"\n" 
-                                ++showH hc h 
+showFull hc h@(Header t n args) = -- "\n-- | wrapper for "++showC h
+                                  --   ++"\n--\n--   "++google n ++"\n"
+                                  -- ++ "\n" ++
+                                  boiler h ++ "\n" ++
+                                  showH hc h
 
 fixmd1 = rep ("Gsl_mode_t","Precision")
 fixmd2 = rep ("mode"," (precCode mode)")
