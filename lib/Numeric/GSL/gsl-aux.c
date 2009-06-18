@@ -351,7 +351,7 @@ int polySolve(KRVEC(a), CVEC(z)) {
 }
 
 int vector_fscanf(char*filename, RVEC(a)) {
-    DEBUGMSG("gsl_matrix_fscanf");
+    DEBUGMSG("gsl_vector_fscanf");
     DVVIEW(a);
     FILE * f = fopen(filename,"r");
     CHECK(!f,BAD_FILE);
@@ -373,7 +373,7 @@ int vector_fprintf(char*filename, char*fmt, RVEC(a)) {
 }
 
 int vector_fread(char*filename, RVEC(a)) {
-    DEBUGMSG("gsl_matrix_fscanf");
+    DEBUGMSG("gsl_vector_fread");
     DVVIEW(a);
     FILE * f = fopen(filename,"r");
     CHECK(!f,BAD_FILE);
@@ -384,12 +384,31 @@ int vector_fread(char*filename, RVEC(a)) {
 }
 
 int vector_fwrite(char*filename, RVEC(a)) {
-    DEBUGMSG("gsl_vector_fprintf");
+    DEBUGMSG("gsl_vector_fwrite");
     DVVIEW(a);
     FILE * f = fopen(filename,"w");
     CHECK(!f,BAD_FILE);
     int res = gsl_vector_fwrite(f,V(a));
     CHECK(res,res);
+    fclose (f);
+    OK
+}
+
+int matrix_fprintf(char*filename, char*fmt, int ro, RMAT(m)) {
+    DEBUGMSG("matrix_fprintf");
+    FILE * f = fopen(filename,"w");
+    CHECK(!f,BAD_FILE);
+    int i,j,sr,sc;
+    if (ro==1) { sr = mc; sc = 1;} else { sr = 1; sc = mr;}
+    #define AT(M,r,c) (M##p[(r)*sr+(c)*sc])
+    for (i=0; i<mr; i++) {
+        for (j=0; j<mc-1; j++) {
+            fprintf(f,fmt,AT(m,i,j));
+            fprintf(f," ");
+        }
+        fprintf(f,fmt,AT(m,i,j));
+        fprintf(f,"\n");
+    }
     fclose (f);
     OK
 }

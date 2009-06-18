@@ -30,7 +30,7 @@ module Data.Packed.Matrix (
     ident, diag, diagRect, takeDiag,
     liftMatrix, liftMatrix2,
     format,
-    loadMatrix, fromFile, fileDimensions,
+    loadMatrix, saveMatrix, fromFile, fileDimensions,
     readMatrix, fromArray2D
 ) where
 
@@ -247,10 +247,14 @@ fileDimensions fname = do
         then return (tot `div` c, c)
         else return (0,0)
 
-{- | loads a matrix from a formatted ASCII file.
--}
+-- | Loads a matrix from an ASCII file formatted as a 2D table.
 loadMatrix :: FilePath -> IO (Matrix Double)
 loadMatrix file = fromFile file =<< fileDimensions file
+
+-- | Loads a matrix from an ASCII file (the number of rows and columns must be known in advance).
+fromFile :: FilePath -> (Int,Int) -> IO (Matrix Double)
+fromFile filename (r,c) = reshape c `fmap` fscanfVector filename (r*c)
+
 
 -- | rearranges the rows of a matrix according to the order given in a list of integers. 
 extractRows :: Element t => [Int] -> Matrix t -> Matrix t

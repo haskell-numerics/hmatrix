@@ -23,6 +23,7 @@ import Data.Packed.Internal.Vector
 import Foreign hiding (xor)
 import Complex
 import Foreign.C.Types
+import Foreign.C.String
 
 -----------------------------------------------------------------
 
@@ -350,6 +351,19 @@ fromComplex :: Vector (Complex Double) -> (Vector Double, Vector Double)
 fromComplex z = (r,i) where
     [r,i] = toColumns $ reshape 2 $ asReal z
 
--- | loads a matrix from an ASCII file (the number of rows and columns must be known in advance).
-fromFile :: FilePath -> (Int,Int) -> IO (Matrix Double)
-fromFile filename (r,c) = reshape c `fmap` fscanfVector filename (r*c)
+--------------------------------------------------------------------------
+
+-- | Saves a matrix as 2D ASCII table.
+saveMatrix :: FilePath
+           -> String     -- ^ format (%f, %g, %e)
+           -> Matrix Double
+           -> IO ()
+saveMatrix filename fmt m = do
+    charname <- newCString filename
+    charfmt <- newCString fmt
+    let o = if orderOf m == RowMajor then 1 else 0
+    app1 (matrix_fprintf charname charfmt o) mat m "matrix_fprintf"
+    free charname
+    free charfmt
+
+foreign import ccall "matrix_fprintf" matrix_fprintf :: Ptr CChar -> Ptr CChar -> CInt -> TM
