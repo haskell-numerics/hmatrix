@@ -41,8 +41,7 @@ extra-source-files: examples/tests.hs
                     examples/devel/functions.hs
 
 extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
-                    lib/Numeric/LinearAlgebra/LAPACK/clapack.h,
-                    lib/Numeric/GSL/gsl-aux.h
+                    lib/Numeric/LinearAlgebra/LAPACK/clapack.h
 
 extra-source-files: lib/Numeric/GSL/Special/auto.hs,
                     lib/Numeric/GSL/Special/autoall.sh,
