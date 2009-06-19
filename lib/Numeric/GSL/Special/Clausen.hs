@@ -20,9 +20,11 @@ module Numeric.GSL.Special.Clausen(
 import Foreign(Ptr)
 import Foreign.C.Types(CInt)
 import Numeric.GSL.Special.Internal
+
 clausen_e :: Double -> (Double,Double)
 clausen_e x = createSFR "clausen_e" $ gsl_sf_clausen_e x
 foreign import ccall "gsl_sf_clausen_e" gsl_sf_clausen_e :: Double -> Ptr () -> IO CInt
+
 clausen :: Double -> Double
 clausen = gsl_sf_clausen
 foreign import ccall "gsl_sf_clausen" gsl_sf_clausen :: Double -> Double

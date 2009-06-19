@@ -21,12 +21,15 @@ module Numeric.GSL.Special.Elementary(
 import Foreign(Ptr)
 import Foreign.C.Types(CInt)
 import Numeric.GSL.Special.Internal
+
 multiply_e :: Double -> Double -> (Double,Double)
 multiply_e x y = createSFR "multiply_e" $ gsl_sf_multiply_e x y
 foreign import ccall "gsl_sf_multiply_e" gsl_sf_multiply_e :: Double -> Double -> Ptr () -> IO CInt
+
 multiply :: Double -> Double -> Double
 multiply = gsl_sf_multiply
 foreign import ccall "gsl_sf_multiply" gsl_sf_multiply :: Double -> Double -> Double
+
 multiply_err_e :: Double -> Double -> Double -> Double -> (Double,Double)
 multiply_err_e x dx y dy = createSFR "multiply_err_e" $ gsl_sf_multiply_err_e x dx y dy
 foreign import ccall "gsl_sf_multiply_err_e" gsl_sf_multiply_err_e :: Double -> Double -> Double -> Double -> Ptr () -> IO CInt

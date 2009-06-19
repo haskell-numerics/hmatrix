@@ -198,10 +198,10 @@ showHt (Pointer t) = "Ptr "++ht t
 showHa (t,a) = showHt t
 
 showFull hc h@(Header t n args) = -- "\n-- | wrapper for "++showC h
-                                  --   ++"\n--\n--   "++google n ++"\n"
+                                  --   ++"\n--\n--   "++google n ++"\n"++
                                   -- ++ "\n" ++
-                                  boiler h ++ "\n" ++
-                                  showH hc h
+                                  "\n" ++ boiler h ++ 
+                                  "\n" ++ showH hc h
 
 fixmd1 = rep ("Gsl_mode_t","Precision")
 fixmd2 = rep ("mode"," (precCode mode)")

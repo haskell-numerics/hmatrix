@@ -20,9 +20,11 @@ module Numeric.GSL.Special.Pow_int(
 import Foreign(Ptr)
 import Foreign.C.Types(CInt)
 import Numeric.GSL.Special.Internal
+
 pow_int_e :: Double -> CInt -> (Double,Double)
 pow_int_e x n = createSFR "pow_int_e" $ gsl_sf_pow_int_e x n
 foreign import ccall "gsl_sf_pow_int_e" gsl_sf_pow_int_e :: Double -> CInt -> Ptr () -> IO CInt
+
 pow_int :: Double -> CInt -> Double
 pow_int = gsl_sf_pow_int
 foreign import ccall "gsl_sf_pow_int" gsl_sf_pow_int :: Double -> CInt -> Double

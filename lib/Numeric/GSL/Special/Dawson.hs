@@ -20,9 +20,11 @@ module Numeric.GSL.Special.Dawson(
 import Foreign(Ptr)
 import Foreign.C.Types(CInt)
 import Numeric.GSL.Special.Internal
+
 dawson_e :: Double -> (Double,Double)
 dawson_e x = createSFR "dawson_e" $ gsl_sf_dawson_e x
 foreign import ccall "gsl_sf_dawson_e" gsl_sf_dawson_e :: Double -> Ptr () -> IO CInt
+
 dawson :: Double -> Double
 dawson = gsl_sf_dawson
 foreign import ccall "gsl_sf_dawson" gsl_sf_dawson :: Double -> Double
