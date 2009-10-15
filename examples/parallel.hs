@@ -1,13 +1,16 @@
+-- $ runhaskell parallel.hs 2000
+
 import System(getArgs)
 import Numeric.LinearAlgebra
 import Control.Parallel.Strategies
 import System.Time
 
-inParallel = parMap rwhnf id
+inParallel = parMap rnf id
+-- rwhnf also works in this case
 
+-- matrix product decomposed into p parallel subtasks
 parMul p x y = fromBlocks [ inParallel ( map (x <>) ys ) ]
     where ys = splitColumns p y
-
 
 main = do
     n <- (read . head) `fmap` getArgs

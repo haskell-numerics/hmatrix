@@ -27,6 +27,7 @@ import Data.List(transpose,intersperse)
 import Foreign(Storable)
 import Data.Monoid
 import Data.Packed.Internal.Vector
+import Control.Parallel.Strategies
 
 ------------------------------------------------------------------
 
@@ -196,3 +197,10 @@ instance (Storable a) => Monoid (Vector a) where
         where j [] = mempty
               j l  = join l
 
+---------------------------------------------------------------
+
+instance (NFData a, Storable a) => NFData (Vector a) where
+    rnf = rnf . (@>0)
+
+instance (NFData a, Element a) => NFData (Matrix a) where
+    rnf = rnf . flatten

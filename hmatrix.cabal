@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.5.2.3
+Version:            0.6.0.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -64,11 +64,16 @@ flag unsafe
 
 library
     if flag(splitBase)
-      build-depends:    base >= 3 && < 5, array, QuickCheck, HUnit, storable-complex, process
+      build-depends:    base >= 3 && < 5, array
     else
-      build-depends:    base < 3, QuickCheck, HUnit, storable-complex, process
+      build-depends:    base < 3
 
-    Build-Depends:      haskell98
+    Build-Depends:      haskell98,
+                        QuickCheck, HUnit,
+                        storable-complex,
+                        process,
+                        parallel
+
     Extensions:         ForeignFunctionInterface,
                         CPP
 
