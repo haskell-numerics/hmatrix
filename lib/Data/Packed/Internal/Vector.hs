@@ -171,6 +171,7 @@ infixl 9 @>
 -}
 join :: Storable t => [Vector t] -> Vector t
 join [] = error "joining zero vectors"
+join [v] = v
 join as = unsafePerformIO $ do
     let tot = sum (map dim as)
     r@V {fptr = p} <- createVector tot

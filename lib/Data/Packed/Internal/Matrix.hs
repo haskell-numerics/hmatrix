@@ -223,18 +223,19 @@ class (Storable a, Floating a) => Element a where
     subMatrixD :: (Int,Int) -- ^ (r0,c0) starting position 
                -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
                -> Matrix a -> Matrix a
+    subMatrixD = subMatrix'
     transdata :: Int -> Vector a -> Int -> Vector a
+    transdata = transdata'
     constantD  :: a -> Int -> Vector a
+    constantD = constant'
 
 instance Element Double where
-    subMatrixD = subMatrix'
-    transdata  = transdataAux ctransR     -- transdata'
-    constantD  = constantAux cconstantR   -- constant'
+    transdata  = transdataAux ctransR
+    constantD  = constantAux cconstantR
 
 instance Element (Complex Double) where
-    subMatrixD = subMatrix'
-    transdata  = transdataAux ctransC     -- transdata'
-    constantD  = constantAux cconstantC   -- constant'
+    transdata  = transdataAux ctransC
+    constantD  = constantAux cconstantC
 
 -------------------------------------------------------------------
 
