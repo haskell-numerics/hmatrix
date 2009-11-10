@@ -62,7 +62,9 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Util
     haussholder,
     unpackQR, unpackHess,
-    pinvTol
+    pinvTol,
+    rankSVD,
+    nullspaceSVD
 ) where
 
 
@@ -248,17 +250,27 @@ full svdFun m = (u, d ,v) where
 economy :: Element t 
         => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Vector Double, Matrix t)
 economy svdFun m = (u', subVector 0 d s, v') where
-    (u,s,v) = svdFun m
-    sl@(g:_) = toList s
-    s' = fromList . filter (>tol) $ sl
-    t = 1
-    tol = (fromIntegral (max r c) * g * t * eps)
-    r = rows m
-    c = cols m
-    d = dim s'
+    r@(u,s,v) = svdFun m
+    d = rankSVD (1*eps) m r  `max` 1
     u' = takeColumns d u
     v' = takeColumns d v
 
+
+-- | Numeric rank of a matrix from the SVD decomposition.
+rankSVD :: Element t
+        => Double   -- ^ numeric zero (e.g. 1*'eps')
+        -> Matrix t -- ^ input matrix m
+        -> (Matrix t, Vector Double, Matrix t) -- ^ 'svd' of m
+        -> Int      -- ^ rank of m
+rankSVD teps m (_,s,_) = k where
+    sl@(g:_) = toList s
+    r = rows m
+    c = cols m
+    tol = fromIntegral (max r c) * g * teps
+    s' = fromList . filter (>tol) $ sl
+    k = if g > teps
+        then dim s'
+             else 0
 
 -- | The machine precision of a Double: @eps = 2.22044604925031e-16@ (the value used by GNU-Octave).
 eps :: Double
@@ -336,18 +348,36 @@ instance Normed (Matrix (Complex Double)) where
 -----------------------------------------------------------------------
 
 -- | The nullspace of a matrix from its SVD decomposition.
+nullspaceSVD :: Field t
+             => Either Double Int -- ^ Left \"numeric\" zero (eg. 1*'eps'),
+                                  --   or Right \"theoretical\" matrix rank.
+             -> Matrix t          -- ^ input matrix m
+             -> (Matrix t, Vector Double, Matrix t) -- ^ 'svd' of m
+             -> [Vector t]        -- ^ list of unitary vectors spanning the nullspace
+nullspaceSVD hint a z@(_,_,v) = vs where
+    r = rows a
+    c = cols a
+    tol = case hint of
+        Left t -> t
+        _      -> eps
+    k = case hint of
+        Right t -> t
+        _       -> rankSVD tol a z
+    nsol = c - k
+    vs = drop k (toColumns v)
+
+
+-- | The nullspace of a matrix. See also 'nullspaceSVD'.
 nullspacePrec :: Field t
               => Double     -- ^ relative tolerance in 'eps' units
               -> Matrix t   -- ^ input matrix
               -> [Vector t] -- ^ list of unitary vectors spanning the nullspace
 nullspacePrec t m = ns where
-    (_,s,v) = svd m
-    sl@(g:_) = toList s
-    tol = (fromIntegral (max (rows m) (cols m)) * g * t * eps)
-    rank' = length (filter (> g*tol) sl)
-    ns = drop rank' $ toRows $ ctrans v
+    r@(_,_,v) = svd m
+    k = rankSVD (t*eps) m r
+    ns = drop k $ toRows $ ctrans v
 
--- | The nullspace of a matrix, assumed to be one-dimensional, with default tolerance (shortcut for @last . nullspacePrec 1@).
+-- | The nullspace of a matrix, assumed to be one-dimensional, with default tolerance 1*'eps'.
 nullVector :: Field t => Matrix t -> Vector t
 nullVector = last . nullspacePrec 1
 
@@ -436,8 +466,7 @@ rcond m = last s / head s
 
 -- | Number of linearly independent rows or columns.
 rank :: Field t => Matrix t -> Int
-rank m | pnorm PNorm1 m < eps = 0
-       | otherwise = dim s where (_,s,_) = economy svd m
+rank m = rankSVD eps m (svd m)
 
 {-
 expm' m = case diagonalize (complex m) of

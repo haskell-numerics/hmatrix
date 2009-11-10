@@ -17,7 +17,7 @@ cabal-version:      >=1.2
 build-type:         Custom
 extra-source-files: lib/Numeric/LinearAlgebra/Tests/quickCheckCompat.h
 
-extra-source-files: configure configure.hs README INSTALL
+extra-source-files: configure configure.hs README INSTALL CHANGES
 extra-tmp-files:    hmatrix.buildinfo
 
 extra-source-files: examples/tests.hs
@@ -140,7 +140,7 @@ library
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
 
-    ghc-prof-options:   -auto-all
+--    ghc-prof-options:   -auto-all
 
     ghc-options:        -Wall -fno-warn-missing-signatures
                               -fno-warn-orphans

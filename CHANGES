@@ -1,0 +1,11 @@
+6.0.0.0
+=======
+
+- added rankSVD, nullspaceSVD
+
+- rank, nullspacePrec, and economy svd defined in terms of ranksvd.
+
+- economy svd now admits zero rank matrices and return a "degenerate
+  rank 1" decomposition with zero singular value.
+
+- added NFData instances for Matrix and Vector.
