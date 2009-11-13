@@ -15,9 +15,26 @@
 -----------------------------------------------------------------------------
 -- #hide
 
-module Data.Packed.Internal.Matrix where
+module Data.Packed.Internal.Matrix(
+    Matrix(..),
+    MatrixOrder(..), orderOf,
+    createMatrix, withMatrix, mat,
+    cmat, fmat,
+    toLists, flatten, reshape,
+    Element(..),
+    trans,
+    fromRows, toRows, fromColumns, toColumns,
+    matrixFromVector,
+    subMatrix,
+    liftMatrix, liftMatrix2,
+    (@@>),
+    saveMatrix,
+    fromComplex, toComplex, conj,
+    singleton
+) where
 
 import Data.Packed.Internal.Common
+import Data.Packed.Internal.Signatures
 import Data.Packed.Internal.Vector
 
 import Foreign hiding (xor)

@@ -21,7 +21,6 @@ module Data.Packed.Vector (
     vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex,
     mapVector, zipVector,
     fscanfVector, fprintfVector, freadVector, fwriteVector,
-    liftVector, liftVector2,
     foldLoop, foldVector, foldVectorG
 ) where
 

@@ -14,24 +14,19 @@
 -----------------------------------------------------------------------------
 -- #hide
 
-module Data.Packed.Internal.Common where
+module Data.Packed.Internal.Common(
+  Adapt,
+  app1, app2, app3, app4,
+  (//), check,
+  partit, common,
+  fi
+) where
 
 import Foreign
-import Complex
 import Control.Monad(when)
-import Debug.Trace
 import Foreign.C.String(peekCString)
 import Foreign.C.Types
 import Foreign.Storable.Complex()
-
-
--- | @debug x = trace (show x) x@
-debug :: (Show a) => a -> a
-debug x = trace (show x) x
-
--- | useful for expressions like @sortBy (compare \`on\` length)@
-on :: (a -> a -> b) -> (t -> a) -> t -> t -> b
-on f g = \x y -> f (g x) (g y)
 
 -- | @partit 3 [1..9] == [[1,2,3],[4,5,6],[7,8,9]]@
 partit :: Int -> [a] -> [[a]]
@@ -139,42 +134,3 @@ check msg f = do
 
 -- | description of GSL error codes
 foreign import ccall "auxi.h gsl_strerror" gsl_strerror :: CInt -> IO (Ptr CChar)
-
----------------------------------------------------
----------- signatures of the C functions ---------
---------------------------------------------------
-type PD = Ptr Double                            --
-type PC = Ptr (Complex Double)                  --
-type TV = CInt -> PD -> IO CInt                 --
-type TVV = CInt -> PD -> TV                     --
-type TVVV = CInt -> PD -> TVV                   --
-type TM = CInt -> CInt -> PD -> IO CInt         --
-type TMM =  CInt -> CInt -> PD -> TM            --
-type TVMM = CInt -> PD -> TMM                   --
-type TMVMM = CInt -> CInt -> PD -> TVMM         --
-type TMMM =  CInt -> CInt -> PD -> TMM          --
-type TVM = CInt -> PD -> TM                     --
-type TVVM = CInt -> PD -> TVM                   --
-type TMV = CInt -> CInt -> PD -> TV             --
-type TMMV = CInt -> CInt -> PD -> TMV           --
-type TMVM = CInt -> CInt -> PD -> TVM           --
-type TMMVM = CInt -> CInt -> PD -> TMVM         --
-type TCM = CInt -> CInt -> PC -> IO CInt        --
-type TCVCM = CInt -> PC -> TCM                  --
-type TCMCVCM = CInt -> CInt -> PC -> TCVCM      --
-type TMCMCVCM = CInt -> CInt -> PD -> TCMCVCM   --
-type TCMCMCVCM = CInt -> CInt -> PC -> TCMCVCM  --
-type TCMCM = CInt -> CInt -> PC -> TCM          --
-type TVCM = CInt -> PD -> TCM                   --
-type TCMVCM = CInt -> CInt -> PC -> TVCM        --
-type TCMCMVCM = CInt -> CInt -> PC -> TCMVCM    --
-type TCMCMCM = CInt -> CInt -> PC -> TCMCM      --
-type TCV = CInt -> PC -> IO CInt                --
-type TCVCV = CInt -> PC -> TCV                  --
-type TCVCVCV = CInt -> PC -> TCVCV              --
-type TCMCV = CInt -> CInt -> PC -> TCV          --
-type TVCV = CInt -> PD -> TCV                   --
-type TCVM = CInt -> PC -> TM                    --
-type TMCVM = CInt -> CInt -> PD -> TCVM         --
-type TMMCVM = CInt -> CInt -> PD -> TMCVM       --
---------------------------------------------------

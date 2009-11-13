@@ -14,9 +14,20 @@
 -----------------------------------------------------------------------------
 -- #hide
 
-module Data.Packed.Internal.Vector where
+module Data.Packed.Internal.Vector (
+    Vector(..),
+    fromList, toList, (|>),
+    join, (@>), safe, at, at', subVector,
+    mapVector, zipVector,
+    foldVector, foldVectorG, foldLoop,
+    createVector, withVector, vec,
+    asComplex, asReal,
+    fwriteVector, freadVector, fprintfVector, fscanfVector,
+    cloneVector
+) where
 
 import Data.Packed.Internal.Common
+import Data.Packed.Internal.Signatures
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types(CInt,CChar)
@@ -193,12 +204,6 @@ asComplex :: Vector Double -> Vector (Complex Double)
 asComplex v = V { dim = dim v `div` 2, fptr =  castForeignPtr (fptr v) }
 
 ----------------------------------------------------------------
-
-liftVector f x = mapVector f x
-
-liftVector2 f u v = zipVector f u v
-
------------------------------------------------------------------
 
 cloneVector :: Storable t => Vector t -> IO (Vector t)
 cloneVector (v@V {dim=n}) = do

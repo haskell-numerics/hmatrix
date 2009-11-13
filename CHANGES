@@ -9,3 +9,5 @@
   rank 1" decomposition with zero singular value.
 
 - added NFData instances for Matrix and Vector.
+
+- liftVector, liftVector2 replaced by mapVector, zipVector.

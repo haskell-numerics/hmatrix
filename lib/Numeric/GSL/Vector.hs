@@ -21,6 +21,7 @@ module Numeric.GSL.Vector (
 ) where
 
 import Data.Packed.Internal.Common
+import Data.Packed.Internal.Signatures
 import Data.Packed.Internal.Vector
 
 import Complex

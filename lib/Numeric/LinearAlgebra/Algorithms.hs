@@ -310,8 +310,8 @@ pnormRV Infinity = vectorMax . vectorMapR Abs
 --pnormRV _ = error "pnormRV not yet defined"
 
 pnormCV PNorm2 = norm2 . asReal
-pnormCV PNorm1 = norm1 . liftVector magnitude
-pnormCV Infinity = vectorMax . liftVector magnitude
+pnormCV PNorm1 = norm1 . mapVector magnitude
+pnormCV Infinity = vectorMax . mapVector magnitude
 --pnormCV _ = error "pnormCV not yet defined"
 
 pnormRM PNorm2 m = head (toList s) where (_,s,_) = svdR m
@@ -320,8 +320,8 @@ pnormRM Infinity m = vectorMax $ liftMatrix (vectorMapR Abs) m `mXv` constant 1 
 --pnormRM _ _ = error "p norm not yet defined"
 
 pnormCM PNorm2 m = head (toList s) where (_,s,_) = svdC m
-pnormCM PNorm1 m = vectorMax $ constant 1 (rows m) `vXm` liftMatrix (liftVector magnitude) m
-pnormCM Infinity m = vectorMax $ liftMatrix (liftVector magnitude) m `mXv` constant 1 (cols m)
+pnormCM PNorm1 m = vectorMax $ constant 1 (rows m) `vXm` liftMatrix (mapVector magnitude) m
+pnormCM Infinity m = vectorMax $ liftMatrix (mapVector magnitude) m `mXv` constant 1 (cols m)
 --pnormCM _ _ = error "p norm not yet defined"
 
 -- | Objects which have a p-norm.
@@ -489,7 +489,7 @@ diagonalize m = if rank v == n
 --
 matFunc :: Field t => (Complex Double -> Complex Double) -> Matrix t -> Matrix (Complex Double)
 matFunc f m = case diagonalize (complex m) of
-    Just (l,v) -> v `mXm` diag (liftVector f l) `mXm` inv v
+    Just (l,v) -> v `mXm` diag (mapVector f l) `mXm` inv v
     Nothing -> error "Sorry, matFunc requires a diagonalizable matrix" 
 
 --------------------------------------------------------------

@@ -131,6 +131,7 @@ library
                         Data.Packed.Development
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
+                        Data.Packed.Internal.Signatures,
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix,
                         Numeric.GSL.Internal,
@@ -140,7 +141,7 @@ library
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
 
---    ghc-prof-options:   -auto-all
+    ghc-prof-options:   -auto
 
     ghc-options:        -Wall -fno-warn-missing-signatures
                               -fno-warn-orphans

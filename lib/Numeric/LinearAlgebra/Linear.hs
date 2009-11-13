@@ -55,7 +55,7 @@ instance Linear Vector (Complex Double) where
     sub = vectorZipC Sub
     mul = vectorZipC Mul
     divide = vectorZipC Div
-    equal u v = dim u == dim v && vectorMax (liftVector magnitude (sub u v)) == 0.0
+    equal u v = dim u == dim v && vectorMax (mapVector magnitude (sub u v)) == 0.0
 
 instance (Linear Vector a, Container Matrix a) => (Linear Matrix a) where
     scale x = liftMatrix (scale x)

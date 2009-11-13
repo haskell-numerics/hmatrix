@@ -115,7 +115,7 @@ minimizeD method = minimizeDGen (fi (fromEnum method))
 
 -------------------------------------------------------------------------
 
-
+ww2 w1 o1 w2 o2 f = w1 o1 $ \a1 -> w2 o2 $ \a2 -> f a1 a2
 
 minimizeGen method eps maxit sz f xi = unsafePerformIO $ do
     let xiv = fromList xi
