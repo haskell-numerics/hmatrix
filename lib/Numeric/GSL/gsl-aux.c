@@ -20,6 +20,8 @@
 #include <gsl/gsl_multimin.h>
 #include <gsl/gsl_multiroots.h>
 #include <gsl/gsl_complex_math.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -777,3 +779,21 @@ int rootj(int method, int f(int, double*, int, double*),
     gsl_multiroot_fdfsolver_free(s);
     OK
 }
+
+//////////////////////////////////////////////////////
+
+#define RAN(C,F) case C: { for(k=0;k<rn;k++) { rp[k]= F(gen); }; OK }
+
+int random_vector(int seed, int code, RVEC(r)) {
+    DEBUGMSG("random_vector")
+    static gsl_rng * gen = NULL;
+    if (!gen) { gen = gsl_rng_alloc (gsl_rng_mt19937);}
+    gsl_rng_set (gen, seed);
+    int k;
+    switch (code) {
+        RAN(0,gsl_rng_uniform)
+        RAN(1,gsl_ran_ugaussian)
+        default: ERROR(BAD_CODE);
+    }
+}
+#undef RAN
