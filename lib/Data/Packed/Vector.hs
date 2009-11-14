@@ -21,8 +21,7 @@ module Data.Packed.Vector (
     vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex,
     mapVector, zipVector,
     fscanfVector, fprintfVector, freadVector, fwriteVector,
-    foldLoop, foldVector, foldVectorG,
-    RandDist(..), randomVector
+    foldLoop, foldVector, foldVectorG
 ) where
 
 import Data.Packed.Internal

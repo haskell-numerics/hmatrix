@@ -129,6 +129,7 @@ library
                         Data.Packed.Convert,
                         Data.Packed.ST,
                         Data.Packed.Development
+                        Data.Packed.Random
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Signatures,

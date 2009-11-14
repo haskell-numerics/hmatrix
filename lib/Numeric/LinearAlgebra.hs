@@ -16,12 +16,14 @@ This module reexports the most comon functions (including "Numeric.LinearAlgebra
 -----------------------------------------------------------------------------
 module Numeric.LinearAlgebra (
     module Data.Packed,
+    module Data.Packed.Random,
     module Numeric.LinearAlgebra.Linear,
     module Numeric.LinearAlgebra.Algorithms,
     module Numeric.LinearAlgebra.Interface
 ) where
 
 import Data.Packed
+import Data.Packed.Random
 import Numeric.LinearAlgebra.Linear
 import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Instances()

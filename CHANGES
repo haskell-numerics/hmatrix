@@ -1,6 +1,8 @@
 6.0.0.0
 =======
 
+- added randomVector, gaussianSample, meanCov
+
 - added rankSVD, nullspaceSVD
 
 - rank, nullspacePrec, and economy svd defined in terms of ranksvd.
