@@ -131,13 +131,17 @@ rootFindingTest = TestList [ utest "root Hybrids" (fst sol1 ~~ [1,1])
 
 ---------------------------------------------------------------------
 
-randomTest = c :~1~: snd (meanCov dat) where
+randomTestGaussian = c :~1~: snd (meanCov dat) where
     a = (3><3) [1,2,3,
                 2,4,0,
                -2,2,1]
     m = 3 |> [1,2,3]
     c = a <> trans a
     dat = gaussianSample 7 (10^6) m c
+
+randomTestUniform = c :~1~: snd (meanCov dat) where
+    c = diag $ 3 |> map ((/12).(^2)) [1,2,3]
+    dat = uniformSample 7 (10^6) [(0,1),(1,3),(3,6)]
 
 ---------------------------------------------------------------------
 
@@ -237,7 +241,8 @@ runTests n = do
         , utest "polySolve" (polySolveProp [1,2,3,4])
         , minimizationTest
         , rootFindingTest
-        , utest "random" randomTest
+        , utest "randomGaussian" randomTestGaussian
+        , utest "randomUniform" randomTestUniform
         ]
     return ()
 

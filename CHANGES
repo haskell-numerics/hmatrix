@@ -1,7 +1,7 @@
 6.0.0.0
 =======
 
-- added randomVector, gaussianSample, meanCov
+- added randomVector, gaussianSample, uniformSample, meanCov
 
 - added rankSVD, nullspaceSVD
 

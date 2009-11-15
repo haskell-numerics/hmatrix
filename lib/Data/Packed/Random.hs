@@ -15,6 +15,7 @@ module Data.Packed.Random (
     RandDist(..),
     randomVector,
     gaussianSample,
+    uniformSample,
     meanCov,
 ) where
 
@@ -24,7 +25,7 @@ import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Instances()
 import Numeric.LinearAlgebra.Interface
 
--- | Obtains a matrix whose rows are pseudorandom samples from a multivariante
+-- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
 -- Gaussian distribution.
 gaussianSample :: Int -- ^ seed
                -> Int -- ^ number of rows
@@ -38,6 +39,22 @@ gaussianSample seed n med cov = m where
     rs = reshape c $ randomVector seed Gaussian (c * n)
     ds = sqrt (abs l)
     m = rs <> (diag ds <> trans v) + meds
+
+-- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
+-- uniform distribution.
+uniformSample :: Int -- ^ seed
+               -> Int -- ^ number of rows
+               -> [(Double,Double)] -- ^ ranges for each column
+               -> Matrix Double -- ^ result
+uniformSample seed n rgs = m where
+    (as,bs) = unzip rgs
+    a = fromList as
+    b = fromList bs
+    cs = zipWith subtract as bs
+    d = dim a
+    dat = toRows $ reshape n $ randomVector seed Uniform (n*d)
+    am = constant 1 n `outer` a
+    m = fromColumns (zipWith (.*) cs dat) + am
 
 ------------ utilities -------------------------------
 
