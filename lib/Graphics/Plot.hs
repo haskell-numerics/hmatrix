@@ -24,7 +24,7 @@ module Graphics.Plot(
 
     matrixToPGM, imshow,
 
-    gnuplotX
+    gnuplotX, gnuplotpdf
 
 ) where
 
@@ -163,3 +163,43 @@ imshow :: Matrix Double -> IO ()
 imshow m = do
     system $ "echo \""++ matrixToPGM m ++"\"| display -antialias -resize 300 - &"
     return ()
+
+----------------------------------------------------
+
+gnuplotpdf :: String -> String -> [([[Double]], String)] -> IO ()
+gnuplotpdf title command ds = gnuplot (prelude ++ command ++" "++ draw) >> postproc where
+    prelude = "set terminal epslatex color; set output '"++title++".tex';"
+    (dats,defs) = unzip ds
+    draw = concat (intersperse ", " (map ("\"-\" "++) defs)) ++ "\n" ++
+           concatMap pr dats
+    postproc = do
+        system $ "epstopdf "++title++".eps"
+        mklatex
+        system $ "pdflatex "++title++"aux.tex > /dev/null"
+        system $ "pdfcrop "++title++"aux.pdf > /dev/null"
+        system $ "mv "++title++"aux-crop.pdf "++title++".pdf"
+        system $ "rm "++title++"aux.* "++title++".eps "++title++".tex"
+        return ()
+
+    mklatex = writeFile (title++"aux.tex") $
+       "\\documentclass{article}\n"++
+       "\\usepackage{graphics}\n"++
+       "\\usepackage{nopageno}\n"++
+       "\\usepackage{txfonts}\n"++
+       "\\renewcommand{\\familydefault}{phv}\n"++
+       "\\usepackage[usenames]{color}\n"++
+
+       "\\begin{document}\n"++
+
+       "\\begin{center}\n"++
+       "  \\input{./"++title++".tex}\n"++
+       "\\end{center}\n"++
+
+       "\\end{document}"
+
+    pr = (++"e\n") . unlines . map (unwords . (map show))
+
+    gnuplot cmd = do
+        writeFile "gnuplotcommand" cmd
+        system "gnuplot gnuplotcommand"
+        system "rm gnuplotcommand"
