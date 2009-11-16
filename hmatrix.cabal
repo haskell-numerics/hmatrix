@@ -38,7 +38,7 @@ extra-source-files: examples/tests.hs
                     examples/benchmarks.hs
                     examples/error.hs
                     examples/devel/wrappers.hs
-                    examples/devel/functions.hs
+                    examples/devel/functions.c
 
 extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
                     lib/Numeric/LinearAlgebra/LAPACK/clapack.h
