@@ -1,4 +1,9 @@
-6.0.0.0
+0.7.0.0
+=======
+
+- removed rnf instances
+
+0.6.0.0
 =======
 
 - added randomVector, gaussianSample, uniformSample, meanCov

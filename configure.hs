@@ -31,6 +31,7 @@ opts = [ ""                              -- Ubuntu/Debian
        , "cblas"
        , "gslcblas"
        , "blas gslcblas"
+       , "f77blas"
        , "f77blas cblas atlas gcc_s"     -- Arch Linux (older version of atlas-lapack)
        , "blas gslcblas gfortran"        -- Arch Linux with normal blas and lapack
        ]
