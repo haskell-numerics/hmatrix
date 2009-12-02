@@ -5,8 +5,8 @@ import Numeric.LinearAlgebra
 import Control.Parallel.Strategies
 import System.Time
 
-inParallel = parMap rdeepseq id
--- rwhnf also works in this case
+inParallel = parMap rwhnf id
+--  rdeepseq (or older rnf) not needed in this case
 
 -- matrix product decomposed into p parallel subtasks
 parMul p x y = fromBlocks [ inParallel ( map (x <>) ys ) ]
