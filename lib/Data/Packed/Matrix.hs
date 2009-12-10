@@ -19,7 +19,7 @@ module Data.Packed.Matrix (
     (><),
     trans,
     reshape, flatten,
-    fromLists, toLists,
+    fromLists, toLists, buildMatrix,
     (@@>),
     asRow, asColumn,
     fromRows, toRows, fromColumns, toColumns,
@@ -175,6 +175,21 @@ asRow v = reshape (dim v) v
 -- | creates a 1-column matrix from a vector
 asColumn :: Element a => Vector a -> Matrix a
 asColumn v = reshape 1 v
+
+
+{- | creates a Matrix of the specified size using the supplied function to
+     to map the row/column position to the value at that row/column position.
+
+@> buildMatrix 3 4 (\ (r,c) -> fromIntegral r * fromIntegral c)
+(3><4)
+ [ 0.0, 0.0, 0.0, 0.0, 0.0
+ , 0.0, 1.0, 2.0, 3.0, 4.0
+ , 0.0, 2.0, 4.0, 6.0, 8.0]@
+-}
+buildMatrix :: Element a => Int -> Int -> ((Int, Int) -> a) -> Matrix a
+buildMatrix rc cc f =
+    fromLists $ map (\x -> map f x)
+    	$ map (\ ri -> map (\ ci -> (ri, ci)) [0 .. (cc - 1)]) [0 .. (rc - 1)]
 
 -----------------------------------------------------
 

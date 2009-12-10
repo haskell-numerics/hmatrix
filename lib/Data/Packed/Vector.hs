@@ -14,7 +14,7 @@
 
 module Data.Packed.Vector (
     Vector,
-    fromList, (|>), toList,
+    fromList, (|>), toList, buildVector,
     dim, (@>),
     subVector, join,
     constant, linspace,
@@ -59,3 +59,14 @@ vectorMinIndex = round . toScalarR MinIdx
 constant :: Element a => a -> Int -> Vector a
 -- constant x n = runSTVector (newVector x n)
 constant = constantD -- about 2x faster
+
+{- | creates a Vector of the specified length using the supplied function to
+     to map the index to the value at that index.
+
+@> buildVector 4 fromIntegral
+4 |> [0.0,1.0,2.0,3.0]@
+
+-}
+buildVector :: Element a => Int -> (Int -> a) -> Vector a
+buildVector len f =
+    fromList $ map f [0 .. (len - 1)]
