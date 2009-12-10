@@ -117,3 +117,7 @@ in the Haskell mailing lists for their help.
   safely used on lists that are too long (or infinite).
 
 - Chris Waterson improved the configure.hs program for OS/X.
+
+- Erik de Castro Lopo added buildVector and buildMatrix, which take a
+  size parameter(s) and a function that maps vector/matrix indices
+  to the values at that position.
