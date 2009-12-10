@@ -71,8 +71,7 @@ library
     Build-Depends:      haskell98,
                         QuickCheck, HUnit,
                         storable-complex,
-                        process,
-                        parallel >= 2
+                        process
 
     Extensions:         ForeignFunctionInterface,
                         CPP
