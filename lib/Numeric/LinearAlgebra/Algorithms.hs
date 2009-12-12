@@ -63,7 +63,7 @@ module Numeric.LinearAlgebra.Algorithms (
     haussholder,
     unpackQR, unpackHess,
     pinvTol,
-    rankSVD,
+    rankSVD, ranksv,
     nullspaceSVD
 ) where
 
@@ -262,15 +262,18 @@ rankSVD :: Element t
         -> Matrix t -- ^ input matrix m
         -> (Matrix t, Vector Double, Matrix t) -- ^ 'svd' of m
         -> Int      -- ^ rank of m
-rankSVD teps m (_,s,_) = k where
-    sl@(g:_) = toList s
-    r = rows m
-    c = cols m
-    tol = fromIntegral (max r c) * g * teps
-    s' = fromList . filter (>tol) $ sl
-    k = if g > teps
-        then dim s'
-             else 0
+rankSVD teps m (_,s,_) = ranksv teps (max (rows m) (cols m)) (toList s)
+
+-- | Numeric rank of a matrix from its singular values.
+ranksv ::  Double   -- ^ numeric zero (e.g. 1*'eps')
+        -> Int      -- ^ maximum dimension of the matrix
+        -> [Double] -- ^ singular values
+        -> Int      -- ^ rank of m
+ranksv teps maxdim s = k where
+    g = maximum s
+    tol = fromIntegral maxdim * g * teps
+    s' = filter (>tol) s
+    k = if g > teps then length s' else 0
 
 -- | The machine precision of a Double: @eps = 2.22044604925031e-16@ (the value used by GNU-Octave).
 eps :: Double

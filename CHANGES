@@ -1,7 +1,14 @@
-0.7.0.0
+0.7.2.0
 =======
 
-- NFData instances for deepseq/parallel-2
+- ranksv
+
+0.7.1.0
+=======
+
+- buildVector/buildMatrix
+
+- removed NFData instances
 
 0.6.0.0
 =======

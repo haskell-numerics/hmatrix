@@ -243,6 +243,11 @@ runTests n = do
         , rootFindingTest
         , utest "randomGaussian" randomTestGaussian
         , utest "randomUniform" randomTestUniform
+        , utest "buildVector/Matrix" $
+                        comp (10 |> [0::Double ..]) == buildVector 10 fromIntegral
+                     && ident 5 == buildMatrix 5 5 (\(r,c) -> if r==c then 1::Double else 0)
+        , utest "rank" $  rank ((2><3)[1,0,0,1,6*eps,0]) == 1
+                       && rank ((2><3)[1,0,0,1,7*eps,0]) == 2
         ]
     return ()
 
