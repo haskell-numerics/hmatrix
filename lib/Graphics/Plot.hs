@@ -51,7 +51,7 @@ meshdom :: Vector Double -> Vector Double -> (Matrix Double , Matrix Double)
 meshdom r1 r2 = (outer r1 (constant 1 (size r2)), outer (constant 1 (size r1)) r2)
 
 gnuplotX :: String -> IO ()
-gnuplotX command = do {system cmdstr; return()} where
+gnuplotX command = do { _ <- system cmdstr; return()} where
     cmdstr = "echo \""++command++"\" | gnuplot -persist"
 
 datafollows = "\\\"-\\\""
@@ -76,8 +76,8 @@ mesh' m = do
     writeFile "splot-gnu-command" "splot \"splot-tmp.txt\" matrix with lines; pause -1"; 
     toFile' "splot-tmp.txt" m
     putStr "Press [Return] to close the graphic and continue... "
-    system "gnuplot -persist splot-gnu-command"
-    system "rm splot-tmp.txt splot-gnu-command"
+    _ <- system "gnuplot -persist splot-gnu-command"
+    _ <- system "rm splot-tmp.txt splot-gnu-command"
     return ()
 
 {- | Draws the surface represented by the function f in the desired ranges and number of points, internally using 'mesh'.
@@ -161,7 +161,7 @@ matrixToPGM m = header ++ unlines (map unwords ll) where
 -- | imshow shows a representation of a matrix as a gray level image using ImageMagick's display.
 imshow :: Matrix Double -> IO ()
 imshow m = do
-    system $ "echo \""++ matrixToPGM m ++"\"| display -antialias -resize 300 - &"
+    _ <- system $ "echo \""++ matrixToPGM m ++"\"| display -antialias -resize 300 - &"
     return ()
 
 ----------------------------------------------------
@@ -173,12 +173,12 @@ gnuplotpdf title command ds = gnuplot (prelude ++ command ++" "++ draw) >> postp
     draw = concat (intersperse ", " (map ("\"-\" "++) defs)) ++ "\n" ++
            concatMap pr dats
     postproc = do
-        system $ "epstopdf "++title++".eps"
+        _ <- system $ "epstopdf "++title++".eps"
         mklatex
-        system $ "pdflatex "++title++"aux.tex > /dev/null"
-        system $ "pdfcrop "++title++"aux.pdf > /dev/null"
-        system $ "mv "++title++"aux-crop.pdf "++title++".pdf"
-        system $ "rm "++title++"aux.* "++title++".eps "++title++".tex"
+        _ <- system $ "pdflatex "++title++"aux.tex > /dev/null"
+        _ <- system $ "pdfcrop "++title++"aux.pdf > /dev/null"
+        _ <- system $ "mv "++title++"aux-crop.pdf "++title++".pdf"
+        _ <- system $ "rm "++title++"aux.* "++title++".eps "++title++".tex"
         return ()
 
     mklatex = writeFile (title++"aux.tex") $
@@ -201,5 +201,6 @@ gnuplotpdf title command ds = gnuplot (prelude ++ command ++" "++ draw) >> postp
 
     gnuplot cmd = do
         writeFile "gnuplotcommand" cmd
-        system "gnuplot gnuplotcommand"
-        system "rm gnuplotcommand"
+        _ <- system "gnuplot gnuplotcommand"
+        _ <- system "rm gnuplotcommand"
+        return ()

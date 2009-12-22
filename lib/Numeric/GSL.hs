@@ -32,7 +32,6 @@ import Numeric.GSL.Polynomials
 import Numeric.GSL.Minimization
 import Numeric.GSL.Root
 import Complex
-import Numeric.GSL.Special
 
 
 -- | This action removes the GSL default error handler (which aborts the program), so that

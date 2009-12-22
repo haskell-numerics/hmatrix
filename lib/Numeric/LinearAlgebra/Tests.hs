@@ -225,7 +225,7 @@ runTests n = do
     test (\m -> toRows (m::RM) == read (show (toRows m)))
     test (\m -> toRows (m::CM) == read (show (toRows m)))
     putStrLn "------ some unit tests"
-    runTestTT $ TestList
+    _ <- runTestTT $ TestList
         [ utest "1E5 rots" rotTest
         , utest "det1" detTest1
         , utest "expm1" (expmTest1)

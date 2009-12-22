@@ -30,7 +30,6 @@ module Numeric.LinearAlgebra.LAPACK (
 import Data.Packed.Internal hiding (toComplex)
 import Data.Packed
 import Numeric.GSL.Vector(vectorMapValR, FunCodeSV(Scale))
-import Complex
 import Foreign
 import Foreign.C.Types (CInt)
 import Control.Monad(when)

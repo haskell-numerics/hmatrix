@@ -41,7 +41,9 @@ import Foreign.ForeignPtr       (mallocForeignPtrBytes)
 #endif
 
 import GHC.Base
+#if __GLASGOW_HASKELL__ < 612
 import GHC.IOBase
+#endif
 
 -- | A one-dimensional array of objects stored in a contiguous memory block.
 data Vector t =

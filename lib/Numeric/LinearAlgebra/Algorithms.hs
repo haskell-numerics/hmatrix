@@ -72,7 +72,6 @@ import Data.Packed.Internal hiding (fromComplex, toComplex, conj, (//))
 import Data.Packed
 import Numeric.GSL.Vector
 import Numeric.LinearAlgebra.LAPACK as LAPACK
-import Complex
 import Numeric.LinearAlgebra.Linear
 import Data.List(foldl1')
 import Data.Array

@@ -4,24 +4,12 @@
 
 INSTALLATION
 
-Recommended method (ok in Ubuntu/Debian systems):
-    $ sudo apt-get install libgsl0-dev refblas3-dev lapack3-dev atlas3-[your_arch]-dev
-    $ cabal install hmatrix
-
-Detailed installation instructions:
-    http://www.hmatrix.googlepages.com/installation
-
-For installation in Windows see the companion INSTALL file.
+See the INSTALL file.
 
 TESTS ---------------------------------------------
 
 $ ghci
-GHCi, version 6.8.2: http://www.haskell.org/ghc/  :? for help
 Prelude> Numeric.LinearAlgebra.Tests.runTests 20
-
-Additional tests with big matrices (taking a few minutes):
-
-$ runhaskell examples/experiments/bigtests
 
 EXAMPLES ------------------------------------------------------
 
@@ -59,9 +47,6 @@ KNOWN PROBLEMS / BUGS -------------------------------
 - On Ubuntu 6.06 LTS (Dapper) atlas3-sse2-dev (3.6.0-20)
   produced segmentation faults when working with big matrices
   on compiled programs.
-
-- On distributions with old GSL versions you should comment out a couple of functions
-  in the export lists of Ellint.hs and Debye.hs
 
 ACKNOWLEDGEMENTS -----------------------------------------------------
 
