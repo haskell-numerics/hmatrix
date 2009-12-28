@@ -29,7 +29,8 @@ module Numeric.LinearAlgebra.Tests.Properties (
     pinvProp,
     detProp,
     nullspaceProp,
-    svdProp1, svdProp2,
+    svdProp1, svdProp1a, svdProp2, svdProp3, svdProp4,
+    svdProp5a, svdProp5b, svdProp6a, svdProp6b, svdProp7,
     eigProp, eigSHProp,
     qrProp,
     hessProp,
@@ -41,10 +42,12 @@ module Numeric.LinearAlgebra.Tests.Properties (
 ) where
 
 import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra.LAPACK
+import Debug.Trace
 #include "quickCheckCompat.h"
--- import Debug.Trace
 
--- debug x = trace (show x) x
+
+debug x = trace (show x) x
 
 -- relative error
 dist :: (Normed t, Num t) => t -> t -> Double
@@ -71,7 +74,10 @@ a :~n~: b = dist a b < 10^^(-n)
 
 square m = rows m == cols m
 
-unitary m = square m && m <> ctrans m |~| ident (rows m)
+-- orthonormal columns
+orthonormal m = ctrans m <> m |~| ident (cols m)
+
+unitary m = square m && orthonormal m
 
 hermitian m = square m && m |~| ctrans m
 
@@ -119,12 +125,64 @@ nullspaceProp m = null nl `trivial` (null nl || m <> n |~| zeros (r,c))
           r = rows m
           c = cols m - rank m
 
-svdProp1 m = u <> real d <> trans v |~| m
-          && unitary u && unitary v
-    where (u,d,v) = full svd m
+------------------------------------------------------------------
 
-svdProp2 m = (m |~| 0) `trivial` ((m |~| 0) || u <> real (diag s) <> trans v |~| m)
-    where (u,s,v) = economy svd m
+-- fullSVD
+svdProp1 m = m |~| u <> real d <> trans v && unitary u && unitary v
+    where (u,d,v) = fullSVD m
+
+svdProp1a svdfun m = m |~| u <> real d <> trans v && unitary u && unitary v where
+    (u,s,v) = svdfun m
+    d = diagRect s (rows m) (cols m)
+
+-- thinSVD
+svdProp2 thinSVDfun m = m |~| u <> diag (real s) <> trans v && orthonormal u && orthonormal v && dim s == min (rows m) (cols m)
+    where (u,s,v) = thinSVDfun m
+
+-- compactSVD
+svdProp3 m = (m |~| u <> real (diag s) <> trans v
+             && orthonormal u && orthonormal v)
+    where (u,s,v) = compactSVD m
+
+svdProp4 m' = m |~| u <> real (diag s) <> trans v
+           && orthonormal u && orthonormal v
+           && (dim s == r || r == 0 && dim s == 1)
+    where (u,s,v) = compactSVD m
+          m = m' <-> m'
+          r = rank m'
+
+svdProp5a m = and (map (s1|~|) [s2,s3,s4,s5,s6]) where
+    s1       = svR  m
+    s2       = svRd m
+    (_,s3,_) = svdR m
+    (_,s4,_) = svdRd m
+    (_,s5,_) = thinSVDR m
+    (_,s6,_) = thinSVDRd m
+
+svdProp5b m = and (map (s1|~|) [s2,s3,s4,s5,s6]) where
+    s1       = svC  m
+    s2       = svCd m
+    (_,s3,_) = svdC m
+    (_,s4,_) = svdCd m
+    (_,s5,_) = thinSVDC m
+    (_,s6,_) = thinSVDCd m
+
+svdProp6a m = s |~| s' && v |~| v' && s |~| s'' && u |~| u'
+    where (u,s,v) = svdR m
+          (s',v') = rightSVR m
+          (u',s'') = leftSVR m
+
+svdProp6b m = s |~| s' && v |~| v' && s |~| s'' && u |~| u'
+    where (u,s,v) = svdC m
+          (s',v') = rightSVC m
+          (u',s'') = leftSVC m
+
+svdProp7 m = s |~| s' && u |~| u' && v |~| v'
+    where (u,s,v) = svd m
+          (s',v') = rightSV m
+          (u',s'') = leftSV m
+
+------------------------------------------------------------------
 
 eigProp m = complex m <> v |~| v <> diag s
     where (s, v) = eig m

@@ -1,3 +1,11 @@
+0.7.3.0
+=======
+
+- added sv, fullSVD, thinSVD, compactSVD, leftSV, rightSV
+  and complete interface to [d|z]gesdd.
+  Algorithms based on the SVD of large matrices can now be
+  significantly faster.
+
 0.7.2.0
 =======
 

@@ -48,7 +48,27 @@ int svd_l_R(KDMAT(a),DMAT(u), DVEC(s),DMAT(v)) {
     integer m = ar;
     integer n = ac;
     integer q = MIN(m,n);
-    REQUIRES(ur==m && uc==m && sn==q && vr==n && vc==n,BAD_SIZE);
+    REQUIRES(sn==q,BAD_SIZE);
+    REQUIRES(up==NULL || ur==m && (uc==m || uc==q),BAD_SIZE);
+    char* jobu  = "A";
+    if (up==NULL) {
+        jobu = "N";
+    } else {
+        if (uc==q) {
+            jobu = "S";
+        }
+    }
+    REQUIRES(vp==NULL || vc==n && (vr==n || vr==q),BAD_SIZE);
+    char* jobvt  = "A";
+    integer ldvt = n;
+    if (vp==NULL) {
+        jobvt = "N";
+    } else {
+        if (vr==q) {
+            jobvt = "S";
+            ldvt = q;
+        }
+    }
     DEBUGMSG("svd_l_R");
     double *B = (double*)malloc(m*n*sizeof(double));
     CHECK(!B,MEM);
@@ -57,25 +77,21 @@ int svd_l_R(KDMAT(a),DMAT(u), DVEC(s),DMAT(v)) {
     integer res;
     // ask for optimal lwork
     double ans;
-    //printf("ask zgesvd\n");
-    char* job = "A";
-    dgesvd_ (job,job,
+    dgesvd_ (jobu,jobvt,
              &m,&n,B,&m,
              sp,
              up,&m,
-             vp,&n,
+             vp,&ldvt,
              &ans, &lwork,
              &res);
     lwork = ceil(ans);
-    //printf("ans = %d\n",lwork);
     double * work = (double*)malloc(lwork*sizeof(double));
     CHECK(!work,MEM);
-    //printf("dgesdd\n");
-    dgesvd_ (job,job,
+    dgesvd_ (jobu,jobvt,
              &m,&n,B,&m,
              sp,
              up,&m,
-             vp,&n,
+             vp,&ldvt,
              work, &lwork,
              &res);
     CHECK(res,res);
@@ -90,25 +106,36 @@ int svd_l_Rdd(KDMAT(a),DMAT(u), DVEC(s),DMAT(v)) {
     integer m = ar;
     integer n = ac;
     integer q = MIN(m,n);
-    REQUIRES(ur==m && uc==m && sn==q && vr==n && vc==n,BAD_SIZE);
+    REQUIRES(sn==q,BAD_SIZE);
+    REQUIRES(up == NULL && vp == NULL
+             || ur==m && vc==n
+                &&   (uc == q && vr == q
+                   || uc == m && vc==n),BAD_SIZE);
+    char* jobz  = "A";
+    integer ldvt = n;
+    if (up==NULL) {
+        jobz = "N";
+    } else {
+        if (uc==q && vr == q) {
+            jobz = "S";
+            ldvt = q;
+        }
+    }
     DEBUGMSG("svd_l_Rdd");
     double *B = (double*)malloc(m*n*sizeof(double));
     CHECK(!B,MEM);
     memcpy(B,ap,m*n*sizeof(double));
-    integer* iwk = (integer*) malloc(8*q*sizeof(int));
+    integer* iwk = (integer*) malloc(8*q*sizeof(integer));
     CHECK(!iwk,MEM);
     integer lwk = -1;
     integer res;
     // ask for optimal lwk
     double ans;
-    //printf("ask dgesdd\n");
-    dgesdd_ ("A",&m,&n,B,&m,sp,up,&m,vp,&n,&ans,&lwk,iwk,&res);
-    lwk = 2*ceil(ans); // ????? otherwise 50x100 rejects lwk
-    //printf("lwk = %d\n",lwk);
+    dgesdd_ (jobz,&m,&n,B,&m,sp,up,&m,vp,&ldvt,&ans,&lwk,iwk,&res);
+    lwk = ans;
     double * workv = (double*)malloc(lwk*sizeof(double));
     CHECK(!workv,MEM);
-    //printf("dgesdd\n");
-    dgesdd_ ("A",&m,&n,B,&m,sp,up,&m,vp,&n,workv,&lwk,iwk,&res);
+    dgesdd_ (jobz,&m,&n,B,&m,sp,up,&m,vp,&ldvt,workv,&lwk,iwk,&res);
     CHECK(res,res);
     free(iwk);
     free(workv);
@@ -120,17 +147,36 @@ int svd_l_Rdd(KDMAT(a),DMAT(u), DVEC(s),DMAT(v)) {
 
 // not in clapack.h
 
-int zgesvd_(char *jobu, char *jobvt, integer *m, integer *n, 
-    doublecomplex *a, integer *lda, doublereal *s, doublecomplex *u, 
-    integer *ldu, doublecomplex *vt, integer *ldvt, doublecomplex *work, 
+int zgesvd_(char *jobu, char *jobvt, integer *m, integer *n,
+    doublecomplex *a, integer *lda, doublereal *s, doublecomplex *u,
+    integer *ldu, doublecomplex *vt, integer *ldvt, doublecomplex *work,
     integer *lwork, doublereal *rwork, integer *info);
 
 int svd_l_C(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
     integer m = ar;
     integer n = ac;
     integer q = MIN(m,n);
-    REQUIRES(ur==m && uc==m && sn==q && vr==n && vc==n,BAD_SIZE);
-    DEBUGMSG("svd_l_C");
+    REQUIRES(sn==q,BAD_SIZE);
+    REQUIRES(up==NULL || ur==m && (uc==m || uc==q),BAD_SIZE);
+    char* jobu  = "A";
+    if (up==NULL) {
+        jobu = "N";
+    } else {
+        if (uc==q) {
+            jobu = "S";
+        }
+    }
+    REQUIRES(vp==NULL || vc==n && (vr==n || vr==q),BAD_SIZE);
+    char* jobvt  = "A";
+    integer ldvt = n;
+    if (vp==NULL) {
+        jobvt = "N";
+    } else {
+        if (vr==q) {
+            jobvt = "S";
+            ldvt = q;
+        }
+    }DEBUGMSG("svd_l_C");
     double *B = (double*)malloc(2*m*n*sizeof(double));
     CHECK(!B,MEM);
     memcpy(B,ap,m*n*2*sizeof(double));
@@ -141,26 +187,22 @@ int svd_l_C(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
     integer res;
     // ask for optimal lwork
     doublecomplex ans;
-    //printf("ask zgesvd\n");
-    char* job = "A";
-    zgesvd_ (job,job,
+    zgesvd_ (jobu,jobvt,
              &m,&n,(doublecomplex*)B,&m,
              sp,
              (doublecomplex*)up,&m,
-             (doublecomplex*)vp,&n,
+             (doublecomplex*)vp,&ldvt,
              &ans, &lwork,
              rwork,
              &res);
     lwork = ceil(ans.r);
-    //printf("ans = %d\n",lwork);
     doublecomplex * work = (doublecomplex*)malloc(lwork*2*sizeof(double));
     CHECK(!work,MEM);
-    //printf("zgesvd\n");
-    zgesvd_ (job,job,
+    zgesvd_ (jobu,jobvt,
              &m,&n,(doublecomplex*)B,&m,
              sp,
              (doublecomplex*)up,&m,
-             (doublecomplex*)vp,&n,
+             (doublecomplex*)vp,&ldvt,
              work, &lwork,
              rwork,
              &res);
@@ -171,7 +213,64 @@ int svd_l_C(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
     OK
 }
 
+int zgesdd_ (char *jobz, integer *m, integer *n,
+    doublecomplex *a, integer *lda, doublereal *s, doublecomplex *u,
+    integer *ldu, doublecomplex *vt, integer *ldvt, doublecomplex *work,
+    integer *lwork, doublereal *rwork, integer* iwork, integer *info);
 
+int svd_l_Cdd(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
+    //printf("entro\n");
+    integer m = ar;
+    integer n = ac;
+    integer q = MIN(m,n);
+    REQUIRES(sn==q,BAD_SIZE);
+    REQUIRES(up == NULL && vp == NULL
+             || ur==m && vc==n
+                &&   (uc == q && vr == q
+                   || uc == m && vc==n),BAD_SIZE);
+    char* jobz  = "A";
+    integer ldvt = n;
+    if (up==NULL) {
+        jobz = "N";
+    } else {
+        if (uc==q && vr == q) {
+            jobz = "S";
+            ldvt = q;
+        }
+    }
+    DEBUGMSG("svd_l_Cdd");
+    doublecomplex *B = (doublecomplex*)malloc(m*n*sizeof(doublecomplex));
+    CHECK(!B,MEM);
+    memcpy(B,ap,m*n*sizeof(doublecomplex));
+    integer* iwk = (integer*) malloc(8*q*sizeof(integer));
+    CHECK(!iwk,MEM);
+    int lrwk;
+    if (0 && *jobz == 'N') {
+        lrwk = 5*q; // does not work, crash at free below
+    } else {
+        lrwk = 5*q*q + 7*q;
+    }
+    double *rwk = (double*)malloc(lrwk*sizeof(double));;
+    CHECK(!rwk,MEM);
+    //printf("%s %ld %d\n",jobz,q,lrwk);
+    integer lwk = -1;
+    integer res;
+    // ask for optimal lwk
+    doublecomplex ans;
+    zgesdd_ (jobz,&m,&n,B,&m,sp,(doublecomplex*)up,&m,(doublecomplex*)vp,&ldvt,&ans,&lwk,rwk,iwk,&res);
+    lwk = ans.r;
+    //printf("lwk = %ld\n",lwk);
+    doublecomplex * workv = (doublecomplex*)malloc(lwk*sizeof(doublecomplex));
+    CHECK(!workv,MEM);
+    zgesdd_ (jobz,&m,&n,B,&m,sp,(doublecomplex*)up,&m,(doublecomplex*)vp,&ldvt,workv,&lwk,rwk,iwk,&res);
+    //printf("res = %ld\n",res);
+    CHECK(res,res);
+    free(workv); // printf("freed workv\n");
+    free(rwk);   // printf("freed rwk\n");
+    free(iwk);   // printf("freed iwk\n");
+    free(B);     // printf("freed B, salgo\n");
+    OK
+}
 
 //////////////////// general complex eigensystem ////////////
 

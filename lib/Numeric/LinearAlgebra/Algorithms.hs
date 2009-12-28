@@ -10,10 +10,9 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses ffi
 
-A generic interface for some common functions. Using it we can write higher level algorithms
-and testing properties both for real and complex matrices.
+Generic interface for the most common functions. Using it we can write higher level algorithms and testing properties for both real and complex matrices.
 
-In any case, the specific functions for particular base types can also be explicitly
+Specific functions for particular base types can also be explicitly
 imported from "Numeric.LinearAlgebra.LAPACK".
 
 -}
@@ -34,7 +33,11 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Matrix factorizations
 -- ** Singular value decomposition
     svd,
-    full, economy, --thin,
+    fullSVD,
+    thinSVD,
+    compactSVD,
+    sv,
+    leftSV, rightSV,
 -- ** Eigensystems
     eig, eigSH, eigSH',
 -- ** QR
@@ -54,6 +57,7 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Nullspace
     nullspacePrec,
     nullVector,
+    nullspaceSVD,
 -- * Norms
     Normed(..), NormType(..),
 -- * Misc
@@ -63,8 +67,8 @@ module Numeric.LinearAlgebra.Algorithms (
     haussholder,
     unpackQR, unpackHess,
     pinvTol,
-    rankSVD, ranksv,
-    nullspaceSVD
+    ranksv,
+    full, economy
 ) where
 
 
@@ -80,6 +84,8 @@ import Data.Array
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
 class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
     svd'         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
+    thinSVD'     :: Matrix t -> (Matrix t, Vector Double, Matrix t)
+    sv'          :: Matrix t -> Vector Double
     luPacked'    :: Matrix t -> (Matrix t, [Int])
     luSolve'     :: (Matrix t, [Int]) -> Matrix t -> Matrix t
     linearSolve' :: Matrix t -> Matrix t -> Matrix t
@@ -94,9 +100,17 @@ class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
     multiply'    :: Matrix t -> Matrix t -> Matrix t
 
 
--- | Singular value decomposition using lapack's dgesvd or zgesvd.
-svd         :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
+-- | Full singular value decomposition using lapack's dgesdd or zgesdd.
+svd :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
 svd = svd'
+
+-- | Thin singular value decomposition using lapack's dgesvd or zgesvd.
+thinSVD :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
+thinSVD = thinSVD'
+
+-- | Singular values using lapack's dgesvd or zgesvd.
+sv :: Field t => Matrix t -> Vector Double
+sv = sv'
 
 -- | Obtains the LU decomposition of a matrix in a compact data structure suitable for 'luSolve'.
 luPacked    :: Field t => Matrix t -> (Matrix t, [Int])
@@ -163,7 +177,9 @@ multiply = multiply'
 
 
 instance Field Double where
-    svd' = svdR
+    svd' = svdRd
+    thinSVD' = thinSVDRd
+    sv' = svR
     luPacked' = luR
     luSolve' (l_u,perm) = lusR l_u perm
     linearSolve' = linearSolveR                 -- (luSolve . luPacked) ??
@@ -178,7 +194,9 @@ instance Field Double where
     multiply' = multiplyR
 
 instance Field (Complex Double) where
-    svd' = svdC
+    svd' = svdCd
+    thinSVD' = thinSVDCd
+    sv' = svC
     luPacked' = luC
     luSolve' (l_u,perm) = lusC l_u perm
     linearSolve' = linearSolveC
@@ -232,36 +250,61 @@ inv m | square m = m `linearSolve` ident (rows m)
 pinv :: Field t => Matrix t -> Matrix t
 pinv m = linearSolveSVD m (ident (rows m))
 
--- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values.
---
--- If @(u,d,v) = full svd m@ then @m == u \<> d \<> trans v@.
-full :: Element t 
-     => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Matrix Double, Matrix t)
+
+{-# DEPRECATED full "use fullSVD instead" #-}
 full svdFun m = (u, d ,v) where
     (u,s,v) = svdFun m
     d = diagRect s r c
     r = rows m
     c = cols m
 
--- | A version of 'svd' which returns only the nonzero singular values and the corresponding rows and columns of the rotations.
+-- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values.
 --
--- If @(u,s,v) = economy svd m@ then @m == u \<> diag s \<> trans v@.
-economy :: Element t 
-        => (Matrix t -> (Matrix t, Vector Double, Matrix t)) -> Matrix t -> (Matrix t, Vector Double, Matrix t)
+-- If @(u,d,v) = fullSVD m@ then @m == u \<> d \<> trans v@.
+fullSVD :: Field t => Matrix t -> (Matrix t, Matrix Double, Matrix t)
+fullSVD m = (u,d,v) where
+    (u,s,v) = svd m
+    d = diagRect s r c
+    r = rows m
+    c = cols m
+
+
+{-# DEPRECATED economy "use compactSVD instead" #-}
 economy svdFun m = (u', subVector 0 d s, v') where
-    r@(u,s,v) = svdFun m
-    d = rankSVD (1*eps) m r  `max` 1
+    (u,s,v) = svdFun m
+    d = rankSVD (1*eps) m s `max` 1
     u' = takeColumns d u
     v' = takeColumns d v
 
+-- | A version of 'svd' which returns only the nonzero singular values and the corresponding rows and columns of the rotations.
+--
+-- If @(u,s,v) = compactSVD m@ then @m == u \<> diag s \<> trans v@.
+compactSVD :: Field t  => Matrix t -> (Matrix t, Vector Double, Matrix t)
+compactSVD m = (u', subVector 0 d s, v') where
+    (u,s,v) = thinSVD m
+    d = rankSVD (1*eps) m s `max` 1
+    u' = takeColumns d u
+    v' = takeColumns d v
+
+vertical m = rows m >= cols m
+
+-- | Singular values and all right singular vectors, using lapack's dgesvd or zgesvd.
+rightSV :: Field t => Matrix t -> (Vector Double, Matrix t)
+rightSV m | vertical m = let (_,s,v) = thinSVD m in (s,v)
+          | otherwise  = let (_,s,v) = svd m     in (s,v)
+
+-- | Singular values and all right singular vectors, using lapack's dgesvd or zgesvd.
+leftSV :: Field t => Matrix t -> (Matrix t, Vector Double)
+leftSV m  | vertical m = let (u,s,_) = svd m     in (u,s)
+          | otherwise  = let (u,s,_) = thinSVD m in (u,s)
 
 -- | Numeric rank of a matrix from the SVD decomposition.
 rankSVD :: Element t
         => Double   -- ^ numeric zero (e.g. 1*'eps')
         -> Matrix t -- ^ input matrix m
-        -> (Matrix t, Vector Double, Matrix t) -- ^ 'svd' of m
+        -> Vector Double -- ^ 'sv' of m
         -> Int      -- ^ rank of m
-rankSVD teps m (_,s,_) = ranksv teps (max (rows m) (cols m)) (toList s)
+rankSVD teps m s = ranksv teps (max (rows m) (cols m)) (toList s)
 
 -- | Numeric rank of a matrix from its singular values.
 ranksv ::  Double   -- ^ numeric zero (e.g. 1*'eps')
@@ -316,12 +359,12 @@ pnormCV PNorm1 = norm1 . mapVector magnitude
 pnormCV Infinity = vectorMax . mapVector magnitude
 --pnormCV _ = error "pnormCV not yet defined"
 
-pnormRM PNorm2 m = head (toList s) where (_,s,_) = svdR m
+pnormRM PNorm2 m = sv m @> 0
 pnormRM PNorm1 m = vectorMax $ constant 1 (rows m) `vXm` liftMatrix (vectorMapR Abs) m
 pnormRM Infinity m = vectorMax $ liftMatrix (vectorMapR Abs) m `mXv` constant 1 (cols m)
 --pnormRM _ _ = error "p norm not yet defined"
 
-pnormCM PNorm2 m = head (toList s) where (_,s,_) = svdC m
+pnormCM PNorm2 m = sv m @> 0
 pnormCM PNorm1 m = vectorMax $ constant 1 (rows m) `vXm` liftMatrix (mapVector magnitude) m
 pnormCM Infinity m = vectorMax $ liftMatrix (mapVector magnitude) m `mXv` constant 1 (cols m)
 --pnormCM _ _ = error "p norm not yet defined"
@@ -354,9 +397,9 @@ nullspaceSVD :: Field t
              => Either Double Int -- ^ Left \"numeric\" zero (eg. 1*'eps'),
                                   --   or Right \"theoretical\" matrix rank.
              -> Matrix t          -- ^ input matrix m
-             -> (Matrix t, Vector Double, Matrix t) -- ^ 'svd' of m
+             -> (Vector Double, Matrix t) -- ^ 'rightSV' of m
              -> [Vector t]        -- ^ list of unitary vectors spanning the nullspace
-nullspaceSVD hint a z@(_,_,v) = vs where
+nullspaceSVD hint a (s,v) = vs where
     r = rows a
     c = cols a
     tol = case hint of
@@ -364,9 +407,8 @@ nullspaceSVD hint a z@(_,_,v) = vs where
         _      -> eps
     k = case hint of
         Right t -> t
-        _       -> rankSVD tol a z
-    nsol = c - k
-    vs = drop k (toColumns v)
+        _       -> rankSVD tol a s
+    vs = drop k $ toRows $ ctrans v
 
 
 -- | The nullspace of a matrix. See also 'nullspaceSVD'.
@@ -374,10 +416,7 @@ nullspacePrec :: Field t
               => Double     -- ^ relative tolerance in 'eps' units
               -> Matrix t   -- ^ input matrix
               -> [Vector t] -- ^ list of unitary vectors spanning the nullspace
-nullspacePrec t m = ns where
-    r@(_,_,v) = svd m
-    k = rankSVD (t*eps) m r
-    ns = drop k $ toRows $ ctrans v
+nullspacePrec t m = nullspaceSVD (Left (t*eps)) m (rightSV m)
 
 -- | The nullspace of a matrix, assumed to be one-dimensional, with default tolerance 1*'eps'.
 nullVector :: Field t => Matrix t -> Vector t
@@ -405,7 +444,7 @@ multiplicative factor of the default tolerance used by GNU-Octave (see 'pinv').
 -}
 --pinvTol :: Double -> Matrix Double -> Matrix Double
 pinvTol t m = v' `mXm` diag s' `mXm` trans u' where
-    (u,s,v) = svdR m
+    (u,s,v) = thinSVDRd m
     sl@(g:_) = toList s
     s' = fromList . map rec $ sl
     rec x = if x < g*tol then 1 else 1/x
@@ -460,15 +499,14 @@ uH (pq, tau) = (p,h)
 
 --------------------------------------------------------------------------
 
--- | Reciprocal of the 2-norm condition number of a matrix, computed from the SVD.
+-- | Reciprocal of the 2-norm condition number of a matrix, computed from the singular values.
 rcond :: Field t => Matrix t -> Double
 rcond m = last s / head s
-    where (_,s',_) = svd m
-          s = toList s'
+    where s = toList (sv m)
 
 -- | Number of linearly independent rows or columns.
 rank :: Field t => Matrix t -> Int
-rank m = rankSVD eps m (svd m)
+rank m = rankSVD eps m (sv m)
 
 {-
 expm' m = case diagonalize (complex m) of

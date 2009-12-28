@@ -143,8 +143,8 @@ instance (Field a, Arbitrary a) => Arbitrary (WC a) where
             r = rows m
             c = cols m
             n = min r c
-        sv <- replicateM n (choose (1,100))
-        let s = diagRect (fromList sv) r c
+        sv' <- replicateM n (choose (1,100))
+        let s = diagRect (fromList sv') r c
         return $ WC (u <> real s <> trans v)
 
 #if MIN_VERSION_QuickCheck(2,0,0)
@@ -160,8 +160,8 @@ instance (Field a, Arbitrary a) => Arbitrary (SqWC a) where
         Sq m <- arbitrary
         let (u,_,v) = svd m
             n = rows m
-        sv <- replicateM n (choose (1,100))
-        let s = diag (fromList sv)
+        sv' <- replicateM n (choose (1,100))
+        let s = diag (fromList sv')
         return $ SqWC (u <> real s <> trans v)
 
 #if MIN_VERSION_QuickCheck(2,0,0)

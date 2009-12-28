@@ -22,6 +22,7 @@ module Numeric.LinearAlgebra.Tests(
 ) where
 
 import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra.LAPACK
 import Numeric.LinearAlgebra.Tests.Instances
 import Numeric.LinearAlgebra.Tests.Properties
 import Test.HUnit hiding ((~:),test,Testable)
@@ -186,8 +187,24 @@ runTests n = do
     putStrLn "------ svd"
     test (svdProp1  . rM)
     test (svdProp1  . cM)
-    test (svdProp2  . rM)
-    test (svdProp2  . cM)
+    test (svdProp1a svdR)
+    test (svdProp1a svdC)
+    test (svdProp1a svdRd)
+    test (svdProp1a svdCd)
+    test (svdProp2 thinSVDR)
+    test (svdProp2 thinSVDC)
+    test (svdProp2 thinSVDRd)
+    test (svdProp2 thinSVDCd)
+    test (svdProp3  . rM)
+    test (svdProp3  . cM)
+    test (svdProp4  . rM)
+    test (svdProp4  . cM)
+    test (svdProp5a)
+    test (svdProp5b)
+    test (svdProp6a)
+    test (svdProp6b)
+    test (svdProp7  . rM)
+    test (svdProp7  . cM)
     putStrLn "------ eig"
     test (eigSHProp . rHer)
     test (eigSHProp . cHer)

@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.7.2.1
+Version:            0.7.3.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -7,7 +7,7 @@ Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          provisional
 Homepage:           http://www.hmatrix.googlepages.com
 Synopsis:           Linear algebra and numerical computations
-Description:        This library provides a purely functional interface to basic linear algebra
+Description:        Purely functional interface to basic linear algebra
                     and other numerical computations, internally implemented using
                     GSL, BLAS and LAPACK.
 Category:           Math
