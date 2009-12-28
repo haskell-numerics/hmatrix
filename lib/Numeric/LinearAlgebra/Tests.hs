@@ -210,6 +210,10 @@ runTests n = do
     test (eigSHProp . cHer)
     test (eigProp   . rSq)
     test (eigProp   . cSq)
+    test (eigSHProp2 . rHer)
+    test (eigSHProp2 . cHer)
+    test (eigProp2   . rSq)
+    test (eigProp2   . cSq)
     putStrLn "------ nullSpace"
     test (nullspaceProp . rM)
     test (nullspaceProp . cM)

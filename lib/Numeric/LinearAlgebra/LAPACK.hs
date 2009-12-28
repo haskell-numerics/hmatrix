@@ -27,6 +27,7 @@ module Numeric.LinearAlgebra.LAPACK (
     rightSVR, rightSVC, leftSVR, leftSVC,
     -- * Eigensystems
     eigR, eigC, eigS, eigS', eigH, eigH',
+    eigOnlyR, eigOnlyC, eigOnlyS, eigOnlyH,
     -- * LU
     luR, luC,
     -- * Cholesky
@@ -198,18 +199,16 @@ leftSVAux f st x = unsafePerformIO $ do
 
 foreign import ccall "LAPACK/lapack-aux.h eig_l_R" dgeev :: TMMCVM
 foreign import ccall "LAPACK/lapack-aux.h eig_l_C" zgeev :: TCMCMCVCM
-foreign import ccall "LAPACK/lapack-aux.h eig_l_S" dsyev :: TMVM
-foreign import ccall "LAPACK/lapack-aux.h eig_l_H" zheev :: TCMVCM
+foreign import ccall "LAPACK/lapack-aux.h eig_l_S" dsyev :: CInt -> TMVM
+foreign import ccall "LAPACK/lapack-aux.h eig_l_H" zheev :: CInt -> TCMVCM
 
-eigAux f st m
-    | r == 1 = (fromList [flatten m `at` 0], singleton 1)
-    | otherwise = unsafePerformIO $ do
+eigAux f st m = unsafePerformIO $ do
         l <- createVector r
         v <- createMatrix ColumnMajor r r
-        dummy <- createMatrix ColumnMajor 1 1
-        app4 f mat m mat dummy vec l mat v st
+        app3 g mat m vec l mat v st
         return (l,v)
   where r = rows m
+        g ra ca pa = f ra ca pa 0 0 nullPtr
 
 
 -- | Eigenvalues and right eigenvectors of a general complex matrix, using LAPACK's /zgeev/.
@@ -217,26 +216,39 @@ eigAux f st m
 eigC :: Matrix (Complex Double) -> (Vector (Complex Double), Matrix (Complex Double))
 eigC = eigAux zgeev "eigC" . fmat
 
+eigOnlyAux f st m = unsafePerformIO $ do
+        l <- createVector r
+        app2 g mat m vec l st
+        return l
+  where r = rows m
+        g ra ca pa nl pl = f ra ca pa 0 0 nullPtr nl pl 0 0 nullPtr
+
+-- | Eigenvalues of a general complex matrix, using LAPACK's /zgeev/ with jobz == \'N\'.
+-- The eigenvalues are not sorted.
+eigOnlyC :: Matrix (Complex Double) -> Vector (Complex Double)
+eigOnlyC = eigOnlyAux zgeev "eigOnlyC" . fmat
+
 -- | Eigenvalues and right eigenvectors of a general real matrix, using LAPACK's /dgeev/.
 -- The eigenvectors are the columns of v. The eigenvalues are not sorted.
 eigR :: Matrix Double -> (Vector (Complex Double), Matrix (Complex Double))
 eigR m = (s', v'')
     where (s,v) = eigRaux (fmat m)
-          s' = toComplex (subVector 0 r (asReal s), subVector r r (asReal s))
+          s' = fixeig1 s
           v' = toRows $ trans v
           v'' = fromColumns $ fixeig (toList s') v'
           r = rows m
 
 eigRaux :: Matrix Double -> (Vector (Complex Double), Matrix Double)
-eigRaux m
-    | r == 1 = (fromList [(flatten m `at` 0):+0], singleton 1)
-    | otherwise = unsafePerformIO $ do
+eigRaux m = unsafePerformIO $ do
         l <- createVector r
         v <- createMatrix ColumnMajor r r
-        dummy <- createMatrix ColumnMajor 1 1
-        app4 dgeev mat m mat dummy vec l mat v "eigR"
+        app3 g mat m vec l mat v "eigR"
         return (l,v)
   where r = rows m
+        g ra ca pa = dgeev ra ca pa 0 0 nullPtr
+
+fixeig1 s = toComplex (subVector 0 r (asReal s), subVector r r (asReal s))
+    where r = dim s
 
 fixeig  []  _ =  []
 fixeig [_] [v] = [comp v]
@@ -246,7 +258,21 @@ fixeig ((r1:+i1):(r2:+i2):r) (v1:v2:vs)
   where scale = vectorMapValR Scale
 fixeig _ _ = error "fixeig with impossible inputs"
 
+
+-- | Eigenvalues of a general real matrix, using LAPACK's /dgeev/ with jobz == \'N\'.
+-- The eigenvalues are not sorted.
+eigOnlyR :: Matrix Double -> Vector (Complex Double)
+eigOnlyR = fixeig1 . eigOnlyAux dgeev "eigOnlyR" . fmat
+
+
 -----------------------------------------------------------------------------
+
+eigSHAux f st m = unsafePerformIO $ do
+        l <- createVector r
+        v <- createMatrix ColumnMajor r r
+        app3 f mat m vec l mat v st
+        return (l,v)
+  where r = rows m
 
 -- | Eigenvalues and right eigenvectors of a symmetric real matrix, using LAPACK's /dsyev/.
 -- The eigenvectors are the columns of v.
@@ -258,16 +284,7 @@ eigS m = (s', fliprl v)
 
 -- | 'eigS' in ascending order
 eigS' :: Matrix Double -> (Vector Double, Matrix Double)
-eigS' m
-    | r == 1 = (fromList [flatten m `at` 0], singleton 1)
-    | otherwise = unsafePerformIO $ do
-        l <- createVector r
-        v <- createMatrix ColumnMajor r r
-        app3 dsyev mat m vec l mat v "eigS"
-        return (l,v)
-  where r = rows m
-
------------------------------------------------------------------------------
+eigS' = eigSHAux (dsyev 1) "eigS'" . fmat
 
 -- | Eigenvalues and right eigenvectors of a hermitian complex matrix, using LAPACK's /zheev/.
 -- The eigenvectors are the columns of v.
@@ -279,14 +296,20 @@ eigH m = (s', fliprl v)
 
 -- | 'eigH' in ascending order
 eigH' :: Matrix (Complex Double) -> (Vector Double, Matrix (Complex Double))
-eigH' m
-    | r == 1 = (fromList [realPart (flatten m `at` 0)], singleton 1)
-    | otherwise = unsafePerformIO $ do
-        l <- createVector r
-        v <- createMatrix ColumnMajor r r
-        app3 zheev mat m vec l mat v "eigH"
-        return (l,v)
-  where r = rows m
+eigH' = eigSHAux (zheev 1) "eigH'" . fmat
+
+
+-- | Eigenvalues of a symmetric real matrix, using LAPACK's /dsyev/ with jobz == \'N\'.
+-- The eigenvalues are sorted in descending order.
+eigOnlyS :: Matrix Double -> Vector Double
+eigOnlyS = vrev . fst. eigSHAux (dsyev 0) "eigS'" . fmat
+
+-- | Eigenvalues of a hermitian complex matrix, using LAPACK's /zheev/ with jobz == \'N\'.
+-- The eigenvalues are sorted in descending order.
+eigOnlyH :: Matrix (Complex Double) -> Vector Double
+eigOnlyH = vrev . fst. eigSHAux (zheev 1) "eigH'" . fmat
+
+vrev = flatten . flipud . reshape 1
 
 -----------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h linearSolveR_l" dgesv :: TMMM

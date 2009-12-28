@@ -274,19 +274,20 @@ int svd_l_Cdd(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
 
 //////////////////// general complex eigensystem ////////////
 
-int eig_l_C(KCMAT(a),CMAT(u), CVEC(s),CMAT(v)) {
+int eig_l_C(KCMAT(a), CMAT(u), CVEC(s),CMAT(v)) {
     integer n = ar;
-    REQUIRES(n>=2 && ac==n && (ur==1 || (ur==n && uc==n)) && sn==n && (vr==1 || (vr==n && vc==n)),BAD_SIZE);
+    REQUIRES(ac==n && sn==n, BAD_SIZE);
+    REQUIRES(up==NULL || ur==n && uc==n, BAD_SIZE);
+    char jobvl = up==NULL?'N':'V';
+    REQUIRES(vp==NULL || vr==n && vc==n, BAD_SIZE);
+    char jobvr = vp==NULL?'N':'V';
     DEBUGMSG("eig_l_C");
-    double *B = (double*)malloc(2*n*n*sizeof(double));
+    doublecomplex *B = (doublecomplex*)malloc(n*n*sizeof(doublecomplex));
     CHECK(!B,MEM);
-    memcpy(B,ap,n*n*2*sizeof(double));
-
+    memcpy(B,ap,n*n*sizeof(doublecomplex));
     double *rwork = (double*) malloc(2*n*sizeof(double));
     CHECK(!rwork,MEM);
     integer lwork = -1;
-    char jobvl = ur==1?'N':'V';
-    char jobvr = vr==1?'N':'V';
     integer res;
     // ask for optimal lwork
     doublecomplex ans;
@@ -301,7 +302,7 @@ int eig_l_C(KCMAT(a),CMAT(u), CVEC(s),CMAT(v)) {
              &res);
     lwork = ceil(ans.r);
     //printf("ans = %d\n",lwork);
-    doublecomplex * work = (doublecomplex*)malloc(lwork*2*sizeof(double));
+    doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     CHECK(!work,MEM);
     //printf("zgeev\n");
     zgeev_  (&jobvl,&jobvr,
@@ -325,14 +326,16 @@ int eig_l_C(KCMAT(a),CMAT(u), CVEC(s),CMAT(v)) {
 
 int eig_l_R(KDMAT(a),DMAT(u), CVEC(s),DMAT(v)) {
     integer n = ar;
-    REQUIRES(n>=2 && ac == n && (ur==1 || (ur==n && uc==n)) && sn==n && (vr==1 || (vr==n && vc==n)),BAD_SIZE);
+    REQUIRES(ac==n && sn==n, BAD_SIZE);
+    REQUIRES(up==NULL || ur==n && uc==n, BAD_SIZE);
+    char jobvl = up==NULL?'N':'V';
+    REQUIRES(vp==NULL || vr==n && vc==n, BAD_SIZE);
+    char jobvr = vp==NULL?'N':'V';
     DEBUGMSG("eig_l_R");
     double *B = (double*)malloc(n*n*sizeof(double));
     CHECK(!B,MEM);
     memcpy(B,ap,n*n*sizeof(double));
     integer lwork = -1;
-    char jobvl = ur==1?'N':'V';
-    char jobvr = vr==1?'N':'V';
     integer res;
     // ask for optimal lwork
     double ans;
@@ -366,13 +369,14 @@ int eig_l_R(KDMAT(a),DMAT(u), CVEC(s),DMAT(v)) {
 //////////////////// symmetric real eigensystem ////////////
 
 
-int eig_l_S(KDMAT(a),DVEC(s),DMAT(v)) {
+int eig_l_S(int wantV,KDMAT(a),DVEC(s),DMAT(v)) {
     integer n = ar;
-    REQUIRES(n>=2 && ac == n && sn==n && (vr==1 || (vr==n && vc==n)),BAD_SIZE);
+    REQUIRES(ac==n && sn==n, BAD_SIZE);
+    REQUIRES(vr==n && vc==n, BAD_SIZE);
+    char jobz = wantV?'V':'N';
     DEBUGMSG("eig_l_S");
     memcpy(vp,ap,n*n*sizeof(double));
     integer lwork = -1;
-    char jobz = vr==1?'N':'V';
     char uplo = 'U';
     integer res;
     // ask for optimal lwork
@@ -399,15 +403,16 @@ int eig_l_S(KDMAT(a),DVEC(s),DMAT(v)) {
 
 //////////////////// hermitian complex eigensystem ////////////
 
-int eig_l_H(KCMAT(a),DVEC(s),CMAT(v)) {
+int eig_l_H(int wantV,KCMAT(a),DVEC(s),CMAT(v)) {
     integer n = ar;
-    REQUIRES(n>=2 && ac==n && sn==n && (vr==1 || (vr==n && vc==n)),BAD_SIZE);
+    REQUIRES(ac==n && sn==n, BAD_SIZE);
+    REQUIRES(vr==n && vc==n, BAD_SIZE);
+    char jobz = wantV?'V':'N';
     DEBUGMSG("eig_l_H");
     memcpy(vp,ap,2*n*n*sizeof(double));
     double *rwork = (double*) malloc((3*n-2)*sizeof(double));
     CHECK(!rwork,MEM);
     integer lwork = -1;
-    char jobz = vr==1?'N':'V';
     char uplo = 'U';
     integer res;
     // ask for optimal lwork
@@ -421,7 +426,7 @@ int eig_l_H(KCMAT(a),DVEC(s),CMAT(v)) {
              &res);
     lwork = ceil(ans.r);
     //printf("ans = %d\n",lwork);
-    doublecomplex * work = (doublecomplex*)malloc(lwork*2*sizeof(double));
+    doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     CHECK(!work,MEM);
     zheev_  (&jobz,&uplo,
              &n,(doublecomplex*)vp,&n,

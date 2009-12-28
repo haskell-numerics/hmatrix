@@ -40,6 +40,7 @@ module Numeric.LinearAlgebra.Algorithms (
     leftSV, rightSV,
 -- ** Eigensystems
     eig, eigSH, eigSH',
+    eigenvalues, eigenvaluesSH, eigenvaluesSH',
 -- ** QR
     qr,
 -- ** Cholesky
@@ -92,6 +93,8 @@ class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
     linearSolveSVD' :: Matrix t -> Matrix t -> Matrix t
     eig'         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
     eigSH''      :: Matrix t -> (Vector Double, Matrix t)
+    eigOnly      :: Matrix t -> Vector (Complex Double)
+    eigOnlySH    :: Matrix t -> Vector Double
     cholSH'      :: Matrix t -> Matrix t
     qr'          :: Matrix t -> (Matrix t, Matrix t)
     hess'        :: Matrix t -> (Matrix t, Matrix t)
@@ -129,15 +132,23 @@ linearSolve = linearSolve'
 linearSolveSVD :: Field t => Matrix t -> Matrix t -> Matrix t
 linearSolveSVD = linearSolveSVD'
 
--- | Eigenvalues and eigenvectors of a general square matrix using lapack's dgeev or zgeev.
+-- | Eigenvalues and eigenvectors of a general square matrix.
 --
 -- If @(s,v) = eig m@ then @m \<> v == v \<> diag s@
 eig         :: Field t => Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
 eig = eig'
 
+-- | Eigenvalues of a general square matrix.
+eigenvalues :: Field t => Matrix t -> Vector (Complex Double)
+eigenvalues = eigOnly
+
 -- | Similar to 'eigSH' without checking that the input matrix is hermitian or symmetric.
 eigSH'      :: Field t => Matrix t -> (Vector Double, Matrix t)
 eigSH' = eigSH''
+
+-- | Similar to 'eigenvaluesSH' without checking that the input matrix is hermitian or symmetric.
+eigenvaluesSH' :: Field t => Matrix t -> Vector Double
+eigenvaluesSH' = eigOnlySH
 
 -- | Similar to 'chol' without checking that the input matrix is hermitian or symmetric.
 cholSH      :: Field t => Matrix t -> Matrix t
@@ -187,6 +198,8 @@ instance Field Double where
     ctrans' = trans
     eig' = eigR
     eigSH'' = eigS
+    eigOnly = eigOnlyR
+    eigOnlySH = eigOnlyS
     cholSH' = cholS
     qr' = unpackQR . qrR
     hess' = unpackHess hessR
@@ -203,7 +216,9 @@ instance Field (Complex Double) where
     linearSolveSVD' = linearSolveSVDC Nothing
     ctrans' = conj . trans
     eig' = eigC
+    eigOnly = eigOnlyC
     eigSH'' = eigH
+    eigOnlySH = eigOnlyH
     cholSH' = cholH
     qr' = unpackQR . qrC
     hess' = unpackHess hessC
@@ -211,12 +226,17 @@ instance Field (Complex Double) where
     multiply' = multiplyC
 
 
--- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix using lapack's dsyev or zheev.
+-- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix.
 --
 -- If @(s,v) = eigSH m@ then @m == v \<> diag s \<> ctrans v@
 eigSH :: Field t => Matrix t -> (Vector Double, Matrix t)
 eigSH m | m `equal` ctrans m = eigSH' m
         | otherwise = error "eigSH requires complex hermitian or real symmetric matrix"
+
+-- | Eigenvalues of a complex hermitian or real symmetric matrix.
+eigenvaluesSH :: Field t => Matrix t -> Vector Double
+eigenvaluesSH m | m `equal` ctrans m = eigenvaluesSH' m
+                | otherwise = error "eigenvaluesSH requires complex hermitian or real symmetric matrix"
 
 -- | Cholesky factorization of a positive definite hermitian or symmetric matrix using lapack's dpotrf or zportrf.
 --
