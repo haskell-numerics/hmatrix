@@ -32,13 +32,13 @@ module Numeric.LinearAlgebra.Tests.Properties (
     svdProp1, svdProp1a, svdProp2, svdProp3, svdProp4,
     svdProp5a, svdProp5b, svdProp6a, svdProp6b, svdProp7,
     eigProp, eigSHProp, eigProp2, eigSHProp2,
-    qrProp,
+    qrProp, rqProp,
     hessProp,
     schurProp1, schurProp2,
     cholProp,
     expmDiagProp,
     multProp1, multProp2,
-    linearSolveProp
+    linearSolveProp, linearSolveProp2
 ) where
 
 import Numeric.LinearAlgebra
@@ -177,10 +177,11 @@ svdProp6b m = s |~| s' && v |~| v' && s |~| s'' && u |~| u'
           (s',v') = rightSVC m
           (u',s'') = leftSVC m
 
-svdProp7 m = s |~| s' && u |~| u' && v |~| v'
+svdProp7 m = s |~| s' && u |~| u' && v |~| v' && s |~| s'''
     where (u,s,v) = svd m
           (s',v') = rightSV m
           (u',s'') = leftSV m
+          s''' = singularValues m
 
 ------------------------------------------------------------------
 
@@ -200,6 +201,16 @@ eigSHProp2 m = fst (eigSH m) |~| eigenvaluesSH m
 
 qrProp m = q <> r |~| m && unitary q && upperTriang r
     where (q,r) = qr m
+
+rqProp m = r <> q |~| m && unitary q && utr
+    where (r,q) = rq m
+          upptr f c = buildMatrix f c $ \(r',c') -> if r'-t > c' then 0 else 1
+              where t = f-c
+          utr = upptr (rows r) (cols r) * r |~| r
+
+upperTriang' m = rows m == 1 || down |~| z
+    where down = fromList $ concat $ zipWith drop [1..] (toLists (ctrans m))
+          z = constant 0 (dim down)
 
 hessProp m = m |~| p <> h <> ctrans p && unitary p && upperHessenberg h
     where (p,h) = hess m
@@ -226,3 +237,8 @@ multProp1 (a,b) = a <> b |~| mulH a b
 multProp2 (a,b) = ctrans (a <> b) |~| ctrans b <> ctrans a
 
 linearSolveProp f m = f m m |~| ident (rows m)
+
+linearSolveProp2 f (a,x) = not wc `trivial` (not wc || a <> f a b |~| b)
+    where q = min (rows a) (cols a)
+          b = a <> x
+          wc = rank a == q

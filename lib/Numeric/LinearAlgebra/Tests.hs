@@ -178,6 +178,11 @@ runTests n = do
     putStrLn "------ luSolve"
     test (linearSolveProp (luSolve.luPacked) . rSqWC)
     test (linearSolveProp (luSolve.luPacked) . cSqWC)
+    putStrLn "------ luSolveLS"
+    test (linearSolveProp linearSolveLS . rSqWC)
+    test (linearSolveProp linearSolveLS . cSqWC)
+    test (linearSolveProp2 linearSolveLS . rConsist)
+    test (linearSolveProp2 linearSolveLS . cConsist)
     putStrLn "------ pinv (linearSolveSVD)"
     test (pinvProp  . rM)
     test (pinvProp  . cM)
@@ -220,6 +225,8 @@ runTests n = do
     putStrLn "------ qr"
     test (qrProp     . rM)
     test (qrProp     . cM)
+    test (rqProp     . rM)
+    test (rqProp     . cM)
     putStrLn "------ hess"
     test (hessProp   . rSq)
     test (hessProp   . cSq)

@@ -27,6 +27,7 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Linear Systems
     linearSolve,
     luSolve,
+    linearSolveLS,
     linearSolveSVD,
     inv, pinv,
     det, rank, rcond,
@@ -36,13 +37,13 @@ module Numeric.LinearAlgebra.Algorithms (
     fullSVD,
     thinSVD,
     compactSVD,
-    sv,
+    singularValues,
     leftSV, rightSV,
 -- ** Eigensystems
     eig, eigSH, eigSH',
     eigenvalues, eigenvaluesSH, eigenvaluesSH',
 -- ** QR
-    qr,
+    qr, rq,
 -- ** Cholesky
     chol, cholSH,
 -- ** Hessenberg
@@ -91,6 +92,7 @@ class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
     luSolve'     :: (Matrix t, [Int]) -> Matrix t -> Matrix t
     linearSolve' :: Matrix t -> Matrix t -> Matrix t
     linearSolveSVD' :: Matrix t -> Matrix t -> Matrix t
+    linearSolveLS'  :: Matrix t -> Matrix t -> Matrix t
     eig'         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
     eigSH''      :: Matrix t -> (Vector Double, Matrix t)
     eigOnly      :: Matrix t -> Vector (Complex Double)
@@ -103,90 +105,6 @@ class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
     multiply'    :: Matrix t -> Matrix t -> Matrix t
 
 
--- | Full singular value decomposition using lapack's dgesdd or zgesdd.
-svd :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
-svd = svd'
-
--- | Thin singular value decomposition using lapack's dgesvd or zgesvd.
-thinSVD :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
-thinSVD = thinSVD'
-
--- | Singular values using lapack's dgesvd or zgesvd.
-sv :: Field t => Matrix t -> Vector Double
-sv = sv'
-
--- | Obtains the LU decomposition of a matrix in a compact data structure suitable for 'luSolve'.
-luPacked    :: Field t => Matrix t -> (Matrix t, [Int])
-luPacked = luPacked'
-
--- | Solution of a linear system (for several right hand sides) from the precomputed LU factorization
---   obtained by 'luPacked'.
-luSolve     :: Field t => (Matrix t, [Int]) -> Matrix t -> Matrix t
-luSolve = luSolve'
-
--- | Solution of a general linear system (for several right-hand sides) using lapacks' dgesv or zgesv.
--- It is similar to 'luSolve' . 'luPacked', but @linearSolve@ raises an error if called on a singular system.
---  See also other versions of linearSolve in "Numeric.LinearAlgebra.LAPACK".
-linearSolve :: Field t => Matrix t -> Matrix t -> Matrix t
-linearSolve = linearSolve'
-linearSolveSVD :: Field t => Matrix t -> Matrix t -> Matrix t
-linearSolveSVD = linearSolveSVD'
-
--- | Eigenvalues and eigenvectors of a general square matrix.
---
--- If @(s,v) = eig m@ then @m \<> v == v \<> diag s@
-eig         :: Field t => Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
-eig = eig'
-
--- | Eigenvalues of a general square matrix.
-eigenvalues :: Field t => Matrix t -> Vector (Complex Double)
-eigenvalues = eigOnly
-
--- | Similar to 'eigSH' without checking that the input matrix is hermitian or symmetric.
-eigSH'      :: Field t => Matrix t -> (Vector Double, Matrix t)
-eigSH' = eigSH''
-
--- | Similar to 'eigenvaluesSH' without checking that the input matrix is hermitian or symmetric.
-eigenvaluesSH' :: Field t => Matrix t -> Vector Double
-eigenvaluesSH' = eigOnlySH
-
--- | Similar to 'chol' without checking that the input matrix is hermitian or symmetric.
-cholSH      :: Field t => Matrix t -> Matrix t
-cholSH = cholSH'
-
--- | QR factorization using lapack's dgeqr2 or zgeqr2.
---
--- If @(q,r) = qr m@ then @m == q \<> r@, where q is unitary and r is upper triangular.
-qr          :: Field t => Matrix t -> (Matrix t, Matrix t)
-qr = qr'
-
--- | Hessenberg factorization using lapack's dgehrd or zgehrd.
---
--- If @(p,h) = hess m@ then @m == p \<> h \<> ctrans p@, where p is unitary
--- and h is in upper Hessenberg form.
-hess        :: Field t => Matrix t -> (Matrix t, Matrix t)
-hess = hess'
-
--- | Schur factorization using lapack's dgees or zgees.
---
--- If @(u,s) = schur m@ then @m == u \<> s \<> ctrans u@, where u is unitary
--- and s is a Shur matrix. A complex Schur matrix is upper triangular. A real Schur matrix is
--- upper triangular in 2x2 blocks.
---
--- \"Anything that the Jordan decomposition can do, the Schur decomposition
--- can do better!\" (Van Loan)
-schur       :: Field t => Matrix t -> (Matrix t, Matrix t)
-schur = schur'
-
--- | Generic conjugate transpose.
-ctrans :: Field t => Matrix t -> Matrix t
-ctrans = ctrans'
-
--- | Matrix product.
-multiply :: Field t => Matrix t -> Matrix t -> Matrix t
-multiply = multiply'
-
-
 instance Field Double where
     svd' = svdRd
     thinSVD' = thinSVDRd
@@ -194,6 +112,7 @@ instance Field Double where
     luPacked' = luR
     luSolve' (l_u,perm) = lusR l_u perm
     linearSolve' = linearSolveR                 -- (luSolve . luPacked) ??
+    linearSolveLS' = linearSolveLSR
     linearSolveSVD' = linearSolveSVDR Nothing
     ctrans' = trans
     eig' = eigR
@@ -213,6 +132,7 @@ instance Field (Complex Double) where
     luPacked' = luC
     luSolve' (l_u,perm) = lusC l_u perm
     linearSolve' = linearSolveC
+    linearSolveLS' = linearSolveLSC
     linearSolveSVD' = linearSolveSVDC Nothing
     ctrans' = conj . trans
     eig' = eigC
@@ -225,6 +145,111 @@ instance Field (Complex Double) where
     schur' = schurC
     multiply' = multiplyC
 
+--------------------------------------------------------------
+
+-- | Full singular value decomposition.
+svd :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
+svd = svd'
+
+-- | A version of 'svd' which returns only the @min (rows m) (cols m)@ singular vectors of @m@.
+--
+-- If @(u,s,v) = thinSVD m@ then @m == u \<> diag s \<> trans v@.
+thinSVD :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
+thinSVD = thinSVD'
+
+-- | Singular values only.
+singularValues :: Field t => Matrix t -> Vector Double
+singularValues = sv'
+
+-- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values.
+--
+-- If @(u,d,v) = fullSVD m@ then @m == u \<> d \<> trans v@.
+fullSVD :: Field t => Matrix t -> (Matrix t, Matrix Double, Matrix t)
+fullSVD m = (u,d,v) where
+    (u,s,v) = svd m
+    d = diagRect s r c
+    r = rows m
+    c = cols m
+
+-- | Similar to 'thinSVD', returning only the nonzero singular values and the corresponding singular vectors.
+compactSVD :: Field t  => Matrix t -> (Matrix t, Vector Double, Matrix t)
+compactSVD m = (u', subVector 0 d s, v') where
+    (u,s,v) = thinSVD m
+    d = rankSVD (1*eps) m s `max` 1
+    u' = takeColumns d u
+    v' = takeColumns d v
+
+vertical m = rows m >= cols m
+
+-- | Singular values and all right singular vectors.
+rightSV :: Field t => Matrix t -> (Vector Double, Matrix t)
+rightSV m | vertical m = let (_,s,v) = thinSVD m in (s,v)
+          | otherwise  = let (_,s,v) = svd m     in (s,v)
+
+-- | Singular values and all right singular vectors.
+leftSV :: Field t => Matrix t -> (Matrix t, Vector Double)
+leftSV m  | vertical m = let (u,s,_) = svd m     in (u,s)
+          | otherwise  = let (u,s,_) = thinSVD m in (u,s)
+
+
+{-# DEPRECATED full "use fullSVD instead" #-}
+full svdFun m = (u, d ,v) where
+    (u,s,v) = svdFun m
+    d = diagRect s r c
+    r = rows m
+    c = cols m
+
+{-# DEPRECATED economy "use compactSVD instead" #-}
+economy svdFun m = (u', subVector 0 d s, v') where
+    (u,s,v) = svdFun m
+    d = rankSVD (1*eps) m s `max` 1
+    u' = takeColumns d u
+    v' = takeColumns d v
+
+
+--------------------------------------------------------------
+
+-- | Obtains the LU decomposition of a matrix in a compact data structure suitable for 'luSolve'.
+luPacked    :: Field t => Matrix t -> (Matrix t, [Int])
+luPacked = luPacked'
+
+-- | Solution of a linear system (for several right hand sides) from the precomputed LU factorization obtained by 'luPacked'.
+luSolve     :: Field t => (Matrix t, [Int]) -> Matrix t -> Matrix t
+luSolve = luSolve'
+
+-- | Solve a linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition. For underconstrained or overconstrained systems use 'linearSolveLS' or 'linearSolveSVD'.
+-- It is similar to 'luSolve' . 'luPacked', but @linearSolve@ raises an error if called on a singular system.
+linearSolve :: Field t => Matrix t -> Matrix t -> Matrix t
+linearSolve = linearSolve'
+
+-- | Minimum norm solution of a general linear least squares problem Ax=B using the SVD. Admits rank-deficient systems but it is slower than 'linearSolveLS'. The effective rank of A is determined by treating as zero those singular valures which are less than 'eps' times the largest singular value.
+linearSolveSVD :: Field t => Matrix t -> Matrix t -> Matrix t
+linearSolveSVD = linearSolveSVD'
+
+
+-- | Least squared error solution of an overconstrained linear system, or the minimum norm solution of an underconstrained system. For rank-deficient systems use 'linearSolveSVD'.
+linearSolveLS :: Field t => Matrix t -> Matrix t -> Matrix t
+linearSolveLS = linearSolveLS'
+
+--------------------------------------------------------------
+
+-- | Eigenvalues and eigenvectors of a general square matrix.
+--
+-- If @(s,v) = eig m@ then @m \<> v == v \<> diag s@
+eig         :: Field t => Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
+eig = eig'
+
+-- | Eigenvalues of a general square matrix.
+eigenvalues :: Field t => Matrix t -> Vector (Complex Double)
+eigenvalues = eigOnly
+
+-- | Similar to 'eigSH' without checking that the input matrix is hermitian or symmetric.
+eigSH'      :: Field t => Matrix t -> (Vector Double, Matrix t)
+eigSH' = eigSH''
+
+-- | Similar to 'eigenvaluesSH' without checking that the input matrix is hermitian or symmetric.
+eigenvaluesSH' :: Field t => Matrix t -> Vector Double
+eigenvaluesSH' = eigOnlySH
 
 -- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix.
 --
@@ -238,85 +263,90 @@ eigenvaluesSH :: Field t => Matrix t -> Vector Double
 eigenvaluesSH m | m `equal` ctrans m = eigenvaluesSH' m
                 | otherwise = error "eigenvaluesSH requires complex hermitian or real symmetric matrix"
 
--- | Cholesky factorization of a positive definite hermitian or symmetric matrix using lapack's dpotrf or zportrf.
+--------------------------------------------------------------
+
+-- | QR factorization.
+--
+-- If @(q,r) = qr m@ then @m == q \<> r@, where q is unitary and r is upper triangular.
+qr          :: Field t => Matrix t -> (Matrix t, Matrix t)
+qr = qr'
+
+-- | RQ factorization.
+--
+-- If @(r,q) = rq m@ then @m == r \<> q@, where q is unitary and r is upper triangular.
+rq :: Field t => Matrix t -> (Matrix t, Matrix t)
+rq m = (r,q) where
+    (q',r') = qr $ trans $ rev1 m
+    r = rev2 (trans r')
+    q = rev2 (trans q')
+    rev1 = flipud . fliprl
+    rev2 = fliprl . flipud
+
+-- | Hessenberg factorization.
+--
+-- If @(p,h) = hess m@ then @m == p \<> h \<> ctrans p@, where p is unitary
+-- and h is in upper Hessenberg form (it has zero entries below the first subdiagonal).
+hess        :: Field t => Matrix t -> (Matrix t, Matrix t)
+hess = hess'
+
+-- | Schur factorization.
+--
+-- If @(u,s) = schur m@ then @m == u \<> s \<> ctrans u@, where u is unitary
+-- and s is a Shur matrix. A complex Schur matrix is upper triangular. A real Schur matrix is
+-- upper triangular in 2x2 blocks.
+--
+-- \"Anything that the Jordan decomposition can do, the Schur decomposition
+-- can do better!\" (Van Loan)
+schur       :: Field t => Matrix t -> (Matrix t, Matrix t)
+schur = schur'
+
+-- | Generic conjugate transpose.
+ctrans :: Field t => Matrix t -> Matrix t
+ctrans = ctrans'
+
+-- | Matrix product.
+multiply :: Field t => Matrix t -> Matrix t -> Matrix t
+multiply = multiply'
+
+
+-- | Similar to 'chol' without checking that the input matrix is hermitian or symmetric.
+cholSH      :: Field t => Matrix t -> Matrix t
+cholSH = cholSH'
+
+-- | Cholesky factorization of a positive definite hermitian or symmetric matrix.
 --
 -- If @c = chol m@ then @m == ctrans c \<> c@.
 chol :: Field t => Matrix t ->  Matrix t
 chol m | m `equal` ctrans m = cholSH m
        | otherwise = error "chol requires positive definite complex hermitian or real symmetric matrix"
 
+
+
+
 square m = rows m == cols m
 
--- | determinant of a square matrix, computed from the LU decomposition.
+-- | Determinant of a square matrix.
 det :: Field t => Matrix t -> t
 det m | square m = s * (product $ toList $ takeDiag $ lup)
       | otherwise = error "det of nonsquare matrix"
     where (lup,perm) = luPacked m
           s = signlp (rows m) perm
 
--- | Explicit LU factorization of a general matrix using lapack's dgetrf or zgetrf.
+-- | Explicit LU factorization of a general matrix.
 --
 -- If @(l,u,p,s) = lu m@ then @m == p \<> l \<> u@, where l is lower triangular,
 -- u is upper triangular, p is a permutation matrix and s is the signature of the permutation.
 lu :: Field t => Matrix t -> (Matrix t, Matrix t, Matrix t, t)
 lu = luFact . luPacked
 
--- | Inverse of a square matrix using lapacks' dgesv and zgesv.
+-- | Inverse of a square matrix.
 inv :: Field t => Matrix t -> Matrix t
 inv m | square m = m `linearSolve` ident (rows m)
       | otherwise = error "inv of nonsquare matrix"
 
--- | Pseudoinverse of a general matrix using lapack's dgelss or zgelss.
+-- | Pseudoinverse of a general matrix.
 pinv :: Field t => Matrix t -> Matrix t
 pinv m = linearSolveSVD m (ident (rows m))
-
-
-{-# DEPRECATED full "use fullSVD instead" #-}
-full svdFun m = (u, d ,v) where
-    (u,s,v) = svdFun m
-    d = diagRect s r c
-    r = rows m
-    c = cols m
-
--- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values.
---
--- If @(u,d,v) = fullSVD m@ then @m == u \<> d \<> trans v@.
-fullSVD :: Field t => Matrix t -> (Matrix t, Matrix Double, Matrix t)
-fullSVD m = (u,d,v) where
-    (u,s,v) = svd m
-    d = diagRect s r c
-    r = rows m
-    c = cols m
-
-
-{-# DEPRECATED economy "use compactSVD instead" #-}
-economy svdFun m = (u', subVector 0 d s, v') where
-    (u,s,v) = svdFun m
-    d = rankSVD (1*eps) m s `max` 1
-    u' = takeColumns d u
-    v' = takeColumns d v
-
--- | A version of 'svd' which returns only the nonzero singular values and the corresponding rows and columns of the rotations.
---
--- If @(u,s,v) = compactSVD m@ then @m == u \<> diag s \<> trans v@.
-compactSVD :: Field t  => Matrix t -> (Matrix t, Vector Double, Matrix t)
-compactSVD m = (u', subVector 0 d s, v') where
-    (u,s,v) = thinSVD m
-    d = rankSVD (1*eps) m s `max` 1
-    u' = takeColumns d u
-    v' = takeColumns d v
-
-vertical m = rows m >= cols m
-
--- | Singular values and all right singular vectors, using lapack's dgesvd or zgesvd.
-rightSV :: Field t => Matrix t -> (Vector Double, Matrix t)
-rightSV m | vertical m = let (_,s,v) = thinSVD m in (s,v)
-          | otherwise  = let (_,s,v) = svd m     in (s,v)
-
--- | Singular values and all right singular vectors, using lapack's dgesvd or zgesvd.
-leftSV :: Field t => Matrix t -> (Matrix t, Vector Double)
-leftSV m  | vertical m = let (u,s,_) = svd m     in (u,s)
-          | otherwise  = let (u,s,_) = thinSVD m in (u,s)
 
 -- | Numeric rank of a matrix from the SVD decomposition.
 rankSVD :: Element t
@@ -379,12 +409,12 @@ pnormCV PNorm1 = norm1 . mapVector magnitude
 pnormCV Infinity = vectorMax . mapVector magnitude
 --pnormCV _ = error "pnormCV not yet defined"
 
-pnormRM PNorm2 m = sv m @> 0
+pnormRM PNorm2 m = singularValues m @> 0
 pnormRM PNorm1 m = vectorMax $ constant 1 (rows m) `vXm` liftMatrix (vectorMapR Abs) m
 pnormRM Infinity m = vectorMax $ liftMatrix (vectorMapR Abs) m `mXv` constant 1 (cols m)
 --pnormRM _ _ = error "p norm not yet defined"
 
-pnormCM PNorm2 m = sv m @> 0
+pnormCM PNorm2 m = singularValues m @> 0
 pnormCM PNorm1 m = vectorMax $ constant 1 (rows m) `vXm` liftMatrix (mapVector magnitude) m
 pnormCM Infinity m = vectorMax $ liftMatrix (mapVector magnitude) m `mXv` constant 1 (cols m)
 --pnormCM _ _ = error "p norm not yet defined"
@@ -433,12 +463,12 @@ nullspaceSVD hint a (s,v) = vs where
 
 -- | The nullspace of a matrix. See also 'nullspaceSVD'.
 nullspacePrec :: Field t
-              => Double     -- ^ relative tolerance in 'eps' units
+              => Double     -- ^ relative tolerance in 'eps' units (e.g., use 3 to get 3*'eps')
               -> Matrix t   -- ^ input matrix
               -> [Vector t] -- ^ list of unitary vectors spanning the nullspace
 nullspacePrec t m = nullspaceSVD (Left (t*eps)) m (rightSV m)
 
--- | The nullspace of a matrix, assumed to be one-dimensional, with default tolerance 1*'eps'.
+-- | The nullspace of a matrix, assumed to be one-dimensional, with machine precision.
 nullVector :: Field t => Matrix t -> Vector t
 nullVector = last . nullspacePrec 1
 
@@ -522,11 +552,11 @@ uH (pq, tau) = (p,h)
 -- | Reciprocal of the 2-norm condition number of a matrix, computed from the singular values.
 rcond :: Field t => Matrix t -> Double
 rcond m = last s / head s
-    where s = toList (sv m)
+    where s = toList (singularValues m)
 
 -- | Number of linearly independent rows or columns.
 rank :: Field t => Matrix t -> Int
-rank m = rankSVD eps m (sv m)
+rank m = rankSVD eps m (singularValues m)
 
 {-
 expm' m = case diagonalize (complex m) of

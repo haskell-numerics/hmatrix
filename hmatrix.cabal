@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.7.3.0
+Version:            0.8.0.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -11,7 +11,7 @@ Description:        Purely functional interface to basic linear algebra
                     and other numerical computations, internally implemented using
                     GSL, BLAS and LAPACK.
 Category:           Math
-tested-with:        GHC ==6.12.1
+tested-with:        GHC ==6.10.4, GHC ==6.12.1
 
 cabal-version:      >=1.2
 build-type:         Custom
