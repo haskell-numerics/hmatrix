@@ -17,7 +17,7 @@ Some tests.
 module Numeric.LinearAlgebra.Tests(
 --  module Numeric.LinearAlgebra.Tests.Instances,
 --  module Numeric.LinearAlgebra.Tests.Properties,
-  qCheck, runTests
+  qCheck, runTests, runBenchmarks
 --, runBigTests
 ) where
 
@@ -31,6 +31,9 @@ import Data.List(foldl1')
 import Numeric.GSL hiding (sin,cos,exp,choose)
 import Prelude hiding ((^))
 import qualified Prelude
+import System.CPUTime
+import Text.Printf
+
 #include "Tests/quickCheckCompat.h"
 
 a ^ b = a Prelude.^ (b :: Int)
@@ -286,3 +289,68 @@ makeUnitary v | realPart n > 1    = v */ n
 -- -- | Some additional tests on big matrices. They take a few minutes.
 -- runBigTests :: IO ()
 -- runBigTests = undefined
+
+--------------------------------------------------------------------------------
+
+-- | Performance measurements.
+runBenchmarks :: IO ()
+runBenchmarks = do
+    multBench
+    svdBench
+    eigBench
+    putStrLn ""
+
+--------------------------------
+
+time msg act = do
+    putStr (msg++" ")
+    t0 <- getCPUTime
+    act `seq` putStr " "
+    t1 <- getCPUTime
+    printf "%5.1f s CPU\n" $ (fromIntegral (t1 - t0) / (10^12 :: Double)) :: IO ()
+    return ()
+
+--------------------------------
+
+manymult n = foldl1' (<>) (map rot2 angles) where
+    angles = toList $ linspace n (0,1)
+    rot2 :: Double -> Matrix Double
+    rot2 a = (3><3) [ c,0,s
+                    , 0,1,0
+                    ,-s,0,c ]
+        where c = cos a
+              s = sin a
+
+--------------------------------
+
+multBench = do
+    let a = ident 1000 :: Matrix Double
+    let b = ident 2000 :: Matrix Double
+    a `seq` b `seq` putStrLn ""
+    time "product of 1M different 3x3 matrices" (manymult (10^6))
+    time "product (1000 x 1000)<>(1000 x 1000)" (a<>a)
+    time "product (2000 x 2000)<>(2000 x 2000)" (b<>b)
+
+--------------------------------
+
+eigBench = do
+    let m = reshape 1000 (randomVector 777 Uniform (1000*1000))
+        s = m + trans m
+    m `seq` s `seq` putStrLn ""
+    time "eigenvalues  symmetric 1000x1000" (eigenvaluesSH' m)
+    time "eigenvectors symmetric 1000x1000" (snd $ eigSH' m)
+    time "eigenvalues  general   1000x1000" (eigenvalues m)
+    time "eigenvectors general   1000x1000" (snd $ eig m)
+
+--------------------------------
+
+svdBench = do
+    let a = reshape 500  (randomVector 777 Uniform (3000*500))
+        b = reshape 1000 (randomVector 777 Uniform (1000*1000))
+        fv (_,_,v) = v@@>(0,0)
+    a `seq` b `seq` putStrLn ""
+    time "singular values  3000x500" (singularValues a)
+    time "thin svd         3000x500" (fv $ thinSVD a)
+    time "full svd         3000x500" (fv $ svd a)
+    time "singular values 1000x1000" (singularValues b)
+    time "full svd        1000x1000" (fv $ svd b)
