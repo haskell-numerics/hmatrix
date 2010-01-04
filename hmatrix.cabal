@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.8.1.0
+Version:            0.8.1.1
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -71,7 +71,7 @@ library
     Build-Depends:      haskell98 < 1.0.1.1,
                         QuickCheck, HUnit,
                         storable-complex,
-                        process
+                        process < 1.0.1.2
 
     Extensions:         ForeignFunctionInterface,
                         CPP
