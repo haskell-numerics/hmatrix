@@ -321,6 +321,8 @@ manymult n = foldl1' (<>) (map rot2 angles) where
         where c = cos a
               s = sin a
 
+multb n = foldl1' (<>) (replicate (10^6) (ident n :: Matrix Double))
+
 --------------------------------
 
 multBench = do
@@ -328,6 +330,15 @@ multBench = do
     let b = ident 2000 :: Matrix Double
     a `seq` b `seq` putStrLn ""
     time "product of 1M different 3x3 matrices" (manymult (10^6))
+    putStrLn ""
+    time "product of 1M constant  1x1 matrices" (multb 1)
+    time "product of 1M constant  3x3 matrices" (multb 3)
+    --time "product of 1M constant  5x5 matrices" (multb 5)
+    time "product of 1M const.  10x10 matrices" (multb 10)
+    --time "product of 1M const.  15x15 matrices" (multb 15)
+    time "product of 1M const.  20x20 matrices" (multb 20)
+    --time "product of 1M const.  25x25 matrices" (multb 25)
+    putStrLn ""
     time "product (1000 x 1000)<>(1000 x 1000)" (a<>a)
     time "product (2000 x 2000)<>(2000 x 2000)" (b<>b)
 

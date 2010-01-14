@@ -32,6 +32,10 @@ import Numeric.GSL.Vector
 
 @\> linspace 5 (-3,7)
 5 |> [-3.0,-0.5,2.0,4.5,7.0]@
+
+Logarithmic spacing can be defined as follows:
+
+@logspace n (a,b) = 10 ** linspace n (a,b)@
 -}
 linspace :: Int -> (Double, Double) -> Vector Double
 linspace n (a,b) = add a $ scale s  $ fromList [0 .. fromIntegral n-1]

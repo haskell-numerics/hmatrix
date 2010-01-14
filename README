@@ -106,3 +106,5 @@ in the Haskell mailing lists for their help.
 - Erik de Castro Lopo added buildVector and buildMatrix, which take a
   size parameter(s) and a function that maps vector/matrix indices
   to the values at that position.
+
+- Jean-Francois Tremblay discovered an error in the tutorial.

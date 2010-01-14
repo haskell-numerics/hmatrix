@@ -29,7 +29,7 @@ module Data.Packed.Matrix (
     extractRows,
     ident, diag, diagRect, takeDiag,
     liftMatrix, liftMatrix2,
-    format,
+    format, dispf, disps, vecdisp,
     loadMatrix, saveMatrix, fromFile, fileDimensions,
     readMatrix, fromArray2D
 ) where
@@ -40,6 +40,7 @@ import Data.Packed.Vector
 import Data.List(transpose,intersperse)
 import Data.Array
 import System.Process(readProcess)
+import Text.Printf(printf)
 
 -- | creates a matrix from a vertical list of matrices
 joinVert :: Element t => [Matrix t] -> Matrix t
@@ -244,6 +245,43 @@ dispR d m = disp m (shf d)
 dispC :: Int -> Matrix (Complex Double) -> IO ()
 dispC d m = disp m (shfc d)
 -}
+
+-------------------------------------------------------------------
+-- display utilities
+
+-- | Print a matrix with \"autoscaling\" and a given number of decimal places.
+disps :: Int -> Matrix Double -> String
+disps d x = sdims x ++ "  " ++ formatScaled d x
+
+-- | Print a matrix with a given number of decimal places.
+dispf :: Int -> Matrix Double -> String
+dispf d x = sdims x ++ "\n" ++ formatFixed (if isInt x then 0 else d) x
+
+sdims x = show (rows x) ++ "x" ++ show (cols x)
+
+formatFixed d x = format "  " (printf ("%."++show d++"f")) $ x
+
+isInt = all lookslikeInt . toList . flatten where
+    lookslikeInt x = show (round x :: Int) ++".0" == shx || "-0.0" == shx
+        where shx = show x
+
+formatScaled dec t = "E"++show o++"\n" ++ ss
+    where ss = format " " (printf fmt. g) t
+          g x | o >= 0    = x/10^(o::Int)
+              | otherwise = x*10^(-o)
+          o = floor $ maximum $ map (logBase 10 . abs) $ toList $ flatten t
+          fmt = '%':show (dec+3) ++ '.':show dec ++"f"
+
+-- | Print a vector using a function for printing matrices.
+vecdisp :: (Element t) => (Matrix t -> String) -> Vector t -> String
+vecdisp f v
+    = ((show (dim v) ++ " |> ") ++) . (++"\n")
+    . unwords . lines .  tail . dropWhile (not . (`elem` " \n"))
+    . f . trans . reshape 1
+    $ v
+
+
+--------------------------------------------------------------------
 
 -- | reads a matrix from a string containing a table of numbers.
 readMatrix :: String -> Matrix Double
