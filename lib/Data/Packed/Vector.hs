@@ -18,6 +18,7 @@ module Data.Packed.Vector (
     dim, (@>),
     subVector, join,
     constant, linspace,
+    vecdisp,
     vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex,
     mapVector, zipVector,
     fscanfVector, fprintfVector, freadVector, fwriteVector,
@@ -74,3 +75,19 @@ constant = constantD -- about 2x faster
 buildVector :: Element a => Int -> (Int -> a) -> Vector a
 buildVector len f =
     fromList $ map f [0 .. (len - 1)]
+
+
+{- | Show a vector using a function for showing matrices.
+
+@disp = putStr . vecdisp ('dispf' 2)
+
+\> disp ('linspace' 10 (0,1))
+10 |> 0.00  0.11  0.22  0.33  0.44  0.56  0.67  0.78  0.89  1.00
+@
+-}
+vecdisp :: (Element t) => (Matrix t -> String) -> Vector t -> String
+vecdisp f v
+    = ((show (dim v) ++ " |> ") ++) . (++"\n")
+    . unwords . lines .  tail . dropWhile (not . (`elem` " \n"))
+    . f . trans . reshape 1
+    $ v

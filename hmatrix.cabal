@@ -5,7 +5,7 @@ License-file:       LICENSE
 Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          provisional
-Homepage:           http://www.hmatrix.googlepages.com
+Homepage:           http://code.haskell.org/hmatrix
 Synopsis:           Linear algebra and numerical computations
 Description:        Purely functional interface to basic linear algebra
                     and other numerical computations, internally implemented using

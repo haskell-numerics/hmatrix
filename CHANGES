@@ -1,7 +1,8 @@
 0.8.2.0
 =======
 
-- display utilities: dispf, disps
+- display utilities: dispf, disps, vecdisp
+- scalar
 
 0.8.1.0
 =======
