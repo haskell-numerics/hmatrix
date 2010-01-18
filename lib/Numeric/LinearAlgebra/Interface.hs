@@ -49,12 +49,16 @@ infixl 7 <.>
 
 ----------------------------------------------------
 
+{-# DEPRECATED (.*) "use scale a x or scalar a * x" #-}
+
 -- | @x .* a = scale x a@
 (.*) :: (Linear c a) => a -> c a -> c a
 infixl 7 .*
 a .* x = scale a x
 
 ----------------------------------------------------
+
+{-# DEPRECATED (*/) "use scale (recip a) x or x / scalar a" #-}
 
 -- | @a *\/ x = scale (recip x) a@
 (*/) :: (Linear c a) => c a -> a -> c a

@@ -21,6 +21,7 @@ module Data.Packed.Random (
 
 import Numeric.GSL.Vector
 import Data.Packed
+import Numeric.LinearAlgebra.Linear
 import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Instances()
 import Numeric.LinearAlgebra.Interface
@@ -54,7 +55,7 @@ uniformSample seed n rgs = m where
     d = dim a
     dat = toRows $ reshape n $ randomVector seed Uniform (n*d)
     am = constant 1 n `outer` a
-    m = fromColumns (zipWith (.*) cs dat) + am
+    m = fromColumns (zipWith scale cs dat) + am
 
 ------------ utilities -------------------------------
 

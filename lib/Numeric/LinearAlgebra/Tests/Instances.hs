@@ -180,7 +180,7 @@ instance (Field a, Arbitrary a, Num (Vector a)) => Arbitrary (PosDef a) where
         l <- replicateM n (choose (0,100))
         let s = diag (fromList l)
             p = v <> real s <> ctrans v
-        return $ PosDef (0.5 .* p + 0.5 .* ctrans p)
+        return $ PosDef (0.5 * p + 0.5 * ctrans p)
 
 #if MIN_VERSION_QuickCheck(2,0,0)
 #else

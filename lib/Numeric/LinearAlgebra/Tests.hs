@@ -262,8 +262,8 @@ runTests n = do
         , utest "expm1" (expmTest1)
         , utest "expm2" (expmTest2)
         , utest "arith1" $ ((ones (100,100) * 5 + 2)/0.5 - 7)**2 |~| (49 :: RM)
-        , utest "arith2" $ (((1+i) .* ones (100,100) * 5 + 2)/0.5 - 7)**2 |~| ( (140*i-51).*1 :: CM)
-        , utest "arith3" $ exp (i.*ones(10,10)*pi) + 1 |~| 0
+        , utest "arith2" $ ((scalar (1+i) * ones (100,100) * 5 + 2)/0.5 - 7)**2 |~| ( scalar (140*i-51) :: CM)
+        , utest "arith3" $ exp (scalar i * ones(10,10)*pi) + 1 |~| 0
         , utest "<\\>"   $ (3><2) [2,0,0,3,1,1::Double] <\> 3|>[4,9,5] |~| 2|>[2,3]
         , utest "gamma" (gamma 5 == 24.0)
         , besselTest
@@ -282,7 +282,7 @@ runTests n = do
         ]
     return ()
 
-makeUnitary v | realPart n > 1    = v */ n
+makeUnitary v | realPart n > 1    = v / scalar n
               | otherwise = v
     where n = sqrt (conj v <.> v)
 
