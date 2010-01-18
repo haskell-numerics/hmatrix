@@ -12,10 +12,13 @@ inParallel = parMap rwhnf id
 parMul p x y = fromBlocks [ inParallel ( map (x <>) ys ) ]
     where ys = splitColumns p y
 
+-- x <||> y = fromColumns . inParallel . map (x <>) . toColumns $ y
+
 main = do
     n <- (read . head) `fmap` getArgs
     let m = ident n :: Matrix Double
     time $ print $ vectorMax $ takeDiag $ m <> m
+--    time $ print $ vectorMax $ takeDiag $ m <||> m
     time $ print $ vectorMax $ takeDiag $ parMul 2 m m
     time $ print $ vectorMax $ takeDiag $ parMul 4 m m
     time $ print $ vectorMax $ takeDiag $ parMul 8 m m

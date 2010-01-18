@@ -80,8 +80,8 @@ compat' m1 m2 = rows m1 == 1 && cols m1 == 1
              || rows m2 == 1 && cols m2 == 1
              || rows m1 == rows m2 && cols m1 == cols m2
 
-instance (Eq a, Element a) => Eq (Vector a) where
-    a == b = dim a == dim b && toList a == toList b
+instance Linear Vector a => Eq (Vector a) where
+    (==) = equal
 
 instance Num (Vector Double) where
     (+) = adaptScalar addConstant add (flip addConstant)
@@ -99,8 +99,8 @@ instance Num (Vector (Complex Double)) where
     abs = vectorMapC Abs
     fromInteger = fromList . return . fromInteger
 
-instance (Eq a, Element a) => Eq (Matrix a) where
-    a == b = cols a == cols b && flatten a == flatten b
+instance Linear Matrix a => Eq (Matrix a) where
+    (==) = equal
 
 instance (Linear Matrix a, Num (Vector a)) => Num (Matrix a) where
     (+) = liftMatrix2' (+)

@@ -34,7 +34,6 @@ class (Element e) => Container c e where
     conj        :: RealFloat e => c (Complex e) -> c (Complex e)
     real        :: c Double -> c e
     complex     :: c e -> c (Complex Double)
-    scalar      :: e -> c e
 
 instance Container Vector Double where
     toComplex = Data.Packed.Internal.toComplex
@@ -43,7 +42,6 @@ instance Container Vector Double where
     conj = Data.Packed.Internal.conj
     real = id
     complex = Data.Packed.comp
-    scalar x = fromList [x]
 
 instance Container Vector (Complex Double) where
     toComplex = undefined -- can't match
@@ -52,7 +50,6 @@ instance Container Vector (Complex Double) where
     conj = undefined
     real = Data.Packed.comp
     complex = id
-    scalar x = fromList [x]
 
 instance Container Matrix Double where
     toComplex = uncurry $ liftMatrix2 $ curry Data.Packed.toComplex
@@ -63,7 +60,6 @@ instance Container Matrix Double where
     conj = liftMatrix Data.Packed.Internal.conj
     real = id
     complex = Data.Packed.comp
-    scalar x = (1><1) [x]
 
 instance Container Matrix (Complex Double) where
     toComplex = undefined
@@ -72,7 +68,6 @@ instance Container Matrix (Complex Double) where
     conj = undefined
     real = Data.Packed.comp
     complex = id
-    scalar x = (1><1) [x]
 
 
 -- | converts a real vector into a complex representation (with zero imaginary parts)

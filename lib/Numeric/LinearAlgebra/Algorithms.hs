@@ -147,6 +147,14 @@ instance Field (Complex Double) where
 
 --------------------------------------------------------------
 
+square m = rows m == cols m
+
+vertical m = rows m >= cols m
+
+exactHermitian m = m `equal` ctrans m
+
+--------------------------------------------------------------
+
 -- | Full singular value decomposition.
 svd :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
 svd = svd'
@@ -179,7 +187,6 @@ compactSVD m = (u', subVector 0 d s, v') where
     u' = takeColumns d u
     v' = takeColumns d v
 
-vertical m = rows m >= cols m
 
 -- | Singular values and all right singular vectors.
 rightSV :: Field t => Matrix t -> (Vector Double, Matrix t)
@@ -255,12 +262,12 @@ eigenvaluesSH' = eigOnlySH
 --
 -- If @(s,v) = eigSH m@ then @m == v \<> diag s \<> ctrans v@
 eigSH :: Field t => Matrix t -> (Vector Double, Matrix t)
-eigSH m | m `equal` ctrans m = eigSH' m
+eigSH m | exactHermitian m = eigSH' m
         | otherwise = error "eigSH requires complex hermitian or real symmetric matrix"
 
 -- | Eigenvalues of a complex hermitian or real symmetric matrix.
 eigenvaluesSH :: Field t => Matrix t -> Vector Double
-eigenvaluesSH m | m `equal` ctrans m = eigenvaluesSH' m
+eigenvaluesSH m | exactHermitian m = eigenvaluesSH' m
                 | otherwise = error "eigenvaluesSH requires complex hermitian or real symmetric matrix"
 
 --------------------------------------------------------------
@@ -317,13 +324,11 @@ cholSH = cholSH'
 --
 -- If @c = chol m@ then @m == ctrans c \<> c@.
 chol :: Field t => Matrix t ->  Matrix t
-chol m | m `equal` ctrans m = cholSH m
+chol m | exactHermitian m = cholSH m
        | otherwise = error "chol requires positive definite complex hermitian or real symmetric matrix"
 
 
 
-
-square m = rows m == cols m
 
 -- | Determinant of a square matrix.
 det :: Field t => Matrix t -> t
@@ -569,7 +574,7 @@ diagonalize m = if rank v == n
                     then Just (l,v)
                     else Nothing
     where n = rows m
-          (l,v) = if m `equal` ctrans m
+          (l,v) = if exactHermitian m
                     then let (l',v') = eigSH m in (real l', v')
                     else eig m
 
