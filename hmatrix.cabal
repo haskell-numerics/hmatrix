@@ -6,7 +6,7 @@ Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          provisional
 Homepage:           http://code.haskell.org/hmatrix
-Synopsis:           Linear algebra and numerical computations
+Synopsis:           Linear algebra and numerical computation
 Description:        Purely functional interface to basic linear algebra
                     and other numerical computations, internally implemented using
                     GSL, BLAS and LAPACK.

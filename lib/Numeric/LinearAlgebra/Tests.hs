@@ -279,6 +279,7 @@ runTests n = do
                      && ident 5 == buildMatrix 5 5 (\(r,c) -> if r==c then 1::Double else 0)
         , utest "rank" $  rank ((2><3)[1,0,0,1,6*eps,0]) == 1
                        && rank ((2><3)[1,0,0,1,7*eps,0]) == 2
+        , utest "block" $ fromBlocks [[ident 3,0],[0,ident 4]] == (ident 7 :: CM)
         ]
     return ()
 

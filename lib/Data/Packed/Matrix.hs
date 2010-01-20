@@ -60,7 +60,9 @@ corresponding common row and column:
 \> let vector xs = fromList xs :: Vector Double
 \> let diagl = diag . vector
 \> let rowm = asRow . vector
+
 \> disp $ fromBlocks [[ident 5, 7, rowm[10,20]], [3, diagl[1,2,3], 0]]
+
 8x10
 1  0  0  0  0  7  7  7  10  20
 0  1  0  0  0  7  7  7  10  20
