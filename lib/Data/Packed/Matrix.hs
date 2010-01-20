@@ -44,28 +44,59 @@ import Text.Printf(printf)
 -- | creates a matrix from a vertical list of matrices
 joinVert :: Element t => [Matrix t] -> Matrix t
 joinVert ms = case common cols ms of
-    Nothing -> error "joinVert on matrices with different number of columns"
+    Nothing -> error "(impossible) joinVert on matrices with different number of columns"
     Just c  -> reshape c $ join (map flatten ms)
 
 -- | creates a matrix from a horizontal list of matrices
 joinHoriz :: Element t => [Matrix t] -> Matrix t
 joinHoriz ms = trans. joinVert . map trans $ ms
 
-{- | Creates a matrix from blocks given as a list of lists of matrices:
+{- | Creates a matrix from blocks given as a list of lists of matrices.
 
-@\> let a = 'diag' $ 'fromList' [5,7,2]
-\> let b = 'reshape' 4 $ 'constant' (-1) 12
-\> fromBlocks [[a,b],[b,a]]
-(6><7)
- [  5.0,  0.0,  0.0, -1.0, -1.0, -1.0, -1.0
- ,  0.0,  7.0,  0.0, -1.0, -1.0, -1.0, -1.0
- ,  0.0,  0.0,  2.0, -1.0, -1.0, -1.0, -1.0
- , -1.0, -1.0, -1.0, -1.0,  5.0,  0.0,  0.0
- , -1.0, -1.0, -1.0, -1.0,  0.0,  7.0,  0.0
- , -1.0, -1.0, -1.0, -1.0,  0.0,  0.0,  2.0 ]@
+Single row/column components are automatically expanded to match the
+corresponding common row and column:
+
+@\> let disp = putStr . dispf 2
+\> let vector xs = fromList xs :: Vector Double
+\> let diagl = diag . vector
+\> let rowm = asRow . vector
+\> disp $ fromBlocks [[ident 5, 7, rowm[10,20]], [3, diagl[1,2,3], 0]]
+8x10
+1  0  0  0  0  7  7  7  10  20
+0  1  0  0  0  7  7  7  10  20
+0  0  1  0  0  7  7  7  10  20
+0  0  0  1  0  7  7  7  10  20
+0  0  0  0  1  7  7  7  10  20
+3  3  3  3  3  1  0  0   0   0
+3  3  3  3  3  0  2  0   0   0
+3  3  3  3  3  0  0  3   0   0@
 -}
 fromBlocks :: Element t => [[Matrix t]] -> Matrix t
-fromBlocks = joinVert . map joinHoriz 
+fromBlocks = fromBlocksRaw . adaptBlocks
+
+fromBlocksRaw mms = joinVert . map joinHoriz $ mms
+
+adaptBlocks ms = ms' where
+    bc = case common length ms of
+          Just c -> c
+          Nothing -> error "fromBlocks requires rectangular [[Matrix]]"
+    rs = map (compatdim . map rows) ms
+    cs = map (compatdim . map cols) (transpose ms)
+    szs = sequence [rs,cs]
+    ms' = partit bc $ zipWith g szs (concat ms)
+
+    g [Just nr,Just nc] m
+                | nr == r && nc == c = m
+                | r == 1 && c == 1 = reshape nc (constant x (nr*nc))
+                | r == 1 = fromRows (replicate nr (flatten m))
+                | otherwise = fromColumns (replicate nc (flatten m))
+      where
+        r = rows m
+        c = cols m
+        x = m@@>(0,0)
+    g _ _ = error "inconsistent dimensions in fromBlocks"
+
+-----------------------------------------------------------
 
 -- | Reverse rows 
 flipud :: Element t => Matrix t -> Matrix t

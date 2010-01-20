@@ -1,7 +1,13 @@
 0.8.2.0
 =======
 
+- fromRows/fromColumns now automatically expand vectors of dim 1
+  to match the common dimension.
+  fromBlocks also replicates single row/column matrices.
+  Previously all dimensions had to be exactly the same.
+
 - display utilities: dispf, disps, vecdisp
+
 - scalar
 
 0.8.1.0

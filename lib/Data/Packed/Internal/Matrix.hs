@@ -135,11 +135,16 @@ type Mt t s = Int -> Int -> Ptr t -> s
 toLists :: (Element t) => Matrix t -> [[t]]
 toLists m = partit (cols m) . toList . flatten $ m
 
--- | creates a Matrix from a list of vectors
+-- | Create a matrix from a list of vectors.
+-- All vectors must have the same dimension,
+-- or dimension 1, which is are automatically expanded.
 fromRows :: Element t => [Vector t] -> Matrix t
-fromRows vs = case common dim vs of
+fromRows vs = case compatdim (map dim vs) of
     Nothing -> error "fromRows applied to [] or to vectors with different sizes"
-    Just c  -> reshape c (join vs)
+    Just c  -> reshape c . join . map (adapt c) $ vs
+  where
+    adapt c v | dim v == c = v
+              | otherwise = constantD (v@>0) c
 
 -- | extracts the rows of a matrix as a list of vectors
 toRows :: Element t => Matrix t -> [Vector t]

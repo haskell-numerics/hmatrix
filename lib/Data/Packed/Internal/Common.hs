@@ -18,7 +18,7 @@ module Data.Packed.Internal.Common(
   Adapt,
   app1, app2, app3, app4,
   (//), check,
-  partit, common,
+  partit, common, compatdim,
   fi
 ) where
 
@@ -40,6 +40,12 @@ common f = commonval . map f where
     commonval [] = Nothing
     commonval [a] = Just a
     commonval (a:b:xs) = if a==b then commonval (b:xs) else Nothing
+
+-- | common value with \"adaptable\" 1
+compatdim :: [Int] -> Maybe Int
+compatdim [] = Nothing
+compatdim [a] = Just a
+compatdim (a:b:xs) = if a==b || a==1 || b==1 then compatdim (max a b:xs) else Nothing
 
 -- | postfix function application (@flip ($)@)
 (//) :: x -> (x -> y) -> y
