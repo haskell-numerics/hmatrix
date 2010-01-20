@@ -51,8 +51,9 @@ The nmsimplex2 version is a new O(N) implementation of the earlier O(N^2) nmsimp
 
 -----------------------------------------------------------------------------
 module Numeric.GSL.Minimization (
-    minimize, MinimizeMethod(..),
-    minimizeD, MinimizeMethodD(..),
+    minimize, minimizeV, MinimizeMethod(..),
+    minimizeD, minimizeVD, MinimizeMethodD(..),
+
     minimizeNMSimplex,
     minimizeConjugateGradient,
     minimizeVectorBFGS2
@@ -82,7 +83,7 @@ data MinimizeMethod = NMSimplex
                     | NMSimplex2
                     deriving (Enum,Eq,Show,Bounded)
 
--- | Minimization without derivatives.
+-- | Minimization without derivatives
 minimize :: MinimizeMethod
          -> Double              -- ^ desired precision of the solution (size test)
          -> Int                 -- ^ maximum number of iterations allowed
@@ -91,7 +92,39 @@ minimize :: MinimizeMethod
          -> [Double]            -- ^ starting point
          -> ([Double], Matrix Double) -- ^ solution vector and optimization path
 
-minimize method = minimizeGen (fi (fromEnum method))
+-- | Minimization without derivatives (vector version)
+minimizeV :: MinimizeMethod
+         -> Double              -- ^ desired precision of the solution (size test)
+         -> Int                 -- ^ maximum number of iterations allowed
+         -> Vector Double       -- ^ sizes of the initial search box
+         -> (Vector Double -> Double) -- ^ function to minimize
+         -> Vector Double            -- ^ starting point
+         -> (Vector Double, Matrix Double) -- ^ solution vector and optimization path
+
+minimize method eps maxit sz f xi = v2l $ minimizeV method eps maxit (fromList sz) (f.toList) (fromList xi)
+    where v2l (v,m) = (toList v, m)
+
+ww2 w1 o1 w2 o2 f = w1 o1 $ \a1 -> w2 o2 $ \a2 -> f a1 a2
+
+minimizeV method eps maxit szv f xiv = unsafePerformIO $ do
+    let n   = dim xiv
+    fp <- mkVecfun (iv f)
+    rawpath <- ww2 withVector xiv withVector szv $ \xiv' szv' ->
+                   createMIO maxit (n+3)
+                         (c_minimize (fi (fromEnum method)) fp eps (fi maxit) // xiv' // szv')
+                         "minimize"
+    let it = round (rawpath @@> (maxit-1,0))
+        path = takeRows it rawpath
+        sol = cdat $ dropColumns 3 $ dropRows (it-1) path
+    freeHaskellFunPtr fp
+    return (sol, path)
+
+
+foreign import ccall "gsl-aux.h minimize"
+    c_minimize:: CInt -> FunPtr (CInt -> Ptr Double -> Double) -> Double -> CInt -> TVVM
+
+----------------------------------------------------------------------------------
+
 
 data MinimizeMethodD = ConjugateFR
                      | ConjugatePR
@@ -111,49 +144,35 @@ minimizeD :: MinimizeMethodD
     -> [Double]               -- ^ starting point
     -> ([Double], Matrix Double) -- ^ solution vector and optimization path
 
-minimizeD method = minimizeDGen (fi (fromEnum method))
+-- | Minimization with derivatives (vector version)
+minimizeVD :: MinimizeMethodD
+    -> Double                 -- ^ desired precision of the solution (gradient test)
+    -> Int                    -- ^ maximum number of iterations allowed
+    -> Double                 -- ^ size of the first trial step
+    -> Double                 -- ^ tol (precise meaning depends on method)
+    -> (Vector Double -> Double)   -- ^ function to minimize
+    -> (Vector Double -> Vector Double) -- ^ gradient
+    -> Vector Double               -- ^ starting point
+    -> (Vector Double, Matrix Double) -- ^ solution vector and optimization path
 
--------------------------------------------------------------------------
-
-ww2 w1 o1 w2 o2 f = w1 o1 $ \a1 -> w2 o2 $ \a2 -> f a1 a2
-
-minimizeGen method eps maxit sz f xi = unsafePerformIO $ do
-    let xiv = fromList xi
-        szv = fromList sz
-        n   = dim xiv
-    fp <- mkVecfun (iv (f.toList))
-    rawpath <- ww2 withVector xiv withVector szv $ \xiv' szv' ->
-                   createMIO maxit (n+3)
-                         (c_minimize method fp eps (fi maxit) // xiv' // szv')
-                         "minimize"
-    let it = round (rawpath @@> (maxit-1,0))
-        path = takeRows it rawpath
-        [sol] = toLists $ dropRows (it-1) path
-    freeHaskellFunPtr fp
-    return (drop 3 sol, path)
+minimizeD method eps maxit istep tol f df xi = v2l $ minimizeVD
+          method eps maxit istep tol (f.toList) (fromList.df.toList) (fromList xi)
+    where v2l (v,m) = (toList v, m)
 
 
-foreign import ccall "gsl-aux.h minimize"
-    c_minimize:: CInt -> FunPtr (CInt -> Ptr Double -> Double) -> Double -> CInt -> TVVM
-
-----------------------------------------------------------------------------------
-
-
-
-minimizeDGen method eps maxit istep tol f df xi = unsafePerformIO $ do
-    let xiv = fromList xi
-        n = dim xiv
-        f' = f . toList
-        df' = (checkdim1 n .fromList . df . toList)
+minimizeVD method eps maxit istep tol f df xiv = unsafePerformIO $ do
+    let n = dim xiv
+        f' = f
+        df' = (checkdim1 n . df)
     fp <- mkVecfun (iv f')
     dfp <- mkVecVecfun (aux_vTov df')
     rawpath <- withVector xiv $ \xiv' ->
                     createMIO maxit (n+2)
-                         (c_minimizeD method fp dfp istep tol eps (fi maxit) // xiv')
+                         (c_minimizeD (fi (fromEnum method)) fp dfp istep tol eps (fi maxit) // xiv')
                          "minimizeD"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
-        sol = toList $ cdat $ dropColumns 2 $ dropRows (it-1) path
+        sol = cdat $ dropColumns 2 $ dropRows (it-1) path
     freeHaskellFunPtr fp
     freeHaskellFunPtr dfp
     return (sol,path)

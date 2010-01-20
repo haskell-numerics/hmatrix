@@ -10,6 +10,8 @@
 
 - scalar
 
+- minimizeV, minimizeVD, using Vector instead of lists.
+
 0.8.1.0
 =======
 
