@@ -71,9 +71,21 @@ adaptScalar f1 f2 f3 x y
     | dim y == 1 = f3 x (y@>0)
     | otherwise = f2 x y
 
-liftMatrix2' :: (Element t, Element a, Element b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
-liftMatrix2' f m1 m2 | compat' m1 m2 = reshape (max (cols m1) (cols m2)) (f (flatten m1) (flatten m2))
-                     | otherwise    = error "nonconformant matrices in liftMatrix2'"
+liftMatrix2' :: (Element t, Element a, Element b)
+             => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
+liftMatrix2' f m1 m2 | compat' m1 m2 = lM f m1 m2
+                     | rows m1 == rows m2 && cols m2 == 1 = lM f m1 (repCols (cols m1) m2)
+                     | rows m1 == rows m2 && cols m1 == 1 = lM f (repCols (cols m2) m1) m2
+                     | cols m1 == cols m2 && rows m2 == 1 = lM f m1 (repRows (rows m1) m2)
+                     | cols m1 == cols m2 && cols m1 == 1 = lM f (repRows (rows m2) m1) m2
+                     | rows m1 == 1 && cols m2 == 1 = lM f (repRows (rows m2) m1) (repCols (cols m1) m2)
+                     | cols m1 == 1 && rows m2 == 1 = lM f (repCols (cols m2) m1) (repRows (rows m1) m2)
+                     | otherwise    = error "nonconformable matrices in liftMatrix2'"
+
+lM f m1 m2 = reshape (max (cols m1) (cols m2)) (f (flatten m1) (flatten m2))
+
+repRows n x = fromRows (replicate n (flatten x))
+repCols n x = fromColumns (replicate n (flatten x))
 
 compat' :: Matrix a -> Matrix b -> Bool
 compat' m1 m2 = rows m1 == 1 && cols m1 == 1
