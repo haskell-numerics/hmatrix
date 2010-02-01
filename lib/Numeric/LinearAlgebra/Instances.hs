@@ -71,26 +71,6 @@ adaptScalar f1 f2 f3 x y
     | dim y == 1 = f3 x (y@>0)
     | otherwise = f2 x y
 
-liftMatrix2' :: (Element t, Element a, Element b)
-             => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
-liftMatrix2' f m1 m2 | compat' m1 m2 = lM f m1 m2
-                     | rows m1 == rows m2 && cols m2 == 1 = lM f m1 (repCols (cols m1) m2)
-                     | rows m1 == rows m2 && cols m1 == 1 = lM f (repCols (cols m2) m1) m2
-                     | cols m1 == cols m2 && rows m2 == 1 = lM f m1 (repRows (rows m1) m2)
-                     | cols m1 == cols m2 && cols m1 == 1 = lM f (repRows (rows m2) m1) m2
-                     | rows m1 == 1 && cols m2 == 1 = lM f (repRows (rows m2) m1) (repCols (cols m1) m2)
-                     | cols m1 == 1 && rows m2 == 1 = lM f (repCols (cols m2) m1) (repRows (rows m1) m2)
-                     | otherwise    = error "nonconformable matrices in liftMatrix2'"
-
-lM f m1 m2 = reshape (max (cols m1) (cols m2)) (f (flatten m1) (flatten m2))
-
-repRows n x = fromRows (replicate n (flatten x))
-repCols n x = fromColumns (replicate n (flatten x))
-
-compat' :: Matrix a -> Matrix b -> Bool
-compat' m1 m2 = rows m1 == 1 && cols m1 == 1
-             || rows m2 == 1 && cols m2 == 1
-             || rows m1 == rows m2 && cols m1 == cols m2
 
 instance Linear Vector a => Eq (Vector a) where
     (==) = equal
@@ -115,10 +95,10 @@ instance Linear Matrix a => Eq (Matrix a) where
     (==) = equal
 
 instance (Linear Matrix a, Num (Vector a)) => Num (Matrix a) where
-    (+) = liftMatrix2' (+)
-    (-) = liftMatrix2' (-)
+    (+) = liftMatrix2Auto (+)
+    (-) = liftMatrix2Auto (-)
     negate = liftMatrix negate
-    (*) = liftMatrix2' (*)
+    (*) = liftMatrix2Auto (*)
     signum = liftMatrix signum
     abs = liftMatrix abs
     fromInteger = (1><1) . return . fromInteger
@@ -135,7 +115,7 @@ instance (Linear Vector a, Num (Vector a)) => Fractional (Vector a) where
 
 instance (Linear Vector a, Fractional (Vector a), Num (Matrix a)) => Fractional (Matrix a) where
     fromRational n = (1><1) [fromRational n]
-    (/) = liftMatrix2' (/)
+    (/) = liftMatrix2Auto (/)
 
 ---------------------------------------------------------
 
@@ -196,7 +176,7 @@ instance (Linear Vector a, Floating (Vector a), Fractional (Matrix a)) => Floati
     atanh = liftMatrix atanh
     exp   = liftMatrix exp
     log   = liftMatrix log
-    (**)  = liftMatrix2' (**)
+    (**)  = liftMatrix2Auto (**)
     sqrt  = liftMatrix sqrt
     pi    = (1><1) [pi]
 
@@ -216,3 +196,4 @@ instance (Storable a, Num (Vector a)) => Monoid (Vector a) where
 --
 -- instance (NFData a, Element a) => NFData (Matrix a) where
 --     rnf = rnf . flatten
+

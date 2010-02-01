@@ -366,3 +366,4 @@ svdBench = do
     time "full svd         3000x500" (fv $ svd a)
     time "singular values 1000x1000" (singularValues b)
     time "full svd        1000x1000" (fv $ svd b)
+

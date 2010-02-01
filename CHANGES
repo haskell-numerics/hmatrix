@@ -61,3 +61,4 @@
 - added NFData instances for Matrix and Vector.
 
 - liftVector, liftVector2 replaced by mapVector, zipVector.
+
