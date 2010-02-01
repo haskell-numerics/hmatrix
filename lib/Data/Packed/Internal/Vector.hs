@@ -15,7 +15,7 @@
 -- #hide
 
 module Data.Packed.Internal.Vector (
-    Vector(..),
+    Vector(..), dim,
     fromList, toList, (|>),
     join, (@>), safe, at, at', subVector,
     mapVector, zipVector,
@@ -47,9 +47,13 @@ import GHC.IOBase
 
 -- | A one-dimensional array of objects stored in a contiguous memory block.
 data Vector t =
-    V { dim  :: {-# UNPACK #-} !Int               -- ^ number of elements
+    V { idim  :: {-# UNPACK #-} !Int              -- ^ number of elements
       , fptr :: {-# UNPACK #-} !(ForeignPtr t)    -- ^ foreign pointer to the memory block
       }
+
+-- | Number of elements
+dim :: Vector t -> Int
+dim = idim
 
 -- C-Haskell vector adapter
 vec :: Adapt (CInt -> Ptr t -> r) (Vector t) r
@@ -157,7 +161,7 @@ subVector :: Storable t => Int       -- ^ index of the starting element
                         -> Int       -- ^ number of elements to extract
                         -> Vector t  -- ^ source
                         -> Vector t  -- ^ result
-subVector k l (v@V {dim=n})
+subVector k l (v@V {idim=n})
     | k<0 || k >= n || k+l > n || l < 0 = error "subVector out of range"
     | otherwise = unsafePerformIO $ do
         r <- createVector l
@@ -192,23 +196,23 @@ join as = unsafePerformIO $ do
         joiner as tot ptr
     return r
   where joiner [] _ _ = return ()
-        joiner (V {dim = n, fptr = b} : cs) _ p = do
+        joiner (V {idim = n, fptr = b} : cs) _ p = do
             withForeignPtr b $ \pb -> copyArray p pb n
             joiner cs 0 (advancePtr p n)
 
 
 -- | transforms a complex vector into a real vector with alternating real and imaginary parts 
 asReal :: Vector (Complex Double) -> Vector Double
-asReal v = V { dim = 2*dim v, fptr =  castForeignPtr (fptr v) }
+asReal v = V { idim = 2*dim v, fptr =  castForeignPtr (fptr v) }
 
 -- | transforms a real vector into a complex vector with alternating real and imaginary parts
 asComplex :: Vector Double -> Vector (Complex Double)
-asComplex v = V { dim = dim v `div` 2, fptr =  castForeignPtr (fptr v) }
+asComplex v = V { idim = dim v `div` 2, fptr =  castForeignPtr (fptr v) }
 
 ----------------------------------------------------------------
 
 cloneVector :: Storable t => Vector t -> IO (Vector t)
-cloneVector (v@V {dim=n}) = do
+cloneVector (v@V {idim=n}) = do
         r <- createVector n
         let f _ s _ d =  copyArray d s n >> return 0
         app2 f vec v vec r "cloneVector"

@@ -203,7 +203,7 @@ instance (Linear Vector a, Floating (Vector a), Fractional (Matrix a)) => Floati
 ---------------------------------------------------------------
 
 instance (Storable a, Num (Vector a)) => Monoid (Vector a) where
-    mempty = 0 { dim = 0 }
+    mempty = 0 { idim = 0 }
     mappend a b = mconcat [a,b]
     mconcat = j . filter ((>0).dim)
         where j [] = mempty

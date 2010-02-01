@@ -16,7 +16,7 @@
 -- #hide
 
 module Data.Packed.Internal.Matrix(
-    Matrix(..),
+    Matrix(..), rows, cols,
     MatrixOrder(..), orderOf,
     createMatrix, withMatrix, mat,
     cmat, fmat,
@@ -77,16 +77,22 @@ import Foreign.C.String
 data MatrixOrder = RowMajor | ColumnMajor deriving (Show,Eq)
 
 -- | Matrix representation suitable for GSL and LAPACK computations.
-data Matrix t = MC { rows :: {-# UNPACK #-} !Int
-                   , cols :: {-# UNPACK #-} !Int
+data Matrix t = MC { irows :: {-# UNPACK #-} !Int
+                   , icols :: {-# UNPACK #-} !Int
                    , cdat :: {-# UNPACK #-} !(Vector t) }
 
-              | MF { rows :: {-# UNPACK #-} !Int
-                   , cols :: {-# UNPACK #-} !Int
+              | MF { irows :: {-# UNPACK #-} !Int
+                   , icols :: {-# UNPACK #-} !Int
                    , fdat :: {-# UNPACK #-} !(Vector t) }
 
 -- MC: preferred by C, fdat may require a transposition
 -- MF: preferred by LAPACK, cdat may require a transposition
+
+rows :: Matrix t -> Int
+rows = irows
+
+cols :: Matrix t -> Int
+cols = icols
 
 xdat MC {cdat = d } = d
 xdat MF {fdat = d } = d
@@ -97,16 +103,16 @@ orderOf MC{} = RowMajor
 
 -- | Matrix transpose.
 trans :: Matrix t -> Matrix t
-trans MC {rows = r, cols = c, cdat = d } = MF {rows = c, cols = r, fdat = d }
-trans MF {rows = r, cols = c, fdat = d } = MC {rows = c, cols = r, cdat = d }
+trans MC {irows = r, icols = c, cdat = d } = MF {irows = c, icols = r, fdat = d }
+trans MF {irows = r, icols = c, fdat = d } = MC {irows = c, icols = r, cdat = d }
 
 cmat :: (Element t) => Matrix t -> Matrix t
 cmat m@MC{} = m
-cmat MF {rows = r, cols = c, fdat = d } = MC {rows = r, cols = c, cdat = transdata r d c}
+cmat MF {irows = r, icols = c, fdat = d } = MC {irows = r, icols = c, cdat = transdata r d c}
 
 fmat :: (Element t) => Matrix t -> Matrix t
 fmat m@MF{} = m
-fmat MC {rows = r, cols = c, cdat = d } = MF {rows = r, cols = c, fdat = transdata c d r}
+fmat MC {irows = r, icols = c, cdat = d } = MF {irows = r, icols = c, fdat = transdata c d r}
 
 -- C-Haskell matrix adapter
 mat :: Adapt (CInt -> CInt -> Ptr t -> r) (Matrix t) r
@@ -170,13 +176,13 @@ infixl 9 @@>
 --    | i<0 || i>=r || j<0 || j>=c = error "matrix indexing out of range"
 --    | otherwise   = cdat m `at` (i*c+j)
 
-MC {rows = r, cols = c, cdat = v} @@> (i,j)
+MC {irows = r, icols = c, cdat = v} @@> (i,j)
     | safe      = if i<0 || i>=r || j<0 || j>=c
                     then error "matrix indexing out of range"
                     else v `at` (i*c+j)
     | otherwise = v `at` (i*c+j)
 
-MF {rows = r, cols = c, fdat = v} @@> (i,j)
+MF {irows = r, icols = c, fdat = v} @@> (i,j)
     | safe      = if i<0 || i>=r || j<0 || j>=c
                     then error "matrix indexing out of range"
                     else v `at` (j*r+i)
@@ -184,18 +190,18 @@ MF {rows = r, cols = c, fdat = v} @@> (i,j)
 {-# INLINE (@@>) #-}
 
 --  Unsafe matrix access without range checking
-atM' MC {cols = c, cdat = v} i j = v `at'` (i*c+j)
-atM' MF {rows = r, fdat = v} i j = v `at'` (j*r+i)
+atM' MC {icols = c, cdat = v} i j = v `at'` (i*c+j)
+atM' MF {irows = r, fdat = v} i j = v `at'` (j*r+i)
 {-# INLINE atM' #-}
 
 ------------------------------------------------------------------
 
-matrixFromVector RowMajor c v = MC { rows = r, cols = c, cdat = v }
+matrixFromVector RowMajor c v = MC { irows = r, icols = c, cdat = v }
     where (d,m) = dim v `divMod` c
           r | m==0 = d
             | otherwise = error "matrixFromVector"
 
-matrixFromVector ColumnMajor c v = MF { rows = r, cols = c, fdat = v }
+matrixFromVector ColumnMajor c v = MF { irows = r, icols = c, fdat = v }
     where (d,m) = dim v `divMod` c
           r | m==0 = d
             | otherwise = error "matrixFromVector"
@@ -223,8 +229,8 @@ singleton x = reshape 1 (fromList [x])
 
 -- | application of a vector function on the flattened matrix elements
 liftMatrix :: (Element a, Element b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
-liftMatrix f MC { cols = c, cdat = d } = matrixFromVector RowMajor    c (f d)
-liftMatrix f MF { cols = c, fdat = d } = matrixFromVector ColumnMajor c (f d)
+liftMatrix f MC { icols = c, cdat = d } = matrixFromVector RowMajor    c (f d)
+liftMatrix f MF { icols = c, fdat = d } = matrixFromVector ColumnMajor c (f d)
 
 -- | application of a vector function on the flattened matrices elements
 liftMatrix2 :: (Element t, Element a, Element b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
