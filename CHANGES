@@ -1,7 +1,9 @@
 0.8.3.0
 =======
 
-- Matrix arithmetic automatically replicates single row/column matrices
+- New module Numeric.LinearAlgebra.Util
+
+- Matrix arithmetic automatically replicates single row/column matrices.
 
 0.8.2.0
 =======

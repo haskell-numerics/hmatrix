@@ -71,7 +71,7 @@ library
     Build-Depends:      haskell98,
                         QuickCheck, HUnit,
                         storable-complex,
-                        process
+                        process, random
 
     Extensions:         ForeignFunctionInterface,
                         CPP
@@ -127,8 +127,9 @@ library
                         Numeric.LinearAlgebra.Tests,
                         Data.Packed.Convert,
                         Data.Packed.ST,
-                        Data.Packed.Development
-                        Data.Packed.Random
+                        Data.Packed.Development,
+                        Data.Packed.Random,
+                        Numeric.LinearAlgebra.Util
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Signatures,
