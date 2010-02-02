@@ -18,8 +18,9 @@ module Data.Packed.Internal.Common(
   Adapt,
   app1, app2, app3, app4,
   (//), check,
-  partit, common, compatdim,
-  fi
+  splitEvery, common, compatdim,
+  fi,
+  table
 ) where
 
 import Foreign
@@ -27,11 +28,12 @@ import Control.Monad(when)
 import Foreign.C.String(peekCString)
 import Foreign.C.Types
 import Foreign.Storable.Complex()
+import Data.List(transpose,intersperse)
 
--- | @partit 3 [1..9] == [[1,2,3],[4,5,6],[7,8,9]]@
-partit :: Int -> [a] -> [[a]]
-partit _ [] = []
-partit n l  = take n l : partit n (drop n l)
+-- | @splitEvery 3 [1..9] == [[1,2,3],[4,5,6],[7,8,9]]@
+splitEvery :: Int -> [a] -> [[a]]
+splitEvery _ [] = []
+splitEvery k l = take k l : splitEvery k (drop k l)
 
 -- | obtains the common value of a property of a list
 common :: (Eq a) => (b->a) -> [b] -> Maybe a
@@ -46,6 +48,15 @@ compatdim :: [Int] -> Maybe Int
 compatdim [] = Nothing
 compatdim [a] = Just a
 compatdim (a:b:xs) = if a==b || a==1 || b==1 then compatdim (max a b:xs) else Nothing
+
+-- | Formatting tool
+table :: String -> [[String]] -> String
+table sep as = unlines . map unwords' $ transpose mtp where 
+    mt = transpose as
+    longs = map (maximum . map length) mt
+    mtp = zipWith (\a b -> map (pad a) b) longs mt
+    pad n str = replicate (n - length str) ' ' ++ str
+    unwords' = concat . intersperse sep
 
 -- | postfix function application (@flip ($)@)
 (//) :: x -> (x -> y) -> y

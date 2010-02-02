@@ -36,10 +36,10 @@ module Data.Packed.Matrix (
 import Data.Packed.Internal
 import qualified Data.Packed.ST as ST
 import Data.Packed.Vector
-import Data.List(transpose,intersperse)
 import Data.Array
 import System.Process(readProcess)
 import Text.Printf(printf)
+import Data.List(transpose)
 
 -- | creates a matrix from a vertical list of matrices
 joinVert :: Element t => [Matrix t] -> Matrix t
@@ -85,7 +85,7 @@ adaptBlocks ms = ms' where
     rs = map (compatdim . map rows) ms
     cs = map (compatdim . map cols) (transpose ms)
     szs = sequence [rs,cs]
-    ms' = partit bc $ zipWith g szs (concat ms)
+    ms' = splitEvery bc $ zipWith g szs (concat ms)
 
     g [Just nr,Just nc] m
                 | nr == r && nc == c = m
@@ -249,13 +249,6 @@ shfc n z@ (a:+b)
 
 -}
 
-dsp' :: String -> [[String]] -> String
-dsp' sep as = unlines . map unwords' $ transpose mtp where 
-    mt = transpose as
-    longs = map (maximum . map length) mt
-    mtp = zipWith (\a b -> map (pad a) b) longs mt
-    pad n str = replicate (n - length str) ' ' ++ str
-    unwords' = concat . intersperse sep
 
 {- | Creates a string from a matrix given a separator and a function to show each entry. Using
 this function the user can easily define any desired display function:
@@ -266,7 +259,7 @@ this function the user can easily define any desired display function:
 
 -}
 format :: (Element t) => String -> (t -> String) -> Matrix t -> String
-format sep f m = dsp' sep . map (map f) . toLists $ m
+format sep f m = table sep . map (map f) . toLists $ m
 
 {-
 disp m f = putStrLn $ "matrix ("++show (rows m) ++"x"++ show (cols m) ++")\n"++format " | " f m
@@ -385,7 +378,7 @@ extractRows l m = fromRows $ extract (toRows $ m) l
 
 -}
 repmat :: (Element t) => Matrix t -> Int -> Int -> Matrix t
-repmat m r c = fromBlocks $ partit c $ replicate (r*c) m
+repmat m r c = fromBlocks $ splitEvery c $ replicate (r*c) m
 
 -- | A version of 'liftMatrix2' which automatically adapt matrices with a single row or column to match the dimensions of the other matrix.
 liftMatrix2Auto :: (Element t, Element a, Element b)

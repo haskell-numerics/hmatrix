@@ -729,7 +729,7 @@ m2=(4><3)
 -}
 kronecker :: (Field t) => Matrix t -> Matrix t -> Matrix t
 kronecker a b = fromBlocks
-              . partit (cols a)
+              . splitEvery (cols a)
               . map (reshape (cols b))
               . toRows
               $ flatten a `outer` flatten b

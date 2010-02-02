@@ -139,7 +139,7 @@ type Mt t s = Int -> Int -> Ptr t -> s
 
 -- | the inverse of 'Data.Packed.Matrix.fromLists'
 toLists :: (Element t) => Matrix t -> [[t]]
-toLists m = partit (cols m) . toList . flatten $ m
+toLists m = splitEvery (cols m) . toList . flatten $ m
 
 -- | Create a matrix from a list of vectors.
 -- All vectors must have the same dimension,
