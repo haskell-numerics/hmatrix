@@ -25,14 +25,12 @@ module Numeric.LinearAlgebra.Util(
     (#),(&), (//), blocks,
     rand,
     splitEvery,
-    table,
-    latexFormat
+    table
 ) where
 
 import Numeric.LinearAlgebra hiding ((<>), (<|>), (<->), (<\>), (.*), (*/))
 import Data.Packed.Internal.Common(table,splitEvery)
 import System.Random(randomIO)
-
 
 infixl 7 <>
 -- | Matrix product ('multiply')
@@ -121,12 +119,4 @@ row = asRow . vector
 col :: [Double] -> Matrix Double
 col = asColumn . vector
 
--- | Tool to display matrices with latex syntax.
-latexFormat :: Element t
-            => String -- ^ type of braces: \"matrix\", \"bmatrix\", \"pmatrix\", etc.
-            -> (t->String) -- ^ formatting function for the elements: (printf \"%.2f\"), etc.
-            -> Matrix t  -- ^ input matrix
-            -> String
-latexFormat t shf m = "\\begin{"++t++"}\n" ++ dispg " & " " \\\\" shf m ++ "\\end{"++t++"}"
-    where dispg w l shfun x = unlines $ map (++l) $ lines $ format w shfun x
 

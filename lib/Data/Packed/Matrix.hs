@@ -28,7 +28,7 @@ module Data.Packed.Matrix (
     extractRows,
     ident, diag, diagRect, takeDiag,
     liftMatrix, liftMatrix2, liftMatrix2Auto,
-    format, dispf, disps,
+    dispf, disps, dispcf, showComplex, latexFormat, format,
     loadMatrix, saveMatrix, fromFile, fileDimensions,
     readMatrix, fromArray2D
 ) where
@@ -39,7 +39,8 @@ import Data.Packed.Vector
 import Data.Array
 import System.Process(readProcess)
 import Text.Printf(printf)
-import Data.List(transpose)
+import Data.List(transpose,intersperse)
+import Data.Complex
 
 -- | creates a matrix from a vertical list of matrices
 joinVert :: Element t => [Matrix t] -> Matrix t
@@ -232,22 +233,9 @@ fromArray2D m = (r><c) (elems m)
           r = r1-r0+1
           c = c1-c0+1
 
-------------------------------------------------------
-{-
--- shows a Double with n digits after the decimal point    
-shf :: (RealFloat a) => Int -> a -> String     
-shf dec n | abs n < 1e-10 = "0."
-          | abs (n - (fromIntegral.round $ n)) < 1e-10 = show (round n) ++"."
-          | otherwise = showGFloat (Just dec) n ""    
--- shows a Complex Double as a pair, with n digits after the decimal point    
-shfc n z@ (a:+b) 
-    | magnitude z <1e-10 = "0."
-    | abs b < 1e-10 = shf n a
-    | abs a < 1e-10 = shf n b ++"i"
-    | b > 0         = shf n a ++"+"++shf n b ++"i"
-    | otherwise     = shf n a ++shf n b ++"i"         
 
--}
+-------------------------------------------------------------------
+-- display utilities
 
 
 {- | Creates a string from a matrix given a separator and a function to show each entry. Using
@@ -260,19 +248,6 @@ this function the user can easily define any desired display function:
 -}
 format :: (Element t) => String -> (t -> String) -> Matrix t -> String
 format sep f m = table sep . map (map f) . toLists $ m
-
-{-
-disp m f = putStrLn $ "matrix ("++show (rows m) ++"x"++ show (cols m) ++")\n"++format " | " f m
-
-dispR :: Int -> Matrix Double -> IO ()
-dispR d m = disp m (shf d)
-
-dispC :: Int -> Matrix (Complex Double) -> IO ()
-dispC d m = disp m (shfc d)
--}
-
--------------------------------------------------------------------
--- display utilities
 
 {- | Show a matrix with \"autoscaling\" and a given number of decimal places.
 
@@ -307,9 +282,7 @@ sdims x = show (rows x) ++ "x" ++ show (cols x)
 
 formatFixed d x = format "  " (printf ("%."++show d++"f")) $ x
 
-isInt = all lookslikeInt . toList . flatten where
-    lookslikeInt x = show (round x :: Int) ++".0" == shx || "-0.0" == shx
-        where shx = show x
+isInt = all lookslikeInt . toList . flatten
 
 formatScaled dec t = "E"++show o++"\n" ++ ss
     where ss = format " " (printf fmt. g) t
@@ -333,6 +306,42 @@ vecdisp f v
     . f . trans . reshape 1
     $ v
 
+-- | Tool to display matrices with latex syntax.
+latexFormat :: String -- ^ type of braces: \"matrix\", \"bmatrix\", \"pmatrix\", etc.
+            -> String -- ^ Formatted matrix, with elements separated by spaces and newlines
+            -> String
+latexFormat del tab = "\\begin{"++del++"}\n" ++ f tab ++ "\\end{"++del++"}"
+    where f = unlines . intersperse "\\\\" . map unwords . map (intersperse " & " . words) . tail . lines
+
+-- | Pretty print a complex number with at most n decimal digits.
+showComplex :: Int -> Complex Double -> String
+showComplex d (a:+b)
+    | isZero a && isZero b = "0"
+    | isZero b = sa
+    | isZero a && isOne b = s2++"i"
+    | isZero a = sb++"i"
+    | isOne b = sa++s3++"i"
+    | otherwise = sa++s1++sb++"i"
+  where
+    sa = shcr d a
+    sb = shcr d b
+    s1 = if b<0 then "" else "+"
+    s2 = if b<0 then "-" else ""
+    s3 = if b<0 then "-" else "+"
+
+shcr d a | lookslikeInt a = printf "%.0f" a
+         | otherwise      = printf ("%."++show d++"f") a
+
+
+lookslikeInt x = show (round x :: Int) ++".0" == shx || "-0.0" == shx
+   where shx = show x
+
+isZero x = show x `elem` ["0.0","-0.0"]
+isOne  x = show x `elem` ["1.0","-1.0"]
+
+-- | Pretty print a complex matrix with with at most n decimal digits.
+dispcf :: Int -> Matrix (Complex Double) -> String
+dispcf d m = sdims m ++ "\n" ++ format "  " (showComplex d) m
 
 --------------------------------------------------------------------
 

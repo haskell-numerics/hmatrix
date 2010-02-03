@@ -1,9 +1,9 @@
 0.8.3.0
 =======
 
-- New module Numeric.LinearAlgebra.Util
-
 - Matrix arithmetic automatically replicates single row/column matrices.
+
+- latexFormat, dispcf for complex matrices
 
 0.8.2.0
 =======
