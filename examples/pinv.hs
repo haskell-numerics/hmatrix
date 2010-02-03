@@ -3,7 +3,7 @@ import Graphics.Plot
 import Text.Printf(printf)
 
 expand :: Int -> Vector Double -> Matrix Double
-expand n x = fromColumns $ constant 1 (dim x): map (x^) [1 .. n]
+expand n x = fromColumns $ map (x^) [0 .. n]
 
 polynomialModel :: Vector Double -> Vector Double -> Int
                 -> (Vector Double -> Vector Double)

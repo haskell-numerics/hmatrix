@@ -33,9 +33,7 @@ extra-source-files: examples/tests.hs
                     examples/kalman.hs
                     examples/parallel.hs
                     examples/plot.hs
-                    examples/latexmat.hs
                     examples/inplace.hs
-                    examples/benchmarks.hs
                     examples/error.hs
                     examples/devel/wrappers.hs
                     examples/devel/functions.c
@@ -128,8 +126,7 @@ library
                         Data.Packed.Convert,
                         Data.Packed.ST,
                         Data.Packed.Development,
-                        Data.Packed.Random,
-                        Numeric.LinearAlgebra.Util
+                        Data.Packed.Random
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Signatures,

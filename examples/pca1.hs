@@ -8,15 +8,14 @@ import Control.Monad(when)
 type Vec = Vector Double
 type Mat = Matrix Double
 
-sumColumns m = constant 1 (rows m) <> m
 
--- Vec with the mean value of the columns of a Mat
-mean x = sumColumns x / fromIntegral (rows x)
+-- Vector with the mean value of the columns of a matrix
+mean a = constant (recip . fromIntegral . rows $ a) (rows a) <> a
 
--- covariance Mat of a list of observations as rows of a Mat
-cov x = (trans xc <> xc) / fromIntegral (rows x -1)
-    where xc = center x
-          center m = m - constant 1 (rows m) `outer` mean m
+-- covariance matrix of a list of observations stored as rows
+cov x = (trans xc <> xc) / fromIntegral (rows x - 1)
+    where xc = x - asRow (mean x)
+
 
 -- creates the compression and decompression functions from the desired number of components
 pca :: Int -> Mat -> (Vec -> Vec , Vec -> Vec)
@@ -38,7 +37,7 @@ main = do
         system("wget -nv http://dis.um.es/~alberto/material/sp/mnist.txt.gz")
         system("gunzip mnist.txt.gz")
         return ()
-    m <- fromFile "mnist.txt" (5000,785)
+    m <- loadMatrix "mnist.txt" -- fromFile "mnist.txt" (5000,785)
     let xs = takeColumns (cols m -1) m -- the last column is the digit type (class label)
     let x = toRows xs !! 4  -- an arbitrary test Vec
     let (pe,pd) = pca 10 xs
