@@ -37,6 +37,7 @@ extra-source-files: examples/tests.hs
                     examples/error.hs
                     examples/devel/wrappers.hs
                     examples/devel/functions.c
+                    examples/HMatrixReal.hs
 
 extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
                     lib/Numeric/LinearAlgebra/LAPACK/clapack.h
@@ -69,7 +70,7 @@ library
     Build-Depends:      haskell98,
                         QuickCheck, HUnit,
                         storable-complex,
-                        process, random
+                        process
 
     Extensions:         ForeignFunctionInterface,
                         CPP
@@ -166,3 +167,4 @@ library
 
     extra-libraries:
     extra-lib-dirs:
+
