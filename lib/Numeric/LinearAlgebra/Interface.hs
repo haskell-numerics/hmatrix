@@ -72,6 +72,9 @@ m <\> v = flatten (linearSolveSVD m (reshape 1 v))
 
 ------------------------------------------------
 
+{-# DEPRECATED (<|>) "define operator a & b = fromBlocks[[a,b]] and use asRow/asColumn to join vectors" #-}
+{-# DEPRECATED (<->) "define operator a // b = fromBlocks[[a],[b]] and use asRow/asColumn to join vectors" #-}
+
 class Joinable a b where
     joinH :: Element t => a t -> b t -> Matrix t
     joinV :: Element t => a t -> b t -> Matrix t
@@ -108,3 +111,4 @@ a <|> b = joinH a b
 -- | Vertical concatenation of matrices and vectors.
 (<->) :: (Element t, Joinable a b) => a t -> b t -> Matrix t
 a <-> b = joinV a b
+
