@@ -1,9 +1,11 @@
 0.8.3.0
 =======
 
-- Matrix arithmetic automatically replicates single row/column matrices.
+- odeSolve
 
-- latexFormat, dispcf for complex matrices
+- Matrix arithmetic automatically replicates matrix with single row/column
+
+- latexFormat, dispcf
 
 0.8.2.0
 =======

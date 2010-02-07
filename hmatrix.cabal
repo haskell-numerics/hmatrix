@@ -25,6 +25,7 @@ extra-source-files: examples/tests.hs
                     examples/integrate.hs
                     examples/minimize.hs
                     examples/root.hs
+                    examples/ode.hs
                     examples/pca1.hs
                     examples/pca2.hs
                     examples/pinv.hs
@@ -37,7 +38,7 @@ extra-source-files: examples/tests.hs
                     examples/error.hs
                     examples/devel/wrappers.hs
                     examples/devel/functions.c
-                    examples/HMatrixReal.hs
+                    examples/Real.hs
 
 extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
                     lib/Numeric/LinearAlgebra/LAPACK/clapack.h
@@ -85,6 +86,7 @@ library
                         Numeric.GSL.Polynomials,
                         Numeric.GSL.Minimization,
                         Numeric.GSL.Root,
+                        Numeric.GSL.ODE,
                         Numeric.GSL.Vector,
                         Numeric.GSL.Special,
                         Numeric.GSL.Special.Gamma,

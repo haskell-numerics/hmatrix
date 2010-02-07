@@ -28,7 +28,7 @@ module Data.Packed.Matrix (
     extractRows,
     ident, diag, diagRect, takeDiag,
     liftMatrix, liftMatrix2, liftMatrix2Auto,
-    dispf, disps, dispcf, showComplex, latexFormat, format,
+    dispf, disps, dispcf, latexFormat, format,
     loadMatrix, saveMatrix, fromFile, fileDimensions,
     readMatrix, fromArray2D
 ) where
@@ -339,7 +339,7 @@ lookslikeInt x = show (round x :: Int) ++".0" == shx || "-0.0" == shx
 isZero x = show x `elem` ["0.0","-0.0"]
 isOne  x = show x `elem` ["1.0","-1.0"]
 
--- | Pretty print a complex matrix with with at most n decimal digits.
+-- | Pretty print a complex matrix with at most n decimal digits.
 dispcf :: Int -> Matrix (Complex Double) -> String
 dispcf d m = sdims m ++ "\n" ++ format "  " (showComplex d) m
 

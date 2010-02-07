@@ -148,7 +148,7 @@ svdProp4 m' = m |~| u <> real (diag s) <> trans v
            && orthonormal u && orthonormal v
            && (dim s == r || r == 0 && dim s == 1)
     where (u,s,v) = compactSVD m
-          m = m' <-> m'
+          m = fromBlocks [[m'],[m']]
           r = rank m'
 
 svdProp5a m = and (map (s1|~|) [s2,s3,s4,s5,s6]) where

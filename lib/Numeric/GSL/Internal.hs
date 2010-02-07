@@ -30,6 +30,9 @@ foreign import ccall "wrapper"
 foreign import ccall "wrapper"
     mkVecVecfun :: TVV -> IO (FunPtr TVV)
 
+foreign import ccall "wrapper"
+    mkDoubleVecVecfun :: (Double -> TVV) -> IO (FunPtr (Double -> TVV))
+
 aux_vTov :: (Vector Double -> Vector Double) -> TVV
 aux_vTov f n p nr r = g where
     V {fptr = pr} = f x
@@ -42,6 +45,9 @@ aux_vTov f n p nr r = g where
 
 foreign import ccall "wrapper"
     mkVecMatfun :: TVM -> IO (FunPtr TVM)
+
+foreign import ccall "wrapper"
+    mkDoubleVecMatfun :: (Double -> TVM) -> IO (FunPtr (Double -> TVM))
 
 aux_vTom :: (Vector Double -> Matrix Double) -> TVM
 aux_vTom f n p rr cr r = g where

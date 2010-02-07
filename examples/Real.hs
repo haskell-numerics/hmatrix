@@ -1,7 +1,7 @@
 
 -- Alternative interface and utilities for creation of real arrays, useful to work in interactive mode.
 
-module HMatrixReal(
+module Real(
     module Numeric.LinearAlgebra,
     (<>), (*>), (<*), (<\>), (\>),
     vector,

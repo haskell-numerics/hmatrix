@@ -135,6 +135,14 @@ rootFindingTest = TestList [ utest "root Hybrids" (fst sol1 ~~ [1,1])
 
 ---------------------------------------------------------------------
 
+odeTest = utest "ode" (last (toLists sol) ~~ [-1.7588880332411019, 8.364348908711941e-2])
+    where sol = odeSolveV RK8pd 1E-6 1E-6 0 (l2v $ vanderpol 10) Nothing (fromList [1,0]) ts
+          ts = linspace 101 (0,100)
+          l2v f = \t -> fromList  . f t . toList
+          vanderpol mu _t [x,y] = [y, -x + mu * y * (1-x^2) ]
+
+---------------------------------------------------------------------
+
 randomTestGaussian = c :~1~: snd (meanCov dat) where
     a = (3><3) [1,2,3,
                 2,4,0,
@@ -280,6 +288,7 @@ runTests n = do
         , utest "rank" $  rank ((2><3)[1,0,0,1,6*eps,0]) == 1
                        && rank ((2><3)[1,0,0,1,7*eps,0]) == 2
         , utest "block" $ fromBlocks [[ident 3,0],[0,ident 4]] == (ident 7 :: CM)
+        , odeTest
         ]
     return ()
 
