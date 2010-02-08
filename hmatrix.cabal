@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.8.3.0
+Version:            0.8.3.1
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -14,10 +14,11 @@ Category:           Math
 tested-with:        GHC ==6.10.4, GHC ==6.12.1
 
 cabal-version:      >=1.2
-build-type:         Custom
-extra-source-files: lib/Numeric/LinearAlgebra/Tests/quickCheckCompat.h
 
-extra-source-files: configure configure.hs README INSTALL CHANGES
+build-type:         Custom
+
+extra-source-files: lib/Numeric/LinearAlgebra/Tests/quickCheckCompat.h
+                    configure configure.hs README INSTALL CHANGES
 extra-tmp-files:    hmatrix.buildinfo
 
 extra-source-files: examples/tests.hs
@@ -47,15 +48,8 @@ extra-source-files: lib/Numeric/GSL/Special/auto.hs,
                     lib/Numeric/GSL/Special/autoall.sh,
                     lib/Numeric/GSL/Special/replace.hs
 
-flag splitBase
-    description:    Choose the new smaller, split-up base package.
-
 flag mkl
     description:    Link with Intel's MKL optimized libraries.
-    default:        False
-
-flag accelerate
-    description:    Use the accelerate framework for LAPACK/BLAS on OS X
     default:        False
 
 flag unsafe
@@ -63,12 +57,10 @@ flag unsafe
     default:        False
 
 library
-    if flag(splitBase)
-      build-depends:    base >= 3 && < 5, array
-    else
-      build-depends:    base < 3
 
-    Build-Depends:      haskell98,
+    Build-Depends:      base >= 3 && < 5,
+                        array,
+                        haskell98,
                         QuickCheck, HUnit,
                         storable-complex,
                         process
@@ -160,13 +152,19 @@ library
       else
         extra-libraries:   gsl mkl_lapack mkl_intel mkl_sequential mkl_core
 
-    if flag(accelerate)
-        frameworks: Accelerate
+    if os(OSX)
+        extra-lib-dirs: /opt/local/lib/
+        include-dirs: /opt/local/include
         extra-libraries: gsl
+        frameworks: Accelerate
 
 -- The extra-libraries required for GSL and LAPACK
 -- should now be automatically detected by configure(.hs)
 
     extra-libraries:
     extra-lib-dirs:
+
+    source-repository head
+        type:     darcs
+        location: http://code.haskell.org/hmatrix
 
