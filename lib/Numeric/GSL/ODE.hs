@@ -84,7 +84,7 @@ odeSolveV method h epsAbs epsRel f mbjac xiv ts = unsafePerformIO $ do
         Just jac -> mkDoubleVecMatfun (\t -> aux_vTom (checkdim2 n . jac t))
         Nothing  -> return nullFunPtr
     sol <- withVector xiv $ \xiv' ->
-            withVector ts $ \ts' ->
+            withVector (checkTimes ts) $ \ts' ->
              createMIO (dim ts) n
               (ode_c (fi (fromEnum method)) h epsAbs epsRel fp jp // xiv' // ts' )
               "ode"
@@ -105,3 +105,7 @@ checkdim2 n m
     | rows m == n && cols m == n = m
     | otherwise = error $ "Error: "++ show n ++ "x" ++ show n
                         ++ " Jacobian expected in odeSolve"
+
+checkTimes ts | dim ts > 1 && all (>0) (zipWith subtract ts' (tail ts')) = ts
+              | otherwise = error "odeSolve requires increasing times"
+    where ts' = toList ts
