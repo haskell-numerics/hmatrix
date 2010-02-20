@@ -29,32 +29,32 @@ import Numeric.GSL.Special.Internal
 
 transport_2_e :: Double -> (Double,Double)
 transport_2_e x = createSFR "transport_2_e" $ gsl_sf_transport_2_e x
-foreign import ccall "gsl_sf_transport_2_e" gsl_sf_transport_2_e :: Double -> Ptr () -> IO CInt
+foreign import ccall SAFE_CHEAP "gsl_sf_transport_2_e" gsl_sf_transport_2_e :: Double -> Ptr () -> IO CInt
 
 transport_2 :: Double -> Double
 transport_2 = gsl_sf_transport_2
-foreign import ccall "gsl_sf_transport_2" gsl_sf_transport_2 :: Double -> Double
+foreign import ccall SAFE_CHEAP "gsl_sf_transport_2" gsl_sf_transport_2 :: Double -> Double
 
 transport_3_e :: Double -> (Double,Double)
 transport_3_e x = createSFR "transport_3_e" $ gsl_sf_transport_3_e x
-foreign import ccall "gsl_sf_transport_3_e" gsl_sf_transport_3_e :: Double -> Ptr () -> IO CInt
+foreign import ccall SAFE_CHEAP "gsl_sf_transport_3_e" gsl_sf_transport_3_e :: Double -> Ptr () -> IO CInt
 
 transport_3 :: Double -> Double
 transport_3 = gsl_sf_transport_3
-foreign import ccall "gsl_sf_transport_3" gsl_sf_transport_3 :: Double -> Double
+foreign import ccall SAFE_CHEAP "gsl_sf_transport_3" gsl_sf_transport_3 :: Double -> Double
 
 transport_4_e :: Double -> (Double,Double)
 transport_4_e x = createSFR "transport_4_e" $ gsl_sf_transport_4_e x
-foreign import ccall "gsl_sf_transport_4_e" gsl_sf_transport_4_e :: Double -> Ptr () -> IO CInt
+foreign import ccall SAFE_CHEAP "gsl_sf_transport_4_e" gsl_sf_transport_4_e :: Double -> Ptr () -> IO CInt
 
 transport_4 :: Double -> Double
 transport_4 = gsl_sf_transport_4
-foreign import ccall "gsl_sf_transport_4" gsl_sf_transport_4 :: Double -> Double
+foreign import ccall SAFE_CHEAP "gsl_sf_transport_4" gsl_sf_transport_4 :: Double -> Double
 
 transport_5_e :: Double -> (Double,Double)
 transport_5_e x = createSFR "transport_5_e" $ gsl_sf_transport_5_e x
-foreign import ccall "gsl_sf_transport_5_e" gsl_sf_transport_5_e :: Double -> Ptr () -> IO CInt
+foreign import ccall SAFE_CHEAP "gsl_sf_transport_5_e" gsl_sf_transport_5_e :: Double -> Ptr () -> IO CInt
 
 transport_5 :: Double -> Double
 transport_5 = gsl_sf_transport_5
-foreign import ccall "gsl_sf_transport_5" gsl_sf_transport_5 :: Double -> Double
+foreign import ccall SAFE_CHEAP "gsl_sf_transport_5" gsl_sf_transport_5 :: Double -> Double

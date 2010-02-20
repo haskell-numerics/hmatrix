@@ -33,52 +33,52 @@ import Numeric.GSL.Special.Internal
 
 psi_int_e :: CInt -> (Double,Double)
 psi_int_e n = createSFR "psi_int_e" $ gsl_sf_psi_int_e n
-foreign import ccall "gsl_sf_psi_int_e" gsl_sf_psi_int_e :: CInt -> Ptr () -> IO CInt
+foreign import ccall SAFE_CHEAP "gsl_sf_psi_int_e" gsl_sf_psi_int_e :: CInt -> Ptr () -> IO CInt
 
 psi_int :: CInt -> Double
 psi_int = gsl_sf_psi_int
-foreign import ccall "gsl_sf_psi_int" gsl_sf_psi_int :: CInt -> Double
+foreign import ccall SAFE_CHEAP "gsl_sf_psi_int" gsl_sf_psi_int :: CInt -> Double
 
 psi_e :: Double -> (Double,Double)
 psi_e x = createSFR "psi_e" $ gsl_sf_psi_e x
-foreign import ccall "gsl_sf_psi_e" gsl_sf_psi_e :: Double -> Ptr () -> IO CInt
+foreign import ccall SAFE_CHEAP "gsl_sf_psi_e" gsl_sf_psi_e :: Double -> Ptr () -> IO CInt
 
 psi :: Double -> Double
 psi = gsl_sf_psi
-foreign import ccall "gsl_sf_psi" gsl_sf_psi :: Double -> Double
+foreign import ccall SAFE_CHEAP "gsl_sf_psi" gsl_sf_psi :: Double -> Double
 
 psi_1piy_e :: Double -> (Double,Double)
 psi_1piy_e y = createSFR "psi_1piy_e" $ gsl_sf_psi_1piy_e y
-foreign import ccall "gsl_sf_psi_1piy_e" gsl_sf_psi_1piy_e :: Double -> Ptr () -> IO CInt
+foreign import ccall SAFE_CHEAP "gsl_sf_psi_1piy_e" gsl_sf_psi_1piy_e :: Double -> Ptr () -> IO CInt
 
 psi_1piy :: Double -> Double
 psi_1piy = gsl_sf_psi_1piy
-foreign import ccall "gsl_sf_psi_1piy" gsl_sf_psi_1piy :: Double -> Double
+foreign import ccall SAFE_CHEAP "gsl_sf_psi_1piy" gsl_sf_psi_1piy :: Double -> Double
 
 complex_psi_e :: Double -> Double -> Ptr () -> (Double,Double)
 complex_psi_e x y result_re = createSFR "complex_psi_e" $ gsl_sf_complex_psi_e x y result_re
-foreign import ccall "gsl_sf_complex_psi_e" gsl_sf_complex_psi_e :: Double -> Double -> Ptr () -> Ptr () -> IO CInt
+foreign import ccall SAFE_CHEAP "gsl_sf_complex_psi_e" gsl_sf_complex_psi_e :: Double -> Double -> Ptr () -> Ptr () -> IO CInt
 
 psi_1_int_e :: CInt -> (Double,Double)
 psi_1_int_e n = createSFR "psi_1_int_e" $ gsl_sf_psi_1_int_e n
-foreign import ccall "gsl_sf_psi_1_int_e" gsl_sf_psi_1_int_e :: CInt -> Ptr () -> IO CInt
+foreign import ccall SAFE_CHEAP "gsl_sf_psi_1_int_e" gsl_sf_psi_1_int_e :: CInt -> Ptr () -> IO CInt
 
 psi_1_int :: CInt -> Double
 psi_1_int = gsl_sf_psi_1_int
-foreign import ccall "gsl_sf_psi_1_int" gsl_sf_psi_1_int :: CInt -> Double
+foreign import ccall SAFE_CHEAP "gsl_sf_psi_1_int" gsl_sf_psi_1_int :: CInt -> Double
 
 psi_1_e :: Double -> (Double,Double)
 psi_1_e x = createSFR "psi_1_e" $ gsl_sf_psi_1_e x
-foreign import ccall "gsl_sf_psi_1_e" gsl_sf_psi_1_e :: Double -> Ptr () -> IO CInt
+foreign import ccall SAFE_CHEAP "gsl_sf_psi_1_e" gsl_sf_psi_1_e :: Double -> Ptr () -> IO CInt
 
 psi_1 :: Double -> Double
 psi_1 = gsl_sf_psi_1
-foreign import ccall "gsl_sf_psi_1" gsl_sf_psi_1 :: Double -> Double
+foreign import ccall SAFE_CHEAP "gsl_sf_psi_1" gsl_sf_psi_1 :: Double -> Double
 
 psi_n_e :: CInt -> Double -> (Double,Double)
 psi_n_e n x = createSFR "psi_n_e" $ gsl_sf_psi_n_e n x
-foreign import ccall "gsl_sf_psi_n_e" gsl_sf_psi_n_e :: CInt -> Double -> Ptr () -> IO CInt
+foreign import ccall SAFE_CHEAP "gsl_sf_psi_n_e" gsl_sf_psi_n_e :: CInt -> Double -> Ptr () -> IO CInt
 
 psi_n :: CInt -> Double -> Double
 psi_n = gsl_sf_psi_n
-foreign import ccall "gsl_sf_psi_n" gsl_sf_psi_n :: CInt -> Double -> Double
+foreign import ccall SAFE_CHEAP "gsl_sf_psi_n" gsl_sf_psi_n :: CInt -> Double -> Double

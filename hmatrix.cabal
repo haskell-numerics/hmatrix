@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.8.3.1
+Version:            0.8.3.2
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -54,6 +54,11 @@ flag mkl
 
 flag unsafe
     description:    Compile the library with bound checking disabled.
+    default:        False
+
+flag safe-cheap
+    description:    use slower non-blocking "safe" foreign calls
+                    to GSL special functions.
     default:        False
 
 library
@@ -142,6 +147,11 @@ library
 
     if flag(unsafe)
         cpp-options: -DUNSAFE
+
+    if flag(safe-cheap)
+        cpp-options: -DSAFE_CHEAP=safe
+    else
+        cpp-options: -DSAFE_CHEAP=unsafe
 
     if impl(ghc < 6.10.2)
         cpp-options: -DFINIT
