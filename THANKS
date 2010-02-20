@@ -1,55 +1,3 @@
------------------------------------------
- A simple scientific library for Haskell
------------------------------------------
-
-INSTALLATION
-
-See the INSTALL file.
-
-TESTS ---------------------------------------------
-
-$ ghci
-Prelude> Numeric.LinearAlgebra.Tests.runTests 20
-
-EXAMPLES ------------------------------------------------------
-
-$ ghci
-Prelude> :m + Numeric.GSL
-Prelude Numeric.GSL> let quad = integrateQNG 1E-10
-Prelude Numeric.GSL> quad (^2) 0 1
-(0.3333333333333333,3.700743415417188e-15)
-
-Prelude Numeric.GSL> :m + Numeric.LinearAlgebra
-Prelude Numeric.LinearAlgebra> let m = (2><3)[1,2,3,4,5,6::Double]
-Prelude Numeric.LinearAlgebra> let (u,d,v) = full svd m
-Prelude Numeric.LinearAlgebra> d
-(2><3)
- [ 9.508032000695724,                0.0, 0.0
- ,               0.0, 0.7728696356734838, 0.0 ]
-Prelude Numeric.LinearAlgebra> u <> d <> trans v
-(2><3)
- [ 1.0000000000000004,               2.0, 3.0
- , 3.9999999999999996, 5.000000000000001, 6.0 ]
-Prelude Numeric.GSL> :q
-Leaving GHCi.
-
-A number of illustrative programs are included in the examples folder.
-
-KNOWN PROBLEMS / BUGS -------------------------------
-
-- On 64-bit machines the example "minimize.hs", when run from ghci,
-  produces a segmentation fault. It happens in the call to
-  gsl_multimin_fdfminimizer_alloc, inside the C wrapper.
-  If the program is called by runhaskell, it just terminates
-  prematurely, producing no results. Curiously, in compiled mode the
-  program seems to work perfectly well.
-
-- On Ubuntu 6.06 LTS (Dapper) atlas3-sse2-dev (3.6.0-20)
-  produced segmentation faults when working with big matrices
-  on compiled programs.
-
-ACKNOWLEDGEMENTS -----------------------------------------------------
-
 I thank Don Stewart, Henning Thielemann, Bulat Ziganshin, Heinrich Apfelmus,
 and all the people in the Haskell mailing lists for their help.
 
@@ -109,4 +57,10 @@ and all the people in the Haskell mailing lists for their help.
 
 - Jean-Francois Tremblay discovered an error in the tutorial.
 
-- Heinrich Apfelmus fixed hmatrix.cabal for OS/X.
+- Gilberto Camara contributed improved blas and lapack dlls for Windows.
+
+- Heinrich Apfelmus fixed hmatrix.cabal for OS/X. He also tested the package
+  on PPC discovering a problem in zgesdd.
+
+- Felipe Lessa tested the performance of GSL special function bindings
+  and contributed the cabal flag "safe-cheap".

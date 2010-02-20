@@ -9,7 +9,7 @@ Recommended method (ok in Ubuntu/Debian systems):
     $ cabal install hmatrix
 
 Detailed installation instructions:
-    http://www.hmatrix.googlepages.com/installation
+    http://code.haskell.org/hmatrix/install.html
 
 INSTALLATION ON WINDOWS ----------------------------------------
 
@@ -33,7 +33,7 @@ INSTALLATION ON WINDOWS ----------------------------------------
 
 6) Download and uncompress hmatrix-x.y.z.tar.gz from Hackage:
 
-   http://hackage.haskell.org/cgi-bin/hackage-scripts/package/hmatrix
+   http://hackage.haskell.org/package/hmatrix
 
 7) Edit hmatrix.cabal:
 
