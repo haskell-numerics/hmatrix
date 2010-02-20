@@ -119,7 +119,8 @@ detProp m = s d1 |~| s d2
           (q,r) = qr m
           s x = fromList [x]
 
-nullspaceProp m = null nl `trivial` (null nl || m <> n |~| zeros (r,c))
+nullspaceProp m = null nl `trivial` (null nl || m <> n |~| zeros (r,c)
+                                     && orthonormal (fromColumns nl))
     where nl = nullspacePrec 1 m
           n = fromColumns nl
           r = rows m
