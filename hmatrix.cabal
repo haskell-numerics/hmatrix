@@ -50,6 +50,10 @@ extra-source-files: lib/Numeric/GSL/Special/auto.hs,
                     lib/Numeric/GSL/Special/autoall.sh,
                     lib/Numeric/GSL/Special/replace.hs
 
+flag tests
+    description:    Build tests
+    default:        True
+
 flag mkl
     description:    Link with Intel's MKL optimized libraries.
     default:        False
@@ -68,7 +72,6 @@ library
     Build-Depends:      base >= 3 && < 5,
                         array,
                         haskell98,
-                        QuickCheck, HUnit,
                         storable-complex,
                         process
 
@@ -124,7 +127,6 @@ library
                         Numeric.LinearAlgebra.Interface,
                         Numeric.LinearAlgebra.Algorithms,
                         Graphics.Plot,
-                        Numeric.LinearAlgebra.Tests,
                         Data.Packed.Convert,
                         Data.Packed.ST,
                         Data.Packed.Development,
@@ -135,11 +137,19 @@ library
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix,
                         Numeric.GSL.Internal,
-                        Numeric.GSL.Special.Internal,
-                        Numeric.LinearAlgebra.Tests.Instances,
-                        Numeric.LinearAlgebra.Tests.Properties
+                        Numeric.GSL.Special.Internal
+
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
+
+    if flag(tests)
+       Build-Depends:   QuickCheck, HUnit
+       exposed-modules: Numeric.LinearAlgebra.Tests
+       other-modules:   Numeric.LinearAlgebra.Tests.Instances,
+                        Numeric.LinearAlgebra.Tests.Properties
+
+
+
 
     ghc-prof-options:   -auto
 
