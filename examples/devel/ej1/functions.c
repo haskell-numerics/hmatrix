@@ -1,3 +1,5 @@
+/* assuming row order */
+
 typedef struct { double r, i; } doublecomplex;
 
 #define DVEC(A) int A##n, double*A##p
@@ -5,7 +7,7 @@ typedef struct { double r, i; } doublecomplex;
 #define DMAT(A) int A##r, int A##c, double*A##p
 #define CMAT(A) int A##r, int A##c, doublecomplex*A##p
 
-#define AT(M,r,c) (M##p[(r)*sr+(c)*sc])
+#define AT(M,row,col) (M##p[(row)*M##c + (col)])
 
 /*-----------------------------------------------------*/
 
@@ -19,9 +21,8 @@ int c_scale_vector(double s, DVEC(x), DVEC(y)) {
 
 /*-----------------------------------------------------*/
 
-int c_diag(int ro, DMAT(m),DVEC(y),DMAT(z)) {
-    int i,j,sr,sc;
-    if (ro==1) { sr = mc; sc = 1;} else { sr = 1; sc = mr;}
+int c_diag(DMAT(m),DVEC(y),DMAT(z)) {
+    int i,j;
     for (j=0; j<yn; j++) {
         yp[j] = AT(m,j,j);
     }

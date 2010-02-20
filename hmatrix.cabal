@@ -37,8 +37,10 @@ extra-source-files: examples/tests.hs
                     examples/plot.hs
                     examples/inplace.hs
                     examples/error.hs
-                    examples/devel/wrappers.hs
-                    examples/devel/functions.c
+                    examples/devel/ej1/wrappers.hs
+                    examples/devel/ej1/functions.c
+                    examples/devel/ej2/wrappers.hs
+                    examples/devel/ej2/functions.c
                     examples/Real.hs
 
 extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,

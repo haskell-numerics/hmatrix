@@ -10,23 +10,10 @@ import Foreign.C.Types(CInt)
 -----------------------------------------------------
 
 main = do
-    print $ myScale 3.0 (fromList [1..10])
     print $ myDiag $ (3><5) [1..]
 
 -----------------------------------------------------
-
-foreign import ccall "c_scale_vector"
-    cScaleVector :: Double                -- scale
-                 -> CInt -> Ptr Double    -- argument
-                 -> CInt -> Ptr Double    -- result
-                 -> IO CInt               -- exit code
-
-myScale s x = unsafePerformIO $ do
-    y <- createVector (dim x)
-    app2 (cScaleVector s) vec x vec y "cScaleVector"
-    return y
-
------------------------------------------------------
+-- arbitrary data order
 
 foreign import ccall "c_diag"
     cDiag :: CInt                        -- matrix order
