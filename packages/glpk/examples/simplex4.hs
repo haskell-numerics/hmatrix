@@ -1,6 +1,7 @@
-import Numeric.LinearProgramming
-
+-- compare with
 -- $ glpsol --cpxlp  /usr/share/doc/glpk-utils/examples/plan.lp  -o result.txt
+
+import Numeric.LinearProgramming
 
 prob = Minimize [0.03, 0.08, 0.17, 0.12, 0.15, 0.21, 0.38]
 

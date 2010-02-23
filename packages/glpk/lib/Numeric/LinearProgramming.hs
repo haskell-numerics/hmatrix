@@ -1,12 +1,66 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 
+{- |
+Module      :  Numeric.LinearProgramming
+Copyright   :  (c) Alberto Ruiz 2010
+License     :  GPL
+
+Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+Stability   :  provisional
+
+This module provides an interface to the standard simplex algorithm.
+
+For example, the following linear programming problem
+
+@maximize 4 x_1 + 3 x_2 - 2 x_3 + 7 x_4
+subject to
+
+x_1 + x_2 <= 10
+x_3 + x_4 <= 10
+
+and
+
+x_i >= 0@
+
+can be solved as follows:
+
+@import Numeric.LinearProgramming
+
+prob = Maximize [4, 3, -2, 7]
+
+constr1 = Sparse [ [1\#1, 1\#2] :<: 10
+                 , [1\#3, 1\#4] :<: 10 
+                 ]
+                 
+
+\> simplex prob constr1 []
+Optimal (110.0,[10.0,0.0,0.0,10.0])@
+
+The coefficients of the constraint matrix can also be given in dense format:
+
+@constr2 = Dense [ [1,1,0,0] :<: 10
+                , [0,0,1,1] :<: 10 
+                ]@
+
+By default all variables are bounded as @x_i <= 0@, but this can be
+changed:
+
+@\> simplex prob constr2 [2 :>: 1, 4 :&: (2,7)]
+Optimal (88.0,[9.0,1.0,0.0,7.0])
+
+\> simplex prob constr2 [Free 3]
+Unbounded@
+
+-}
+
 module Numeric.LinearProgramming(
+    simplex,
     Optimization(..),
+    Constraints(..),
+    Bounds,
     Bound(..),
     (#),
-    Coeffs(..),
-    Solution(..),
-    simplex,
+    Solution(..)
 ) where
 
 import Numeric.LinearAlgebra
@@ -21,7 +75,7 @@ import Data.Function(on)
 
 -----------------------------------------------------
 
--- | Coefficient of a variable
+-- | Coefficient of a variable for a sparse representation of constraints.
 (#) :: Double -> Int -> (Double,Int)
 infixl 5 #
 (#) = (,)
@@ -41,13 +95,15 @@ data Solution = Undefined
               | Unbounded
               deriving Show
             
-data Coeffs = Dense  [ Bound [Double] ]
-            | Sparse [ Bound [(Double,Int)] ]
+data Constraints = Dense  [ Bound [Double] ]
+                 | Sparse [ Bound [(Double,Int)] ]
 
 data Optimization = Maximize [Double]
                   | Minimize [Double]
 
-simplex :: Optimization -> Coeffs -> [Bound Int] -> Solution
+type Bounds = [Bound Int]
+
+simplex :: Optimization -> Constraints -> Bounds -> Solution
 
 simplex opt (Dense constr) bnds = extract sg sol where
     sol = simplexDense (mkConstrD objfun constr) (mkBoundsD constr bnds)
