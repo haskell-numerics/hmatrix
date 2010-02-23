@@ -10,13 +10,13 @@ Stability   :  provisional
 
 This module provides an interface to the standard simplex algorithm.
 
-For example, the following linear programming problem
+For example, the following LP problem
 
-@maximize 4 x_1 + 3 x_2 - 2 x_3 + 7 x_4
+@maximize 4 x_1 - 3 x_2 + 2 x_3
 subject to
 
-x_1 + x_2 <= 10
-x_3 + x_4 <= 10
+2 x_1 +   x_2 <= 10
+  x_3 + 5 x_4 <= 20
 
 and
 
@@ -26,30 +26,32 @@ can be solved as follows:
 
 @import Numeric.LinearProgramming
 
-prob = Maximize [4, 3, -2, 7]
+prob = Maximize [4, -3, 2]
 
-constr1 = Sparse [ [1\#1, 1\#2] :<: 10
-                 , [1\#3, 1\#4] :<: 10 
+constr1 = Sparse [ [2#1, 1#2] :<: 10
+                 , [1#2, 5#3] :<: 20
                  ]
-                 
 
 \> simplex prob constr1 []
-Optimal (110.0,[10.0,0.0,0.0,10.0])@
+Optimal (28.0,[5.0,0.0,4.0])@
 
 The coefficients of the constraint matrix can also be given in dense format:
 
-@constr2 = Dense [ [1,1,0,0] :<: 10
-                , [0,0,1,1] :<: 10 
+@constr2 = Dense [ [2,1,0] :<: 10
+                , [0,1,5] :<: 20
                 ]@
 
-By default all variables are bounded as @x_i <= 0@, but this can be
+By default all variables are bounded as @x_i >= 0@, but this can be
 changed:
 
-@\> simplex prob constr2 [2 :>: 1, 4 :&: (2,7)]
-Optimal (88.0,[9.0,1.0,0.0,7.0])
+@\> simplex prob constr2 [ 2 :>: 1, 3 :&: (2,7)]
+Optimal (22.6,[4.5,1.0,3.8])
 
-\> simplex prob constr2 [Free 3]
+\> simplex prob constr2 [Free 2]
 Unbounded@
+
+The given bound for a variable completely replaces the default,
+so @0 <= x_i <= b@ must be explicitly given as @i :&: (0,b)@.
 
 -}
 
@@ -94,7 +96,7 @@ data Solution = Undefined
               | Optimal (Double, [Double])
               | Unbounded
               deriving Show
-            
+
 data Constraints = Dense  [ Bound [Double] ]
                  | Sparse [ Bound [(Double,Int)] ]
 
@@ -105,19 +107,25 @@ type Bounds = [Bound Int]
 
 simplex :: Optimization -> Constraints -> Bounds -> Solution
 
+simplex opt (Dense  []) bnds = simplex opt (Sparse [Free [0#1]]) bnds
+simplex opt (Sparse []) bnds = simplex opt (Sparse [Free [0#1]]) bnds
+
 simplex opt (Dense constr) bnds = extract sg sol where
-    sol = simplexDense (mkConstrD objfun constr) (mkBoundsD constr bnds)
-    (sg, objfun) = case opt of
-        Maximize x -> (1 ,x)
-        Minimize x -> (-1, (map negate x))
+    sol = simplexDense (mkConstrD sz objfun constr) (mkBounds sz constr bnds)
+    (sz, sg, objfun) = adapt opt
 
 simplex opt (Sparse constr) bnds = extract sg sol where
-    sol = simplexSparse m n (mkConstrS objfun constr) (mkBoundsS constr bnds)
+    sol = simplexSparse m n (mkConstrS sz objfun constr) (mkBounds sz constr bnds)
     n = length objfun
     m = length constr
-    (sg, objfun) = case opt of
-        Maximize x -> (1 ,x)
-        Minimize x -> (-1, (map negate x))
+    (sz, sg, objfun) = adapt opt
+
+adapt :: Optimization -> (Int, Double, [Double])
+adapt opt = case opt of
+    Maximize x -> (size x, 1 ,x)
+    Minimize x -> (size x, -1, (map negate x))
+ where size x | null x = error "simplex: objective function with zero variables"
+              | otherwise = length x
 
 extract :: Double -> Vector Double -> Solution
 extract sg sol = r where
@@ -168,31 +176,33 @@ mkBound1 b = [tb b, lb b, ub b]
 mkBound2 :: Bound t -> (t, [Double])
 mkBound2 b = (obj b, mkBound1 b)
 
-mkBoundsD :: [Bound [a]] -> [Bound Int] -> Matrix Double
-mkBoundsD b1 b2 = fromLists (cb++vb) where
-    c = length (obj (head b1))
+mkBounds :: Int -> [Bound [a]] -> [Bound Int] -> Matrix Double
+mkBounds n b1 b2 = fromLists (cb++vb) where
     gv = map obj b2
-    rv = [1..c] \\ gv
+    rv | null gv || minimum gv >= 0 && maximum gv <= n = [1..n] \\ gv
+       | otherwise = error $ "simplex: bounds: variables "++show gv++" not in 1.."++show n
     vb = map snd $ sortBy (compare `on` fst) $ map (mkBound2 . (:>: 0)) rv ++ map mkBound2 b2
     cb = map mkBound1 b1
 
-mkConstrD :: [Double] -> [Bound [Double]] -> Matrix Double
-mkConstrD f b1 = fromLists (f : map obj b1)
+mkConstrD :: Int -> [Double] -> [Bound [Double]] -> Matrix Double
+mkConstrD n f b1 | ok = fromLists (f : cs)
+                 | otherwise = error $ "simplex: dense constraints require "++show n
+                                     ++" variables, given " ++ show ls
+    where
+       cs | null b1   = error $ "simplex: dense: empty constraints"
+          | otherwise = map obj b1
+       ls = map length cs
+       ok = all (==n) ls
 
-mkBoundsS :: [Bound [(Double, Int)]] -> [Bound Int] -> Matrix Double
-mkBoundsS b1 b2 = fromLists (cb++vb) where
-    c = maximum $ map snd $ concatMap obj b1
-    gv = map obj b2
-    rv = [1..c] \\ gv
-    vb = map snd $ sortBy (compare `on` fst) $ map (mkBound2 . (:>: 0)) rv ++ map mkBound2 b2
-    cb = map mkBound1 b1
-
-mkConstrS :: [Double] -> [Bound [(Double, Int)]] -> Matrix Double
-mkConstrS objfun constr = fromLists (ob ++ co) where
+mkConstrS :: Int -> [Double] -> [Bound [(Double, Int)]] -> Matrix Double
+mkConstrS n objfun b1 = fromLists (ob ++ co) where
     ob = map (([0,0]++).return) objfun
-    co = concat $ zipWith f [1::Int ..] (map obj constr)
+    co = concat $ zipWith f [1::Int ..] cs
+    cs    | null b1   = error $ "simplex: sparse: empty constraints"
+          | otherwise = map obj b1
     f k = map (g k)
-    g k (c,v) = [fromIntegral k, fromIntegral v,c]
+    g k (c,v) | v >=1 && v<= n = [fromIntegral k, fromIntegral v,c]
+              | otherwise = error $ "simplex: sparse constraints: variable "++show v++" not in 1.."++show n
 
 -----------------------------------------------------
 
@@ -262,6 +272,6 @@ bounds = (6><3)
   , glpLO,0,0
   , glpLO,0,0
   , glpLO,0,0 ]
-  
+
 -}
 
