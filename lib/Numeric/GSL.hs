@@ -20,14 +20,12 @@ module Numeric.GSL (
 , module Numeric.GSL.Minimization
 , module Numeric.GSL.Root
 , module Numeric.GSL.ODE
-, module Numeric.GSL.Special
 , module Complex
 , setErrorHandlerOff
 ) where
 
 import Numeric.GSL.Integration
 import Numeric.GSL.Differentiation
-import Numeric.GSL.Special
 import Numeric.GSL.Fourier
 import Numeric.GSL.Polynomials
 import Numeric.GSL.Minimization

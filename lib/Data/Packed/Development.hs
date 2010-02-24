@@ -22,7 +22,8 @@ module Data.Packed.Development (
     app1, app2, app3, app4,
     MatrixOrder(..), orderOf, cmat, fmat,
     unsafeFromForeignPtr,
-    unsafeToForeignPtr
+    unsafeToForeignPtr,
+    check, (//)
 ) where
 
 import Data.Packed.Internal

@@ -1,0 +1,74 @@
+Name:               hmatrix-special
+Version:            0.1.0
+License:            GPL
+License-file:       LICENSE
+Author:             Alberto Ruiz
+Maintainer:         Alberto Ruiz <aruiz@um.es>
+Stability:          experimental
+Homepage:           http://code.haskell.org/hmatrix
+Synopsis:           Interface to GSL special functions
+Description:
+ Interface to GSL special functions.
+
+Category:           Math
+tested-with:        GHC ==6.10.4
+
+cabal-version:      >=1.2
+build-type:         Simple
+
+extra-source-files: lib/Numeric/GSL/Special/auto.hs,
+                    lib/Numeric/GSL/Special/autoall.sh,
+                    lib/Numeric/GSL/Special/replace.hs
+
+flag safe-cheap
+    description:    use slower non-blocking "safe" foreign calls
+                    to GSL special functions.
+    default:        False
+
+library
+    Build-Depends:  base >= 3 && < 5, hmatrix >= 0.9
+
+    Extensions:     ForeignFunctionInterface,
+                    CPP
+
+    hs-source-dirs:     lib
+
+    Exposed-modules:    Numeric.GSL.Special,
+                        Numeric.GSL.Special.Gamma,
+                        Numeric.GSL.Special.Erf,
+                        Numeric.GSL.Special.Airy,
+                        Numeric.GSL.Special.Exp,
+                        Numeric.GSL.Special.Bessel,
+                        Numeric.GSL.Special.Clausen,
+                        Numeric.GSL.Special.Coulomb,
+                        Numeric.GSL.Special.Coupling,
+                        Numeric.GSL.Special.Dawson,
+                        Numeric.GSL.Special.Debye,
+                        Numeric.GSL.Special.Dilog,
+                        Numeric.GSL.Special.Elementary,
+                        Numeric.GSL.Special.Ellint,
+                        Numeric.GSL.Special.Elljac,
+                        Numeric.GSL.Special.Expint,
+                        Numeric.GSL.Special.Fermi_dirac,
+                        Numeric.GSL.Special.Gegenbauer,
+                        Numeric.GSL.Special.Hyperg,
+                        Numeric.GSL.Special.Laguerre,
+                        Numeric.GSL.Special.Lambert,
+                        Numeric.GSL.Special.Legendre,
+                        Numeric.GSL.Special.Log,
+                        Numeric.GSL.Special.Pow_int,
+                        Numeric.GSL.Special.Psi,
+                        Numeric.GSL.Special.Synchrotron,
+                        Numeric.GSL.Special.Transport,
+                        Numeric.GSL.Special.Trig,
+                        Numeric.GSL.Special.Zeta
+
+    other-modules:      Numeric.GSL.Special.Internal
+
+    ghc-options:        -Wall -fno-warn-unused-binds
+
+    if flag(safe-cheap)
+        cpp-options: -DSAFE_CHEAP=safe
+    else
+        cpp-options: -DSAFE_CHEAP=unsafe
+

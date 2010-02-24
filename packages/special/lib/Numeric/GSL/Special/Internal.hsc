@@ -29,7 +29,7 @@ module Numeric.GSL.Special.Internal (
 where
 
 import Foreign
-import Data.Packed.Internal(check,(//))
+import Data.Packed.Development(check,(//))
 import Foreign.C.Types(CSize,CInt)
 
 

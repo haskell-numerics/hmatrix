@@ -28,7 +28,7 @@ import Numeric.LinearAlgebra.Tests.Properties
 import Test.HUnit hiding ((~:),test,Testable)
 import System.Info
 import Data.List(foldl1')
-import Numeric.GSL hiding (sin,cos,exp,choose)
+import Numeric.GSL
 import Prelude hiding ((^))
 import qualified Prelude
 import System.CPUTime
@@ -78,13 +78,13 @@ volSphere r = 8 * quad2 (\x y -> sqrt (r*r-x*x-y*y))
 
 ---------------------------------------------------------------------
 
-besselTest = utest "bessel_J0_e" ( abs (r-expected) < e )
-    where (r,e) = bessel_J0_e 5.0
-          expected = -0.17759677131433830434739701
+-- besselTest = utest "bessel_J0_e" ( abs (r-expected) < e )
+--     where (r,e) = bessel_J0_e 5.0
+--           expected = -0.17759677131433830434739701
 
-exponentialTest = utest "exp_e10_e" ( abs (v*10^e - expected) < 4E-2 )
-    where (v,e,_err) = exp_e10_e 30.0
-          expected = exp 30.0
+-- exponentialTest = utest "exp_e10_e" ( abs (v*10^e - expected) < 4E-2 )
+--     where (v,e,_err) = exp_e10_e 30.0
+--           expected = exp 30.0
 
 ---------------------------------------------------------------------
 
@@ -273,9 +273,9 @@ runTests n = do
         , utest "arith2" $ ((scalar (1+i) * ones (100,100) * 5 + 2)/0.5 - 7)**2 |~| ( scalar (140*i-51) :: CM)
         , utest "arith3" $ exp (scalar i * ones(10,10)*pi) + 1 |~| 0
         , utest "<\\>"   $ (3><2) [2,0,0,3,1,1::Double] <\> 3|>[4,9,5] |~| 2|>[2,3]
-        , utest "gamma" (gamma 5 == 24.0)
-        , besselTest
-        , exponentialTest
+--        , utest "gamma" (gamma 5 == 24.0)
+--        , besselTest
+--        , exponentialTest
         , utest "integrate" (abs (volSphere 2.5 - 4/3*pi*2.5^3) < 1E-8)
         , utest "polySolve" (polySolveProp [1,2,3,4])
         , minimizationTest

@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.8.4.0
+Version:            0.9.0.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -18,7 +18,7 @@ cabal-version:      >=1.2
 build-type:         Custom
 
 extra-source-files: lib/Numeric/LinearAlgebra/Tests/quickCheckCompat.h
-                    configure configure.hs README INSTALL CHANGES
+                    configure configure.hs THANKS INSTALL CHANGES
 extra-tmp-files:    hmatrix.buildinfo
 
 extra-source-files: examples/tests.hs
@@ -47,10 +47,6 @@ extra-source-files: examples/tests.hs
 extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
                     lib/Numeric/LinearAlgebra/LAPACK/clapack.h
 
-extra-source-files: lib/Numeric/GSL/Special/auto.hs,
-                    lib/Numeric/GSL/Special/autoall.sh,
-                    lib/Numeric/GSL/Special/replace.hs
-
 flag tests
     description:    Build tests
     default:        True
@@ -61,11 +57,6 @@ flag mkl
 
 flag unsafe
     description:    Compile the library with bound checking disabled.
-    default:        False
-
-flag safe-cheap
-    description:    use slower non-blocking "safe" foreign calls
-                    to GSL special functions.
     default:        False
 
 library
@@ -91,35 +82,6 @@ library
                         Numeric.GSL.Root,
                         Numeric.GSL.ODE,
                         Numeric.GSL.Vector,
-                        Numeric.GSL.Special,
-                        Numeric.GSL.Special.Gamma,
-                        Numeric.GSL.Special.Erf,
-                        Numeric.GSL.Special.Airy,
-                        Numeric.GSL.Special.Exp,
-                        Numeric.GSL.Special.Bessel,
-                        Numeric.GSL.Special.Clausen,
-                        Numeric.GSL.Special.Coulomb,
-                        Numeric.GSL.Special.Coupling,
-                        Numeric.GSL.Special.Dawson,
-                        Numeric.GSL.Special.Debye,
-                        Numeric.GSL.Special.Dilog,
-                        Numeric.GSL.Special.Elementary,
-                        Numeric.GSL.Special.Ellint,
-                        Numeric.GSL.Special.Elljac,
-                        Numeric.GSL.Special.Expint,
-                        Numeric.GSL.Special.Fermi_dirac,
-                        Numeric.GSL.Special.Gegenbauer,
-                        Numeric.GSL.Special.Hyperg,
-                        Numeric.GSL.Special.Laguerre,
-                        Numeric.GSL.Special.Lambert,
-                        Numeric.GSL.Special.Legendre,
-                        Numeric.GSL.Special.Log,
-                        Numeric.GSL.Special.Pow_int,
-                        Numeric.GSL.Special.Psi,
-                        Numeric.GSL.Special.Synchrotron,
-                        Numeric.GSL.Special.Transport,
-                        Numeric.GSL.Special.Trig,
-                        Numeric.GSL.Special.Zeta,
                         Numeric.GSL,
                         Numeric.LinearAlgebra,
                         Numeric.LinearAlgebra.LAPACK,
@@ -137,8 +99,7 @@ library
                         Data.Packed.Internal.Signatures,
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix,
-                        Numeric.GSL.Internal,
-                        Numeric.GSL.Special.Internal
+                        Numeric.GSL.Internal
 
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
@@ -149,9 +110,6 @@ library
        other-modules:   Numeric.LinearAlgebra.Tests.Instances,
                         Numeric.LinearAlgebra.Tests.Properties
 
-
-
-
     ghc-prof-options:   -auto
 
     ghc-options:        -Wall -fno-warn-missing-signatures
@@ -160,11 +118,6 @@ library
 
     if flag(unsafe)
         cpp-options: -DUNSAFE
-
-    if flag(safe-cheap)
-        cpp-options: -DSAFE_CHEAP=safe
-    else
-        cpp-options: -DSAFE_CHEAP=unsafe
 
     if impl(ghc < 6.10.2)
         cpp-options: -DFINIT
