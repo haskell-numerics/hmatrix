@@ -23,7 +23,9 @@ module Data.Packed.Internal.Vector (
     createVector, withVector, vec,
     asComplex, asReal,
     fwriteVector, freadVector, fprintfVector, fscanfVector,
-    cloneVector
+    cloneVector,
+    unsafeToForeignPtr,
+    unsafeFromForeignPtr
 ) where
 
 import Data.Packed.Internal.Common
@@ -50,6 +52,14 @@ data Vector t =
     V { idim  :: {-# UNPACK #-} !Int              -- ^ number of elements
       , fptr :: {-# UNPACK #-} !(ForeignPtr t)    -- ^ foreign pointer to the memory block
       }
+
+unsafeToForeignPtr :: Vector a -> (ForeignPtr a, Int, Int)
+unsafeToForeignPtr v = (fptr v, 0, idim v)
+
+-- | Same convention as in Roman Leshchinskiy's vector package.
+unsafeFromForeignPtr :: ForeignPtr a -> Int -> Int -> Vector a
+unsafeFromForeignPtr fp i n | i == 0 = V {idim = n, fptr = fp}
+                            | otherwise = error "unsafeFromForeignPtr with nonzero offset"
 
 -- | Number of elements
 dim :: Vector t -> Int
