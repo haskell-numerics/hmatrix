@@ -28,8 +28,8 @@ can be solved as follows:
 
 prob = Maximize [4, -3, 2]
 
-constr1 = Sparse [ [2#1, 1#2] :<: 10
-                 , [1#2, 5#3] :<: 20
+constr1 = Sparse [ [2\#1, 1\#2] :<: 10
+                 , [1\#2, 5\#3] :<: 20
                  ]
 
 \> simplex prob constr1 []
@@ -52,6 +52,8 @@ Unbounded@
 
 The given bound for a variable completely replaces the default,
 so @0 <= x_i <= b@ must be explicitly given as @i :&: (0,b)@.
+Multiple bounds for a variable are not allowed, instead of
+@[i :>: a, i:<: b]@ use @i :&: (a,b)@.
 
 -}
 
@@ -65,11 +67,11 @@ module Numeric.LinearProgramming(
     Solution(..)
 ) where
 
-import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra hiding (i)
 import Data.Packed.Development
 import Foreign(Ptr,unsafePerformIO)
 import Foreign.C.Types(CInt)
-import Data.List((\\),sortBy)
+import Data.List((\\),sortBy,nub)
 import Data.Function(on)
 
 --import Debug.Trace
@@ -82,7 +84,7 @@ import Data.Function(on)
 infixl 5 #
 (#) = (,)
 
-data Bound x =  x :<: Double 
+data Bound x =  x :<: Double
              |  x :>: Double
              |  x :&: (Double,Double)
              |  x :==: Double
@@ -107,11 +109,13 @@ type Bounds = [Bound Int]
 
 simplex :: Optimization -> Constraints -> Bounds -> Solution
 
-simplex opt (Dense  []) bnds = simplex opt (Sparse [Free [0#1]]) bnds
+simplex opt (Dense  []) bnds = simplex opt (Sparse []) bnds
 simplex opt (Sparse []) bnds = simplex opt (Sparse [Free [0#1]]) bnds
 
 simplex opt (Dense constr) bnds = extract sg sol where
-    sol = simplexDense (mkConstrD sz objfun constr) (mkBounds sz constr bnds)
+    sol = simplexSparse m n (mkConstrD sz objfun constr) (mkBounds sz constr bnds)
+    n = length objfun
+    m = length constr
     (sz, sg, objfun) = adapt opt
 
 simplex opt (Sparse constr) bnds = extract sg sol where
@@ -178,45 +182,36 @@ mkBound2 b = (obj b, mkBound1 b)
 
 mkBounds :: Int -> [Bound [a]] -> [Bound Int] -> Matrix Double
 mkBounds n b1 b2 = fromLists (cb++vb) where
-    gv = map obj b2
+    gv' = map obj b2
+    gv | nub gv' == gv' = gv'
+       | otherwise = error $ "simplex: duplicate bounds for vars " ++ show (gv'\\nub gv')
     rv | null gv || minimum gv >= 0 && maximum gv <= n = [1..n] \\ gv
        | otherwise = error $ "simplex: bounds: variables "++show gv++" not in 1.."++show n
     vb = map snd $ sortBy (compare `on` fst) $ map (mkBound2 . (:>: 0)) rv ++ map mkBound2 b2
     cb = map mkBound1 b1
 
 mkConstrD :: Int -> [Double] -> [Bound [Double]] -> Matrix Double
-mkConstrD n f b1 | ok = fromLists (f : cs)
+mkConstrD n f b1 | ok = fromLists (ob ++ co)
                  | otherwise = error $ "simplex: dense constraints require "++show n
                                      ++" variables, given " ++ show ls
     where
-       cs | null b1   = error $ "simplex: dense: empty constraints"
-          | otherwise = map obj b1
+       cs = map obj b1
        ls = map length cs
        ok = all (==n) ls
+       den = fromLists cs
+       ob = map (([0,0]++).return) f
+       co = [[fromIntegral i, fromIntegral j,den@@>(i-1,j-1)]| i<-[1 ..rows den], j<-[1 .. cols den]]
 
 mkConstrS :: Int -> [Double] -> [Bound [(Double, Int)]] -> Matrix Double
 mkConstrS n objfun b1 = fromLists (ob ++ co) where
     ob = map (([0,0]++).return) objfun
     co = concat $ zipWith f [1::Int ..] cs
-    cs    | null b1   = error $ "simplex: sparse: empty constraints"
-          | otherwise = map obj b1
+    cs = map obj b1
     f k = map (g k)
     g k (c,v) | v >=1 && v<= n = [fromIntegral k, fromIntegral v,c]
               | otherwise = error $ "simplex: sparse constraints: variable "++show v++" not in 1.."++show n
 
 -----------------------------------------------------
-
-foreign import ccall "c_simplex_dense" c_simplex_dense
-    :: CInt -> CInt -> Ptr Double    -- coeffs
-    -> CInt -> CInt -> Ptr Double    -- bounds
-    -> CInt -> Ptr Double            -- result
-    -> IO CInt                       -- exit code
-
-simplexDense :: Matrix Double -> Matrix Double -> Vector Double
-simplexDense c b = unsafePerformIO $ do
-    s <- createVector (2+cols c)
-    app3 c_simplex_dense mat (cmat c) mat (cmat b) vec s "c_simplex_dense"
-    return s
 
 foreign import ccall "c_simplex_sparse" c_simplex_sparse
     :: CInt -> CInt                  -- rows and cols
@@ -241,14 +236,6 @@ glpFX = 4
 
 {- Raw format of coeffs
 
-simplexDense
-
-((3+1) >< 3)
-  [ 10, 6, 4
-  ,  1, 1, 1
-  , 10, 4, 5
-  ,  2, 2, 6 :: Double]
-
 simplexSparse
 
 (12><3)
@@ -264,7 +251,7 @@ simplexSparse
  , 3.0, 1.0,  2.0
  , 3.0, 2.0,  2.0
  , 3.0, 3.0,  6.0 ]
-  
+
 bounds = (6><3)
   [ glpUP,0,100
   , glpUP,0,600
