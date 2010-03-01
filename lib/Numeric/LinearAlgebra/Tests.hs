@@ -180,6 +180,9 @@ runTests n = do
     test (multProp1  . cConsist)
     test (multProp2  . rConsist)
     test (multProp2  . cConsist)
+    putStrLn "------ sub-trans"
+    test (subProp . rM)
+    test (subProp . cM)
     putStrLn "------ lu"
     test (luProp    . rM)
     test (luProp    . cM)
@@ -305,6 +308,7 @@ makeUnitary v | realPart n > 1    = v / scalar n
 -- | Performance measurements.
 runBenchmarks :: IO ()
 runBenchmarks = do
+    subBench
     multBench
     svdBench
     eigBench
@@ -332,6 +336,16 @@ manymult n = foldl1' (<>) (map rot2 angles) where
               s = sin a
 
 multb n = foldl1' (<>) (replicate (10^6) (ident n :: Matrix Double))
+
+--------------------------------
+
+subBench = do
+    putStrLn ""
+    let g = foldl1' (.) (replicate (10^5) (\v -> subVector 1 (dim v -1) v))
+    time "0.1M subVector   " (g (constant 1 (1+10^5) :: Vector Double) @> 0)
+    let f = foldl1' (.) (replicate (10^5) (fromRows.toRows))
+    time "subVector-join  3" (f (ident  3 :: Matrix Double) @@>(0,0))
+    time "subVector-join 10" (f (ident 10 :: Matrix Double) @@>(0,0))
 
 --------------------------------
 

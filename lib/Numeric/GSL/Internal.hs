@@ -35,12 +35,12 @@ foreign import ccall "wrapper"
 
 aux_vTov :: (Vector Double -> Vector Double) -> TVV
 aux_vTov f n p nr r = g where
-    V {fptr = pr} = f x
+    v = f x
     x = createV (fromIntegral n) copy "aux_vTov"
     copy n' q = do
         copyArray q p (fromIntegral n')
         return 0
-    g = do withForeignPtr pr $ \p' -> copyArray r p' (fromIntegral nr)
+    g = do unsafeWith v $ \p' -> copyArray r p' (fromIntegral nr)
            return 0
 
 foreign import ccall "wrapper"
@@ -51,12 +51,12 @@ foreign import ccall "wrapper"
 
 aux_vTom :: (Vector Double -> Matrix Double) -> TVM
 aux_vTom f n p rr cr r = g where
-    V {fptr = pr} = flatten $ f x
+    v = flatten $ f x
     x = createV (fromIntegral n) copy "aux_vTov"
     copy n' q = do
         copyArray q p (fromIntegral n')
         return 0
-    g = do withForeignPtr pr $ \p' -> copyArray r p' (fromIntegral $ rr*cr)
+    g = do unsafeWith v $ \p' -> copyArray r p' (fromIntegral $ rr*cr)
            return 0
 
 createV n fun msg = unsafePerformIO $ do

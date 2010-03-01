@@ -109,7 +109,7 @@ ww2 w1 o1 w2 o2 f = w1 o1 $ \a1 -> w2 o2 $ \a2 -> f a1 a2
 minimizeV method eps maxit szv f xiv = unsafePerformIO $ do
     let n   = dim xiv
     fp <- mkVecfun (iv f)
-    rawpath <- ww2 withVector xiv withVector szv $ \xiv' szv' ->
+    rawpath <- ww2 vec xiv vec szv $ \xiv' szv' ->
                    createMIO maxit (n+3)
                          (c_minimize (fi (fromEnum method)) fp eps (fi maxit) // xiv' // szv')
                          "minimize"
@@ -166,7 +166,7 @@ minimizeVD method eps maxit istep tol f df xiv = unsafePerformIO $ do
         df' = (checkdim1 n . df)
     fp <- mkVecfun (iv f')
     dfp <- mkVecVecfun (aux_vTov df')
-    rawpath <- withVector xiv $ \xiv' ->
+    rawpath <- vec xiv $ \xiv' ->
                     createMIO maxit (n+2)
                          (c_minimizeD (fi (fromEnum method)) fp dfp istep tol eps (fi maxit) // xiv')
                          "minimizeD"

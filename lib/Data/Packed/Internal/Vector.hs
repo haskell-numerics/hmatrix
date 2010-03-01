@@ -12,20 +12,20 @@
 -- Vector implementation
 --
 -----------------------------------------------------------------------------
--- #hide
 
 module Data.Packed.Internal.Vector (
-    Vector(..), dim,
+    Vector, dim,
     fromList, toList, (|>),
     join, (@>), safe, at, at', subVector,
     mapVector, zipVector,
     foldVector, foldVectorG, foldLoop,
-    createVector, withVector, vec,
+    createVector, vec,
     asComplex, asReal,
     fwriteVector, freadVector, fprintfVector, fscanfVector,
     cloneVector,
     unsafeToForeignPtr,
-    unsafeFromForeignPtr
+    unsafeFromForeignPtr,
+    unsafeWith
 ) where
 
 import Data.Packed.Internal.Common
@@ -47,39 +47,45 @@ import GHC.Base
 import GHC.IOBase
 #endif
 
--- | A one-dimensional array of objects stored in a contiguous memory block.
+-- | One-dimensional array of objects stored in a contiguous memory block.
 data Vector t =
-    V { idim  :: {-# UNPACK #-} !Int              -- ^ number of elements
-      , fptr :: {-# UNPACK #-} !(ForeignPtr t)    -- ^ foreign pointer to the memory block
+    V { ioff :: {-# UNPACK #-} !Int              -- ^ offset of first element
+      , idim :: {-# UNPACK #-} !Int              -- ^ number of elements
+      , fptr :: {-# UNPACK #-} !(ForeignPtr t)   -- ^ foreign pointer to the memory block
       }
 
 unsafeToForeignPtr :: Vector a -> (ForeignPtr a, Int, Int)
-unsafeToForeignPtr v = (fptr v, 0, idim v)
+unsafeToForeignPtr v = (fptr v, ioff v, idim v)
 
 -- | Same convention as in Roman Leshchinskiy's vector package.
 unsafeFromForeignPtr :: ForeignPtr a -> Int -> Int -> Vector a
-unsafeFromForeignPtr fp i n | i == 0 = V {idim = n, fptr = fp}
-                            | otherwise = error "unsafeFromForeignPtr with nonzero offset"
+unsafeFromForeignPtr fp i n | n > 0 = V {ioff = i, idim = n, fptr = fp}
+                            | otherwise = error "unsafeFromForeignPtr with dim < 1"
+
+unsafeWith (V i _ fp) m = withForeignPtr fp $ \p -> m (p `advancePtr` i)
+{-# INLINE unsafeWith #-}
+
 
 -- | Number of elements
 dim :: Vector t -> Int
 dim = idim
 
 -- C-Haskell vector adapter
-vec :: Adapt (CInt -> Ptr t -> r) (Vector t) r
-vec = withVector
-
-withVector (V n fp) f = withForeignPtr fp $ \p -> do
+-- vec :: Adapt (CInt -> Ptr t -> r) (Vector t) r
+vec :: (Storable t) => Vector t -> (((CInt -> Ptr t -> t1) -> t1) -> IO b) -> IO b
+vec x f = unsafeWith x $ \p -> do
     let v g = do
-        g (fi n) p
+        g (fi $ dim x) p
     f v
+{-# INLINE vec #-}
+
 
 -- allocates memory for a new vector
 createVector :: Storable a => Int -> IO (Vector a)
 createVector n = do
     when (n <= 0) $ error ("trying to createVector of dim "++show n)
     fp <- doMalloc undefined
-    return $ V n fp
+    return $ V 0 n fp
   where
     --
     -- Use the much cheaper Haskell heap allocated storage
@@ -102,11 +108,10 @@ createVector n = do
 fromList :: Storable a => [a] -> Vector a
 fromList l = unsafePerformIO $ do
     v <- createVector (length l)
-    let f _ p = pokeArray p l >> return 0
-    app1 f vec v "fromList"
+    unsafeWith v $ \ p -> pokeArray p l
     return v
 
-safeRead v = inlinePerformIO . withForeignPtr (fptr v)
+safeRead v = inlinePerformIO . unsafeWith v
 {-# INLINE safeRead #-}
 
 inlinePerformIO :: IO a -> a
@@ -171,7 +176,12 @@ subVector :: Storable t => Int       -- ^ index of the starting element
                         -> Int       -- ^ number of elements to extract
                         -> Vector t  -- ^ source
                         -> Vector t  -- ^ result
-subVector k l (v@V {idim=n})
+
+subVector k l v@V{idim = n, ioff = i}
+    | k<0 || k >= n || k+l > n || l < 0 = error "subVector out of range"
+    | otherwise = v {idim = l, ioff = i+k}
+
+subVectorCopy k l (v@V {idim=n})
     | k<0 || k >= n || k+l > n || l < 0 = error "subVector out of range"
     | otherwise = unsafePerformIO $ do
         r <- createVector l
@@ -201,23 +211,24 @@ join [] = error "joining zero vectors"
 join [v] = v
 join as = unsafePerformIO $ do
     let tot = sum (map dim as)
-    r@V {fptr = p} <- createVector tot
-    withForeignPtr p $ \ptr ->
+    r <- createVector tot
+    unsafeWith r $ \ptr ->
         joiner as tot ptr
     return r
   where joiner [] _ _ = return ()
-        joiner (V {idim = n, fptr = b} : cs) _ p = do
-            withForeignPtr b $ \pb -> copyArray p pb n
+        joiner (v:cs) _ p = do
+            let n = dim v
+            unsafeWith v $ \pb -> copyArray p pb n
             joiner cs 0 (advancePtr p n)
 
 
 -- | transforms a complex vector into a real vector with alternating real and imaginary parts 
 asReal :: Vector (Complex Double) -> Vector Double
-asReal v = V { idim = 2*dim v, fptr =  castForeignPtr (fptr v) }
+asReal v = V { ioff = 2*ioff v, idim = 2*dim v, fptr =  castForeignPtr (fptr v) }
 
 -- | transforms a real vector into a complex vector with alternating real and imaginary parts
 asComplex :: Vector Double -> Vector (Complex Double)
-asComplex v = V { idim = dim v `div` 2, fptr =  castForeignPtr (fptr v) }
+asComplex v = V { ioff = ioff v `div` 2, idim = dim v `div` 2, fptr =  castForeignPtr (fptr v) }
 
 ----------------------------------------------------------------
 
@@ -234,8 +245,8 @@ cloneVector (v@V {idim=n}) = do
 mapVector :: (Storable a, Storable b) => (a-> b) -> Vector a -> Vector b
 mapVector f v = unsafePerformIO $ do
     w <- createVector (dim v)
-    withForeignPtr (fptr v) $ \p ->
-        withForeignPtr (fptr w) $ \q -> do
+    unsafeWith v $ \p ->
+        unsafeWith w $ \q -> do
             let go (-1) = return ()
                 go !k = do x <- peekElemOff p k
                            pokeElemOff      q k (f x)
@@ -249,9 +260,9 @@ zipVector :: (Storable a, Storable b, Storable c) => (a-> b -> c) -> Vector a ->
 zipVector f u v = unsafePerformIO $ do
     let n = min (dim u) (dim v)
     w <- createVector n
-    withForeignPtr (fptr u) $ \pu ->
-        withForeignPtr (fptr v) $ \pv ->
-            withForeignPtr (fptr w) $ \pw -> do
+    unsafeWith u $ \pu ->
+        unsafeWith v $ \pv ->
+            unsafeWith w $ \pw -> do
                 let go (-1) = return ()
                     go !k = do x <- peekElemOff pu k
                                y <- peekElemOff pv k
@@ -262,7 +273,7 @@ zipVector f u v = unsafePerformIO $ do
 {-# INLINE zipVector #-}
 
 foldVector f x v = unsafePerformIO $
-    withForeignPtr (fptr (v::Vector Double)) $ \p -> do
+    unsafeWith (v::Vector Double) $ \p -> do
         let go (-1) s = return s
             go !k !s = do y <- peekElemOff p k
                           go (k-1::Int) (f y s)

@@ -37,11 +37,11 @@ import Foreign
 
 {-# INLINE ioReadV #-}
 ioReadV :: Storable t => Vector t -> Int -> IO t
-ioReadV v k = withForeignPtr (fptr v) $ \s -> peekElemOff s k
+ioReadV v k = unsafeWith v $ \s -> peekElemOff s k
 
 {-# INLINE ioWriteV #-}
 ioWriteV :: Storable t => Vector t -> Int -> t -> IO ()
-ioWriteV v k x = withForeignPtr (fptr v) $ \s -> pokeElemOff s k x
+ioWriteV v k x = unsafeWith v $ \s -> pokeElemOff s k x
 
 newtype STVector s t = STVector (Vector t)
 

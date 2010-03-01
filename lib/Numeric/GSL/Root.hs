@@ -79,7 +79,7 @@ rootGen m f xi epsabs maxit = unsafePerformIO $ do
     let xiv = fromList xi
         n   = dim xiv
     fp <- mkVecVecfun (aux_vTov (checkdim1 n . fromList . f . toList))
-    rawpath <- withVector xiv $ \xiv' ->
+    rawpath <- vec xiv $ \xiv' ->
                    createMIO maxit (2*n+1)
                          (c_root m fp epsabs (fi maxit) // xiv')
                          "root"
@@ -117,7 +117,7 @@ rootJGen m f jac xi epsabs maxit = unsafePerformIO $ do
         n   = dim xiv
     fp <- mkVecVecfun (aux_vTov (checkdim1 n . fromList . f . toList))
     jp <- mkVecMatfun (aux_vTom (checkdim2 n . fromLists . jac . toList))
-    rawpath <- withVector xiv $ \xiv' ->
+    rawpath <- vec xiv $ \xiv' ->
                    createMIO maxit (2*n+1)
                          (c_rootj m fp jp epsabs (fi maxit) // xiv')
                          "root"

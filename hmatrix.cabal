@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.9.0.0
+Version:            0.9.1.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -90,7 +90,7 @@ library
                         Numeric.LinearAlgebra.Interface,
                         Numeric.LinearAlgebra.Algorithms,
                         Graphics.Plot,
-                        Data.Packed.Convert,
+                     -- Data.Packed.Convert,
                         Data.Packed.ST,
                         Data.Packed.Development,
                         Data.Packed.Random

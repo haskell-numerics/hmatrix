@@ -1,3 +1,14 @@
+0.9.1.0
+=======
+
+- GSL special functions moved to separate package hmatrix-special.
+
+- Added offset of Vector, allowing fast, noncopy subVector (slice).
+  Vector is now identical to Roman Leshchinskiy's Data.Vector.Storable.Vector,
+  so we can convert from/to them in O(1).
+  
+- Removed Data.Packed.Convert, see examples/vector.hs
+
 0.8.3.0
 =======
 

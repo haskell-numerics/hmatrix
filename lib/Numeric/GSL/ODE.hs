@@ -83,8 +83,8 @@ odeSolveV method h epsAbs epsRel f mbjac xiv ts = unsafePerformIO $ do
     jp <- case mbjac of
         Just jac -> mkDoubleVecMatfun (\t -> aux_vTom (checkdim2 n . jac t))
         Nothing  -> return nullFunPtr
-    sol <- withVector xiv $ \xiv' ->
-            withVector (checkTimes ts) $ \ts' ->
+    sol <- vec xiv $ \xiv' ->
+            vec (checkTimes ts) $ \ts' ->
              createMIO (dim ts) n
               (ode_c (fi (fromEnum method)) h epsAbs epsRel fp jp // xiv' // ts' )
               "ode"

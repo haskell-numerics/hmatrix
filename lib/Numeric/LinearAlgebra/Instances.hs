@@ -25,7 +25,7 @@ import Data.Packed.Matrix
 import Complex
 import Data.List(transpose,intersperse)
 import Foreign(Storable)
-import Data.Monoid
+-- import Data.Monoid
 import Data.Packed.Internal.Vector
 -- import Control.Parallel.Strategies
 
@@ -182,12 +182,12 @@ instance (Linear Vector a, Floating (Vector a), Fractional (Matrix a)) => Floati
 
 ---------------------------------------------------------------
 
-instance (Storable a, Num (Vector a)) => Monoid (Vector a) where
-    mempty = 0 { idim = 0 }
-    mappend a b = mconcat [a,b]
-    mconcat = j . filter ((>0).dim)
-        where j [] = mempty
-              j l  = join l
+-- instance (Storable a, Num (Vector a)) => Monoid (Vector a) where
+--     mempty = 0 { idim = 0 }
+--     mappend a b = mconcat [a,b]
+--     mconcat = j . filter ((>0).dim)
+--         where j [] = mempty
+--               j l  = join l
 
 ---------------------------------------------------------------
 

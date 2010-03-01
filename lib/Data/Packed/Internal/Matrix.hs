@@ -18,7 +18,7 @@
 module Data.Packed.Internal.Matrix(
     Matrix(..), rows, cols,
     MatrixOrder(..), orderOf,
-    createMatrix, withMatrix, mat,
+    createMatrix, mat,
     cmat, fmat,
     toLists, flatten, reshape,
     Element(..),
@@ -115,11 +115,11 @@ fmat m@MF{} = m
 fmat MC {irows = r, icols = c, cdat = d } = MF {irows = r, icols = c, fdat = transdata c d r}
 
 -- C-Haskell matrix adapter
-mat :: Adapt (CInt -> CInt -> Ptr t -> r) (Matrix t) r
-mat = withMatrix
+-- mat :: Adapt (CInt -> CInt -> Ptr t -> r) (Matrix t) r
 
-withMatrix a f =
-    withForeignPtr (fptr (xdat a)) $ \p -> do
+mat :: (Storable t) => Matrix t -> (((CInt -> CInt -> Ptr t -> t1) -> t1) -> IO b) -> IO b
+mat a f =
+    unsafeWith (xdat a) $ \p -> do
         let m g = do
             g (fi (rows a)) (fi (cols a)) p
         f m
@@ -273,8 +273,8 @@ transdata' c1 v c2 =
         then v
         else unsafePerformIO $ do
                 w <- createVector (r2*c2)
-                withForeignPtr (fptr v) $ \p ->
-                    withForeignPtr (fptr w) $ \q -> do
+                unsafeWith v $ \p ->
+                    unsafeWith w $ \q -> do
                         let go (-1) _ = return ()
                             go !i (-1) = go (i-1) (c1-1)
                             go !i !j = do x <- peekElemOff p (i*c1+j)
@@ -300,8 +300,8 @@ transdataAux fun c1 d c2 =
         then d
         else unsafePerformIO $ do
             v <- createVector (dim d)
-            withForeignPtr (fptr d) $ \pd ->
-                withForeignPtr (fptr v) $ \pv ->
+            unsafeWith d $ \pd ->
+                unsafeWith v $ \pv ->
                     fun (fi r1) (fi c1) pd (fi r2) (fi c2) pv // check "transdataAux"
             return v
   where r1 = dim d `div` c1
@@ -314,7 +314,7 @@ foreign import ccall "transC" ctransC :: TCMCM
 
 constant' v n = unsafePerformIO $ do
     w <- createVector n
-    withForeignPtr (fptr w) $ \p -> do
+    unsafeWith w $ \p -> do
         let go (-1) = return ()
             go !k = pokeElemOff p k v >> go (k-1)
         go (n-1)
@@ -352,8 +352,8 @@ subMatrix (r0,c0) (rt,ct) m
 
 subMatrix'' (r0,c0) (rt,ct) c v = unsafePerformIO $ do
     w <- createVector (rt*ct)
-    withForeignPtr (fptr v) $ \p ->
-        withForeignPtr (fptr w) $ \q -> do
+    unsafeWith v $ \p ->
+        unsafeWith w $ \q -> do
             let go (-1) _ = return ()
                 go !i (-1) = go (i-1) (ct-1)
                 go !i !j = do x <- peekElemOff p ((i+r0)*c+j+c0)

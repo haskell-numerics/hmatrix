@@ -38,6 +38,7 @@ module Numeric.LinearAlgebra.Tests.Properties (
     cholProp,
     expmDiagProp,
     multProp1, multProp2,
+    subProp,
     linearSolveProp, linearSolveProp2
 ) where
 
@@ -243,3 +244,6 @@ linearSolveProp2 f (a,x) = not wc `trivial` (not wc || a <> f a b |~| b)
     where q = min (rows a) (cols a)
           b = a <> x
           wc = rank a == q
+
+subProp m = m == (trans . fromColumns . toRows) m
+
