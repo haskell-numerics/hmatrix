@@ -38,7 +38,7 @@ import Data.Packed.Internal.Signatures
 import Data.Packed.Internal.Vector
 
 import Foreign hiding (xor)
-import Complex
+import Data.Complex
 import Foreign.C.Types
 import Foreign.C.String
 

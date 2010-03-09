@@ -22,7 +22,7 @@ module Numeric.LinearAlgebra.Instances(
 import Numeric.LinearAlgebra.Linear
 import Numeric.GSL.Vector
 import Data.Packed.Matrix
-import Complex
+import Data.Complex
 import Data.List(transpose,intersperse)
 import Foreign(Storable)
 -- import Data.Monoid

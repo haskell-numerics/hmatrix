@@ -25,7 +25,7 @@ import Data.Packed.Internal.Common
 import Data.Packed.Internal.Signatures
 import Data.Packed.Internal.Vector
 
-import Complex
+import Data.Complex
 import Foreign
 import Foreign.C.Types(CInt)
 

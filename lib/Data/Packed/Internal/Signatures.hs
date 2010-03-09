@@ -15,7 +15,7 @@
 module Data.Packed.Internal.Signatures where
 
 import Foreign
-import Complex
+import Data.Complex
 import Foreign.C.Types
 
 type PD = Ptr Double                            --

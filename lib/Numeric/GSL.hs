@@ -20,7 +20,7 @@ module Numeric.GSL (
 , module Numeric.GSL.Minimization
 , module Numeric.GSL.Root
 , module Numeric.GSL.ODE
-, module Complex
+, module Data.Complex
 , setErrorHandlerOff
 ) where
 
@@ -31,7 +31,7 @@ import Numeric.GSL.Polynomials
 import Numeric.GSL.Minimization
 import Numeric.GSL.Root
 import Numeric.GSL.ODE
-import Complex
+import Data.Complex
 
 
 -- | This action removes the GSL default error handler (which aborts the program), so that

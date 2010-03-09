@@ -20,7 +20,7 @@ module Numeric.GSL.Polynomials (
 ) where
 
 import Data.Packed.Internal
-import Complex
+import Data.Complex
 import Foreign
 
 {- | Solution of general polynomial equations, using /gsl_poly_complex_solve/. For example,

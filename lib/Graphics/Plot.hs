@@ -31,7 +31,7 @@ module Graphics.Plot(
 import Data.Packed
 import Numeric.LinearAlgebra(outer)
 import Data.List(intersperse)
-import System
+import System.Process (system)
 
 size = dim
 

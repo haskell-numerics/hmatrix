@@ -21,7 +21,7 @@ module Numeric.GSL.Fourier (
 ) where
 
 import Data.Packed.Internal
-import Complex
+import Data.Complex
 import Foreign
 import Foreign.C.Types(CInt)
 

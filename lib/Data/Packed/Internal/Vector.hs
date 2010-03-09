@@ -33,7 +33,7 @@ import Data.Packed.Internal.Signatures
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types(CInt,CChar)
-import Complex
+import Data.Complex
 import Control.Monad(when)
 
 #if __GLASGOW_HASKELL__ >= 605
