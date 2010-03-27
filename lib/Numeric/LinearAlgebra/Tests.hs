@@ -208,6 +208,9 @@ runTests n = do
     putStrLn "------ luSolve"
     test (linearSolveProp (luSolve.luPacked) . rSqWC)
     test (linearSolveProp (luSolve.luPacked) . cSqWC)
+    putStrLn "------ cholSolve"
+    test (linearSolveProp (cholSolve.chol) . rPosDef)
+    test (linearSolveProp (cholSolve.chol) . cPosDef)
     putStrLn "------ luSolveLS"
     test (linearSolveProp linearSolveLS . rSqWC)
     test (linearSolveProp linearSolveLS . cSqWC)

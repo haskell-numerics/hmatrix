@@ -27,6 +27,7 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Linear Systems
     linearSolve,
     luSolve,
+    cholSolve,
     linearSolveLS,
     linearSolveSVD,
     inv, pinv,
@@ -91,6 +92,7 @@ class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
     luPacked'    :: Matrix t -> (Matrix t, [Int])
     luSolve'     :: (Matrix t, [Int]) -> Matrix t -> Matrix t
     linearSolve' :: Matrix t -> Matrix t -> Matrix t
+    cholSolve'   :: Matrix t -> Matrix t -> Matrix t
     linearSolveSVD' :: Matrix t -> Matrix t -> Matrix t
     linearSolveLS'  :: Matrix t -> Matrix t -> Matrix t
     eig'         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
@@ -112,6 +114,7 @@ instance Field Double where
     luPacked' = luR
     luSolve' (l_u,perm) = lusR l_u perm
     linearSolve' = linearSolveR                 -- (luSolve . luPacked) ??
+    cholSolve' = cholSolveR
     linearSolveLS' = linearSolveLSR
     linearSolveSVD' = linearSolveSVDR Nothing
     ctrans' = trans
@@ -132,6 +135,7 @@ instance Field (Complex Double) where
     luPacked' = luC
     luSolve' (l_u,perm) = lusC l_u perm
     linearSolve' = linearSolveC
+    cholSolve' = cholSolveC
     linearSolveLS' = linearSolveLSC
     linearSolveSVD' = linearSolveSVDC Nothing
     ctrans' = conj . trans
@@ -229,6 +233,10 @@ luSolve = luSolve'
 linearSolve :: Field t => Matrix t -> Matrix t -> Matrix t
 linearSolve = linearSolve'
 
+-- | Solve a symmetric or Hermitian positive definite linear system using a precomputed Cholesky decomposition obtained by 'chol'.
+cholSolve :: Field t => Matrix t -> Matrix t -> Matrix t
+cholSolve = cholSolve'
+
 -- | Minimum norm solution of a general linear least squares problem Ax=B using the SVD. Admits rank-deficient systems but it is slower than 'linearSolveLS'. The effective rank of A is determined by treating as zero those singular valures which are less than 'eps' times the largest singular value.
 linearSolveSVD :: Field t => Matrix t -> Matrix t -> Matrix t
 linearSolveSVD = linearSolveSVD'
@@ -322,7 +330,7 @@ cholSH = cholSH'
 
 -- | Cholesky factorization of a positive definite hermitian or symmetric matrix.
 --
--- If @c = chol m@ then @m == ctrans c \<> c@.
+-- If @c = chol m@ then @c@ is upper triangular and @m == ctrans c \<> c@.
 chol :: Field t => Matrix t ->  Matrix t
 chol m | exactHermitian m = cholSH m
        | otherwise = error "chol requires positive definite complex hermitian or real symmetric matrix"

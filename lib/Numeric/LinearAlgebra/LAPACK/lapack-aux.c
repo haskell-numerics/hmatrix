@@ -492,6 +492,42 @@ int linearSolveC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
     OK
 }
 
+//////// symmetric positive definite real linear system using Cholesky ////////////
+
+int cholSolveR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
+    integer n = ar;
+    integer nhrs = bc;
+    REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
+    DEBUGMSG("cholSolveR_l");
+    memcpy(xp,bp,n*nhrs*sizeof(double));
+    integer res;
+    dpotrs_ ("U",
+             &n,&nhrs,
+             (double*)ap, &n,
+             xp, &n,
+             &res);
+    CHECK(res,res);
+    OK
+}
+
+//////// Hermitian positive definite real linear system using Cholesky ////////////
+
+int cholSolveC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
+    integer n = ar;
+    integer nhrs = bc;
+    REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
+    DEBUGMSG("cholSolveC_l");
+    memcpy(xp,bp,2*n*nhrs*sizeof(double));
+    integer res;
+    zpotrs_  ("U",
+             &n,&nhrs,
+             (doublecomplex*)ap, &n,
+             (doublecomplex*)xp, &n,
+             &res);
+    CHECK(res,res);
+    OK
+}
+
 //////////////////// least squares real linear system ////////////
 
 int linearSolveLSR_l(KDMAT(a),KDMAT(b),DMAT(x)) {

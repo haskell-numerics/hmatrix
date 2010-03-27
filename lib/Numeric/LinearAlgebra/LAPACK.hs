@@ -18,6 +18,7 @@ module Numeric.LinearAlgebra.LAPACK (
     -- * Linear systems
     linearSolveR, linearSolveC,
     lusR, lusC,
+    cholSolveR, cholSolveC,
     linearSolveLSR, linearSolveLSC,
     linearSolveSVDR, linearSolveSVDC,
     -- * SVD
@@ -312,8 +313,10 @@ eigOnlyH = vrev . fst. eigSHAux (zheev 1) "eigH'" . fmat
 vrev = flatten . flipud . reshape 1
 
 -----------------------------------------------------------------------------
-foreign import ccall "LAPACK/lapack-aux.h linearSolveR_l" dgesv :: TMMM
-foreign import ccall "LAPACK/lapack-aux.h linearSolveC_l" zgesv :: TCMCMCM
+foreign import ccall "linearSolveR_l" dgesv :: TMMM
+foreign import ccall "linearSolveC_l" zgesv :: TCMCMCM
+foreign import ccall "cholSolveR_l" dpotrs :: TMMM
+foreign import ccall "cholSolveC_l" zpotrs :: TCMCMCM
 
 linearSolveSQAux f st a b
     | n1==n2 && n1==r = unsafePerformIO $ do
@@ -333,6 +336,15 @@ linearSolveR a b = linearSolveSQAux dgesv "linearSolveR" (fmat a) (fmat b)
 -- | Solve a complex linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, based on LAPACK's /zgesv/. For underconstrained or overconstrained systems use 'linearSolveLSC' or 'linearSolveSVDC'. See also 'lusC'.
 linearSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
 linearSolveC a b = linearSolveSQAux zgesv "linearSolveC" (fmat a) (fmat b)
+
+
+-- | Solves a symmetric positive definite system of linear equations using a precomputed Cholesky factorization obtained by 'cholS'.
+cholSolveR :: Matrix Double -> Matrix Double -> Matrix Double
+cholSolveR a b = linearSolveSQAux dpotrs "cholSolveR" (fmat a) (fmat b)
+
+-- | Solves a Hermitian positive definite system of linear equations using a precomputed Cholesky factorization obtained by 'cholH'.
+cholSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
+cholSolveC a b = linearSolveSQAux zpotrs "cholSolveC" (fmat a) (fmat b)
 
 -----------------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h linearSolveLSR_l" dgels :: TMMM
