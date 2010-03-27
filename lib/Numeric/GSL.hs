@@ -20,6 +20,7 @@ module Numeric.GSL (
 , module Numeric.GSL.Minimization
 , module Numeric.GSL.Root
 , module Numeric.GSL.ODE
+, module Numeric.GSL.Fitting
 , module Data.Complex
 , setErrorHandlerOff
 ) where
@@ -31,6 +32,7 @@ import Numeric.GSL.Polynomials
 import Numeric.GSL.Minimization
 import Numeric.GSL.Root
 import Numeric.GSL.ODE
+import Numeric.GSL.Fitting
 import Data.Complex
 
 

@@ -1,3 +1,8 @@
+0.9.2.0
+=======
+
+Added GSL Nonlinear Least-Squares fitting using Levenberg-Marquardt.
+
 0.9.1.0
 =======
 
@@ -6,7 +11,7 @@
 - Added offset of Vector, allowing fast, noncopy subVector (slice).
   Vector is now identical to Roman Leshchinskiy's Data.Vector.Storable.Vector,
   so we can convert from/to them in O(1).
-  
+
 - Removed Data.Packed.Convert, see examples/vector.hs
 
 0.8.3.0

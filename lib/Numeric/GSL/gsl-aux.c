@@ -23,6 +23,7 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_odeiv.h>
+#include <gsl/gsl_multifit_nlin.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -668,9 +669,10 @@ int root(int method, void f(int, double*, int, double*),
 
 // working with the jacobian
 
-typedef struct {int (*f)(int, double*, int, double *); int (*jf)(int, double*, int, int, double*);} Tfjf;
+typedef struct {int (*f)(int, double*, int, double *);
+                int (*jf)(int, double*, int, int, double*);} Tfjf;
 
-int f_aux_root(const gsl_vector*x, void *pars, gsl_vector*y) {
+int f_aux(const gsl_vector*x, void *pars, gsl_vector*y) {
     Tfjf * fjf = ((Tfjf*) pars);
     double* p = (double*)calloc(x->size,sizeof(double));
     double* q = (double*)calloc(y->size,sizeof(double));
@@ -687,20 +689,20 @@ int f_aux_root(const gsl_vector*x, void *pars, gsl_vector*y) {
     return 0;
 }
 
-int jf_aux_root(const gsl_vector * x, void * pars, gsl_matrix * jac) {
+int jf_aux(const gsl_vector * x, void * pars, gsl_matrix * jac) {
     Tfjf * fjf = ((Tfjf*) pars);
     double* p = (double*)calloc(x->size,sizeof(double));
-    double* q = (double*)calloc((x->size)*(x->size),sizeof(double));
+    double* q = (double*)calloc((jac->size1)*(jac->size2),sizeof(double));
     int i,j,k;
     for(k=0;k<x->size;k++) {
         p[k] = gsl_vector_get(x,k);
     }
 
-    (fjf->jf)(x->size,p,x->size,x->size,q);
+    (fjf->jf)(x->size,p,jac->size1,jac->size2,q);
 
     k=0;
-    for(i=0;i<x->size;i++) {
-        for(j=0;j<x->size;j++){
+    for(i=0;i<jac->size1;i++) {
+        for(j=0;j<jac->size2;j++){
             gsl_matrix_set(jac,i,j,q[k++]);
         }
     }
@@ -709,9 +711,9 @@ int jf_aux_root(const gsl_vector * x, void * pars, gsl_matrix * jac) {
     return 0;
 }
 
-int fjf_aux_root(const gsl_vector * x, void * pars, gsl_vector * f, gsl_matrix * g) {
-    f_aux_root(x,pars,f);
-    jf_aux_root(x,pars,g);
+int fjf_aux(const gsl_vector * x, void * pars, gsl_vector * f, gsl_matrix * g) {
+    f_aux(x,pars,f);
+    jf_aux(x,pars,g);
     return 0;
 }
 
@@ -723,9 +725,9 @@ int rootj(int method, int f(int, double*, int, double*),
     DEBUGMSG("root_fjf");
     gsl_multiroot_function_fdf my_func;
     // extract function from pars
-    my_func.f = f_aux_root;
-    my_func.df = jf_aux_root;
-    my_func.fdf = fjf_aux_root;
+    my_func.f = f_aux;
+    my_func.df = jf_aux;
+    my_func.fdf = fjf_aux;
     my_func.n = xin;
     Tfjf stfjf;
     stfjf.f = f;
@@ -781,7 +783,76 @@ int rootj(int method, int f(int, double*, int, double*),
     OK
 }
 
+//-------------- non linear least squares fitting -------------------
+
+int nlfit(int method, int f(int, double*, int, double*),
+                      int jac(int, double*, int, int, double*),
+         double epsabs, double epsrel, int maxit, int p,
+         KRVEC(xi), RMAT(sol)) {
+    REQUIRES(solr == maxit && solc == 2+xin,BAD_SIZE);
+    DEBUGMSG("nlfit");
+    const gsl_multifit_fdfsolver_type *T;
+    gsl_multifit_fdfsolver *s;
+    gsl_multifit_function_fdf my_f;
+    // extract function from pars
+    my_f.f = f_aux;
+    my_f.df = jf_aux;
+    my_f.fdf = fjf_aux;
+    my_f.n = p;
+    my_f.p = xin;  // !!!!
+    Tfjf stfjf;
+    stfjf.f = f;
+    stfjf.jf = jac;
+    my_f.params = &stfjf;
+    size_t iter = 0;
+    int status;
+
+    KDVVIEW(xi);
+    //DMVIEW(cov);
+
+    switch(method) {
+        case 0 : { T = gsl_multifit_fdfsolver_lmsder; break; }
+        default: ERROR(BAD_CODE);
+    }
+
+    s = gsl_multifit_fdfsolver_alloc (T, my_f.n, my_f.p);
+    gsl_multifit_fdfsolver_set (s, &my_f, V(xi));
+
+    do {   status = gsl_multifit_fdfsolver_iterate (s);
+
+           solp[iter*solc+0] = iter+1;
+           solp[iter*solc+1] = gsl_blas_dnrm2 (s->f);
+
+           int k;
+           for(k=0;k<xin;k++) {
+               solp[iter*solc+k+2] = gsl_vector_get(s->x,k);
+           }
+
+           iter++;
+           if (status)   /* check if solver is stuck */
+             break;
+
+           status = gsl_multifit_test_delta (s->dx, s->x, epsabs, epsrel);
+        }
+        while (status == GSL_CONTINUE && iter <= maxit);
+
+    int i,j;
+    for (i=iter; i<solr; i++) {
+        solp[i*solc+0] = iter;
+        for(j=1;j<solc;j++) {
+            solp[i*solc+j]=0.;
+        }
+    }
+
+    //gsl_multifit_covar (s->J, 0.0, M(cov));
+
+    gsl_multifit_fdfsolver_free (s);
+    OK
+}
+
+
 //////////////////////////////////////////////////////
+
 
 #define RAN(C,F) case C: { for(k=0;k<rn;k++) { rp[k]= F(gen); }; OK }
 
