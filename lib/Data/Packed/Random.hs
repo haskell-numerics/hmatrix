@@ -34,12 +34,10 @@ gaussianSample :: Int -- ^ seed
                -> Matrix Double -- ^ covariance matrix
                -> Matrix Double -- ^ result
 gaussianSample seed n med cov = m where
-    (l,v) = eigSH' cov
-    c = dim l
+    c = dim med
     meds = constant 1 n `outer` med
     rs = reshape c $ randomVector seed Gaussian (c * n)
-    ds = sqrt (abs l)
-    m = rs <> (diag ds <> trans v) + meds
+    m = rs <> cholSH cov + meds
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
 -- uniform distribution.
