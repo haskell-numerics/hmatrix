@@ -328,6 +328,7 @@ makeUnitary v | realPart n > 1    = v / scalar n
 -- | Performance measurements.
 runBenchmarks :: IO ()
 runBenchmarks = do
+    solveBench
     subBench
     multBench
     svdBench
@@ -341,7 +342,7 @@ time msg act = do
     t0 <- getCPUTime
     act `seq` putStr " "
     t1 <- getCPUTime
-    printf "%5.1f s CPU\n" $ (fromIntegral (t1 - t0) / (10^12 :: Double)) :: IO ()
+    printf "%6.2f s CPU\n" $ (fromIntegral (t1 - t0) / (10^12 :: Double)) :: IO ()
     return ()
 
 --------------------------------
@@ -410,3 +411,19 @@ svdBench = do
     time "singular values 1000x1000" (singularValues b)
     time "full svd        1000x1000" (fv $ svd b)
 
+--------------------------------
+
+solveBenchN n = do
+    let x = uniformSample 777 (2*n) (replicate n (-1,1))
+        a = trans x <> x
+        b = asColumn $ randomVector 666 Uniform n
+    a `seq` b `seq` putStrLn ""
+    time ("svd solve " ++ show n) (linearSolveSVD a b)
+    time (" ls solve " ++ show n) (linearSolveLS a b)
+    time ("    solve " ++ show n) (linearSolve a b)
+    time ("cholSolve " ++ show n) (cholSolve (chol a) b)
+
+solveBench = do
+    solveBenchN 500
+    solveBenchN 1000
+    -- solveBenchN 1500
