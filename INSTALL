@@ -13,29 +13,27 @@ Detailed installation instructions:
 
 INSTALLATION ON WINDOWS ----------------------------------------
 
-1) Install a recent ghc (e.g. ghc-6.10.3)
+1) Install the Haskell Platform (tested with 2009.2.0.2).
 
-2) Install cabal-install. A binary for windows can be obtained from:
-
-   http://www.haskell.org/cabal/release/cabal-install-0.6.2/cabal.exe
-
-   Put it somewhere in the path, for instance in c:\ghc\ghc-6.10.3\bin
-
-3) Download and uncompress in a temporary location the following file:
+2) Download and uncompress in a temporary location the following file:
 
    http://code.haskell.org/hmatrix/gsl-lapack-windows.zip
 
-   It contains a folder, gsl, and four DLL's.
+   It contains a gsl folder, and four DLL's.
 
-4) Move the gsl folder to C:\ghc\ghc-6.10.3\include
+3) Move the gsl folder to
 
-5) Move the four DLL's to C:\ghc\ghc-6.10.3\bin
+   C:\Program Files\Haskell Platform\2009.2.0.2\include
 
-6) Download and uncompress hmatrix-x.y.z.tar.gz from Hackage:
+4) Move the four DLL's to any folder without spaces in the path, e.g.:
+
+   C:\path\to\dll
+
+5) Download and uncompress hmatrix-x.y.z.tar.gz from Hackage:
 
    http://hackage.haskell.org/package/hmatrix
 
-7) Edit hmatrix.cabal:
+6) Edit hmatrix.cabal:
 
      line 17:      build-type:         Custom
      change to:    build-type:         Simple
@@ -43,13 +41,13 @@ INSTALLATION ON WINDOWS ----------------------------------------
      and at the end of the file add:
 
         extra-libraries: libgsl-0 blas lapack
-        extra-lib-dirs: c:\ghc\ghc-6.10.3\bin
+        extra-lib-dirs: C:\path\to\dll
 
-8) Open a terminal, cd to the hmatrix folder, and run
+7) Open a terminal, cd to the hmatrix folder, and run
 
    > cabal install
 
-9) If everything is ok we can run the tests:
+8) If everything is ok we can run the tests:
 
    > runhaskell examples\tests.hs
 
