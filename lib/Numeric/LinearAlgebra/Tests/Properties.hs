@@ -29,7 +29,7 @@ module Numeric.LinearAlgebra.Tests.Properties (
     pinvProp,
     detProp,
     nullspaceProp,
-    svdProp1, svdProp1a, svdProp2, svdProp3, svdProp4,
+    svdProp1, svdProp1a, svdProp1b, svdProp2, svdProp3, svdProp4,
     svdProp5a, svdProp5b, svdProp6a, svdProp6b, svdProp7,
     eigProp, eigSHProp, eigProp2, eigSHProp2,
     qrProp, rqProp,
@@ -136,6 +136,9 @@ svdProp1 m = m |~| u <> real d <> trans v && unitary u && unitary v
 svdProp1a svdfun m = m |~| u <> real d <> trans v && unitary u && unitary v where
     (u,s,v) = svdfun m
     d = diagRect s (rows m) (cols m)
+
+svdProp1b svdfun m = unitary u && unitary v where
+    (u,_,v) = svdfun m
 
 -- thinSVD
 svdProp2 thinSVDfun m = m |~| u <> diag (real s) <> trans v && orthonormal u && orthonormal v && dim s == min (rows m) (cols m)

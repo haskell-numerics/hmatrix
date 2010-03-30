@@ -129,7 +129,11 @@ instance Field Double where
     multiply' = multiplyR
 
 instance Field (Complex Double) where
+#ifdef NOZGESDD
+    svd' = svdC
+#else
     svd' = svdCd
+#endif
     thinSVD' = thinSVDCd
     sv' = svC
     luPacked' = luC
