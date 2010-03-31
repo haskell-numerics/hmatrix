@@ -64,3 +64,6 @@ and all the people in the Haskell mailing lists for their help.
 
 - Felipe Lessa tested the performance of GSL special function bindings
   and contributed the cabal flag "safe-cheap".
+
+- Ozgur Akgun suggested better symbols for the Bound constructors in the
+  Linear Programming package.
