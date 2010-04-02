@@ -5,7 +5,7 @@
 
 -------------------------------------------
 
-import Data.Packed as H
+import Numeric.LinearAlgebra as H
 import Data.Packed.Development(unsafeFromForeignPtr, unsafeToForeignPtr)
 import Foreign.Storable
 import qualified Data.Vector.Storable as V
