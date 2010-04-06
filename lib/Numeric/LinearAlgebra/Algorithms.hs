@@ -131,10 +131,11 @@ instance Field Double where
 instance Field (Complex Double) where
 #ifdef NOZGESDD
     svd' = svdC
+    thinSVD' = thinSVDC
 #else
     svd' = svdCd
-#endif
     thinSVD' = thinSVDCd
+#endif
     sv' = svC
     luPacked' = luC
     luSolve' (l_u,perm) = lusC l_u perm

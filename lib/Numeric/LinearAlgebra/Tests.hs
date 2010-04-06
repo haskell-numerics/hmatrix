@@ -228,11 +228,9 @@ runTests n = do
     test (svdProp1a svdR)
     test (svdProp1a svdC)
     test (svdProp1a svdRd)
-    test (svdProp1a svdCd)
     test (svdProp1b svdR)
     test (svdProp1b svdC)
     test (svdProp1b svdRd)
-    test (svdProp1b svdCd)
     test (svdProp2 thinSVDR)
     test (svdProp2 thinSVDC)
     test (svdProp2 thinSVDRd)
@@ -247,6 +245,13 @@ runTests n = do
     test (svdProp6b)
     test (svdProp7  . rM)
     test (svdProp7  . cM)
+    putStrLn "------ svdCd"
+#ifdef NOZGESDD
+    putStrLn "Omitted"
+#else
+    test (svdProp1a svdCd)
+    test (svdProp1b svdCd)
+#endif
     putStrLn "------ eig"
     test (eigSHProp . rHer)
     test (eigSHProp . cHer)
