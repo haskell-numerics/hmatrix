@@ -143,19 +143,23 @@ odeTest = utest "ode" (last (toLists sol) ~~ [-1.7588880332411019, 8.36434890871
 
 ---------------------------------------------------------------------
 
-fittingTest = utest "levmar" ok
+fittingTest = utest "levmar" (ok1 && ok2)
     where
     xs = map return [0 .. 39]
     sigma = 0.1
     ys = map return $ toList $ fromList (map (head . expModel [5,0.1,1]) xs)
                     + scalar sigma * (randomVector 0 Gaussian 40)
-    dat = zipWith3 (,,) xs ys (repeat sigma)
+    dats = zip xs (zip ys (repeat sigma))
+    dat = zip xs ys
 
     expModel [a,lambda,b] [t] = [a * exp (-lambda * t) + b]
     expModelDer [a,lambda,_b] [t] = [[exp (-lambda * t), -t * a * exp(-lambda*t) , 1]]
 
-    sol = fst $ fitModel 1E-4 1E-4 20 (resM expModel, resD expModelDer) dat [1,0,0]
-    ok = and (zipWith f sol [5,0.1,1]) where f (x,d) r = abs (x-r)<2*d
+    sols = fst $ fitModelScaled 1E-4 1E-4 20 (expModel, expModelDer) dats [1,0,0]
+    sol = fst $ fitModel 1E-4 1E-4 20 (expModel, expModelDer) dat [1,0,0]
+
+    ok1 = and (zipWith f sols [5,0.1,1]) where f (x,d) r = abs (x-r)<2*d
+    ok2 = pnorm PNorm2 (fromList (map fst sols) - fromList sol) < 1E-5
 
 ---------------------------------------------------------------------
 

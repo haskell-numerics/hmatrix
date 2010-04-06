@@ -14,17 +14,17 @@ Nonlinear Least-Squares Fitting
 The example program in the GSL manual (see examples/fitting.hs):
 
 @dat = [
- ([0.0],[6.0133918608118675],0.1),
- ([1.0],[5.5153769909966535],0.1),
- ([2.0],[5.261094606015287],0.1),
+ ([0.0],([6.0133918608118675],0.1)),
+ ([1.0],([5.5153769909966535],0.1)),
+ ([2.0],([5.261094606015287],0.1)),
  ...
- ([39.0],[1.0619821710802808],0.1)]
+ ([39.0],([1.0619821710802808],0.1))]
 
 expModel [a,lambda,b] [t] = [a * exp (-lambda * t) + b]
 
 expModelDer [a,lambda,b] [t] = [[exp (-lambda * t), -t * a * exp(-lambda*t) , 1]]
 
-(sol,path) = fitModel 1E-4 1E-4 20 (resM expModel, resD expModelDer) dat [1,0,0]
+(sol,path) = fitModelScaled 1E-4 1E-4 20 (expModel, expModelDer) dat [1,0,0]
 
 \> path
 (6><5)
@@ -46,7 +46,7 @@ module Numeric.GSL.Fitting (
     -- * Levenberg-Marquardt
     nlFitting, FittingMethod(..),
     -- * Utilities
-    fitModel, resM, resD
+    fitModelScaled, fitModel
 ) where
 
 import Data.Packed.Internal
@@ -57,7 +57,8 @@ import Numeric.GSL.Internal
 
 -------------------------------------------------------------------------
 
-data FittingMethod = LevenbergMarquardt -- ^ Interface to gsl_multifit_fdfsolver_lmsder. This is a robust and efficient version of the Levenberg-Marquardt algorithm as implemented in the scaled lmder routine in minpack. Minpack was written by Jorge J. More, Burton S. Garbow and Kenneth E. Hillstrom.
+data FittingMethod = LevenbergMarquardtScaled -- ^ Interface to gsl_multifit_fdfsolver_lmsder. This is a robust and efficient version of the Levenberg-Marquardt algorithm as implemented in the scaled lmder routine in minpack. Minpack was written by Jorge J. More, Burton S. Garbow and Kenneth E. Hillstrom.
+                   | LevenbergMarquardt -- ^ This is an unscaled version of the lmder algorithm. The elements of the diagonal scaling matrix D are set to 1. This algorithm may be useful in circumstances where the scaled version of lmder converges too slowly, or the function is already scaled appropriately.
         deriving (Enum,Eq,Show,Bounded)
 
 
@@ -104,32 +105,52 @@ checkdim2 n p m
 
 ------------------------------------------------------------
 
-err model dat vsol = zip sol errs where
+err (model,deriv) dat vsol = zip sol errs where
     sol = toList vsol
     c = max 1 (chi/sqrt (fromIntegral dof))
     dof = length dat - (rows cov)
-    chi = pnorm PNorm2 (fromList $ cost (fst model) dat sol)
-    js = fromLists $ jacobian (snd model) dat sol
+    chi = pnorm PNorm2 (fromList $ cost (resMs model) dat sol)
+    js = fromLists $ jacobian (resDs deriv) dat sol
     cov = inv $ trans js <> js
     errs = toList $ scalar c * sqrt (takeDiag cov)
 
 
 
+-- | Higher level interface to 'nlFitting' 'LevenbergMarquardtScaled'. The optimization function and
+-- Jacobian are automatically built from a model f vs x = y and its derivatives, and a list of
+-- instances (x, (y,sigma)) to be fitted.
+
+fitModelScaled
+         :: Double -- ^ absolute tolerance
+         -> Double -- ^ relative tolerance
+         -> Int    -- ^ maximum number of iterations allowed
+         -> ([Double] -> x -> [Double], [Double] -> x -> [[Double]]) -- ^ (model, derivatives)
+         -> [(x, ([Double], Double))] -- ^ instances
+         -> [Double] -- ^ starting point
+         -> ([(Double, Double)], Matrix Double) -- ^ (solution, error) and optimization path
+fitModelScaled epsabs epsrel maxit (model,deriv) dt xin = (err (model,deriv) dt sol, path) where
+    (sol,path) = nlFitting LevenbergMarquardtScaled epsabs epsrel maxit
+                (fromList . cost (resMs model) dt . toList)
+                (fromLists . jacobian (resDs deriv) dt . toList)
+                (fromList xin)
+
+
+
 -- | Higher level interface to 'nlFitting' 'LevenbergMarquardt'. The optimization function and
--- Jacobian are automatically built from a model f vs x = 0 and its derivatives, and a list of
--- instances x to be fitted.
+-- Jacobian are automatically built from a model f vs x = y and its derivatives, and a list of
+-- instances (x,y) to be fitted.
 
 fitModel :: Double -- ^ absolute tolerance
          -> Double -- ^ relative tolerance
          -> Int    -- ^ maximum number of iterations allowed
          -> ([Double] -> x -> [Double], [Double] -> x -> [[Double]]) -- ^ (model, derivatives)
-         -> [x]    -- ^ instances
+         -> [(x, [Double])]  -- ^ instances
          -> [Double] -- ^ starting point
-         -> ([(Double, Double)], Matrix Double) -- ^ (solution, error) and optimization path
-fitModel epsabs epsrel maxit model dt xin = (err model dt sol, path) where
+         -> ([Double], Matrix Double) -- ^ solution and optimization path
+fitModel epsabs epsrel maxit (model,deriv) dt xin = (toList sol, path) where
     (sol,path) = nlFitting LevenbergMarquardt epsabs epsrel maxit
-                (fromList . cost (fst model) dt . toList)
-                (fromLists . jacobian (snd model) dt . toList)
+                (fromList . cost (resM model) dt . toList)
+                (fromLists . jacobian (resD deriv) dt . toList)
                 (fromList xin)
 
 cost model ds vs = concatMap (model vs) ds
@@ -137,11 +158,18 @@ cost model ds vs = concatMap (model vs) ds
 jacobian modelDer ds vs = concatMap (modelDer vs) ds
 
 -- | Model-to-residual for association pairs with sigma, to be used with 'fitModel'.
-resM :: ([Double] -> x -> [Double]) -> [Double] -> (x, [Double], Double) -> [Double]
-resM m v = \(x,ys,s) -> zipWith (g s) (m v x) ys where g s a b = (a-b)/s
+resMs :: ([Double] -> x -> [Double]) -> [Double] -> (x, ([Double], Double)) -> [Double]
+resMs m v = \(x,(ys,s)) -> zipWith (g s) (m v x) ys where g s a b = (a-b)/s
+
+-- | Associated derivative for 'resMs'.
+resDs :: ([Double] -> x -> [[Double]]) -> [Double] -> (x, ([Double], Double)) -> [[Double]]
+resDs m v = \(x,(_,s)) -> map (map (/s)) (m v x)
+
+-- | Model-to-residual for association pairs, to be used with 'fitModel'. It is equivalent
+-- to 'resMs' with all sigmas = 1.
+resM :: ([Double] -> x -> [Double]) -> [Double] -> (x, [Double]) -> [Double]
+resM m v = \(x,ys) -> zipWith g (m v x) ys where g a b = a-b
 
 -- | Associated derivative for 'resM'.
-resD :: ([Double] -> x -> [[Double]]) -> [Double] -> (x, [Double], Double) -> [[Double]]
-resD m v = \(x,_,s) -> map (map (/s)) (m v x)
-
-
+resD :: ([Double] -> x -> [[Double]]) -> [Double] -> (x, [Double]) -> [[Double]]
+resD m v = \(x,_) -> m v x

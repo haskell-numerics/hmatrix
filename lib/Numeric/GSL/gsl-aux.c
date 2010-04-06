@@ -812,6 +812,7 @@ int nlfit(int method, int f(int, double*, int, double*),
 
     switch(method) {
         case 0 : { T = gsl_multifit_fdfsolver_lmsder; break; }
+        case 1 : { T = gsl_multifit_fdfsolver_lmder; break; }
         default: ERROR(BAD_CODE);
     }
 
