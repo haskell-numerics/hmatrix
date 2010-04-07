@@ -32,7 +32,7 @@ module Numeric.LinearAlgebra.LAPACK (
     -- * LU
     luR, luC,
     -- * Cholesky
-    cholS, cholH,
+    cholS, cholH, mbCholS, mbCholH,
     -- * QR
     qrR, qrC,
     -- * Hessenberg
@@ -392,19 +392,27 @@ linearSolveSVDC Nothing a b = linearSolveSVDC (Just (-1)) (fmat a) (fmat b)
 foreign import ccall "LAPACK/lapack-aux.h chol_l_H" zpotrf :: TCMCM
 foreign import ccall "LAPACK/lapack-aux.h chol_l_S" dpotrf :: TMM
 
--- | Cholesky factorization of a complex Hermitian positive definite matrix, using LAPACK's /zpotrf/.
-cholH :: Matrix (Complex Double) -> Matrix (Complex Double)
-cholH = cholAux zpotrf "cholH" . fmat
-
--- | Cholesky factorization of a real symmetric positive definite matrix, using LAPACK's /dpotrf/.
-cholS :: Matrix Double -> Matrix Double
-cholS = cholAux dpotrf "cholS" . fmat
-
-cholAux f st a = unsafePerformIO $ do
+cholAux f st a = do
     r <- createMatrix ColumnMajor n n
     app2 f mat a mat r st
     return r
   where n = rows a
+
+-- | Cholesky factorization of a complex Hermitian positive definite matrix, using LAPACK's /zpotrf/.
+cholH :: Matrix (Complex Double) -> Matrix (Complex Double)
+cholH = unsafePerformIO . cholAux zpotrf "cholH" . fmat
+
+-- | Cholesky factorization of a real symmetric positive definite matrix, using LAPACK's /dpotrf/.
+cholS :: Matrix Double -> Matrix Double
+cholS =  unsafePerformIO . cholAux dpotrf "cholS" . fmat
+
+-- | Cholesky factorization of a complex Hermitian positive definite matrix, using LAPACK's /zpotrf/ ('Maybe' version).
+mbCholH :: Matrix (Complex Double) -> Maybe (Matrix (Complex Double))
+mbCholH = unsafePerformIO . mbCatch . cholAux zpotrf "cholH" . fmat
+
+-- | Cholesky factorization of a real symmetric positive definite matrix, using LAPACK's /dpotrf/  ('Maybe' version).
+mbCholS :: Matrix Double -> Maybe (Matrix Double)
+mbCholS =  unsafePerformIO . mbCatch . cholAux dpotrf "cholS" . fmat
 
 -----------------------------------------------------------------------------------
 foreign import ccall "LAPACK/lapack-aux.h qr_l_R" dgeqr2 :: TMVM

@@ -17,7 +17,7 @@
 module Data.Packed.Internal.Common(
   Adapt,
   app1, app2, app3, app4,
-  (//), check,
+  (//), check, mbCatch,
   splitEvery, common, compatdim,
   fi,
   table
@@ -29,6 +29,7 @@ import Foreign.C.String(peekCString)
 import Foreign.C.Types
 import Foreign.Storable.Complex()
 import Data.List(transpose,intersperse)
+import Control.Exception as E
 
 -- | @splitEvery 3 [1..9] == [[1,2,3],[4,5,6],[7,8,9]]@
 splitEvery :: Int -> [a] -> [[a]]
@@ -151,3 +152,9 @@ check msg f = do
 
 -- | description of GSL error codes
 foreign import ccall "auxi.h gsl_strerror" gsl_strerror :: CInt -> IO (Ptr CChar)
+
+-- | Error capture and conversion to Maybe
+mbCatch :: IO x -> IO (Maybe x)
+mbCatch act = E.catch (Just `fmap` act) f
+    where f :: SomeException -> IO (Maybe x)
+          f _ = return Nothing

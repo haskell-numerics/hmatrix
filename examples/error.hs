@@ -1,4 +1,5 @@
 import Numeric.GSL
+import Numeric.GSL.Special
 import Numeric.LinearAlgebra
 import Prelude hiding (catch)
 import Control.Exception

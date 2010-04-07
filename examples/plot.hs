@@ -1,6 +1,6 @@
 import Numeric.LinearAlgebra
 import Graphics.Plot
-import Numeric.GSL(erf_Z, erf)
+import Numeric.GSL.Special(erf_Z, erf)
 
 sombrero n = f x y where 
     (x,y) = meshdom range range

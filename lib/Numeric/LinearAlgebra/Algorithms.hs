@@ -46,7 +46,7 @@ module Numeric.LinearAlgebra.Algorithms (
 -- ** QR
     qr, rq,
 -- ** Cholesky
-    chol, cholSH,
+    chol, cholSH, mbCholSH,
 -- ** Hessenberg
     hess,
 -- ** Schur
@@ -100,6 +100,7 @@ class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
     eigOnly      :: Matrix t -> Vector (Complex Double)
     eigOnlySH    :: Matrix t -> Vector Double
     cholSH'      :: Matrix t -> Matrix t
+    mbCholSH'    :: Matrix t -> Maybe (Matrix t)
     qr'          :: Matrix t -> (Matrix t, Matrix t)
     hess'        :: Matrix t -> (Matrix t, Matrix t)
     schur'       :: Matrix t -> (Matrix t, Matrix t)
@@ -123,6 +124,7 @@ instance Field Double where
     eigOnly = eigOnlyR
     eigOnlySH = eigOnlyS
     cholSH' = cholS
+    mbCholSH' = mbCholS
     qr' = unpackQR . qrR
     hess' = unpackHess hessR
     schur' = schurR
@@ -149,6 +151,7 @@ instance Field (Complex Double) where
     eigSH'' = eigH
     eigOnlySH = eigOnlyH
     cholSH' = cholH
+    mbCholSH' = mbCholH
     qr' = unpackQR . qrC
     hess' = unpackHess hessC
     schur' = schurC
@@ -263,11 +266,11 @@ eig = eig'
 eigenvalues :: Field t => Matrix t -> Vector (Complex Double)
 eigenvalues = eigOnly
 
--- | Similar to 'eigSH' without checking that the input matrix is hermitian or symmetric.
+-- | Similar to 'eigSH' without checking that the input matrix is hermitian or symmetric. It works with the upper triangular part.
 eigSH'      :: Field t => Matrix t -> (Vector Double, Matrix t)
 eigSH' = eigSH''
 
--- | Similar to 'eigenvaluesSH' without checking that the input matrix is hermitian or symmetric.
+-- | Similar to 'eigenvaluesSH' without checking that the input matrix is hermitian or symmetric. It works with the upper triangular part.
 eigenvaluesSH' :: Field t => Matrix t -> Vector Double
 eigenvaluesSH' = eigOnlySH
 
@@ -328,8 +331,11 @@ ctrans = ctrans'
 multiply :: Field t => Matrix t -> Matrix t -> Matrix t
 multiply = multiply'
 
+-- | Similar to 'cholSH', but instead of an error (e.g., caused by a matrix not positive definite) it returns 'Nothing'.
+mbCholSH :: Field t => Matrix t -> Maybe (Matrix t)
+mbCholSH = mbCholSH'
 
--- | Similar to 'chol' without checking that the input matrix is hermitian or symmetric.
+-- | Similar to 'chol', without checking that the input matrix is hermitian or symmetric. It works with the upper triangular part.
 cholSH      :: Field t => Matrix t -> Matrix t
 cholSH = cholSH'
 

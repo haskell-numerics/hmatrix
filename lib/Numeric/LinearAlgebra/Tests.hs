@@ -161,6 +161,14 @@ fittingTest = utest "levmar" (ok1 && ok2)
     ok1 = and (zipWith f sols [5,0.1,1]) where f (x,d) r = abs (x-r)<2*d
     ok2 = pnorm PNorm2 (fromList (map fst sols) - fromList sol) < 1E-5
 
+-----------------------------------------------------
+
+mbCholTest = utest "mbCholTest" (ok1 && ok2) where
+    m1 = (2><2) [2,5,5,8 :: Double]
+    m2 = (2><2) [3,5,5,9 :: Complex Double]
+    ok1 = mbCholSH m1 == Nothing
+    ok2 = mbCholSH m2 == Just (chol m2)
+
 ---------------------------------------------------------------------
 
 randomTestGaussian = c :~1~: snd (meanCov dat) where
@@ -325,6 +333,7 @@ runTests n = do
         , utest "block" $ fromBlocks [[ident 3,0],[0,ident 4]] == (ident 7 :: CM)
         , odeTest
         , fittingTest
+        , mbCholTest
         ]
     return ()
 

@@ -1,7 +1,7 @@
 0.9.2.0
 =======
 
-- cholSolve
+- cholSolve, mbCholSH
 
 - GSL Nonlinear Least-Squares fitting using Levenberg-Marquardt.
 
