@@ -16,7 +16,7 @@
 module Data.Packed.Internal.Vector (
     Vector, dim,
     fromList, toList, (|>),
-    join, (@>), safe, at, at', subVector,
+    join, (@>), safe, at, at', subVector, takesV,
     mapVector, zipVector,
     foldVector, foldVectorG, foldLoop,
     createVector, vec,
@@ -221,6 +221,21 @@ join as = unsafePerformIO $ do
             unsafeWith v $ \pb -> copyArray p pb n
             joiner cs 0 (advancePtr p n)
 
+
+{- | Extract consecutive subvectors of the given sizes.
+
+@> takesV [3,4] (linspace 10 (1,10))
+[3 |> [1.0,2.0,3.0],4 |> [4.0,5.0,6.0,7.0]]@
+
+-}
+takesV :: Storable t => [Int] -> Vector t -> [Vector t]
+takesV ms w | sum ms > dim w = error $ "takesV " ++ show ms ++ " on dim = " ++ (show $ dim w)
+            | otherwise = go ms w
+    where go [] _ = []
+          go (n:ns) v = subVector 0 n v
+                      : go ns (subVector n (dim v - n) v)
+
+---------------------------------------------------------------
 
 -- | transforms a complex vector into a real vector with alternating real and imaginary parts 
 asReal :: Vector (Complex Double) -> Vector Double

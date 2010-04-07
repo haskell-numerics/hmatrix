@@ -22,7 +22,8 @@ module Data.Packed.Matrix (
     (@@>),
     asRow, asColumn,
     fromRows, toRows, fromColumns, toColumns,
-    fromBlocks, repmat,
+    fromBlocks, toBlocks, toBlocksEvery,
+    repmat,
     flipud, fliprl,
     subMatrix, takeRows, dropRows, takeColumns, dropColumns,
     extractRows,
@@ -413,3 +414,25 @@ compat' m1 m2 = rows m1 == 1 && cols m1 == 1
              || rows m2 == 1 && cols m2 == 1
              || rows m1 == rows m2 && cols m1 == cols m2
 
+------------------------------------------------------------
+
+toBlockRows [r] m | r == rows m = [m]
+toBlockRows rs m = map (reshape (cols m)) (takesV szs (flatten m))
+    where szs = map (* cols m) rs
+
+toBlockCols [c] m | c == cols m = [m]
+toBlockCols cs m = map trans . toBlockRows cs . trans $ m
+
+-- | Partition a matrix into blocks with the given numbers of rows and columns.
+-- The remaining rows and columns are discarded.
+toBlocks :: (Element t) => [Int] -> [Int] -> Matrix t -> [[Matrix t]]
+toBlocks rs cs m = map (toBlockCols cs) . toBlockRows rs $ m
+
+-- | Fully partition a matrix into blocks of the same size. If the dimensions are not
+-- a multiple of the given size the last blocks will be smaller.
+toBlocksEvery :: (Element t) => Int -> Int -> Matrix t -> [[Matrix t]]
+toBlocksEvery r c m = toBlocks rs cs m where
+    (qr,rr) = rows m `divMod` r
+    (qc,rc) = cols m `divMod` c
+    rs = replicate qr r ++ if rr > 0 then [rr] else []
+    cs = replicate qc c ++ if rc > 0 then [rc] else []
