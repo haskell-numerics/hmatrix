@@ -70,3 +70,5 @@ and all the people in the Haskell mailing lists for their help.
 
 - Tim Sears reported the zgesdd problem also in intel mac.
 
+- Max Suica simplified the installation on Windows and improved the instructions.
+
