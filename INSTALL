@@ -15,39 +15,27 @@ INSTALLATION ON WINDOWS ----------------------------------------
 
 1) Install the Haskell Platform (tested with 2009.2.0.2).
 
-2) Download and uncompress in a temporary location the following file:
+2) Download and uncompress hmatrix-x.y.z.tar.gz from Hackage:
+
+   http://hackage.haskell.org/package/hmatrix
+
+3) Download and uncompress the following file into the hmatrix
+   directory, into a subdirectory named gsl-lapack-windows:
 
    http://code.haskell.org/hmatrix/gsl-lapack-windows.zip
 
    It contains a gsl folder, and four DLL's.
 
-3) Move the gsl folder to
-
-   C:\Program Files\Haskell Platform\2009.2.0.2\include
-
-4) Move the four DLL's to any folder without spaces in the path, e.g.:
-
-   C:\path\to\dll
-
-5) Download and uncompress hmatrix-x.y.z.tar.gz from Hackage:
-
-   http://hackage.haskell.org/package/hmatrix
-
-6) Edit hmatrix.cabal:
+4) Edit hmatrix.cabal:
 
      line 17:      build-type:         Custom
      change to:    build-type:         Simple
-
-     and at the end of the file add:
-
-        extra-libraries: libgsl-0 blas lapack
-        extra-lib-dirs: C:\path\to\dll
-
-7) Open a terminal, cd to the hmatrix folder, and run
+   
+5) Open a terminal, cd to the hmatrix folder, and run
 
    > cabal install
 
-8) If everything is ok we can run the tests:
+6) If everything is ok we can run the tests:
 
    > runhaskell examples\tests.hs
 

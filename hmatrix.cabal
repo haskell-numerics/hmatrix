@@ -65,7 +65,7 @@ flag unsafe
 
 library
 
-    Build-Depends:      base >= 3 && < 5,
+    Build-Depends:      base >= 4 && < 5,
                         array,
                         storable-complex,
                         process
@@ -140,9 +140,15 @@ library
         include-dirs: /opt/local/include
         extra-libraries: gsl
         frameworks: Accelerate
+        
+    if os(windows)
+        extra-libraries: libgsl-0 blas lapack
+        extra-lib-dirs: ./gsl-lapack-windows
+        include-dirs: ./gsl-lapack-windows
 
 -- The extra-libraries required for GSL and LAPACK
 -- should now be automatically detected by configure(.hs)
+
 
     extra-libraries:
     extra-lib-dirs:
@@ -150,4 +156,3 @@ library
     source-repository head
         type:     darcs
         location: http://code.haskell.org/hmatrix
-
