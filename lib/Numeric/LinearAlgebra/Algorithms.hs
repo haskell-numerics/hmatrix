@@ -169,17 +169,17 @@ exactHermitian m = m `equal` ctrans m
 
 -- | Full singular value decomposition.
 svd :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
-svd = svd'
+svd = {-# SCC "svd" #-} svd'
 
 -- | A version of 'svd' which returns only the @min (rows m) (cols m)@ singular vectors of @m@.
 --
 -- If @(u,s,v) = thinSVD m@ then @m == u \<> diag s \<> trans v@.
 thinSVD :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
-thinSVD = thinSVD'
+thinSVD = {-# SCC "thinSVD" #-} thinSVD'
 
 -- | Singular values only.
 singularValues :: Field t => Matrix t -> Vector Double
-singularValues = sv'
+singularValues = {-# SCC "singularValues" #-} sv'
 
 -- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values.
 --
@@ -229,50 +229,50 @@ economy svdFun m = (u', subVector 0 d s, v') where
 --------------------------------------------------------------
 
 -- | Obtains the LU decomposition of a matrix in a compact data structure suitable for 'luSolve'.
-luPacked    :: Field t => Matrix t -> (Matrix t, [Int])
-luPacked = luPacked'
+luPacked :: Field t => Matrix t -> (Matrix t, [Int])
+luPacked = {-# SCC "luPacked" #-} luPacked'
 
 -- | Solution of a linear system (for several right hand sides) from the precomputed LU factorization obtained by 'luPacked'.
-luSolve     :: Field t => (Matrix t, [Int]) -> Matrix t -> Matrix t
-luSolve = luSolve'
+luSolve :: Field t => (Matrix t, [Int]) -> Matrix t -> Matrix t
+luSolve = {-# SCC "luSolve" #-} luSolve'
 
 -- | Solve a linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition. For underconstrained or overconstrained systems use 'linearSolveLS' or 'linearSolveSVD'.
 -- It is similar to 'luSolve' . 'luPacked', but @linearSolve@ raises an error if called on a singular system.
 linearSolve :: Field t => Matrix t -> Matrix t -> Matrix t
-linearSolve = linearSolve'
+linearSolve = {-# SCC "linearSolve" #-} linearSolve'
 
 -- | Solve a symmetric or Hermitian positive definite linear system using a precomputed Cholesky decomposition obtained by 'chol'.
 cholSolve :: Field t => Matrix t -> Matrix t -> Matrix t
-cholSolve = cholSolve'
+cholSolve = {-# SCC "cholSolve" #-} cholSolve'
 
 -- | Minimum norm solution of a general linear least squares problem Ax=B using the SVD. Admits rank-deficient systems but it is slower than 'linearSolveLS'. The effective rank of A is determined by treating as zero those singular valures which are less than 'eps' times the largest singular value.
 linearSolveSVD :: Field t => Matrix t -> Matrix t -> Matrix t
-linearSolveSVD = linearSolveSVD'
+linearSolveSVD = {-# SCC "linearSolveSVD" #-} linearSolveSVD'
 
 
 -- | Least squared error solution of an overconstrained linear system, or the minimum norm solution of an underconstrained system. For rank-deficient systems use 'linearSolveSVD'.
 linearSolveLS :: Field t => Matrix t -> Matrix t -> Matrix t
-linearSolveLS = linearSolveLS'
+linearSolveLS = {-# SCC "linearSolveLS" #-} linearSolveLS'
 
 --------------------------------------------------------------
 
 -- | Eigenvalues and eigenvectors of a general square matrix.
 --
 -- If @(s,v) = eig m@ then @m \<> v == v \<> diag s@
-eig         :: Field t => Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
-eig = eig'
+eig :: Field t => Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
+eig = {-# SCC "eig" #-} eig'
 
 -- | Eigenvalues of a general square matrix.
 eigenvalues :: Field t => Matrix t -> Vector (Complex Double)
-eigenvalues = eigOnly
+eigenvalues = {-# SCC "eigenvalues" #-} eigOnly
 
 -- | Similar to 'eigSH' without checking that the input matrix is hermitian or symmetric. It works with the upper triangular part.
-eigSH'      :: Field t => Matrix t -> (Vector Double, Matrix t)
-eigSH' = eigSH''
+eigSH' :: Field t => Matrix t -> (Vector Double, Matrix t)
+eigSH' = {-# SCC "eigSH'" #-} eigSH''
 
 -- | Similar to 'eigenvaluesSH' without checking that the input matrix is hermitian or symmetric. It works with the upper triangular part.
 eigenvaluesSH' :: Field t => Matrix t -> Vector Double
-eigenvaluesSH' = eigOnlySH
+eigenvaluesSH' = {-# SCC "eigenvaluesSH'" #-} eigOnlySH
 
 -- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix.
 --
@@ -291,14 +291,14 @@ eigenvaluesSH m | exactHermitian m = eigenvaluesSH' m
 -- | QR factorization.
 --
 -- If @(q,r) = qr m@ then @m == q \<> r@, where q is unitary and r is upper triangular.
-qr          :: Field t => Matrix t -> (Matrix t, Matrix t)
-qr = qr'
+qr :: Field t => Matrix t -> (Matrix t, Matrix t)
+qr = {-# SCC "qr" #-} qr'
 
 -- | RQ factorization.
 --
 -- If @(r,q) = rq m@ then @m == r \<> q@, where q is unitary and r is upper triangular.
 rq :: Field t => Matrix t -> (Matrix t, Matrix t)
-rq m = (r,q) where
+rq m =  {-# SCC "rq" #-} (r,q) where
     (q',r') = qr $ trans $ rev1 m
     r = rev2 (trans r')
     q = rev2 (trans q')
@@ -474,8 +474,6 @@ nullspaceSVD :: Field t
              -> (Vector Double, Matrix t) -- ^ 'rightSV' of m
              -> [Vector t]        -- ^ list of unitary vectors spanning the nullspace
 nullspaceSVD hint a (s,v) = vs where
-    r = rows a
-    c = cols a
     tol = case hint of
         Left t -> t
         _      -> eps
@@ -546,7 +544,7 @@ zt k v = join [subVector 0 (dim v - k) v, constant 0 k]
 
 
 unpackQR :: (Field t) => (Matrix t, Vector t) -> (Matrix t, Matrix t)
-unpackQR (pq, tau) = (q,r)
+unpackQR (pq, tau) =  {-# SCC "unpackQR" #-} (q,r)
     where cs = toColumns pq
           m = rows pq
           n = cols pq

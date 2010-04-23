@@ -48,7 +48,6 @@ uniformSample :: Int -- ^ seed
 uniformSample seed n rgs = m where
     (as,bs) = unzip rgs
     a = fromList as
-    b = fromList bs
     cs = zipWith subtract as bs
     d = dim a
     dat = toRows $ reshape n $ randomVector seed Uniform (n*d)

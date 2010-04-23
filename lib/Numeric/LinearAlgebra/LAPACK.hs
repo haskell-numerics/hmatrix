@@ -237,7 +237,6 @@ eigR m = (s', v'')
           s' = fixeig1 s
           v' = toRows $ trans v
           v'' = fromColumns $ fixeig (toList s') v'
-          r = rows m
 
 eigRaux :: Matrix Double -> (Vector (Complex Double), Matrix Double)
 eigRaux m = unsafePerformIO $ do

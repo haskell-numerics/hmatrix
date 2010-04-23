@@ -292,21 +292,6 @@ formatScaled dec t = "E"++show o++"\n" ++ ss
           o = floor $ maximum $ map (logBase 10 . abs) $ toList $ flatten t
           fmt = '%':show (dec+3) ++ '.':show dec ++"f"
 
-{- | Show a vector using a function for showing matrices.
-
-@disp = putStr . vecdisp (dispf 2)
-
-\> disp (linspace 10 (0,1))
-10 |> 0.00  0.11  0.22  0.33  0.44  0.56  0.67  0.78  0.89  1.00
-@
--}
-vecdisp :: (Element t) => (Matrix t -> String) -> Vector t -> String
-vecdisp f v
-    = ((show (dim v) ++ " |> ") ++) . (++"\n")
-    . unwords . lines .  tail . dropWhile (not . (`elem` " \n"))
-    . f . trans . reshape 1
-    $ v
-
 -- | Tool to display matrices with latex syntax.
 latexFormat :: String -- ^ type of braces: \"matrix\", \"bmatrix\", \"pmatrix\", etc.
             -> String -- ^ Formatted matrix, with elements separated by spaces and newlines

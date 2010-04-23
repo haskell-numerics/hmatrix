@@ -64,7 +64,6 @@ odeSolve xdot xi ts = odeSolveV RKf45 hi epsAbs epsRel (l2v xdot) Nothing (fromL
           epsAbs = 1.49012e-08
           epsRel = 1.49012e-08
           l2v f = \t -> fromList  . f t . toList
-          l2m f = \t -> fromLists . f t . toList
 
 -- | Evolution of the system with adaptive step-size control.
 odeSolveV

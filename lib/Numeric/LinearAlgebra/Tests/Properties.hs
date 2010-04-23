@@ -185,7 +185,7 @@ svdProp6b m = s |~| s' && v |~| v' && s |~| s'' && u |~| u'
 svdProp7 m = s |~| s' && u |~| u' && v |~| v' && s |~| s'''
     where (u,s,v) = svd m
           (s',v') = rightSV m
-          (u',s'') = leftSV m
+          (u',_s'') = leftSV m
           s''' = singularValues m
 
 ------------------------------------------------------------------
