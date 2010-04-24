@@ -329,15 +329,15 @@ ctrans = ctrans'
 
 -- | Matrix product.
 multiply :: Field t => Matrix t -> Matrix t -> Matrix t
-multiply = multiply'
+multiply = {-# SCC "multiply" #-} multiply'
 
 -- | Similar to 'cholSH', but instead of an error (e.g., caused by a matrix not positive definite) it returns 'Nothing'.
 mbCholSH :: Field t => Matrix t -> Maybe (Matrix t)
-mbCholSH = mbCholSH'
+mbCholSH = {-# SCC "mbCholSH" #-} mbCholSH'
 
 -- | Similar to 'chol', without checking that the input matrix is hermitian or symmetric. It works with the upper triangular part.
 cholSH      :: Field t => Matrix t -> Matrix t
-cholSH = cholSH'
+cholSH = {-# SCC "cholSH" #-} cholSH'
 
 -- | Cholesky factorization of a positive definite hermitian or symmetric matrix.
 --
@@ -351,7 +351,7 @@ chol m | exactHermitian m = cholSH m
 
 -- | Determinant of a square matrix.
 det :: Field t => Matrix t -> t
-det m | square m = s * (product $ toList $ takeDiag $ lup)
+det m | square m = {-# SCC "det" #-} s * (product $ toList $ takeDiag $ lup)
       | otherwise = error "det of nonsquare matrix"
     where (lup,perm) = luPacked m
           s = signlp (rows m) perm
