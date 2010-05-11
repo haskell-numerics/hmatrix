@@ -24,7 +24,7 @@ module Graphics.Plot(
 
     matrixToPGM, imshow,
 
-    gnuplotX, gnuplotpdf
+    gnuplotX, gnuplotpdf, gnuplotWin
 
 ) where
 
@@ -202,5 +202,21 @@ gnuplotpdf title command ds = gnuplot (prelude ++ command ++" "++ draw) >> postp
     gnuplot cmd = do
         writeFile "gnuplotcommand" cmd
         _ <- system "gnuplot gnuplotcommand"
+        _ <- system "rm gnuplotcommand"
+        return ()
+
+gnuplotWin :: String -> String -> [([[Double]], String)] -> IO ()
+gnuplotWin title command ds = gnuplot (prelude ++ command ++" "++ draw) where
+    (dats,defs) = unzip ds
+    draw = concat (intersperse ", " (map ("\"-\" "++) defs)) ++ "\n" ++
+           concatMap pr dats
+
+    pr = (++"e\n") . unlines . map (unwords . (map show))
+
+    prelude = "set title \""++title++"\";"
+
+    gnuplot cmd = do
+        writeFile "gnuplotcommand" cmd
+        _ <- system "gnuplot -persist gnuplotcommand"
         _ <- system "rm gnuplotcommand"
         return ()

@@ -66,6 +66,7 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Misc
     ctrans,
     eps, i,
+    Linear(..),
 -- * Util
     haussholder,
     unpackQR, unpackHess,

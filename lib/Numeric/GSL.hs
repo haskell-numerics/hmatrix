@@ -8,7 +8,9 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses -fffi and -fglasgow-exts
 
-This module reexports all the available GSL functions (except those in "Numeric.LinearAlgebra").
+This module reexports all available GSL functions.
+
+The GSL special functions are in the separate package hmatrix-special.
 
 -}
 

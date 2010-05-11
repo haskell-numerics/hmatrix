@@ -9,7 +9,12 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  portable
 
-(Very provisional) operators for frequent operations.
+Operators for frequent operations.
+
+This module exports Show, Read, Eq, Num, Fractional, and Floating instances for Vector and Matrix.
+
+In the context of the standard numeric operators, one-component vectors and matrices automatically expand to match the dimensions of the other operand.
+
 
 -}
 -----------------------------------------------------------------------------
@@ -21,14 +26,14 @@ module Numeric.LinearAlgebra.Interface(
     (<|>),(<->),
 ) where
 
-import Numeric.LinearAlgebra.Linear
+import Numeric.LinearAlgebra.Instances()
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import Numeric.LinearAlgebra.Algorithms
 
 class Mul a b c | a b -> c where
  infixl 7 <>
- -- | matrix product
+ -- | Matrix-matrix, matrix-vector, and vector-matrix products.
  (<>) :: Field t => a t -> b t -> c t
 
 instance Mul Matrix Matrix Matrix where
@@ -42,7 +47,7 @@ instance Mul Vector Matrix Vector where
 
 ---------------------------------------------------
 
--- | @u \<.\> v = dot u v@
+-- | Dot product: @u \<.\> v = dot u v@
 (<.>) :: (Field t) => Vector t -> Vector t -> t
 infixl 7 <.>
 (<.>) = dot
@@ -51,8 +56,8 @@ infixl 7 <.>
 
 {-# DEPRECATED (.*) "use scale a x or scalar a * x" #-}
 
--- | @x .* a = scale x a@
-(.*) :: (Linear c a) => a -> c a -> c a
+-- -- | @x .* a = scale x a@
+-- (.*) :: (Linear c a) => a -> c a -> c a
 infixl 7 .*
 a .* x = scale a x
 
@@ -60,8 +65,8 @@ a .* x = scale a x
 
 {-# DEPRECATED (*/) "use scale (recip a) x or x / scalar a" #-}
 
--- | @a *\/ x = scale (recip x) a@
-(*/) :: (Linear c a) => c a -> a -> c a
+-- -- | @a *\/ x = scale (recip x) a@
+-- (*/) :: (Linear c a) => c a -> a -> c a
 infixl 7 */
 v */ x = scale (recip x) v
 
@@ -94,7 +99,7 @@ instance Joinable Vector Matrix where
 infixl 4 <|>
 infixl 3 <->
 
-{- | Horizontal concatenation of matrices and vectors:
+{-- - | Horizontal concatenation of matrices and vectors:
 
 @> (ident 3 \<-\> 3 * ident 3) \<|\> fromList [1..6.0]
 (6><4)
@@ -105,10 +110,10 @@ infixl 3 <->
  , 0.0, 3.0, 0.0, 5.0
  , 0.0, 0.0, 3.0, 6.0 ]@
 -}
-(<|>) :: (Element t, Joinable a b) => a t -> b t -> Matrix t
+-- (<|>) :: (Element t, Joinable a b) => a t -> b t -> Matrix t
 a <|> b = joinH a b
 
--- | Vertical concatenation of matrices and vectors.
-(<->) :: (Element t, Joinable a b) => a t -> b t -> Matrix t
+-- -- | Vertical concatenation of matrices and vectors.
+-- (<->) :: (Element t, Joinable a b) => a t -> b t -> Matrix t
 a <-> b = joinV a b
 

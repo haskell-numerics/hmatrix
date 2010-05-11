@@ -20,10 +20,9 @@ module Data.Packed.Random (
 ) where
 
 import Numeric.GSL.Vector
-import Data.Packed
-import Numeric.LinearAlgebra.Linear
+import Data.Packed.Matrix
+import Data.Packed.Vector
 import Numeric.LinearAlgebra.Algorithms
-import Numeric.LinearAlgebra.Instances()
 import Numeric.LinearAlgebra.Interface
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate

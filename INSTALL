@@ -7,7 +7,31 @@ Recommended method (ok in Ubuntu/Debian systems):
 Detailed installation instructions:
     http://code.haskell.org/hmatrix/install.html
 
-INSTALLATION ON WINDOWS ----------------------------------------
+INSTALLATION ON WINDOWS (hmatrix-0.9.x.x)
+
+1) Install the Haskell Platform (tested with 2009.2.0.2).
+
+2) Download and unzip the following file into a stable folder %GSL%
+
+   http://code.haskell.org/hmatrix/gsl-lapack-windows.zip
+
+3.a) In a msys shell
+
+   $ cabal install hmatrix --extra-lib-dir=${GSL} --extra-include-dir=${GSL}
+
+3.b) In a windows cmd
+
+    > cabal unpack hmatrix
+
+    Change build-type to "Simple" in hmatrix.cabal, line 18
+
+    > cabal install --extra-lib-dir=%GSL% --extra-include-dir=%GSL%
+
+4) If everything is ok we can run the tests:
+
+   > runhaskell examples\tests.hs
+
+INSTALLATION ON WINDOWS (hmatrix-0.8.3.1)
 
 1) Install the Haskell Platform (tested with 2009.2.0.2).
 
@@ -24,7 +48,7 @@ INSTALLATION ON WINDOWS ----------------------------------------
 4) Replace hmatrix.cabal by
 
    http://code.haskell.org/hmatrix/hmatrix-0.8.3.1-windows.cabal
-   
+
 5) In the hmatrix folder run
 
    > cabal install

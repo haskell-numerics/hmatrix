@@ -33,7 +33,6 @@ module Numeric.GSL.ODE (
 ) where
 
 import Data.Packed.Internal
-import Data.Packed.Matrix
 import Foreign
 import Foreign.C.Types(CInt)
 import Numeric.GSL.Internal

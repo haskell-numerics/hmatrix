@@ -21,7 +21,7 @@ module Numeric.LinearAlgebra.Linear (
 import Data.Packed
 import Numeric.GSL.Vector
 
--- | A generic interface for vectors and matrices to a few element-by-element functions in Numeric.GSL.Vector.
+-- | Basic element-by-element functions.
 class (Container c e) => Linear c e where
     -- | create a structure with a single element
     scalar      :: e -> c e
