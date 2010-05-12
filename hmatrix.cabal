@@ -65,6 +65,10 @@ flag unsafe
     description:    Compile the library with bound checking disabled.
     default:        False
 
+flag vector
+    description:    Use Data.Vector.Storable type from "vector" package.
+    default:        False
+
 library
 
     Build-Depends:      base >= 4 && < 5,
@@ -109,6 +113,10 @@ library
 
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
+
+    if flag(vector)
+       Build-Depends:   vector
+       cpp-options:     -DVECTOR
 
     if flag(tests)
        Build-Depends:   QuickCheck, HUnit

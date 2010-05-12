@@ -24,10 +24,11 @@ import Numeric.GSL.Vector
 import Data.Packed.Matrix
 import Data.Complex
 import Data.List(transpose,intersperse)
-import Foreign(Storable)
--- import Data.Monoid
 import Data.Packed.Internal.Vector
--- import Control.Parallel.Strategies
+
+#ifndef VECTOR
+import Foreign(Storable)
+#endif
 
 ------------------------------------------------------------------
 
@@ -43,8 +44,12 @@ dsp as = (++" ]") . (" ["++) . init . drop 2 . unlines . map (" , "++) . map unw
         pad n str = replicate (n - length str) ' ' ++ str
         unwords' = concat . intersperse ", "
 
+#ifndef VECTOR
+
 instance (Show a, Storable a) => (Show (Vector a)) where
     show v = (show (dim v))++" |> " ++ show (toList v)
+
+#endif
 
 ------------------------------------------------------------------
 
@@ -55,11 +60,22 @@ instance (Element a, Read a) => Read (Matrix a) where
               cs = read . init . fst. breakAt ')' . snd . breakAt '<' $ dims
               rs = read . snd . breakAt '(' .init . fst . breakAt '>' $ dims
 
+#ifdef VECTOR
+
+instance (Element a, Read a) => Read (Vector a) where
+    readsPrec _ s = [(fromList . read $ listnums, rest)]
+        where (thing,trest) = breakAt ']' s
+              (dims,listnums) = breakAt ' ' (dropWhile (==' ') thing)
+              rest = drop 31 trest
+#else
+
 instance (Element a, Read a) => Read (Vector a) where
     readsPrec _ s = [((d |>) . read $ listnums, rest)]
         where (thing,rest) = breakAt ']' s
               (dims,listnums) = breakAt '>' thing
               d = read . init . fst . breakAt '|' $ dims
+
+#endif
 
 breakAt c l = (a++[c],tail b) where
     (a,b) = break (==c) l
@@ -71,9 +87,12 @@ adaptScalar f1 f2 f3 x y
     | dim y == 1 = f3 x (y@>0)
     | otherwise = f2 x y
 
+#ifndef VECTOR
 
 instance Linear Vector a => Eq (Vector a) where
     (==) = equal
+
+#endif
 
 instance Num (Vector Double) where
     (+) = adaptScalar addConstant add (flip addConstant)

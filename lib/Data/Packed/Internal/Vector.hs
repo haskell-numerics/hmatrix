@@ -47,6 +47,22 @@ import GHC.Base
 import GHC.IOBase
 #endif
 
+#ifdef VECTOR
+import qualified Data.Vector.Storable as Vector
+import Data.Vector.Storable(Vector,
+                            unsafeToForeignPtr,
+                            unsafeFromForeignPtr,
+                            unsafeWith)
+#endif
+
+#ifdef VECTOR
+
+-- | Number of elements
+dim :: (Storable t) => Vector t -> Int
+dim = Vector.length
+
+#else
+
 -- | One-dimensional array of objects stored in a contiguous memory block.
 data Vector t =
     V { ioff :: {-# UNPACK #-} !Int              -- ^ offset of first element
@@ -65,10 +81,12 @@ unsafeFromForeignPtr fp i n | n > 0 = V {ioff = i, idim = n, fptr = fp}
 unsafeWith (V i _ fp) m = withForeignPtr fp $ \p -> m (p `advancePtr` i)
 {-# INLINE unsafeWith #-}
 
-
 -- | Number of elements
-dim :: Vector t -> Int
+dim :: (Storable t) => Vector t -> Int
 dim = idim
+
+#endif
+
 
 -- C-Haskell vector adapter
 -- vec :: Adapt (CInt -> Ptr t -> r) (Vector t) r
@@ -85,7 +103,7 @@ createVector :: Storable a => Int -> IO (Vector a)
 createVector n = do
     when (n <= 0) $ error ("trying to createVector of dim "++show n)
     fp <- doMalloc undefined
-    return $ V 0 n fp
+    return $ unsafeFromForeignPtr fp 0 n
   where
     --
     -- Use the much cheaper Haskell heap allocated storage
@@ -177,6 +195,12 @@ subVector :: Storable t => Int       -- ^ index of the starting element
                         -> Vector t  -- ^ source
                         -> Vector t  -- ^ result
 
+#ifdef VECTOR
+
+subVector = Vector.slice
+
+#else
+
 subVector k l v@V{idim = n, ioff = i}
     | k<0 || k >= n || k+l > n || l < 0 = error "subVector out of range"
     | otherwise = v {idim = l, ioff = i+k}
@@ -188,6 +212,8 @@ subVectorCopy k l (v@V {idim=n})
         let f _ s _ d = copyArray d (advancePtr s k) l >> return 0
         app2 f vec v vec r "subVector"
         return r
+
+#endif
 
 {- | Reads a vector position:
 
@@ -239,16 +265,21 @@ takesV ms w | sum ms > dim w = error $ "takesV " ++ show ms ++ " on dim = " ++ (
 
 -- | transforms a complex vector into a real vector with alternating real and imaginary parts 
 asReal :: Vector (Complex Double) -> Vector Double
-asReal v = V { ioff = 2*ioff v, idim = 2*dim v, fptr =  castForeignPtr (fptr v) }
+--asReal v = V { ioff = 2*ioff v, idim = 2*dim v, fptr =  castForeignPtr (fptr v) }
+asReal v = unsafeFromForeignPtr (castForeignPtr fp) (2*i) (2*n)
+    where (fp,i,n) = unsafeToForeignPtr v
 
 -- | transforms a real vector into a complex vector with alternating real and imaginary parts
 asComplex :: Vector Double -> Vector (Complex Double)
-asComplex v = V { ioff = ioff v `div` 2, idim = dim v `div` 2, fptr =  castForeignPtr (fptr v) }
+--asComplex v = V { ioff = ioff v `div` 2, idim = dim v `div` 2, fptr =  castForeignPtr (fptr v) }
+asComplex v = unsafeFromForeignPtr (castForeignPtr fp) (i `div` 2) (n `div` 2)
+    where (fp,i,n) = unsafeToForeignPtr v
 
 ----------------------------------------------------------------
 
 cloneVector :: Storable t => Vector t -> IO (Vector t)
-cloneVector (v@V {idim=n}) = do
+cloneVector v = do
+        let n = dim v
         r <- createVector n
         let f _ s _ d =  copyArray d s n >> return 0
         app2 f vec v vec r "cloneVector"
