@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Matrix
@@ -13,7 +14,7 @@
 -----------------------------------------------------------------------------
 
 module Data.Packed.Matrix (
-    Element,
+    Element, Container(..),
     Matrix,rows,cols,
     (><),
     trans,
@@ -421,3 +422,49 @@ toBlocksEvery r c m = toBlocks rs cs m where
     (qc,rc) = cols m `divMod` c
     rs = replicate qr r ++ if rr > 0 then [rr] else []
     cs = replicate qc c ++ if rc > 0 then [rc] else []
+
+-------------------------------------------------------------------
+
+-- | conversion utilities
+class (Element e) => Container c e where
+    toComplex   :: RealFloat e => (c e, c e) -> c (Complex e)
+    fromComplex :: RealFloat e => c (Complex e) -> (c e, c e)
+    comp        :: RealFloat e => c e -> c (Complex e)
+    conj        :: RealFloat e => c (Complex e) -> c (Complex e)
+    real        :: c Double -> c e
+    complex     :: c e -> c (Complex Double)
+
+instance Container Vector Double where
+    toComplex = toComplexV
+    fromComplex = fromComplexV
+    comp v = toComplex (v,constant 0 (dim v))
+    conj = conjV
+    real = id
+    complex = comp
+
+instance Container Vector (Complex Double) where
+    toComplex = undefined -- can't match
+    fromComplex = undefined
+    comp = undefined
+    conj = undefined
+    real = comp
+    complex = id
+
+instance Container Matrix Double where
+    toComplex = uncurry $ liftMatrix2 $ curry toComplex
+    fromComplex z = (reshape c r, reshape c i)
+        where (r,i) = fromComplex (flatten z)
+              c = cols z
+    comp = liftMatrix comp
+    conj = liftMatrix conj
+    real = id
+    complex = comp
+
+instance Container Matrix (Complex Double) where
+    toComplex = undefined
+    fromComplex = undefined
+    comp = undefined
+    conj = undefined
+    real = comp
+    complex = id
+

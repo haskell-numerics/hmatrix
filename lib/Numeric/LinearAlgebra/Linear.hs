@@ -18,7 +18,9 @@ module Numeric.LinearAlgebra.Linear (
     Linear(..)
 ) where
 
-import Data.Packed
+import Data.Packed.Vector
+import Data.Packed.Matrix
+import Data.Complex
 import Numeric.GSL.Vector
 
 -- | Basic element-by-element functions.

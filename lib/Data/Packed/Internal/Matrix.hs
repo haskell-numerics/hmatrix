@@ -29,7 +29,7 @@ module Data.Packed.Internal.Matrix(
     liftMatrix, liftMatrix2,
     (@@>),
     saveMatrix,
-    fromComplex, toComplex, conj,
+    fromComplexV, toComplexV, conjV,
     singleton
 ) where
 
@@ -368,16 +368,16 @@ subMatrix' (r0,c0) (rt,ct) m = trans $ subMatrix' (c0,r0) (ct,rt) (trans m)
 --------------------------------------------------------------------------
 
 -- | obtains the complex conjugate of a complex vector
-conj :: Vector (Complex Double) -> Vector (Complex Double)
-conj = mapVector conjugate
+conjV :: Vector (Complex Double) -> Vector (Complex Double)
+conjV = mapVector conjugate
 
 -- | creates a complex vector from vectors with real and imaginary parts
-toComplex :: (Vector Double, Vector Double) ->  Vector (Complex Double)
-toComplex (r,i) = asComplex $ flatten $ fromColumns [r,i]
+toComplexV :: (Vector Double, Vector Double) ->  Vector (Complex Double)
+toComplexV (r,i) = asComplex $ flatten $ fromColumns [r,i]
 
 -- | the inverse of 'toComplex'
-fromComplex :: Vector (Complex Double) -> (Vector Double, Vector Double)
-fromComplex z = (r,i) where
+fromComplexV :: Vector (Complex Double) -> (Vector Double, Vector Double)
+fromComplexV z = (r,i) where
     [r,i] = toColumns $ reshape 2 $ asReal z
 
 --------------------------------------------------------------------------

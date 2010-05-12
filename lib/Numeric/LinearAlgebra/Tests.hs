@@ -78,6 +78,11 @@ volSphere r = 8 * quad2 (\x y -> sqrt (r*r-x*x-y*y))
 
 ---------------------------------------------------------------------
 
+derivTest = abs (d (\x-> x * d (\y-> x+y) 1) 1 - 1) < 1E-10
+    where d f x = fst $ derivCentral 0.01 f x
+
+---------------------------------------------------------------------
+
 -- besselTest = utest "bessel_J0_e" ( abs (r-expected) < e )
 --     where (r,e) = bessel_J0_e 5.0
 --           expected = -0.17759677131433830434739701
@@ -319,6 +324,7 @@ runTests n = do
 --        , utest "gamma" (gamma 5 == 24.0)
 --        , besselTest
 --        , exponentialTest
+        , utest "deriv" derivTest
         , utest "integrate" (abs (volSphere 2.5 - 4/3*pi*2.5^3) < 1E-8)
         , utest "polySolve" (polySolveProp [1,2,3,4])
         , minimizationTest

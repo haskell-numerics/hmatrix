@@ -1,61 +1,36 @@
 INSTALLATION
 
-Recommended method (ok in Ubuntu/Debian systems):
+Recommended method (tested on Ubuntu/Debian systems):
     $ sudo apt-get install libgsl0-dev liblapack-dev
     $ cabal install hmatrix
 
 Detailed installation instructions:
     http://code.haskell.org/hmatrix/install.html
 
-INSTALLATION ON WINDOWS (hmatrix-0.9.x.x)
+INSTALLATION ON WINDOWS
 
-1) Install the Haskell Platform (tested with 2009.2.0.2).
+1) Install the Haskell Platform (tested on 2009.2.0.2).
 
 2) Download and unzip the following file into a stable folder %GSL%
 
    http://code.haskell.org/hmatrix/gsl-lapack-windows.zip
 
-3.a) In a msys shell
+3.a) In a msys shell installation should be fully automatic:
 
    $ cabal install hmatrix --extra-lib-dir=${GSL} --extra-include-dir=${GSL}
 
-3.b) In a windows cmd
+3.b) Alternatively, in a normal windows cmd:
 
     > cabal unpack hmatrix
 
-    Change build-type to "Simple" in hmatrix.cabal, line 18
+    Edit hmatrix.cabal, in line 18 change build-type to "Simple", and then
 
     > cabal install --extra-lib-dir=%GSL% --extra-include-dir=%GSL%
 
 4) If everything is ok we can run the tests:
 
-   > runhaskell examples\tests.hs
-
-INSTALLATION ON WINDOWS (hmatrix-0.8.3.1)
-
-1) Install the Haskell Platform (tested with 2009.2.0.2).
-
-2) Download and uncompress hmatrix from Hackage
-
-   > cd c:\haskell
-   > cabal unpack hmatrix
-
-3) Download and uncompress the following file into the hmatrix
-   directory, into a subdirectory named gsl-lapack-windows:
-
-   http://code.haskell.org/hmatrix/gsl-lapack-windows.zip
-
-4) Replace hmatrix.cabal by
-
-   http://code.haskell.org/hmatrix/hmatrix-0.8.3.1-windows.cabal
-
-5) In the hmatrix folder run
-
-   > cabal install
-
-6) If everything is ok we can run the tests:
-
-   > runhaskell examples\tests.hs
+   > ghci
+   Prelude> Numeric.LinearAlgebra.Tests.runTests 20
 
 NOTE: The examples using graphics do not yet work in windows.
 

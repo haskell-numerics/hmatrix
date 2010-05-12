@@ -41,8 +41,9 @@ module Numeric.LinearAlgebra.LAPACK (
     schurR, schurC
 ) where
 
-import Data.Packed.Internal hiding (toComplex)
-import Data.Packed
+import Data.Packed.Internal
+import Data.Packed.Matrix
+import Data.Complex
 import Numeric.GSL.Vector(vectorMapValR, FunCodeSV(Scale))
 import Foreign
 import Foreign.C.Types (CInt)
