@@ -1,14 +1,16 @@
-0.9.2.0
+0.9.3.0
 =======
+
+- flag -fvector to optionally use Data.Vector.Storable.Vector
+  without any conversion.
+
+- Simpler module structure.
 
 - toBlocks, toBlocksEvery
 
 - cholSolve, mbCholSH
 
 - GSL Nonlinear Least-Squares fitting using Levenberg-Marquardt.
-
-0.9.1.0
-=======
 
 - GSL special functions moved to separate package hmatrix-special.
 
