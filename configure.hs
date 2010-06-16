@@ -18,6 +18,7 @@
 -}
 
 import System
+import System.Directory(createDirectoryIfMissing)
 import Data.List(isPrefixOf, intercalate)
 import Distribution.Simple.LocalBuildInfo
 import Distribution.Simple.Configure
@@ -37,13 +38,14 @@ opts = [ ""                              -- Ubuntu/Debian
        ]
 
 -- compile a simple program with symbols from GSL and LAPACK with the given libs
-testprog buildInfo libs fmks =
+testprog bInfo buildInfo libs fmks =
     "echo \"#include <gsl/gsl_sf_gamma.h>\nint main(){zgesvd_(); gsl_sf_gamma(5);}\""
-                     ++" > /tmp/dummy.c; gcc "
+                     ++" > " ++ (buildDir bInfo) ++ "/dummy.c; gcc "
                      ++ (join $ ccOptions buildInfo) ++ " "
                      ++ (join $ cppOptions buildInfo) ++ " "
-                     ++ (join $ map ("-I"++) $ includeDirs buildInfo)
-                     ++" /tmp/dummy.c -o /tmp/dummy "
+                     ++ (join $ map ("-I"++) $ includeDirs buildInfo) ++ " " 
+                     ++ (buildDir bInfo) ++ "/dummy.c -o "
+                     ++ (buildDir bInfo) ++ "/dummy "
                      ++ (join $ map ("-L"++) $ extraLibDirs buildInfo) ++ " "
                      ++ (prepend "-l" $ libs) ++ " "
                      ++ (prepend "-framework " fmks) ++ " > /dev/null 2> /dev/null"
@@ -51,26 +53,28 @@ testprog buildInfo libs fmks =
 join = intercalate " "
 prepend x = unwords . map (x++) . words
 
-check buildInfo libs fmks = (ExitSuccess ==) `fmap` system (testprog buildInfo libs fmks)
+check bInfo buildInfo libs fmks = (ExitSuccess ==) `fmap` system (testprog bInfo buildInfo libs fmks)
 
 -- simple test for GSL
-gsl buildInfo = "echo \"#include <gsl/gsl_sf_gamma.h>\nint main(){gsl_sf_gamma(5);}\""
-           ++" > /tmp/dummy.c; gcc "
+gsl bInfo buildInfo = "echo \"#include <gsl/gsl_sf_gamma.h>\nint main(){gsl_sf_gamma(5);}\""
+           ++" > " ++ (buildDir bInfo) ++ "/dummy.c; gcc "
            ++ (join $ ccOptions buildInfo) ++ " "
            ++ (join $ cppOptions buildInfo) ++ " "
-           ++ (join $ map ("-I"++) $ includeDirs buildInfo)
-           ++ " /tmp/dummy.c -o /tmp/dummy "
+           ++ (join $ map ("-I"++) $ includeDirs buildInfo) ++ " " 
+           ++ (buildDir bInfo) ++ "/dummy.c -o "
+           ++ (buildDir bInfo) ++ "/dummy "
            ++ (join $ map ("-L"++) $ extraLibDirs buildInfo) ++ " -lgsl -lgslcblas"
            ++ " > /dev/null 2> /dev/null"
 
 -- test for gsl >= 1.12
-gsl112 buildInfo =
+gsl112 bInfo buildInfo =
     "echo \"#include <gsl/gsl_sf_exp.h>\nint main(){gsl_sf_exprel_n_CF_e(1,1,0);}\""
-           ++" > /tmp/dummy.c; gcc /tmp/dummy.c "
+           ++" > " ++ (buildDir bInfo) ++ "/dummy.c; gcc " 
+           ++ (buildDir bInfo) ++ "/dummy.c "
            ++ (join $ ccOptions buildInfo) ++ " "
            ++ (join $ cppOptions buildInfo) ++ " "
            ++ (join $ map ("-I"++) $ includeDirs buildInfo)
-           ++" -o /tmp/dummy "
+           ++" -o " ++ (buildDir bInfo) ++ "/dummy "
            ++ (join $ map ("-L"++) $ extraLibDirs buildInfo) ++ " -lgsl -lgslcblas"
            ++ " > /dev/null 2> /dev/null"
 
@@ -78,11 +82,11 @@ gsl112 buildInfo =
 checkCommand c = (ExitSuccess ==) `fmap` system c
 
 -- test different configurations until the first one works
-try _ _ _ [] = return Nothing
-try i b f (opt:rest) = do
-    ok <- check i (b ++ " " ++ opt) f
+try _ _ _ _ [] = return Nothing
+try l i b f (opt:rest) = do
+    ok <- check l i (b ++ " " ++ opt) f
     if ok then return (Just opt)
-          else try i b f rest
+          else try l i b f rest
 
 -- read --configure-option=link:lib1,lib2,lib3,etc
 linkop = "link:"
@@ -110,11 +114,14 @@ main = do
     let pref = if null (words (base ++ " " ++ auxpref)) then "gsl lapack" else auxpref
         fullOpts = map ((pref++" ")++) opts
 
-    r <- try buildInfo base fwks fullOpts
+    -- create the build directory (used for tmp files) if necessary
+    createDirectoryIfMissing True $ buildDir bInfo
+    
+    r <- try bInfo buildInfo base fwks fullOpts
     case r of
         Nothing -> do
             putStrLn " FAIL"
-            g  <- checkCommand $ gsl buildInfo
+            g  <- checkCommand $ gsl bInfo buildInfo
             if g
                 then putStrLn " *** Sorry, I can't link LAPACK."
                 else putStrLn " *** Sorry, I can't link GSL."
@@ -124,7 +131,7 @@ main = do
             writeFile "hmatrix.buildinfo" ("buildable: False\n")
         Just ops -> do
             putStrLn " OK"
-            g <- checkCommand $ gsl112 buildInfo
+            g <- checkCommand $ gsl112 bInfo buildInfo
             writeFile "hmatrix.buildinfo" $ "extra-libraries: " ++
                 ops ++ "\n" ++
                 if g

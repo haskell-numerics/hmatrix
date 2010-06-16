@@ -72,3 +72,6 @@ and all the people in the Haskell mailing lists for their help.
 
 - Max Suica simplified the installation on Windows and improved the instructions.
 
+- Vivian McPhail fixed configure.hs to allow non-root user installation in
+  case that /tmp is not writable.
+
