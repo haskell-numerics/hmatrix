@@ -44,6 +44,27 @@ import Text.Printf(printf)
 import Data.List(transpose,intersperse)
 import Data.Complex
 
+import Data.Binary
+import Foreign.Storable
+import Control.Monad(replicateM)
+
+-------------------------------------------------------------------
+
+instance (Binary a, Element a, Storable a) => Binary (Matrix a) where
+    put m = do
+            let r = rows m
+            let c = cols m
+            put r
+            put c
+            mapM_ (\i -> mapM_ (\j -> put $ m @@> (i,j)) [0..(c-1)]) [0..(r-1)]
+    get = do
+          r <- get
+          c <- get
+          xs <- replicateM r $ replicateM c get
+          return $ fromLists xs
+
+-------------------------------------------------------------------
+
 -- | creates a matrix from a vertical list of matrices
 joinVert :: Element t => [Matrix t] -> Matrix t
 joinVert ms = case common cols ms of

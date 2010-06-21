@@ -29,6 +29,25 @@ import Data.Packed.Internal
 import Numeric.GSL.Vector
 -- import Data.Packed.ST
 
+import Data.Binary
+import Foreign.Storable
+import Control.Monad(replicateM)
+
+-------------------------------------------------------------------
+
+instance (Binary a, Storable a) => Binary (Vector a) where
+    put v = do
+            let d = dim v
+            put d
+            mapM_ (\i -> put $ v @> i) [0..(d-1)]
+    get = do
+          d <- get
+          xs <- replicateM d get
+          return $ fromList xs
+
+-------------------------------------------------------------------
+
+
 {- | Creates a real vector containing a range of values:
 
 @\> linspace 5 (-3,7)
