@@ -455,6 +455,14 @@ class (Element e) => Container c e where
     real        :: c Double -> c e
     complex     :: c e -> c (Complex Double)
 
+instance Container Vector Float where
+    toComplex = toComplexV
+    fromComplex = fromComplexV
+    comp v = toComplex (v,constant 0 (dim v))
+    conj = conjV
+    real = mapVector realToFrac
+    complex = (mapVector (\(r :+ i) -> (realToFrac r :+ realToFrac i))) . comp
+
 instance Container Vector Double where
     toComplex = toComplexV
     fromComplex = fromComplexV

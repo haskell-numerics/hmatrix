@@ -42,6 +42,17 @@ class (Container c e) => Linear c e where
     equal       :: c e -> c e -> Bool
 
 
+instance Linear Vector Float where
+    scale = vectorMapValF Scale
+    scaleRecip = vectorMapValF Recip
+    addConstant = vectorMapValF AddConstant
+    add = vectorZipF Add
+    sub = vectorZipF Sub
+    mul = vectorZipF Mul
+    divide = vectorZipF Div
+    equal u v = dim u == dim v && vectorFMax (vectorMapF Abs (sub u v)) == 0.0
+    scalar x = fromList [x]
+
 instance Linear Vector Double where
     scale = vectorMapValR Scale
     scaleRecip = vectorMapValR Recip

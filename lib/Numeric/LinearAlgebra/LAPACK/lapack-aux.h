@@ -40,13 +40,17 @@ typedef short ftnlen;
 
 /********************************************************/
 
+#define FVEC(A) int A##n, float*A##p
 #define DVEC(A) int A##n, double*A##p
 #define CVEC(A) int A##n, double*A##p
+#define FMAT(A) int A##r, int A##c, float* A##p
 #define DMAT(A) int A##r, int A##c, double* A##p
 #define CMAT(A) int A##r, int A##c, double* A##p
 
+#define KFVEC(A) int A##n, const float*A##p
 #define KDVEC(A) int A##n, const double*A##p
 #define KCVEC(A) int A##n, const double*A##p
+#define KFMAT(A) int A##r, int A##c, const float* A##p
 #define KDMAT(A) int A##r, int A##c, const double* A##p
 #define KCMAT(A) int A##r, int A##c, const double* A##p
 
@@ -55,9 +59,11 @@ typedef short ftnlen;
 int multiplyR(int ta, int tb, KDMAT(a),KDMAT(b),DMAT(r));
 int multiplyC(int ta, int tb, KCMAT(a),KCMAT(b),CMAT(r));
 
+int transF(KFMAT(x),FMAT(t));
 int transR(KDMAT(x),DMAT(t));
 int transC(KCMAT(x),CMAT(t));
 
+int constantF(float * pval, FVEC(r));
 int constantR(double * pval, DVEC(r));
 int constantC(doublecomplex* pval, CVEC(r));
 

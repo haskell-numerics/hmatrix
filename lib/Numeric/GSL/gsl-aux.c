@@ -10,6 +10,16 @@
 #define KCVEC(A) int A##n, const gsl_complex*A##p
 #define KCMAT(A) int A##r, int A##c, const gsl_complex* A##p
 
+#define FVEC(A) int A##n, float*A##p
+#define FMAT(A) int A##r, int A##c, float* A##p
+#define KFVEC(A) int A##n, const float*A##p
+#define KFMAT(A) int A##r, int A##c, const float* A##p
+
+#define QVEC(A) int A##n, gsl_complex_float*A##p
+#define QMAT(A) int A##r, int A##c, gsl_complex_float* A##p
+#define KQVEC(A) int A##n, const gsl_complex_float*A##p
+#define KQMAT(A) int A##r, int A##c, const gsl_complex_float* A##p
+
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>
@@ -64,11 +74,23 @@
 #define KCVVIEW(A) gsl_vector_complex_const_view A = gsl_vector_complex_const_view_array((double*)A##p,A##n)
 #define KCMVIEW(A) gsl_matrix_complex_const_view A = gsl_matrix_complex_const_view_array((double*)A##p,A##r,A##c)
 
+#define FVVIEW(A) gsl_vector_float_view A = gsl_vector_float_view_array(A##p,A##n)
+#define FMVIEW(A) gsl_matrix_float_view A = gsl_matrix_float_view_array(A##p,A##r,A##c)
+#define QVVIEW(A) gsl_vector_float_complex_view A = gsl_vector_float_complex_view_array((float*)A##p,A##n)
+#define QMVIEW(A) gsl_matrix_float_complex_view A = gsl_matrix_float_complex_view_array((float*)A##p,A##r,A##c)
+#define KFVVIEW(A) gsl_vector_float_const_view A = gsl_vector_float_const_view_array(A##p,A##n)
+#define KFMVIEW(A) gsl_matrix_float_const_view A = gsl_matrix_float_const_view_array(A##p,A##r,A##c)
+#define KQVVIEW(A) gsl_vector_float_complex_const_view A = gsl_vector_float_complex_const_view_array((float*)A##p,A##n)
+#define KQMVIEW(A) gsl_matrix_float_complex_const_view A = gsl_matrix_float_complex_const_view_array((float*)A##p,A##r,A##c)
+
 #define V(a) (&a.vector)
 #define M(a) (&a.matrix)
 
 #define GCVEC(A) int A##n, gsl_complex*A##p
 #define KGCVEC(A) int A##n, const gsl_complex*A##p
+
+#define GQVEC(A) int A##n, gsl_complex_float*A##p
+#define KGQVEC(A) int A##n, const gsl_complex_float*A##p
 
 #define BAD_SIZE 2000
 #define BAD_CODE 2001
@@ -99,8 +121,36 @@ int toScalarR(int code, KRVEC(x), RVEC(r)) {
     OK
 }
 
+int toScalarF(int code, KFVEC(x), FVEC(r)) { 
+    REQUIRES(rn==1,BAD_SIZE);
+    DEBUGMSG("toScalarF");
+    KFVVIEW(x);
+    float res;
+    switch(code) {
+        case 0: { res = gsl_blas_snrm2(V(x)); break; } 
+        case 1: { res = gsl_blas_sasum(V(x));  break; }
+        case 2: { res = gsl_vector_float_max_index(V(x));  break; }
+        case 3: { res = gsl_vector_float_max(V(x));  break; }
+        case 4: { res = gsl_vector_float_min_index(V(x)); break; }
+        case 5: { res = gsl_vector_float_min(V(x)); break; }
+        default: ERROR(BAD_CODE);
+    }
+    rp[0] = res;
+    OK
+}
+
 
 inline double sign(double x) {
+    if(x>0) {
+        return +1.0;
+    } else if (x<0) {
+        return -1.0;
+    } else {
+        return 0.0;
+    }
+}
+
+inline float float_sign(float x) {
     if(x>0) {
         return +1.0;
     } else if (x<0) {
@@ -137,6 +187,32 @@ int mapR(int code, KRVEC(x), RVEC(r)) {
     int k;
     REQUIRES(xn == rn,BAD_SIZE);
     DEBUGMSG("mapR");
+    switch (code) {
+        OP(0,sin)
+        OP(1,cos)
+        OP(2,tan)
+        OP(3,fabs)
+        OP(4,asin)
+        OP(5,acos)
+        OP(6,atan) /* atan2 mediante vectorZip */
+        OP(7,sinh)
+        OP(8,cosh)
+        OP(9,tanh)
+        OP(10,gsl_asinh)
+        OP(11,gsl_acosh)
+        OP(12,gsl_atanh)
+        OP(13,exp)
+        OP(14,log)
+        OP(15,sign)
+        OP(16,sqrt)
+        default: ERROR(BAD_CODE);
+    }
+}
+
+int mapF(int code, KFVEC(x), FVEC(r)) {
+    int k;
+    REQUIRES(xn == rn,BAD_SIZE);
+    DEBUGMSG("mapF");
     switch (code) {
         OP(0,sin)
         OP(1,cos)
@@ -210,6 +286,22 @@ int mapValR(int code, double* pval, KRVEC(x), RVEC(r)) {
     }
 }
 
+int mapValF(int code, float* pval, KFVEC(x), FVEC(r)) {
+    int k;
+    float val = *pval;
+    REQUIRES(xn == rn,BAD_SIZE);
+    DEBUGMSG("mapValF");
+    switch (code) {
+        OPV(0,val*xp[k])
+        OPV(1,val/xp[k])
+        OPV(2,val+xp[k])
+        OPV(3,val-xp[k])
+        OPV(4,pow(val,xp[k]))
+        OPV(5,pow(xp[k],val))
+        default: ERROR(BAD_CODE);
+    }
+}
+
 int mapValCAux(int code, gsl_complex* pval, KGCVEC(x), GCVEC(r)) {
     int k;
     gsl_complex val = *pval;
@@ -250,6 +342,28 @@ int zipR(int code, KRVEC(a), KRVEC(b), RVEC(r)) {
         OPZV(1,"zipR Sub",gsl_vector_sub)
         OPZV(2,"zipR Mul",gsl_vector_mul)
         OPZV(3,"zipR Div",gsl_vector_div)
+        default: ERROR(BAD_CODE);
+    }
+}
+
+
+int zipF(int code, KFVEC(a), KFVEC(b), FVEC(r)) {
+    REQUIRES(an == bn && an == rn, BAD_SIZE);
+    int k;
+    switch(code) {
+        OPZE(4,"zipF Pow",pow)
+        OPZE(5,"zipF ATan2",atan2)
+    }
+    KFVVIEW(a);
+    KFVVIEW(b);
+    FVVIEW(r);
+    gsl_vector_float_memcpy(V(r),V(a));
+    int res;
+    switch(code) {
+        OPZV(0,"zipF Add",gsl_vector_float_add)
+        OPZV(1,"zipF Sub",gsl_vector_float_sub)
+        OPZV(2,"zipF Mul",gsl_vector_float_mul)
+        OPZV(3,"zipF Div",gsl_vector_float_div)
         default: ERROR(BAD_CODE);
     }
 }

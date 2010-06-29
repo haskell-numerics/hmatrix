@@ -14,10 +14,10 @@
 -----------------------------------------------------------------------------
 
 module Numeric.GSL.Vector (
-    FunCodeS(..), toScalarR,
-    FunCodeV(..), vectorMapR, vectorMapC,
-    FunCodeSV(..), vectorMapValR, vectorMapValC,
-    FunCodeVV(..), vectorZipR, vectorZipC,
+    FunCodeS(..), toScalarR, toScalarF,
+    FunCodeV(..), vectorMapR, vectorMapC, vectorMapF,
+    FunCodeSV(..), vectorMapValR, vectorMapValC, vectorMapValF,
+    FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF,
     RandDist(..), randomVector
 ) where
 
@@ -106,6 +106,12 @@ toScalarR oper =  toScalarAux c_toScalarR (fromei oper)
 
 foreign import ccall safe "gsl-aux.h toScalarR" c_toScalarR :: CInt -> TVV
 
+-- | obtains different functions of a vector: norm1, norm2, max, min, posmax, posmin, etc.
+toScalarF :: FunCodeS -> Vector Float -> Float
+toScalarF oper =  toScalarAux c_toScalarF (fromei oper)
+
+foreign import ccall safe "gsl-aux.h toScalarF" c_toScalarF :: CInt -> TFF
+
 ------------------------------------------------------------------
 
 -- | map of real vectors with given function
@@ -119,6 +125,12 @@ vectorMapC :: FunCodeV -> Vector (Complex Double) -> Vector (Complex Double)
 vectorMapC oper = vectorMapAux c_vectorMapC (fromei oper)
 
 foreign import ccall safe "gsl-aux.h mapC" c_vectorMapC :: CInt -> TCVCV
+
+-- | map of real vectors with given function
+vectorMapF :: FunCodeV -> Vector Float -> Vector Float
+vectorMapF = vectorMapAux c_vectorMapF
+
+foreign import ccall safe "gsl-aux.h mapF" c_vectorMapF :: CInt -> TFF
 
 -------------------------------------------------------------------
 
@@ -134,6 +146,12 @@ vectorMapValC = vectorMapValAux c_vectorMapValC
 
 foreign import ccall safe "gsl-aux.h mapValC" c_vectorMapValC :: CInt -> Ptr (Complex Double) -> TCVCV
 
+-- | map of real vectors with given function
+vectorMapValF :: FunCodeSV -> Float -> Vector Float -> Vector Float
+vectorMapValF oper = vectorMapValAux c_vectorMapValF (fromei oper)
+
+foreign import ccall safe "gsl-aux.h mapValF" c_vectorMapValF :: CInt -> Ptr Float -> TFF
+
 -------------------------------------------------------------------
 
 -- | elementwise operation on real vectors
@@ -147,6 +165,12 @@ vectorZipC :: FunCodeVV -> Vector (Complex Double) -> Vector (Complex Double) ->
 vectorZipC = vectorZipAux c_vectorZipC
 
 foreign import ccall safe "gsl-aux.h zipC" c_vectorZipC :: CInt -> TCVCVCV
+
+-- | elementwise operation on real vectors
+vectorZipF :: FunCodeVV -> Vector Float -> Vector Float -> Vector Float
+vectorZipF = vectorZipAux c_vectorZipF
+
+foreign import ccall safe "gsl-aux.h zipF" c_vectorZipF :: CInt -> TFFF
 
 -----------------------------------------------------------------------
 

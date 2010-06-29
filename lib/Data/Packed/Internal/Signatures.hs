@@ -18,11 +18,17 @@ import Foreign
 import Data.Complex
 import Foreign.C.Types
 
+type PF = Ptr Float                             --
 type PD = Ptr Double                            --
 type PC = Ptr (Complex Double)                  --
+type TF = CInt -> PF -> IO CInt                 --
+type TFF = CInt -> PF -> TF                     --
+type TFFF = CInt -> PF -> TFF                   --
 type TV = CInt -> PD -> IO CInt                 --
 type TVV = CInt -> PD -> TV                     --
 type TVVV = CInt -> PD -> TVV                   --
+type TFM = CInt -> CInt -> PF -> IO CInt        --
+type TFMFM =  CInt -> CInt -> PF -> TFM         --
 type TM = CInt -> CInt -> PD -> IO CInt         --
 type TMM =  CInt -> CInt -> PD -> TM            --
 type TVMM = CInt -> PD -> TMM                   --

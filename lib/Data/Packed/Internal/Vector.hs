@@ -264,13 +264,13 @@ takesV ms w | sum ms > dim w = error $ "takesV " ++ show ms ++ " on dim = " ++ (
 ---------------------------------------------------------------
 
 -- | transforms a complex vector into a real vector with alternating real and imaginary parts 
-asReal :: Vector (Complex Double) -> Vector Double
+asReal :: Vector (Complex a) -> Vector a
 --asReal v = V { ioff = 2*ioff v, idim = 2*dim v, fptr =  castForeignPtr (fptr v) }
 asReal v = unsafeFromForeignPtr (castForeignPtr fp) (2*i) (2*n)
     where (fp,i,n) = unsafeToForeignPtr v
 
 -- | transforms a real vector into a complex vector with alternating real and imaginary parts
-asComplex :: Vector Double -> Vector (Complex Double)
+asComplex :: Vector a -> Vector (Complex a)
 --asComplex v = V { ioff = ioff v `div` 2, idim = dim v `div` 2, fptr =  castForeignPtr (fptr v) }
 asComplex v = unsafeFromForeignPtr (castForeignPtr fp) (i `div` 2) (n `div` 2)
     where (fp,i,n) = unsafeToForeignPtr v

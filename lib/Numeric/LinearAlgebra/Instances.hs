@@ -94,6 +94,14 @@ instance Linear Vector a => Eq (Vector a) where
 
 #endif
 
+instance Num (Vector Float) where
+    (+) = adaptScalar addConstant add (flip addConstant)
+    negate = scale (-1)
+    (*) = adaptScalar scale mul (flip scale)
+    signum = vectorMapF Sign
+    abs = vectorMapF Abs
+    fromInteger = fromList . return . fromInteger
+
 instance Num (Vector Double) where
     (+) = adaptScalar addConstant add (flip addConstant)
     negate = scale (-1)
@@ -137,6 +145,27 @@ instance (Linear Vector a, Fractional (Vector a), Num (Matrix a)) => Fractional 
     (/) = liftMatrix2Auto (/)
 
 ---------------------------------------------------------
+
+instance Floating (Vector Float) where
+    sin   = vectorMapF Sin
+    cos   = vectorMapF Cos
+    tan   = vectorMapF Tan
+    asin  = vectorMapF ASin
+    acos  = vectorMapF ACos
+    atan  = vectorMapF ATan
+    sinh  = vectorMapF Sinh
+    cosh  = vectorMapF Cosh
+    tanh  = vectorMapF Tanh
+    asinh = vectorMapF ASinh
+    acosh = vectorMapF ACosh
+    atanh = vectorMapF ATanh
+    exp   = vectorMapF Exp
+    log   = vectorMapF Log
+    sqrt  = vectorMapF Sqrt
+    (**)  = adaptScalar (vectorMapValF PowSV) (vectorZipF Pow) (flip (vectorMapValF PowVS))
+    pi    = fromList [pi]
+
+-------------------------------------------------------------
 
 instance Floating (Vector Double) where
     sin   = vectorMapR Sin

@@ -257,6 +257,10 @@ class (Storable a, Floating a) => Element a where
     constantD  :: a -> Int -> Vector a
     constantD = constant'
 
+instance Element Float where
+    transdata  = transdataAux ctransF
+    constantD  = constantAux cconstantF
+
 instance Element Double where
     transdata  = transdataAux ctransR
     constantD  = constantAux cconstantR
@@ -308,6 +312,7 @@ transdataAux fun c1 d c2 =
         r2 = dim d `div` c2
         noneed = r1 == 1 || c1 == 1
 
+foreign import ccall "transF" ctransF :: TFMFM
 foreign import ccall "transR" ctransR :: TMM
 foreign import ccall "transC" ctransC :: TCMCM
 ----------------------------------------------------------------------
@@ -328,6 +333,10 @@ constantAux fun x n = unsafePerformIO $ do
     app1 (fun px) vec v "constantAux"
     free px
     return v
+
+constantF :: Float -> Int -> Vector Float
+constantF = constantAux cconstantF
+foreign import ccall "constantF" cconstantF :: Ptr Float -> TF
 
 constantR :: Double -> Int -> Vector Double
 constantR = constantAux cconstantR
@@ -368,15 +377,15 @@ subMatrix' (r0,c0) (rt,ct) m = trans $ subMatrix' (c0,r0) (ct,rt) (trans m)
 --------------------------------------------------------------------------
 
 -- | obtains the complex conjugate of a complex vector
-conjV :: Vector (Complex Double) -> Vector (Complex Double)
+conjV :: (Storable a, RealFloat a) => Vector (Complex a) -> Vector (Complex a)
 conjV = mapVector conjugate
 
 -- | creates a complex vector from vectors with real and imaginary parts
-toComplexV :: (Vector Double, Vector Double) ->  Vector (Complex Double)
+toComplexV :: Element a => (Vector a, Vector a) ->  Vector (Complex a)
 toComplexV (r,i) = asComplex $ flatten $ fromColumns [r,i]
 
 -- | the inverse of 'toComplex'
-fromComplexV :: Vector (Complex Double) -> (Vector Double, Vector Double)
+fromComplexV :: Element a => Vector (Complex a) -> (Vector a, Vector a)
 fromComplexV z = (r,i) where
     [r,i] = toColumns $ reshape 2 $ asReal z
 

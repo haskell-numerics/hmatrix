@@ -1039,6 +1039,18 @@ int multiplyC(int ta, int tb, KCMAT(a),KCMAT(b),CMAT(r)) {
 
 //////////////////// transpose /////////////////////////
 
+int transF(KFMAT(x),FMAT(t)) {
+    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
+    DEBUGMSG("transF");
+    int i,j;
+    for (i=0; i<tr; i++) {
+        for (j=0; j<tc; j++) {
+        tp[i*tc+j] = xp[j*xc+i];
+        }
+    }
+    OK
+}
+
 int transR(KDMAT(x),DMAT(t)) {
     REQUIRES(xr==tc && xc==tr,BAD_SIZE);
     DEBUGMSG("transR");
@@ -1064,6 +1076,16 @@ int transC(KCMAT(x),CMAT(t)) {
 }
 
 //////////////////// constant /////////////////////////
+
+int constantF(float * pval, FVEC(r)) {
+    DEBUGMSG("constantF")
+    int k;
+    double val = *pval;
+    for(k=0;k<rn;k++) {
+        rp[k]=val;
+    }
+    OK
+}
 
 int constantR(double * pval, DVEC(r)) {
     DEBUGMSG("constantR")

@@ -19,6 +19,7 @@ module Data.Packed.Vector (
     subVector, takesV, join,
     constant, linspace,
     vecdisp,
+    vectorFMax, vectorFMin, vectorFMaxIndex, vectorFMinIndex,
     vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex,
     mapVector, zipVector,
     fscanfVector, fprintfVector, freadVector, fwriteVector,
@@ -62,6 +63,18 @@ linspace n (a,b) = add a $ scale s  $ fromList [0 .. fromIntegral n-1]
     where scale = vectorMapValR Scale
           add   = vectorMapValR AddConstant
           s = (b-a)/fromIntegral (n-1)
+
+vectorFMax :: Vector Float -> Float
+vectorFMax = toScalarF Max
+
+vectorFMin :: Vector Float -> Float
+vectorFMin = toScalarF Min
+
+vectorFMaxIndex :: Vector Float -> Int
+vectorFMaxIndex = round . toScalarF MaxIdx
+
+vectorFMinIndex :: Vector Float -> Int
+vectorFMinIndex = round . toScalarF MinIdx
 
 vectorMax :: Vector Double -> Double
 vectorMax = toScalarR Max
