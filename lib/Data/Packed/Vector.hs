@@ -36,15 +36,32 @@ import Control.Monad(replicateM)
 
 -------------------------------------------------------------------
 
+-- a 64K cache, with a Double taking 13 bytes in Bytestring,
+-- implies a chunk size of 5041
+chunk :: Int
+chunk = 5000
+
+chunks :: Int -> [Int]
+chunks d = let c = d `div` chunk
+           in ((d-c*chunk):(replicate c chunk))
+
+putVector v = do
+              let d = dim v
+              mapM_ (\i -> put $ v @> i) [0..(d-1)]
+
+getVector d = do
+              xs <- replicateM d get
+              return $! fromList xs
+
 instance (Binary a, Storable a) => Binary (Vector a) where
     put v = do
             let d = dim v
             put d
-            mapM_ (\i -> put $ v @> i) [0..(d-1)]
+            mapM_ putVector $! takesV (chunks d) v
     get = do
           d <- get
-          xs <- replicateM d get
-          return $ fromList xs
+          vs <- mapM getVector $ chunks d
+          return $! join vs
 
 -------------------------------------------------------------------
 
