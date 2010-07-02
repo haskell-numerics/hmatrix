@@ -43,7 +43,8 @@ chunk = 5000
 
 chunks :: Int -> [Int]
 chunks d = let c = d `div` chunk
-           in ((d-c*chunk):(replicate c chunk))
+               m = d `mod` chunk
+           in if m /= 0 then reverse (m:(replicate c chunk)) else (replicate c chunk)  
 
 putVector v = do
               let d = dim v
