@@ -21,6 +21,7 @@ imported from "Numeric.LinearAlgebra.LAPACK".
 module Numeric.LinearAlgebra.Algorithms (
 -- * Supported types
     Field(),
+    Vectors(..),
 -- * Products
     multiply, -- dot, moved dot to typeclass
     outer, kronecker,
