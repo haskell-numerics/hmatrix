@@ -28,6 +28,9 @@ import Numeric.LinearAlgebra.Instances()
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import Numeric.LinearAlgebra.Algorithms
+import Numeric.LinearAlgebra.Linear
+
+--import Numeric.GSL.Vector
 
 class Mul a b c | a b -> c where
  infixl 7 <>
@@ -46,7 +49,8 @@ instance Mul Vector Matrix Vector where
 ---------------------------------------------------
 
 -- | Dot product: @u \<.\> v = dot u v@
-(<.>) :: (Field t) => Vector t -> Vector t -> t
+--(<.>) :: (Field t) => Vector t -> Vector t -> t
+(<.>) :: Vectors Vector t => Vector t -> Vector t -> t
 infixl 7 <.>
 (<.>) = dot
 
@@ -114,4 +118,6 @@ a <|> b = joinH a b
 -- -- | Vertical concatenation of matrices and vectors.
 -- (<->) :: (Element t, Joinable a b) => a t -> b t -> Matrix t
 a <-> b = joinV a b
+
+----------------------------------------------------
 

@@ -76,12 +76,12 @@
 
 #define FVVIEW(A) gsl_vector_float_view A = gsl_vector_float_view_array(A##p,A##n)
 #define FMVIEW(A) gsl_matrix_float_view A = gsl_matrix_float_view_array(A##p,A##r,A##c)
-#define QVVIEW(A) gsl_vector_float_complex_view A = gsl_vector_float_complex_view_array((float*)A##p,A##n)
-#define QMVIEW(A) gsl_matrix_float_complex_view A = gsl_matrix_float_complex_view_array((float*)A##p,A##r,A##c)
+#define QVVIEW(A) gsl_vector_complex_float_view A = gsl_vector_float_complex_view_array((float*)A##p,A##n)
+#define QMVIEW(A) gsl_matrix_complex_float_view A = gsl_matrix_float_complex_view_array((float*)A##p,A##r,A##c)
 #define KFVVIEW(A) gsl_vector_float_const_view A = gsl_vector_float_const_view_array(A##p,A##n)
 #define KFMVIEW(A) gsl_matrix_float_const_view A = gsl_matrix_float_const_view_array(A##p,A##r,A##c)
-#define KQVVIEW(A) gsl_vector_float_complex_const_view A = gsl_vector_float_complex_const_view_array((float*)A##p,A##n)
-#define KQMVIEW(A) gsl_matrix_float_complex_const_view A = gsl_matrix_float_complex_const_view_array((float*)A##p,A##r,A##c)
+#define KQVVIEW(A) gsl_vector_complex_float_const_view A = gsl_vector_complex_float_const_view_array((float*)A##p,A##n)
+#define KQMVIEW(A) gsl_matrix_complex_float_const_view A = gsl_matrix_complex_float_const_view_array((float*)A##p,A##r,A##c)
 
 #define V(a) (&a.vector)
 #define M(a) (&a.matrix)
@@ -103,6 +103,100 @@ void no_abort_on_error() {
 }
 
 
+int sumF(KFVEC(x),FVEC(r)) {
+    DEBUGMSG("sumF");
+    REQUIRES(rn==1,BAD_SIZE);
+    int i;
+    float res = 0;
+    for (i = 0; i < xn; i++) res += xp[i];
+    rp[0] = res;
+    OK
+}
+    
+int sumR(KRVEC(x),RVEC(r)) {
+    DEBUGMSG("sumR");
+    REQUIRES(rn==1,BAD_SIZE);
+    int i;
+    double res = 0;
+    for (i = 0; i < xn; i++) res += xp[i];
+    rp[0] = res;
+    OK
+}
+    
+int sumQ(KQVEC(x),QVEC(r)) {
+    DEBUGMSG("sumQ");
+    REQUIRES(rn==1,BAD_SIZE);
+    int i;
+    gsl_complex_float res;
+    res.dat[0] = 0;
+    res.dat[1] = 0;
+    for (i = 0; i < xn; i++) {
+      res.dat[0] += xp[i].dat[0];
+      res.dat[1] += xp[i].dat[1];
+    }
+    rp[0] = res;
+    OK
+}
+    
+int sumC(KCVEC(x),CVEC(r)) {
+    DEBUGMSG("sumC");
+    REQUIRES(rn==1,BAD_SIZE);
+    int i;
+    gsl_complex res;
+    res.dat[0] = 0;
+    res.dat[1] = 0;
+    for (i = 0; i < xn; i++)  {
+      res.dat[0] += xp[i].dat[0];
+      res.dat[1] += xp[i].dat[1];
+    }
+    rp[0] = res;
+    OK
+}
+
+int dotF(KFVEC(x), KFVEC(y), FVEC(r)) {
+    DEBUGMSG("dotF");
+    REQUIRES(xn==yn,BAD_SIZE); 
+    REQUIRES(rn==1,BAD_SIZE);
+    DEBUGMSG("dotF");
+    KFVVIEW(x);
+    KFVVIEW(y);
+    gsl_blas_sdot(V(x),V(y),rp);
+    OK
+}
+    
+int dotR(KRVEC(x), KRVEC(y), RVEC(r)) {
+    DEBUGMSG("dotR");
+    REQUIRES(xn==yn,BAD_SIZE); 
+    REQUIRES(rn==1,BAD_SIZE);
+    DEBUGMSG("dotR");
+    KDVVIEW(x);
+    KDVVIEW(y);
+    gsl_blas_ddot(V(x),V(y),rp);
+    OK
+}
+    
+int dotQ(KQVEC(x), KQVEC(y), QVEC(r)) {
+    DEBUGMSG("dotQ");
+    REQUIRES(xn==yn,BAD_SIZE); 
+    REQUIRES(rn==1,BAD_SIZE);
+    DEBUGMSG("dotQ");
+    KQVVIEW(x);
+    KQVVIEW(y);
+    gsl_blas_cdotu(V(x),V(y),rp);
+    OK
+}
+    
+int dotC(KCVEC(x), KCVEC(y), CVEC(r)) {
+    DEBUGMSG("dotC");
+    REQUIRES(xn==yn,BAD_SIZE); 
+    REQUIRES(rn==1,BAD_SIZE);
+    DEBUGMSG("dotC");
+    KCVVIEW(x);
+    KCVVIEW(y);
+    gsl_blas_zdotu(V(x),V(y),rp);
+    OK
+}
+    
 int toScalarR(int code, KRVEC(x), RVEC(r)) { 
     REQUIRES(rn==1,BAD_SIZE);
     DEBUGMSG("toScalarR");

@@ -19,8 +19,9 @@ module Data.Packed.Vector (
     subVector, takesV, join,
     constant, linspace,
     vecdisp,
-    vectorFMax, vectorFMin, vectorFMaxIndex, vectorFMinIndex,
-    vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex,
+--    moved to Numeric.LinearAlgebra.Interface typeclass
+--    vectorFMax, vectorFMin, vectorFMaxIndex, vectorFMinIndex,
+--    vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex,
     mapVector, zipVector,
     fscanfVector, fprintfVector, freadVector, fwriteVector,
     foldLoop, foldVector, foldVectorG
@@ -82,6 +83,7 @@ linspace n (a,b) = add a $ scale s  $ fromList [0 .. fromIntegral n-1]
           add   = vectorMapValR AddConstant
           s = (b-a)/fromIntegral (n-1)
 
+{-
 vectorFMax :: Vector Float -> Float
 vectorFMax = toScalarF Max
 
@@ -105,6 +107,7 @@ vectorMaxIndex = round . toScalarR MaxIdx
 
 vectorMinIndex :: Vector Double -> Int
 vectorMinIndex = round . toScalarR MinIdx
+-}
 
 {- | creates a vector with a given number of equal components:
 

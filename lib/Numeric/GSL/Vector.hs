@@ -14,6 +14,8 @@
 -----------------------------------------------------------------------------
 
 module Numeric.GSL.Vector (
+    sumF, sumR, sumQ, sumC,
+    dotF, dotR, dotQ, dotC,
     FunCodeS(..), toScalarR, toScalarF,
     FunCodeV(..), vectorMapR, vectorMapC, vectorMapF,
     FunCodeSV(..), vectorMapValR, vectorMapValC, vectorMapValF,
@@ -73,6 +75,74 @@ data FunCodeS = Norm2
               | MinIdx
               | Min
               deriving Enum
+
+------------------------------------------------------------------
+
+-- | sum of elements
+sumF :: Vector Float -> Float
+sumF x = unsafePerformIO $ do
+           r <- createVector 1
+           app2 c_sumF vec x vec r "sumF"
+           return $ r @> 0
+
+-- | sum of elements
+sumR :: Vector Double -> Double
+sumR x = unsafePerformIO $ do
+           r <- createVector 1
+           app2 c_sumR vec x vec r "sumR"
+           return $ r @> 0
+
+-- | sum of elements
+sumQ :: Vector (Complex Float) -> Complex Float
+sumQ x = unsafePerformIO $ do
+           r <- createVector 1
+           app2 c_sumQ vec x vec r "sumQ"
+           return $ r @> 0
+
+-- | sum of elements
+sumC :: Vector (Complex Double) -> Complex Double
+sumC x = unsafePerformIO $ do
+           r <- createVector 1
+           app2 c_sumC vec x vec r "sumC"
+           return $ r @> 0
+
+foreign import ccall safe "gsl-aux.h sumF" c_sumF :: TFF
+foreign import ccall safe "gsl-aux.h sumR" c_sumR :: TVV
+foreign import ccall safe "gsl-aux.h sumQ" c_sumQ :: TQVQV
+foreign import ccall safe "gsl-aux.h sumC" c_sumC :: TCVCV
+
+-- | dot product
+dotF :: Vector Float -> Vector Float -> Float
+dotF x y = unsafePerformIO $ do
+           r <- createVector 1
+           app3 c_dotF vec x vec y vec r "dotF"
+           return $ r @> 0
+
+-- | dot product
+dotR :: Vector Double -> Vector Double -> Double
+dotR x y = unsafePerformIO $ do
+           r <- createVector 1
+           app3 c_dotR vec x vec y vec r "dotR"
+           return $ r @> 0
+
+-- | dot product
+dotQ :: Vector (Complex Float) -> Vector (Complex Float) -> Complex Float
+dotQ x y = unsafePerformIO $ do
+           r <- createVector 1
+           app3 c_dotQ vec x vec y vec r "dotQ"
+           return $ r @> 0
+
+-- | dot product
+dotC :: Vector (Complex Double) -> Vector (Complex Double) -> Complex Double
+dotC x y = unsafePerformIO $ do
+           r <- createVector 1
+           app3 c_dotC vec x vec y vec r "dotC"
+           return $ r @> 0
+
+foreign import ccall safe "gsl-aux.h dotF" c_dotF :: TFFF
+foreign import ccall safe "gsl-aux.h dotR" c_dotR :: TVVV
+foreign import ccall safe "gsl-aux.h dotQ" c_dotQ :: TQVQVQV
+foreign import ccall safe "gsl-aux.h dotC" c_dotC :: TCVCVCV
 
 ------------------------------------------------------------------
 

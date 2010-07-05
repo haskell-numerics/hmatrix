@@ -30,6 +30,7 @@ module Graphics.Plot(
 
 import Data.Packed
 import Numeric.LinearAlgebra(outer)
+import Numeric.LinearAlgebra.Linear(Vectors(..))
 import Data.List(intersperse)
 import System.Process (system)
 

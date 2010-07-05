@@ -20,6 +20,7 @@ import Foreign.C.Types
 
 type PF = Ptr Float                             --
 type PD = Ptr Double                            --
+type PQ = Ptr (Complex Float)                   --
 type PC = Ptr (Complex Double)                  --
 type TF = CInt -> PF -> IO CInt                 --
 type TFF = CInt -> PF -> TF                     --
@@ -53,6 +54,9 @@ type TCMCMCM = CInt -> CInt -> PC -> TCMCM      --
 type TCV = CInt -> PC -> IO CInt                --
 type TCVCV = CInt -> PC -> TCV                  --
 type TCVCVCV = CInt -> PC -> TCVCV              --
+type TQV = CInt -> PQ -> IO CInt                --
+type TQVQV = CInt -> PQ -> TQV                  --
+type TQVQVQV = CInt -> PQ -> TQVQV              --
 type TCMCV = CInt -> CInt -> PC -> TCV          --
 type TVCV = CInt -> PD -> TCV                   --
 type TCVM = CInt -> PC -> TM                    --

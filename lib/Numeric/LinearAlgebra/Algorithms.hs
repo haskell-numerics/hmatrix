@@ -22,7 +22,7 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Supported types
     Field(),
 -- * Products
-    multiply, dot,
+    multiply, -- dot, moved dot to typeclass
     outer, kronecker,
 -- * Linear Systems
     linearSolve,
@@ -707,12 +707,13 @@ luFact (l_u,perm) | r <= c    = (l ,u ,p, s)
 
 --------------------------------------------------
 
+{- moved to Numeric.LinearAlgebra.Interface Vector typeclass
 -- | Euclidean inner product.
 dot :: (Field t) => Vector t -> Vector t -> t
 dot u v = multiply r c  @@> (0,0)
     where r = asRow u
           c = asColumn v
-
+-}
 
 {- | Outer product of two vectors.
 

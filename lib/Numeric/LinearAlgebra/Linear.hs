@@ -1,4 +1,5 @@
 {-# LANGUAGE UndecidableInstances, MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Linear
@@ -15,6 +16,7 @@ Basic optimized operations on vectors and matrices.
 -----------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.Linear (
+    Vectors(..), normalise,                                    
     Linear(..)
 ) where
 
@@ -22,6 +24,64 @@ import Data.Packed.Vector
 import Data.Packed.Matrix
 import Data.Complex
 import Numeric.GSL.Vector
+
+-- | normalise a vector to unit length
+normalise :: (Floating a, Vectors Vector a, 
+              Linear Vector a, Fractional (Vector a)) => Vector a -> Vector a
+normalise v = scaleRecip (vectorSum v) v 
+
+-- | basic Vector functions
+class (Num b) => Vectors a b where
+    vectorSum :: a b -> b
+    euclidean :: a b -> b
+    absSum    :: a b -> b
+    vectorMin :: a b -> b
+    vectorMax :: a b -> b
+    minIdx    :: a b -> Int
+    maxIdx    :: a b -> Int
+    dot       :: a b -> a b -> b
+
+instance Vectors Vector Float where
+    vectorSum = sumF
+    euclidean = toScalarF Norm2
+    absSum    = toScalarF AbsSum
+    vectorMin = toScalarF Min
+    vectorMax = toScalarF Max
+    minIdx    = round . toScalarF MinIdx
+    maxIdx    = round . toScalarF MaxIdx
+    dot       = dotF
+
+instance Vectors Vector Double where
+    vectorSum = sumR
+    euclidean = toScalarR Norm2
+    absSum    = toScalarR AbsSum
+    vectorMin = toScalarR Min
+    vectorMax = toScalarR Max
+    minIdx    = round . toScalarR MinIdx
+    maxIdx    = round . toScalarR MaxIdx
+    dot       = dotR
+
+instance Vectors Vector (Complex Float) where
+    vectorSum = sumQ
+    euclidean = undefined
+    absSum    = undefined
+    vectorMin = undefined
+    vectorMax = undefined
+    minIdx    = undefined
+    maxIdx    = undefined
+    dot       = dotQ
+
+instance Vectors Vector (Complex Double) where
+    vectorSum  = sumC
+    euclidean = undefined
+    absSum    = undefined
+    vectorMin = undefined
+    vectorMax = undefined
+    minIdx    = undefined
+    maxIdx    = undefined
+    dot       = dotC
+
+----------------------------------------------------
 
 -- | Basic element-by-element functions.
 class (Container c e) => Linear c e where
@@ -50,7 +110,7 @@ instance Linear Vector Float where
     sub = vectorZipF Sub
     mul = vectorZipF Mul
     divide = vectorZipF Div
-    equal u v = dim u == dim v && vectorFMax (vectorMapF Abs (sub u v)) == 0.0
+    equal u v = dim u == dim v && vectorMax (vectorMapF Abs (sub u v)) == 0.0
     scalar x = fromList [x]
 
 instance Linear Vector Double where
