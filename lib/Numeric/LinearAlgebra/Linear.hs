@@ -34,8 +34,8 @@ class Num e => Vectors a e where
     absSum    :: a e -> e
     vectorMin :: a e -> e
     vectorMax :: a e -> e
-    minIdx    :: a e -> Int
-    maxIdx    :: a e -> Int
+    vectorMinIndex :: a e -> Int
+    vectorMaxIndex :: a e -> Int
     dot       :: a e -> a e -> e
 
 instance Vectors Vector Float where
@@ -44,8 +44,8 @@ instance Vectors Vector Float where
     absSum    = toScalarF AbsSum
     vectorMin = toScalarF Min
     vectorMax = toScalarF Max
-    minIdx    = round . toScalarF MinIdx
-    maxIdx    = round . toScalarF MaxIdx
+    vectorMinIndex = round . toScalarF MinIdx
+    vectorMaxIndex = round . toScalarF MaxIdx
     dot       = dotF
 
 instance Vectors Vector Double where
@@ -54,28 +54,28 @@ instance Vectors Vector Double where
     absSum    = toScalarR AbsSum
     vectorMin = toScalarR Min
     vectorMax = toScalarR Max
-    minIdx    = round . toScalarR MinIdx
-    maxIdx    = round . toScalarR MaxIdx
+    vectorMinIndex = round . toScalarR MinIdx
+    vectorMaxIndex = round . toScalarR MaxIdx
     dot       = dotR
 
 instance Vectors Vector (Complex Float) where
     vectorSum = sumQ
     euclidean = (:+ 0) . toScalarQ Norm2
     absSum    = (:+ 0) . toScalarQ AbsSum
-    vectorMin = ap (@>) minIdx
-    vectorMax = ap (@>) maxIdx
-    minIdx    = minIdx . fst . fromComplex . (zipVector (*) `ap` mapVector conjugate)
-    maxIdx    = maxIdx . fst . fromComplex . (zipVector (*) `ap` mapVector conjugate)
+    vectorMin = ap (@>) vectorMinIndex
+    vectorMax = ap (@>) vectorMaxIndex
+    vectorMinIndex = vectorMinIndex . fst . fromComplex . (zipVector (*) `ap` mapVector conjugate)
+    vectorMaxIndex = vectorMaxIndex . fst . fromComplex . (zipVector (*) `ap` mapVector conjugate)
     dot       = dotQ
 
 instance Vectors Vector (Complex Double) where
     vectorSum  = sumC
     euclidean = (:+ 0) . toScalarC Norm2
     absSum    = (:+ 0) . toScalarC AbsSum
-    vectorMin = ap (@>) minIdx
-    vectorMax = ap (@>) maxIdx
-    minIdx    = minIdx . fst . fromComplex . (zipVector (*) `ap` mapVector conjugate)
-    maxIdx    = maxIdx . fst . fromComplex . (zipVector (*) `ap` mapVector conjugate)
+    vectorMin = ap (@>) vectorMinIndex
+    vectorMax = ap (@>) vectorMaxIndex
+    vectorMinIndex = vectorMinIndex . fst . fromComplex . (zipVector (*) `ap` mapVector conjugate)
+    vectorMaxIndex = vectorMaxIndex . fst . fromComplex . (zipVector (*) `ap` mapVector conjugate)
     dot       = dotC
 
 ----------------------------------------------------
