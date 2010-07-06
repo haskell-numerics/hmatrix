@@ -64,8 +64,8 @@ instance Vectors Vector (Complex Float) where
     absSum    = (:+ 0) . toScalarQ AbsSum
     vectorMin = ap (@>) minIdx
     vectorMax = ap (@>) maxIdx
-    minIdx    = minIdx . (zipVector (*) `ap` mapVector conjugate)
-    maxIdx    = maxIdx . (zipVector (*) `ap` mapVector conjugate)
+    minIdx    = minIdx . fst . fromComplex . (zipVector (*) `ap` mapVector conjugate)
+    maxIdx    = maxIdx . fst . fromComplex . (zipVector (*) `ap` mapVector conjugate)
     dot       = dotQ
 
 instance Vectors Vector (Complex Double) where
@@ -74,8 +74,8 @@ instance Vectors Vector (Complex Double) where
     absSum    = (:+ 0) . toScalarC AbsSum
     vectorMin = ap (@>) minIdx
     vectorMax = ap (@>) maxIdx
-    minIdx    = minIdx . (zipVector (*) `ap` mapVector conjugate)
-    maxIdx    = maxIdx . (zipVector (*) `ap` mapVector conjugate)
+    minIdx    = minIdx . fst . fromComplex . (zipVector (*) `ap` mapVector conjugate)
+    maxIdx    = maxIdx . fst . fromComplex . (zipVector (*) `ap` mapVector conjugate)
     dot       = dotC
 
 ----------------------------------------------------
