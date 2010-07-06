@@ -16,7 +16,7 @@ Basic optimized operations on vectors and matrices.
 -----------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.Linear (
-    Vectors(..), normalise,                                    
+    Vectors(..),                                    
     Linear(..)
 ) where
 
@@ -25,21 +25,18 @@ import Data.Packed.Matrix
 import Data.Complex
 import Numeric.GSL.Vector
 
--- | normalise a vector to unit length
-normalise :: (Floating a, Vectors Vector a, 
-              Linear Vector a, Fractional (Vector a)) => Vector a -> Vector a
-normalise v = scaleRecip (vectorSum v) v 
+import Control.Monad(ap)
 
 -- | basic Vector functions
-class (Num b) => Vectors a b where
-    vectorSum :: a b -> b
-    euclidean :: a b -> b
-    absSum    :: a b -> b
-    vectorMin :: a b -> b
-    vectorMax :: a b -> b
-    minIdx    :: a b -> Int
-    maxIdx    :: a b -> Int
-    dot       :: a b -> a b -> b
+class Num e => Vectors a e where
+    vectorSum :: a e -> e
+    euclidean :: a e -> e
+    absSum    :: a e -> e
+    vectorMin :: a e -> e
+    vectorMax :: a e -> e
+    minIdx    :: a e -> Int
+    maxIdx    :: a e -> Int
+    dot       :: a e -> a e -> e
 
 instance Vectors Vector Float where
     vectorSum = sumF
@@ -63,22 +60,22 @@ instance Vectors Vector Double where
 
 instance Vectors Vector (Complex Float) where
     vectorSum = sumQ
-    euclidean = undefined
-    absSum    = undefined
-    vectorMin = undefined
-    vectorMax = undefined
-    minIdx    = undefined
-    maxIdx    = undefined
+    euclidean = (:+ 0) . toScalarQ Norm2
+    absSum    = (:+ 0) . toScalarQ AbsSum
+    vectorMin = ap (@>) minIdx
+    vectorMax = ap (@>) maxIdx
+    minIdx    = minIdx . (zipVector (*) `ap` mapVector conjugate)
+    maxIdx    = maxIdx . (zipVector (*) `ap` mapVector conjugate)
     dot       = dotQ
 
 instance Vectors Vector (Complex Double) where
     vectorSum  = sumC
-    euclidean = undefined
-    absSum    = undefined
-    vectorMin = undefined
-    vectorMax = undefined
-    minIdx    = undefined
-    maxIdx    = undefined
+    euclidean = (:+ 0) . toScalarC Norm2
+    absSum    = (:+ 0) . toScalarC AbsSum
+    vectorMin = ap (@>) minIdx
+    vectorMax = ap (@>) maxIdx
+    minIdx    = minIdx . (zipVector (*) `ap` mapVector conjugate)
+    maxIdx    = maxIdx . (zipVector (*) `ap` mapVector conjugate)
     dot       = dotC
 
 ----------------------------------------------------

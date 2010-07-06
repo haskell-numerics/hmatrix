@@ -16,7 +16,7 @@
 module Numeric.GSL.Vector (
     sumF, sumR, sumQ, sumC,
     dotF, dotR, dotQ, dotC,
-    FunCodeS(..), toScalarR, toScalarF,
+    FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ,
     FunCodeV(..), vectorMapR, vectorMapC, vectorMapF,
     FunCodeSV(..), vectorMapValR, vectorMapValC, vectorMapValF,
     FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF,
@@ -181,6 +181,18 @@ toScalarF :: FunCodeS -> Vector Float -> Float
 toScalarF oper =  toScalarAux c_toScalarF (fromei oper)
 
 foreign import ccall safe "gsl-aux.h toScalarF" c_toScalarF :: CInt -> TFF
+
+-- | obtains different functions of a vector: only norm1, norm2
+toScalarC :: FunCodeS -> Vector (Complex Double) -> Double
+toScalarC oper =  toScalarAux c_toScalarC (fromei oper)
+
+foreign import ccall safe "gsl-aux.h toScalarC" c_toScalarC :: CInt -> TCVV
+
+-- | obtains different functions of a vector: only norm1, norm2
+toScalarQ :: FunCodeS -> Vector (Complex Float) -> Float
+toScalarQ oper =  toScalarAux c_toScalarQ (fromei oper)
+
+foreign import ccall safe "gsl-aux.h toScalarQ" c_toScalarQ :: CInt -> TQVF
 
 ------------------------------------------------------------------
 

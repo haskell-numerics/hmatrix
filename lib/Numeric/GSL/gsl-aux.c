@@ -234,6 +234,35 @@ int toScalarF(int code, KFVEC(x), FVEC(r)) {
 }
 
 
+int toScalarC(int code, KCVEC(x), RVEC(r)) { 
+    REQUIRES(rn==1,BAD_SIZE);
+    DEBUGMSG("toScalarC");
+    KCVVIEW(x);
+    double res;
+    switch(code) {
+        case 0: { res = gsl_blas_dznrm2(V(x)); break; } 
+        case 1: { res = gsl_blas_dzasum(V(x));  break; }
+        default: ERROR(BAD_CODE);
+    }
+    rp[0] = res;
+    OK
+}
+
+int toScalarQ(int code, KQVEC(x), FVEC(r)) { 
+    REQUIRES(rn==1,BAD_SIZE);
+    DEBUGMSG("toScalarQ");
+    KQVVIEW(x);
+    float res;
+    switch(code) {
+        case 0: { res = gsl_blas_scnrm2(V(x)); break; } 
+        case 1: { res = gsl_blas_scasum(V(x));  break; }
+        default: ERROR(BAD_CODE);
+    }
+    rp[0] = res;
+    OK
+}
+
+
 inline double sign(double x) {
     if(x>0) {
         return +1.0;
