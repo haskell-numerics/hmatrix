@@ -31,6 +31,7 @@ import Data.Packed.Internal
 import Numeric.GSL.Vector
 -- import Data.Packed.ST
 
+
 import Data.Binary
 import Foreign.Storable
 import Control.Monad(replicateM)
@@ -101,13 +102,16 @@ vectorMax = toScalarR Max
 
 vectorMin :: Vector Double -> Double
 vectorMin = toScalarR Min
+-}
 
+{-# DEPRECATED vectorMaxIndex "use minIdx" #-}
 vectorMaxIndex :: Vector Double -> Int
 vectorMaxIndex = round . toScalarR MaxIdx
 
+{-# DEPRECATED vectorMinIndex "use maxIdx" #-}
 vectorMinIndex :: Vector Double -> Int
 vectorMinIndex = round . toScalarR MinIdx
--}
+
 
 {- | creates a vector with a given number of equal components:
 
