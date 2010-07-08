@@ -356,6 +356,7 @@ makeUnitary v | realPart n > 1    = v / scalar n
 -- | Performance measurements.
 runBenchmarks :: IO ()
 runBenchmarks = do
+  --cholBench
     solveBench
     subBench
     multBench
@@ -455,3 +456,18 @@ solveBench = do
     solveBenchN 500
     solveBenchN 1000
     -- solveBenchN 1500
+
+--------------------------------
+
+cholBenchN n = do
+    let x = uniformSample 777 (2*n) (replicate n (-1,1))
+        a = trans x <> x
+    a `seq` putStrLn ""
+    time ("chol " ++ show n) (chol a)
+
+cholBench = do
+    cholBenchN 1200
+    cholBenchN 600
+    cholBenchN 300
+--    cholBenchN 150
+--    cholBenchN 50

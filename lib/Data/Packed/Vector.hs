@@ -21,7 +21,8 @@ module Data.Packed.Vector (
     vecdisp,
 --    moved to Numeric.LinearAlgebra.Interface typeclass
 --    vectorFMax, vectorFMin, vectorFMaxIndex, vectorFMinIndex,
---    vectorMax, vectorMin, vectorMaxIndex, vectorMinIndex,
+--    vectorMax, vectorMin,
+    vectorMaxIndex, vectorMinIndex,
     mapVector, zipVector,
     fscanfVector, fprintfVector, freadVector, fwriteVector,
     foldLoop, foldVector, foldVectorG

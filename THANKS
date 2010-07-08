@@ -76,3 +76,4 @@ and all the people in the Haskell mailing lists for their help.
   case that /tmp is not writable. He also contributed Binary instances for
   Vector and Matrix.
 
+- Vivian McPhail added support for Float and Complex Float elements.
