@@ -265,6 +265,10 @@ instance Element Double where
     transdata  = transdataAux ctransR
     constantD  = constantAux cconstantR
 
+instance Element (Complex Float) where
+    transdata  = transdataAux ctransQ
+    constantD  = constantAux cconstantQ
+
 instance Element (Complex Double) where
     transdata  = transdataAux ctransC
     constantD  = constantAux cconstantC
@@ -314,6 +318,7 @@ transdataAux fun c1 d c2 =
 
 foreign import ccall "transF" ctransF :: TFMFM
 foreign import ccall "transR" ctransR :: TMM
+foreign import ccall "transQ" ctransQ :: TQMQM
 foreign import ccall "transC" ctransC :: TCMCM
 ----------------------------------------------------------------------
 
@@ -342,9 +347,14 @@ constantR :: Double -> Int -> Vector Double
 constantR = constantAux cconstantR
 foreign import ccall "constantR" cconstantR :: Ptr Double -> TV
 
+constantQ :: Complex Float -> Int -> Vector (Complex Float)
+constantQ = constantAux cconstantQ
+foreign import ccall "constantQ" cconstantQ :: Ptr (Complex Float) -> TQV
+
 constantC :: Complex Double -> Int -> Vector (Complex Double)
 constantC = constantAux cconstantC
 foreign import ccall "constantC" cconstantC :: Ptr (Complex Double) -> TCV
+
 ----------------------------------------------------------------------
 
 -- | Extracts a submatrix from a matrix.

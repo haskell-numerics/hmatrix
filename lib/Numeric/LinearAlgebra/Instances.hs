@@ -118,6 +118,14 @@ instance Num (Vector (Complex Double)) where
     abs = vectorMapC Abs
     fromInteger = fromList . return . fromInteger
 
+instance Num (Vector (Complex Float)) where
+    (+) = adaptScalar addConstant add (flip addConstant)
+    negate = scale (-1)
+    (*) = adaptScalar scale mul (flip scale)
+    signum = vectorMapQ Sign
+    abs = vectorMapQ Abs
+    fromInteger = fromList . return . fromInteger
+
 instance Linear Matrix a => Eq (Matrix a) where
     (==) = equal
 
@@ -205,6 +213,27 @@ instance Floating (Vector (Complex Double)) where
     log   = vectorMapC Log
     sqrt  = vectorMapC Sqrt
     (**)  = adaptScalar (vectorMapValC PowSV) (vectorZipC Pow) (flip (vectorMapValC PowVS))
+    pi    = fromList [pi]
+
+-----------------------------------------------------------
+
+instance Floating (Vector (Complex Float)) where
+    sin   = vectorMapQ Sin
+    cos   = vectorMapQ Cos
+    tan   = vectorMapQ Tan
+    asin  = vectorMapQ ASin
+    acos  = vectorMapQ ACos
+    atan  = vectorMapQ ATan
+    sinh  = vectorMapQ Sinh
+    cosh  = vectorMapQ Cosh
+    tanh  = vectorMapQ Tanh
+    asinh = vectorMapQ ASinh
+    acosh = vectorMapQ ACosh
+    atanh = vectorMapQ ATanh
+    exp   = vectorMapQ Exp
+    log   = vectorMapQ Log
+    sqrt  = vectorMapQ Sqrt
+    (**)  = adaptScalar (vectorMapValQ PowSV) (vectorZipQ Pow) (flip (vectorMapValQ PowVS))
     pi    = fromList [pi]
 
 -----------------------------------------------------------

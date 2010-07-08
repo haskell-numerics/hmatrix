@@ -1063,6 +1063,18 @@ int transR(KDMAT(x),DMAT(t)) {
     OK
 }
 
+int transQ(KQMAT(x),QMAT(t)) {
+    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
+    DEBUGMSG("transQ");
+    int i,j;
+    for (i=0; i<tr; i++) {
+        for (j=0; j<tc; j++) {
+        ((complex*)tp)[i*tc+j] = ((complex*)xp)[j*xc+i];
+        }
+    }
+    OK
+}
+
 int transC(KCMAT(x),CMAT(t)) {
     REQUIRES(xr==tc && xc==tr,BAD_SIZE);
     DEBUGMSG("transC");
@@ -1093,6 +1105,16 @@ int constantR(double * pval, DVEC(r)) {
     double val = *pval;
     for(k=0;k<rn;k++) {
         rp[k]=val;
+    }
+    OK
+}
+
+int constantQ(complex* pval, QVEC(r)) {
+    DEBUGMSG("constantQ")
+    int k;
+    complex val = *pval;
+    for(k=0;k<rn;k++) {
+        ((complex*)rp)[k]=val;
     }
     OK
 }

@@ -393,6 +393,83 @@ int mapC(int code, KCVEC(x), CVEC(r)) {
 }
 
 
+gsl_complex_float complex_float_math_fun(gsl_complex (*cf)(gsl_complex), gsl_complex_float a)
+{
+  gsl_complex c;
+  gsl_complex r;
+
+  gsl_complex_float float_r;
+
+  c.dat[0] = a.dat[0];
+  c.dat[1] = a.dat[1];
+
+  r = (*cf)(c);
+
+  float_r.dat[0] = r.dat[0];
+  float_r.dat[1] = r.dat[1];
+
+  return float_r;
+}
+
+gsl_complex_float complex_float_math_op(gsl_complex (*cf)(gsl_complex,gsl_complex), 
+					gsl_complex_float a,gsl_complex_float b)
+{
+  gsl_complex c1;
+  gsl_complex c2;
+  gsl_complex r;
+
+  gsl_complex_float float_r;
+
+  c1.dat[0] = a.dat[0];
+  c1.dat[1] = a.dat[1];
+
+  c2.dat[0] = b.dat[0];
+  c2.dat[1] = b.dat[1];
+
+  r = (*cf)(c1,c2);
+
+  float_r.dat[0] = r.dat[0];
+  float_r.dat[1] = r.dat[1];
+
+  return float_r;
+}
+
+#define OPC(C,F) case C: { for(k=0;k<xn;k++) rp[k] = complex_float_math_fun(&F,xp[k]); OK }
+#define OPCA(C,F,A,B) case C: { for(k=0;k<xn;k++) rp[k] = complex_float_math_op(&F,A,B); OK }
+int mapQAux(int code, KGQVEC(x), GQVEC(r)) {
+    int k;
+    REQUIRES(xn == rn,BAD_SIZE);
+    DEBUGMSG("mapQ");
+    switch (code) {
+        OPC(0,gsl_complex_sin)
+        OPC(1,gsl_complex_cos)
+        OPC(2,gsl_complex_tan)
+        OPC(3,complex_abs)
+        OPC(4,gsl_complex_arcsin)
+        OPC(5,gsl_complex_arccos)
+        OPC(6,gsl_complex_arctan)
+        OPC(7,gsl_complex_sinh)
+        OPC(8,gsl_complex_cosh)
+        OPC(9,gsl_complex_tanh)
+        OPC(10,gsl_complex_arcsinh)
+        OPC(11,gsl_complex_arccosh)
+        OPC(12,gsl_complex_arctanh)
+        OPC(13,gsl_complex_exp)
+        OPC(14,gsl_complex_log)
+        OPC(15,complex_signum)
+        OPC(16,gsl_complex_sqrt)
+
+        // gsl_complex_arg
+        // gsl_complex_abs
+        default: ERROR(BAD_CODE);
+    }
+}
+
+int mapQ(int code, KQVEC(x), QVEC(r)) {
+    return mapQAux(code, xn, (gsl_complex_float*)xp, rn, (gsl_complex_float*)rp);
+}
+
+
 int mapValR(int code, double* pval, KRVEC(x), RVEC(r)) {
     int k;
     double val = *pval;
@@ -443,6 +520,27 @@ int mapValCAux(int code, gsl_complex* pval, KGCVEC(x), GCVEC(r)) {
 
 int mapValC(int code, gsl_complex* val, KCVEC(x), CVEC(r)) {
     return mapValCAux(code, val, xn, (gsl_complex*)xp, rn, (gsl_complex*)rp);
+}
+
+
+int mapValQAux(int code, gsl_complex_float* pval, KQVEC(x), GQVEC(r)) {
+    int k;
+    gsl_complex_float val = *pval;
+    REQUIRES(xn == rn,BAD_SIZE);
+    DEBUGMSG("mapValQ");
+    switch (code) {
+        OPCA(0,gsl_complex_mul,val,xp[k])
+	OPCA(1,gsl_complex_div,val,xp[k])
+	OPCA(2,gsl_complex_add,val,xp[k])
+	OPCA(3,gsl_complex_sub,val,xp[k])
+	OPCA(4,gsl_complex_pow,val,xp[k])
+	OPCA(5,gsl_complex_pow,xp[k],val)
+        default: ERROR(BAD_CODE);
+    }
+}
+
+int mapValQ(int code, gsl_complex_float* val, KQVEC(x), QVEC(r)) {
+    return mapValQAux(code, val, xn, (gsl_complex_float*)xp, rn, (gsl_complex_float*)rp);
 }
 
 
@@ -516,6 +614,34 @@ int zipCAux(int code, KGCVEC(a), KGCVEC(b), GCVEC(r)) {
 
 int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
     return zipCAux(code, an, (gsl_complex*)ap, bn, (gsl_complex*)bp, rn, (gsl_complex*)rp);
+}
+
+
+#define OPCZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = complex_float_math_op(&E,ap[k],bp[k]); OK }
+int zipQAux(int code, KGQVEC(a), KGQVEC(b), GQVEC(r)) {
+    REQUIRES(an == bn && an == rn, BAD_SIZE);
+    int k;
+    switch(code) {
+        OPCZE(0,"zipQ Add",gsl_complex_add)
+        OPCZE(1,"zipQ Sub",gsl_complex_sub)
+        OPCZE(2,"zipQ Mul",gsl_complex_mul)
+        OPCZE(3,"zipQ Div",gsl_complex_div)
+        OPCZE(4,"zipQ Pow",gsl_complex_pow)
+        //OPZE(5,"zipR ATan2",atan2)
+    }
+    //KCVVIEW(a);
+    //KCVVIEW(b);
+    //CVVIEW(r);
+    //gsl_vector_memcpy(V(r),V(a));
+    //int res;
+    switch(code) {
+        default: ERROR(BAD_CODE);
+    }
+}
+
+
+int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
+    return zipQAux(code, an, (gsl_complex_float*)ap, bn, (gsl_complex_float*)bp, rn, (gsl_complex_float*)rp);
 }
 
 

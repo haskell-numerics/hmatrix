@@ -17,9 +17,9 @@ module Numeric.GSL.Vector (
     sumF, sumR, sumQ, sumC,
     dotF, dotR, dotQ, dotC,
     FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ,
-    FunCodeV(..), vectorMapR, vectorMapC, vectorMapF,
-    FunCodeSV(..), vectorMapValR, vectorMapValC, vectorMapValF,
-    FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF,
+    FunCodeV(..), vectorMapR, vectorMapC, vectorMapF, vectorMapQ,
+    FunCodeSV(..), vectorMapValR, vectorMapValC, vectorMapValF, vectorMapValQ,
+    FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF, vectorZipQ,
     RandDist(..), randomVector
 ) where
 
@@ -214,6 +214,12 @@ vectorMapF = vectorMapAux c_vectorMapF
 
 foreign import ccall safe "gsl-aux.h mapF" c_vectorMapF :: CInt -> TFF
 
+-- | map of real vectors with given function
+vectorMapQ :: FunCodeV -> Vector (Complex Float) -> Vector (Complex Float)
+vectorMapQ = vectorMapAux c_vectorMapQ
+
+foreign import ccall safe "gsl-aux.h mapQ" c_vectorMapQ :: CInt -> TQVQV
+
 -------------------------------------------------------------------
 
 -- | map of real vectors with given function
@@ -234,6 +240,12 @@ vectorMapValF oper = vectorMapValAux c_vectorMapValF (fromei oper)
 
 foreign import ccall safe "gsl-aux.h mapValF" c_vectorMapValF :: CInt -> Ptr Float -> TFF
 
+-- | map of complex vectors with given function
+vectorMapValQ :: FunCodeSV -> Complex Float -> Vector (Complex Float) -> Vector (Complex Float)
+vectorMapValQ oper = vectorMapValAux c_vectorMapValQ (fromei oper)
+
+foreign import ccall safe "gsl-aux.h mapValQ" c_vectorMapValQ :: CInt -> Ptr (Complex Float) -> TQVQV
+
 -------------------------------------------------------------------
 
 -- | elementwise operation on real vectors
@@ -253,6 +265,12 @@ vectorZipF :: FunCodeVV -> Vector Float -> Vector Float -> Vector Float
 vectorZipF = vectorZipAux c_vectorZipF
 
 foreign import ccall safe "gsl-aux.h zipF" c_vectorZipF :: CInt -> TFFF
+
+-- | elementwise operation on complex vectors
+vectorZipQ :: FunCodeVV -> Vector (Complex Float) -> Vector (Complex Float) -> Vector (Complex Float)
+vectorZipQ = vectorZipAux c_vectorZipQ
+
+foreign import ccall safe "gsl-aux.h zipQ" c_vectorZipQ :: CInt -> TQVQVQV
 
 -----------------------------------------------------------------------
 

@@ -452,6 +452,7 @@ class (Element e) => Container c e where
     fromComplex :: RealFloat e => c (Complex e) -> (c e, c e)
     comp        :: RealFloat e => c e -> c (Complex e)
     conj        :: RealFloat e => c (Complex e) -> c (Complex e)
+    -- these next two are now weird given we have Floats as well
     real        :: c Double -> c e
     complex     :: c e -> c (Complex Double)
 
@@ -470,6 +471,14 @@ instance Container Vector Double where
     conj = conjV
     real = id
     complex = comp
+
+instance Container Vector (Complex Float) where
+    toComplex = undefined -- can't match
+    fromComplex = undefined
+    comp = undefined
+    conj = undefined
+    real = comp . mapVector realToFrac
+    complex = mapVector (\(r :+ i) -> realToFrac r :+ realToFrac i)
 
 instance Container Vector (Complex Double) where
     toComplex = undefined -- can't match

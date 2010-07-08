@@ -132,6 +132,17 @@ instance Linear Vector (Complex Double) where
     equal u v = dim u == dim v && vectorMax (mapVector magnitude (sub u v)) == 0.0
     scalar x = fromList [x]
 
+instance Linear Vector (Complex Float) where
+    scale = vectorMapValQ Scale
+    scaleRecip = vectorMapValQ Recip
+    addConstant = vectorMapValQ AddConstant
+    add = vectorZipQ Add
+    sub = vectorZipQ Sub
+    mul = vectorZipQ Mul
+    divide = vectorZipQ Div
+    equal u v = dim u == dim v && vectorMax (mapVector magnitude (sub u v)) == 0.0
+    scalar x = fromList [x]
+
 instance (Linear Vector a, Container Matrix a) => (Linear Matrix a) where
     scale x = liftMatrix (scale x)
     scaleRecip x = liftMatrix (scaleRecip x)
