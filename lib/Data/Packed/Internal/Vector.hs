@@ -339,8 +339,9 @@ unzipVectorWith f g u = unsafePerformIO $ do
       return (v,w)
 {-# INLINE unzipVectorWith #-}
 
+foldVector :: Storable a => (a -> b -> b) -> b -> Vector a -> b
 foldVector f x v = unsafePerformIO $
-    unsafeWith (v::Vector Double) $ \p -> do
+    unsafeWith v $ \p -> do
         let go (-1) s = return s
             go !k !s = do y <- peekElemOff p k
                           go (k-1::Int) (f y s)
