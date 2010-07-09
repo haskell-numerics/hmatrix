@@ -18,6 +18,7 @@ module Data.Packed.Internal.Vector (
     fromList, toList, (|>),
     join, (@>), safe, at, at', subVector, takesV,
     mapVector, zipVector, unzipVectorWith,
+    mapVectorM, mapVectorM_,
     foldVector, foldVectorG, foldLoop,
     createVector, vec,
     asComplex, asReal,
@@ -35,6 +36,7 @@ import Foreign.C.String
 import Foreign.C.Types(CInt,CChar)
 import Data.Complex
 import Control.Monad(when)
+import Control.Monad.Trans
 
 #if __GLASGOW_HASKELL__ >= 605
 import GHC.ForeignPtr           (mallocPlainForeignPtrBytes)
@@ -357,6 +359,39 @@ foldVectorG f s0 v = foldLoop g s0 (dim v)
 
 -------------------------------------------------------------------
 
+-- | monadic map over Vectors
+mapVectorM :: (Storable a, Storable b, MonadIO m) => (a -> m b) -> Vector a -> m (Vector b)
+mapVectorM f v = do
+    w <- liftIO $ createVector (dim v)
+    mapVectorM' f v w (dim v -1)
+    return w
+    where mapVectorM' f' v' w' 0  = do
+                                    x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p 0 
+                                    y <- f' x
+                                    liftIO $ unsafeWith w' $ \q -> pokeElemOff q 0 y
+          mapVectorM' f' v' w' !k = do
+                                    x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p k 
+                                    y <- f' x
+                                    liftIO $ unsafeWith w' $ \q -> pokeElemOff q k y
+                                    mapVectorM' f' v' w' (k-1)
+{-# INLINE mapVectorM #-}
+
+-- | monadic map over Vectors
+mapVectorM_ :: (Storable a, MonadIO m) => (a -> m ()) -> Vector a -> m ()
+mapVectorM_ f v = do
+    mapVectorM' f v (dim v -1)
+    where mapVectorM' f' v' 0  = do
+                                 x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p 0
+                                 f' x
+          mapVectorM' f' v' !k = do
+                                 x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p k 
+                                 _ <- f' x
+                                 mapVectorM' f' v' (k-1)
+{-# INLINE mapVectorM_ #-}
+
+-------------------------------------------------------------------
+
+
 -- | Loads a vector from an ASCII file (the number of elements must be known in advance).
 fscanfVector :: FilePath -> Int -> IO (Vector Double)
 fscanfVector filename n = do
@@ -398,3 +433,4 @@ fwriteVector filename v = do
     free charname
 
 foreign import ccall "vector_fwrite" gsl_vector_fwrite :: Ptr CChar -> TV
+

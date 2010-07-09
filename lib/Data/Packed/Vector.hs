@@ -25,6 +25,7 @@ module Data.Packed.Vector (
 --    vectorMax, vectorMin,
     vectorMaxIndex, vectorMinIndex,
     mapVector, zipVector, unzipVector, unzipVectorWith,
+    mapVectorM, mapVectorM_,
     fscanfVector, fprintfVector, freadVector, fwriteVector,
     foldLoop, foldVector, foldVectorG
 ) where
@@ -154,3 +155,5 @@ vecdisp f v
 -- | unzip for Vectors
 unzipVector :: (Storable a, Storable b, Storable (a,b)) => Vector (a,b) -> (Vector a,Vector b)
 unzipVector = unzipVectorWith id id
+
+
