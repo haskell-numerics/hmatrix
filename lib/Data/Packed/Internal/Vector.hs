@@ -1,4 +1,4 @@
-{-# LANGUAGE MagicHash, CPP, UnboxedTuples, BangPatterns #-}
+{-# LANGUAGE MagicHash, CPP, UnboxedTuples, BangPatterns, FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Vector
@@ -17,7 +17,7 @@ module Data.Packed.Internal.Vector (
     Vector, dim,
     fromList, toList, (|>),
     join, (@>), safe, at, at', subVector, takesV,
-    mapVector, zipVector,
+    mapVector, zipVector, unzipVectorWith,
     foldVector, foldVectorG, foldLoop,
     createVector, vec,
     asComplex, asReal,
@@ -317,6 +317,25 @@ zipVector f u v = unsafePerformIO $ do
                 go (n -1)
     return w
 {-# INLINE zipVector #-}
+
+-- | unzipWith for Vectors
+unzipVectorWith :: (Storable (a,b), Storable c, Storable d) 
+                   => (a -> c) -> (b -> d) -> Vector (a,b) -> (Vector c,Vector d)
+unzipVectorWith f g u = unsafePerformIO $ do
+      let n = dim u
+      v <- createVector n
+      w <- createVector n
+      unsafeWith u $ \pu ->
+          unsafeWith v $ \pv ->
+              unsafeWith w $ \pw -> do
+                  let go (-1) = return ()
+                      go !k   = do (x,y) <- peekElemOff pu k
+                                   pokeElemOff          pv k (f x)
+                                   pokeElemOff          pw k (g y)
+                                   go (k-1)
+                  go (n-1)
+      return (v,w)
+{-# INLINE unzipVectorWith #-}
 
 foldVector f x v = unsafePerformIO $
     unsafeWith (v::Vector Double) $ \p -> do

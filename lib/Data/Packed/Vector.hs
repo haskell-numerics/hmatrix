@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Vector
@@ -23,7 +24,7 @@ module Data.Packed.Vector (
 --    vectorFMax, vectorFMin, vectorFMaxIndex, vectorFMinIndex,
 --    vectorMax, vectorMin,
     vectorMaxIndex, vectorMinIndex,
-    mapVector, zipVector,
+    mapVector, zipVector, unzipVector, unzipVectorWith,
     fscanfVector, fprintfVector, freadVector, fwriteVector,
     foldLoop, foldVector, foldVectorG
 ) where
@@ -149,3 +150,7 @@ vecdisp f v
     . unwords . lines .  tail . dropWhile (not . (`elem` " \n"))
     . f . trans . reshape 1
     $ v
+
+-- | unzip for Vectors
+unzipVector :: (Storable a, Storable b, Storable (a,b)) => Vector (a,b) -> (Vector a,Vector b)
+unzipVector = unzipVectorWith id id
