@@ -391,11 +391,11 @@ conjV :: (Storable a, RealFloat a) => Vector (Complex a) -> Vector (Complex a)
 conjV = mapVector conjugate
 
 -- | creates a complex vector from vectors with real and imaginary parts
-toComplexV :: Element a => (Vector a, Vector a) ->  Vector (Complex a)
+toComplexV :: (RealFloat a, Element a) => (Vector a, Vector a) ->  Vector (Complex a)
 toComplexV (r,i) = asComplex $ flatten $ fromColumns [r,i]
 
 -- | the inverse of 'toComplex'
-fromComplexV :: Element a => Vector (Complex a) -> (Vector a, Vector a)
+fromComplexV :: (RealFloat a, Element a) => Vector (Complex a) -> (Vector a, Vector a)
 fromComplexV z = (r,i) where
     [r,i] = toColumns $ reshape 2 $ asReal z
 
