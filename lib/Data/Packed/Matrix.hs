@@ -37,7 +37,7 @@ module Data.Packed.Matrix (
 
 import Data.Packed.Internal
 import qualified Data.Packed.ST as ST
-import Data.Packed.Vector
+--import Data.Packed.Vector
 import Data.Array
 import System.Process(readProcess)
 import Text.Printf(printf)
@@ -113,7 +113,7 @@ adaptBlocks ms = ms' where
 
     g [Just nr,Just nc] m
                 | nr == r && nc == c = m
-                | r == 1 && c == 1 = reshape nc (constant x (nr*nc))
+                | r == 1 && c == 1 = reshape nc (constantD x (nr*nc))
                 | r == 1 = fromRows (replicate nr (flatten m))
                 | otherwise = fromColumns (replicate nc (flatten m))
       where
@@ -165,7 +165,7 @@ takeDiag m = fromList [flatten m `at` (k*cols m+k) | k <- [0 .. min (rows m) (co
 
 -- | creates the identity matrix of given dimension
 ident :: Element a => Int -> Matrix a
-ident n = diag (constant 1 n)
+ident n = diag (constantD 1 n)
 
 ------------------------------------------------------------
 
@@ -459,7 +459,7 @@ class (Element e) => Container c e where
 instance Container Vector Float where
     toComplex = toComplexV
     fromComplex = fromComplexV
-    comp v = toComplex (v,constant 0 (dim v))
+    comp v = toComplex (v,constantD 0 (dim v))
     conj = conjV
     real = mapVector realToFrac
     complex = (mapVector (\(r :+ i) -> (realToFrac r :+ realToFrac i))) . comp
@@ -467,7 +467,7 @@ instance Container Vector Float where
 instance Container Vector Double where
     toComplex = toComplexV
     fromComplex = fromComplexV
-    comp v = toComplex (v,constant 0 (dim v))
+    comp v = toComplex (v,constantD 0 (dim v))
     conj = conjV
     real = id
     complex = comp

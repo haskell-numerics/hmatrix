@@ -33,7 +33,7 @@ module Data.Packed.Vector (
 import Data.Packed.Internal
 import Numeric.GSL.Vector
 -- import Data.Packed.ST
-
+import Numeric.LinearAlgebra.Linear
 
 import Data.Binary
 import Foreign.Storable
@@ -81,11 +81,9 @@ Logarithmic spacing can be defined as follows:
 
 @logspace n (a,b) = 10 ** linspace n (a,b)@
 -}
-linspace :: Int -> (Double, Double) -> Vector Double
-linspace n (a,b) = add a $ scale s  $ fromList [0 .. fromIntegral n-1]
-    where scale = vectorMapValR Scale
-          add   = vectorMapValR AddConstant
-          s = (b-a)/fromIntegral (n-1)
+linspace :: (Enum e, Linear Vector e, Element e) => Int -> (e, e) -> Vector e
+linspace n (a,b) = addConstant a $ scale s $ fromList [0 .. fromIntegral n-1]
+    where s = (b-a)/fromIntegral (n-1)
 
 {-
 vectorFMax :: Vector Float -> Float

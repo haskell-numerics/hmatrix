@@ -20,7 +20,7 @@ module Numeric.LinearAlgebra.Linear (
     Linear(..)
 ) where
 
-import Data.Packed.Vector
+import Data.Packed.Internal.Vector
 import Data.Packed.Matrix
 import Data.Complex
 import Numeric.GSL.Vector
