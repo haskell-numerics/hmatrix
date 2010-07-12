@@ -152,6 +152,6 @@ vecdisp f v
 
 -- | unzip for Vectors
 unzipVector :: (Storable a, Storable b, Storable (a,b)) => Vector (a,b) -> (Vector a,Vector b)
-unzipVector = unzipVectorWith id id
+unzipVector = unzipVectorWith id
 
 

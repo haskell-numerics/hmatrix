@@ -322,8 +322,8 @@ zipVector f u v = unsafePerformIO $ do
 
 -- | unzipWith for Vectors
 unzipVectorWith :: (Storable (a,b), Storable c, Storable d) 
-                   => (a -> c) -> (b -> d) -> Vector (a,b) -> (Vector c,Vector d)
-unzipVectorWith f g u = unsafePerformIO $ do
+                   => ((a,b) -> (c,d)) -> Vector (a,b) -> (Vector c,Vector d)
+unzipVectorWith f u = unsafePerformIO $ do
       let n = dim u
       v <- createVector n
       w <- createVector n
@@ -331,9 +331,10 @@ unzipVectorWith f g u = unsafePerformIO $ do
           unsafeWith v $ \pv ->
               unsafeWith w $ \pw -> do
                   let go (-1) = return ()
-                      go !k   = do (x,y) <- peekElemOff pu k
-                                   pokeElemOff          pv k (f x)
-                                   pokeElemOff          pw k (g y)
+                      go !k   = do z <- peekElemOff pu k
+                                   let (x,y) = f z 
+                                   pokeElemOff      pv k x
+                                   pokeElemOff      pw k y
                                    go (k-1)
                   go (n-1)
       return (v,w)
