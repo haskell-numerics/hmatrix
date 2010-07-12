@@ -28,7 +28,7 @@ import Numeric.LinearAlgebra.Instances()
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import Numeric.LinearAlgebra.Algorithms
-import Numeric.LinearAlgebra.Linear()
+import Numeric.LinearAlgebra.Linear
 
 --import Numeric.GSL.Vector
 

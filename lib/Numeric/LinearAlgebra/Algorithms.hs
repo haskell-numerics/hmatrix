@@ -21,7 +21,6 @@ imported from "Numeric.LinearAlgebra.LAPACK".
 module Numeric.LinearAlgebra.Algorithms (
 -- * Supported types
     Field(),
-    Vectors(..),
 -- * Products
     multiply, -- dot, moved dot to typeclass
     outer, kronecker,
@@ -67,7 +66,6 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Misc
     ctrans,
     eps, i,
-    Linear(..),
 -- * Util
     haussholder,
     unpackQR, unpackHess,
@@ -78,7 +76,7 @@ module Numeric.LinearAlgebra.Algorithms (
 
 
 import Data.Packed.Internal hiding ((//))
-import Data.Packed.Vector
+--import Data.Packed.Vector
 import Data.Packed.Matrix
 import Data.Complex
 import Numeric.GSL.Vector

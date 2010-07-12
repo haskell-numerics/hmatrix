@@ -18,9 +18,11 @@ module Data.Packed.Vector (
     fromList, (|>), toList, buildVector,
     dim, (@>),
     subVector, takesV, join,
-    constant, linspace,
-    vecdisp,
---    moved to Numeric.LinearAlgebra.Interface typeclass
+--    moved to Numeric.LinearAlgebra.Linear
+--    constant, linspace, 
+--    moved to Data.Packed.Matrix  
+--    vecdisp,
+--    moved to Numeric.LinearAlgebra.Linear typeclass
 --    vectorFMax, vectorFMin, vectorFMaxIndex, vectorFMinIndex,
 --    vectorMax, vectorMin,
     vectorMaxIndex, vectorMinIndex,
@@ -30,10 +32,9 @@ module Data.Packed.Vector (
     foldLoop, foldVector, foldVectorG
 ) where
 
-import Data.Packed.Internal
+import Data.Packed.Internal.Vector
 import Numeric.GSL.Vector
 -- import Data.Packed.ST
-import Numeric.LinearAlgebra.Linear
 
 import Data.Binary
 import Foreign.Storable
@@ -72,19 +73,6 @@ instance (Binary a, Storable a) => Binary (Vector a) where
 -------------------------------------------------------------------
 
 
-{- | Creates a real vector containing a range of values:
-
-@\> linspace 5 (-3,7)
-5 |> [-3.0,-0.5,2.0,4.5,7.0]@
-
-Logarithmic spacing can be defined as follows:
-
-@logspace n (a,b) = 10 ** linspace n (a,b)@
--}
-linspace :: (Enum e, Linear Vector e, Element e) => Int -> (e, e) -> Vector e
-linspace n (a,b) = addConstant a $ scale s $ fromList [0 .. fromIntegral n-1]
-    where s = (b-a)/fromIntegral (n-1)
-
 {-
 vectorFMax :: Vector Float -> Float
 vectorFMax = toScalarF Max
@@ -114,15 +102,6 @@ vectorMinIndex :: Vector Double -> Int
 vectorMinIndex = round . toScalarR MinIdx
 
 
-{- | creates a vector with a given number of equal components:
-
-@> constant 2 7
-7 |> [2.0,2.0,2.0,2.0,2.0,2.0,2.0]@
--}
-constant :: Element a => a -> Int -> Vector a
--- constant x n = runSTVector (newVector x n)
-constant = constantD -- about 2x faster
-
 {- | creates a Vector of the specified length using the supplied function to
      to map the index to the value at that index.
 
@@ -130,25 +109,10 @@ constant = constantD -- about 2x faster
 4 |> [0.0,1.0,2.0,3.0]@
 
 -}
-buildVector :: Element a => Int -> (Int -> a) -> Vector a
+buildVector :: Storable a => Int -> (Int -> a) -> Vector a
 buildVector len f =
     fromList $ map f [0 .. (len - 1)]
 
-
-{- | Show a vector using a function for showing matrices.
-
-@disp = putStr . vecdisp ('dispf' 2)
-
-\> disp ('linspace' 10 (0,1))
-10 |> 0.00  0.11  0.22  0.33  0.44  0.56  0.67  0.78  0.89  1.00
-@
--}
-vecdisp :: (Element t) => (Matrix t -> String) -> Vector t -> String
-vecdisp f v
-    = ((show (dim v) ++ " |> ") ++) . (++"\n")
-    . unwords . lines .  tail . dropWhile (not . (`elem` " \n"))
-    . f . trans . reshape 1
-    $ v
 
 -- | unzip for Vectors
 unzipVector :: (Storable a, Storable b, Storable (a,b)) => Vector (a,b) -> (Vector a,Vector b)

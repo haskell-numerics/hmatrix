@@ -24,6 +24,7 @@ import Data.Packed.Matrix
 import Data.Packed.Vector
 import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Interface
+import Numeric.LinearAlgebra.Linear
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
 -- Gaussian distribution.

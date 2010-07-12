@@ -30,7 +30,7 @@ module Graphics.Plot(
 
 import Data.Packed
 import Numeric.LinearAlgebra(outer)
-import Numeric.LinearAlgebra.Linear(Vectors(..))
+import Numeric.LinearAlgebra.Linear
 import Data.List(intersperse)
 import System.Process (system)
 
@@ -153,10 +153,10 @@ matrixToPGM m = header ++ unlines (map unwords ll) where
     maxgray = 255.0
     maxval = vectorMax $ flatten $ m
     minval = vectorMin $ flatten $ m
-    scale = if (maxval == minval) 
+    scale' = if (maxval == minval) 
         then 0.0
         else maxgray / (maxval - minval)
-    f x = show ( round ( scale *(x - minval) ) :: Int )
+    f x = show ( round ( scale' *(x - minval) ) :: Int )
     ll = map (map f) (toLists m)
 
 -- | imshow shows a representation of a matrix as a gray level image using ImageMagick's display.
