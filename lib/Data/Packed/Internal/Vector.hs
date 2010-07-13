@@ -365,30 +365,32 @@ foldVectorG f s0 v = foldLoop g s0 (dim v)
 mapVectorM :: (Storable a, Storable b, MonadIO m) => (a -> m b) -> Vector a -> m (Vector b)
 mapVectorM f v = do
     w <- liftIO $ createVector (dim v)
-    mapVectorM' f v w (dim v -1)
+    mapVectorM' f v w 0 (dim v -1)
     return w
-    where mapVectorM' f' v' w' 0  = do
-                                    x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p 0 
-                                    y <- f' x
-                                    liftIO $ unsafeWith w' $ \q -> pokeElemOff q 0 y
-          mapVectorM' f' v' w' !k = do
-                                    x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p k 
-                                    y <- f' x
-                                    liftIO $ unsafeWith w' $ \q -> pokeElemOff q k y
-                                    mapVectorM' f' v' w' (k-1)
+    where mapVectorM' f' v' w' !k !t
+              | k == t               = do
+                                       x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p k 
+                                       y <- f' x
+                                       liftIO $ unsafeWith w' $ \q -> pokeElemOff q k y
+              | otherwise            = do
+                                       x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p k 
+                                       y <- f' x
+                                       liftIO $ unsafeWith w' $ \q -> pokeElemOff q k y
+                                       mapVectorM' f' v' w' (k+1) t
 {-# INLINE mapVectorM #-}
 
 -- | monadic map over Vectors
 mapVectorM_ :: (Storable a, MonadIO m) => (a -> m ()) -> Vector a -> m ()
 mapVectorM_ f v = do
-    mapVectorM' f v (dim v -1)
-    where mapVectorM' f' v' 0  = do
-                                 x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p 0
-                                 f' x
-          mapVectorM' f' v' !k = do
-                                 x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p k 
-                                 _ <- f' x
-                                 mapVectorM' f' v' (k-1)
+    mapVectorM' f v 0 (dim v -1)
+    where mapVectorM' f' v' !k !t
+              | k == t            = do
+                                    x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p k
+                                    f' x
+              | otherwise         = do
+                                    x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p k 
+                                    _ <- f' x
+                                    mapVectorM' f' v' (k+1) t
 {-# INLINE mapVectorM_ #-}
 
 -------------------------------------------------------------------

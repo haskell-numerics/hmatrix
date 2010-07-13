@@ -45,6 +45,7 @@ extra-source-files: examples/tests.hs
                     examples/devel/ej2/functions.c
                     examples/Real.hs
                     examples/vector.hs
+                    examples/vector-map.hs
 
 extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
                     lib/Numeric/LinearAlgebra/LAPACK/clapack.h
