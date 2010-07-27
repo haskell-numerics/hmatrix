@@ -43,7 +43,8 @@ shrinkPair :: (Arbitrary a, Arbitrary b) => (a,b) -> [(a,b)]
 shrinkPair (a,b) = [ (a,x) | x <- shrink b ] ++ [ (x,b) | x <- shrink a ]
 #endif
 
-
+#if MIN_VERSION_QuickCheck(2,1,1)
+#else
 instance (Arbitrary a, RealFloat a) => Arbitrary (Complex a) where
     arbitrary = do
         re <- arbitrary
@@ -56,6 +57,8 @@ instance (Arbitrary a, RealFloat a) => Arbitrary (Complex a) where
 #else
     -- this has been moved to the 'Coarbitrary' class in QuickCheck 2
     coarbitrary = undefined 
+#endif
+
 #endif
 
 chooseDim = sized $ \m -> choose (1,max 1 m)
