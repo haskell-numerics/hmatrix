@@ -46,7 +46,7 @@ import Foreign.ForeignPtr       (mallocForeignPtrBytes)
 
 import GHC.Base
 #if __GLASGOW_HASKELL__ < 612
-import GHC.IOBase
+import GHC.IOBase hiding (liftIO)
 #endif
 
 #ifdef VECTOR

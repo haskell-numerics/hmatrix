@@ -1,6 +1,11 @@
 I thank Don Stewart, Henning Thielemann, Bulat Ziganshin, Heinrich Apfelmus,
 and all the people in the Haskell mailing lists for their help.
 
+I am particularly grateful to Vivian McPhail for his excellent
+contributions: improved configure.hs, Binary instances for
+Vector and Matrix, support for Float and Complex Float elements,
+Vectors typeclass, monadic vectorMapM, and many other improvements.
+
 - Nico Mahlo discovered a bug in the eigendecomposition wrapper.
 
 - Frederik Eaton discovered a bug in the design of the wrappers.
@@ -72,8 +77,5 @@ and all the people in the Haskell mailing lists for their help.
 
 - Max Suica simplified the installation on Windows and improved the instructions.
 
-- Vivian McPhail fixed configure.hs to allow non-root user installation in
-  case that /tmp is not writable. He also contributed Binary instances for
-  Vector and Matrix.
+- John Billings reported an incompatibility with QuickCheck>=2.1.1
 
-- Vivian McPhail added support for Float and Complex Float elements.
