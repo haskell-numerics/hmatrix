@@ -36,7 +36,6 @@ import Foreign.C.String
 import Foreign.C.Types(CInt,CChar)
 import Data.Complex
 import Control.Monad(when)
-import Control.Monad.Trans
 
 #if __GLASGOW_HASKELL__ >= 605
 import GHC.ForeignPtr           (mallocPlainForeignPtrBytes)
@@ -362,33 +361,33 @@ foldVectorG f s0 v = foldLoop g s0 (dim v)
 -------------------------------------------------------------------
 
 -- | monadic map over Vectors
-mapVectorM :: (Storable a, Storable b, MonadIO m) => (a -> m b) -> Vector a -> m (Vector b)
+mapVectorM :: (Storable a, Storable b, Monad m) => (a -> m b) -> Vector a -> m (Vector b)
 mapVectorM f v = do
-    w <- liftIO $ createVector (dim v)
+    w <- return $! unsafePerformIO $! createVector (dim v)
     mapVectorM' f v w 0 (dim v -1)
     return w
     where mapVectorM' f' v' w' !k !t
               | k == t               = do
-                                       x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p k 
+                                       x <- return $! inlinePerformIO $! unsafeWith v' $! \p -> peekElemOff p k 
                                        y <- f' x
-                                       liftIO $ unsafeWith w' $ \q -> pokeElemOff q k y
+                                       return $! inlinePerformIO $! unsafeWith w' $! \q -> pokeElemOff q k y
               | otherwise            = do
-                                       x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p k 
+                                       x <- return $! inlinePerformIO $! unsafeWith v' $! \p -> peekElemOff p k 
                                        y <- f' x
-                                       liftIO $ unsafeWith w' $ \q -> pokeElemOff q k y
+                                       _ <- return $! inlinePerformIO $! unsafeWith w' $! \q -> pokeElemOff q k y
                                        mapVectorM' f' v' w' (k+1) t
 {-# INLINE mapVectorM #-}
 
 -- | monadic map over Vectors
-mapVectorM_ :: (Storable a, MonadIO m) => (a -> m ()) -> Vector a -> m ()
+mapVectorM_ :: (Storable a, Monad m) => (a -> m ()) -> Vector a -> m ()
 mapVectorM_ f v = do
     mapVectorM' f v 0 (dim v -1)
     where mapVectorM' f' v' !k !t
               | k == t            = do
-                                    x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p k
+                                    x <- return $! inlinePerformIO $! unsafeWith v' $! \p -> peekElemOff p k
                                     f' x
               | otherwise         = do
-                                    x <- liftIO $ unsafeWith v' $ \p -> peekElemOff p k 
+                                    x <- return $! inlinePerformIO $! unsafeWith v' $! \p -> peekElemOff p k 
                                     _ <- f' x
                                     mapVectorM' f' v' (k+1) t
 {-# INLINE mapVectorM_ #-}

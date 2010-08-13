@@ -7,7 +7,6 @@ import Data.Packed.Vector
 import Numeric.LinearAlgebra.Interface
 
 import Control.Monad.State
-import Control.Monad.Trans
 
 -------------------------------------------
 
@@ -20,7 +19,7 @@ v = fromList $ take 10 [0..]
 test1 :: Vector Int -> IO (Vector Int)
 test1 = do
         mapVectorM (\x -> do
-                          putStr $ (show) x ++ " "
+                          putStr $ (show x) ++ " "
                           return (x + 1))
                             
 -- we can have an arbitrary monad AND do IO
@@ -36,7 +35,7 @@ main = do
        v' <- test1 v
        putStrLn ""
        putStrLn $ show v'
-       evalStateT (addInitialM v) 1
+       evalStateT (addInitialM v) 0
        putStrLn ""
        return ()
 

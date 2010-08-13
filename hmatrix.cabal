@@ -73,7 +73,7 @@ flag vector
 library
 
     Build-Depends:      base >= 4 && < 5,
-                        array, mtl,
+                        array,
                         storable-complex,
                         process,
                         binary
