@@ -1,3 +1,14 @@
+0.10.0.0
+========
+
+- vectorMapM, unzipVectorWith
+
+- Vectors typeclass
+
+- Initial support for Vector Float and Vector (Complex Float)
+
+- Binary instances for Vector and Matrix
+
 0.9.3.0
 =======
 
