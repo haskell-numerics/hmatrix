@@ -33,6 +33,7 @@ import Prelude hiding ((^))
 import qualified Prelude
 import System.CPUTime
 import Text.Printf
+import Data.Packed.Development(unsafeFromForeignPtr,unsafeToForeignPtr)
 
 #include "Tests/quickCheckCompat.h"
 
@@ -201,6 +202,19 @@ rotTest = fun (10^5) :~12~: rot 5E4
     where fun n = foldl1' (<>) (map rot angles)
               where angles = toList $ linspace n (0,1)
 
+---------------------------------------------------------------------
+-- vector <= 0.6.0.2 bug discovered by Patrick Perry
+-- http://trac.haskell.org/vector/ticket/31
+
+offsetTest = y == y' where
+    x = fromList [0..3 :: Double]
+    y = subVector 1 3 x
+    (f,o,n) = unsafeToForeignPtr y
+    y' = unsafeFromForeignPtr f o n
+
+---------------------------------------------------------------------
+
+
 -- | All tests must pass with a maximum dimension of about 20
 --  (some tests may fail with bigger sizes due to precision loss).
 runTests :: Int  -- ^ maximum dimension
@@ -340,6 +354,7 @@ runTests n = do
         , odeTest
         , fittingTest
         , mbCholTest
+        , utest "offset" offsetTest
         ]
     return ()
 
