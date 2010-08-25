@@ -22,10 +22,9 @@ module Numeric.LinearAlgebra.Tests.Instances(
     SqWC(..),   rSqWC, cSqWC,
     PosDef(..), rPosDef, cPosDef,
     Consistent(..), rConsist, cConsist,
-    RM,CM, rM,cM
+    RM,CM, rM,cM,
+    FM,ZM, fM,zM
 ) where
-
-
 
 
 import Numeric.LinearAlgebra
@@ -212,9 +211,15 @@ instance (Field a, Arbitrary a) => Arbitrary (Consistent a) where
 
 type RM = Matrix Double
 type CM = Matrix (Complex Double)
+type FM = Matrix Float
+type ZM = Matrix (Complex Float)
+
 
 rM m = m :: RM
 cM m = m :: CM
+fM m = m :: FM
+zM m = m :: ZM
+
 
 rHer (Her m) = m :: RM
 cHer (Her m) = m :: CM

@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -XFlexibleContexts -XFlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances #-}
 {-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 {- |
@@ -84,7 +84,6 @@ import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Numeric.LinearAlgebra.Linear
 import Data.List(foldl1')
 import Data.Array
-
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
 class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
@@ -397,6 +396,10 @@ ranksv teps maxdim s = k where
 eps :: Double
 eps =  2.22044604925031e-16
 
+peps :: RealFloat x => x -> x
+peps x = 2.0**(fromIntegral $ 1-floatDigits x)
+
+
 -- | The imaginary unit: @i = 0.0 :+ 1.0@
 i :: Complex Double
 i = 0:+1
@@ -465,6 +468,21 @@ instance Normed (Matrix Double) where
 
 instance Normed (Matrix (Complex Double)) where
     pnorm = pnormCM
+
+-----------------------------------------------------------------------
+-- to be optimized
+
+instance Normed (Vector Float) where
+    pnorm t = pnorm t . double
+
+instance Normed (Vector (Complex Float)) where
+    pnorm t = pnorm t . double
+
+instance Normed (Matrix Float) where
+    pnorm t = pnorm t . double
+
+instance Normed (Matrix (Complex Float)) where
+    pnorm t = pnorm t . double
 
 -----------------------------------------------------------------------
 

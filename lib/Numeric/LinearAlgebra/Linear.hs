@@ -17,7 +17,7 @@ Basic optimized operations on vectors and matrices.
 
 module Numeric.LinearAlgebra.Linear (
     -- * Linear Algebra Typeclasses
-    Vectors(..),                                    
+    Vectors(..),
     Linear(..),
     -- * Creation of numeric vectors
     constant, linspace
@@ -86,7 +86,7 @@ instance Vectors Vector (Complex Double) where
 ----------------------------------------------------
 
 -- | Basic element-by-element functions.
-class (Container c e) => Linear c e where
+class (Element e, AutoReal e, Convert e, Container c) => Linear c e where
     -- | create a structure with a single element
     scalar      :: e -> c e
     scale       :: e -> c e -> c e
@@ -148,7 +148,7 @@ instance Linear Vector (Complex Float) where
     equal u v = dim u == dim v && vectorMax (mapVector magnitude (sub u v)) == 0.0
     scalar x = fromList [x]
 
-instance (Linear Vector a, Container Matrix a) => (Linear Matrix a) where
+instance (Linear Vector a, Container Matrix) => (Linear Matrix a) where
     scale x = liftMatrix (scale x)
     scaleRecip x = liftMatrix (scaleRecip x)
     addConstant x = liftMatrix (addConstant x)

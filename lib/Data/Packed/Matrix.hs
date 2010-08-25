@@ -1,4 +1,6 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Matrix
@@ -14,7 +16,8 @@
 -----------------------------------------------------------------------------
 
 module Data.Packed.Matrix (
-    Element, Container(..),
+    Element, Scalar, Container(..), Convert(..),
+    RealOf, ComplexOf, SingleOf, DoubleOf, ElementOf, AutoReal(..),
     Matrix,rows,cols,
     (><),
     trans,
@@ -47,6 +50,8 @@ import Data.Complex
 import Data.Binary
 import Foreign.Storable
 import Control.Monad(replicateM)
+import Control.Arrow((***))
+import GHC.Float(double2Float,float2Double)
 
 -------------------------------------------------------------------
 
@@ -462,62 +467,121 @@ toBlocksEvery r c m = toBlocks rs cs m where
 -------------------------------------------------------------------
 
 -- | conversion utilities
-class (Element e) => Container c e where
-    toComplex   :: RealFloat e => (c e, c e) -> c (Complex e)
-    fromComplex :: RealFloat e => c (Complex e) -> (c e, c e)
-    comp        :: RealFloat e => c e -> c (Complex e)
-    conj        :: RealFloat e => c (Complex e) -> c (Complex e)
-    -- these next two are now weird given we have Floats as well
-    real        :: c Double -> c e
-    complex     :: c e -> c (Complex Double)
 
-instance Container Vector Float where
+class (Element t, Element (Complex t), Fractional t, RealFloat t) => Scalar t
+
+instance Scalar Double
+instance Scalar Float
+
+class Container c where
+    toComplex   :: (Scalar e) => (c e, c e) -> c (Complex e)
+    fromComplex :: (Scalar e) => c (Complex e) -> (c e, c e)
+    comp        :: (Scalar e) => c e -> c (Complex e)
+    conj        :: (Scalar e) => c (Complex e) -> c (Complex e)
+    cmap        :: (Element a, Element b) => (a -> b) -> c a -> c b
+
+instance Container Vector where
     toComplex = toComplexV
     fromComplex = fromComplexV
     comp v = toComplex (v,constantD 0 (dim v))
     conj = conjV
-    real = mapVector realToFrac
-    complex = (mapVector (\(r :+ i) -> (realToFrac r :+ realToFrac i))) . comp
+    cmap = mapVector
 
-instance Container Vector Double where
-    toComplex = toComplexV
-    fromComplex = fromComplexV
-    comp v = toComplex (v,constantD 0 (dim v))
-    conj = conjV
-    real = id
-    complex = comp
-
-instance Container Vector (Complex Float) where
-    toComplex = undefined -- can't match
-    fromComplex = undefined
-    comp = undefined
-    conj = undefined
-    real = comp . mapVector realToFrac
-    complex = mapVector (\(r :+ i) -> realToFrac r :+ realToFrac i)
-
-instance Container Vector (Complex Double) where
-    toComplex = undefined -- can't match
-    fromComplex = undefined
-    comp = undefined
-    conj = undefined
-    real = comp
-    complex = id
-
-instance Container Matrix Double where
+instance Container Matrix where
     toComplex = uncurry $ liftMatrix2 $ curry toComplex
-    fromComplex z = (reshape c r, reshape c i)
-        where (r,i) = fromComplex (flatten z)
-              c = cols z
+    fromComplex z = (reshape c *** reshape c) . fromComplex . flatten $ z
+        where c = cols z
     comp = liftMatrix comp
     conj = liftMatrix conj
-    real = id
-    complex = comp
+    cmap f = liftMatrix (cmap f)
 
-instance Container Matrix (Complex Double) where
-    toComplex = undefined
-    fromComplex = undefined
-    comp = undefined
-    conj = undefined
-    real = comp
-    complex = id
+-------------------------------------------------------------------
 
+type family RealOf x
+
+type instance RealOf Double = Double
+type instance RealOf (Complex Double) = Double
+
+type instance RealOf Float = Float
+type instance RealOf (Complex Float) = Float
+
+type family ComplexOf x
+
+type instance ComplexOf Double = Complex Double
+type instance ComplexOf (Complex Double) = Complex Double
+
+type instance ComplexOf Float = Complex Float
+type instance ComplexOf (Complex Float) = Complex Float
+
+type family SingleOf x
+
+type instance SingleOf Double = Float
+type instance SingleOf Float  = Float
+
+type instance SingleOf (Complex a) = Complex (SingleOf a)
+
+type family DoubleOf x
+
+type instance DoubleOf Double = Double
+type instance DoubleOf Float  = Double
+
+type instance DoubleOf (Complex a) = Complex (DoubleOf a)
+
+type family ElementOf c
+
+type instance ElementOf (Vector a) = a
+type instance ElementOf (Matrix a) = a
+
+-------------------------------------------------------------------
+
+class Convert t where
+    real'    :: Container c => c (RealOf t) -> c t
+    complex' :: Container c => c t -> c (ComplexOf t)
+    single   :: Container c => c t -> c (SingleOf t)
+    double   :: Container c => c t -> c (DoubleOf t)
+
+instance Convert Double where
+    real' = id
+    complex' = comp
+    single = cmap double2Float
+    double = id
+
+instance Convert Float where
+    real' = id
+    complex' = comp
+    single = id
+    double = cmap float2Double
+
+instance Convert (Complex Double) where
+    real' = comp
+    complex' = id
+    single = toComplex . (single *** single) . fromComplex
+    double = id
+
+instance Convert (Complex Float) where
+    real' = comp
+    complex' = id
+    single = id
+    double = toComplex . (double *** double) . fromComplex
+
+-------------------------------------------------------------------
+
+class AutoReal t where
+    real :: Container c => c Double -> c t
+    complex :: Container c => c t -> c (Complex Double)
+
+instance AutoReal Double where
+    real = real'
+    complex = complex'
+
+instance AutoReal (Complex Double) where
+    real = real'
+    complex = complex'
+
+instance AutoReal Float where
+    real = real' . single
+    complex = double . complex'
+
+instance AutoReal (Complex Float) where
+    real = real' . single
+    complex = double . complex'

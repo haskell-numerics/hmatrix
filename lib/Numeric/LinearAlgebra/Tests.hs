@@ -45,6 +45,8 @@ a ~~ b = fromList a |~| fromList b
 
 feye n = flipud (ident n) :: Matrix Double
 
+-----------------------------------------------------------
+
 detTest1 = det m == 26
         && det mc == 38 :+ (-3)
         && det (feye 2) == -1
@@ -314,17 +316,27 @@ runTests n = do
     test (expmDiagProp . cSqWC)
     putStrLn "------ fft"
     test (\v -> ifft (fft v) |~| v)
-    putStrLn "------ vector operations"
+    putStrLn "------ vector operations - Double"
     test (\u -> sin u ^ 2 + cos u ^ 2 |~| (1::RM))
     test $ (\u -> sin u ^ 2 + cos u ^ 2 |~| (1::CM)) . liftMatrix makeUnitary
     test (\u -> sin u ** 2 + cos u ** 2 |~| (1::RM))
     test (\u -> cos u * tan u |~| sin (u::RM))
     test $ (\u -> cos u * tan u |~| sin (u::CM)) . liftMatrix makeUnitary
+    putStrLn "------ vector operations - Float"
+    test (\u -> sin u ^ 2 + cos u ^ 2 |~~| (1::FM))
+    test $ (\u -> sin u ^ 2 + cos u ^ 2 |~~| (1::ZM)) . liftMatrix makeUnitary
+    test (\u -> sin u ** 2 + cos u ** 2 |~~| (1::FM))
+    test (\u -> cos u * tan u |~~| sin (u::FM))
+    test $ (\u -> cos u * tan u |~~| sin (u::ZM)) . liftMatrix makeUnitary
     putStrLn "------ read . show"
     test (\m -> (m::RM) == read (show m))
     test (\m -> (m::CM) == read (show m))
     test (\m -> toRows (m::RM) == read (show (toRows m)))
     test (\m -> toRows (m::CM) == read (show (toRows m)))
+    test (\m -> (m::FM) == read (show m))
+    test (\m -> (m::ZM) == read (show m))
+    test (\m -> toRows (m::FM) == read (show (toRows m)))
+    test (\m -> toRows (m::ZM) == read (show (toRows m)))
     putStrLn "------ some unit tests"
     _ <- runTestTT $ TestList
         [ utest "1E5 rots" rotTest
@@ -357,6 +369,11 @@ runTests n = do
         , utest "offset" offsetTest
         ]
     return ()
+
+
+-- single precision approximate equality
+infixl 4 |~~|
+a |~~| b = a :~6~: b
 
 makeUnitary v | realPart n > 1    = v / scalar n
               | otherwise = v
