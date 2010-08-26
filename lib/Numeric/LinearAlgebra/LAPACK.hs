@@ -14,7 +14,7 @@
 
 module Numeric.LinearAlgebra.LAPACK (
     -- * Matrix product
-    multiplyR, multiplyC,
+    multiplyR, multiplyC, multiplyF, multiplyQ,
     -- * Linear systems
     linearSolveR, linearSolveC,
     lusR, lusC,
@@ -51,8 +51,10 @@ import Control.Monad(when)
 
 -----------------------------------------------------------------------------------
 
-foreign import ccall "LAPACK/lapack-aux.h multiplyR" dgemmc :: CInt -> CInt -> TMMM
-foreign import ccall "LAPACK/lapack-aux.h multiplyC" zgemmc :: CInt -> CInt -> TCMCMCM
+foreign import ccall "multiplyR" dgemmc :: CInt -> CInt -> TMMM
+foreign import ccall "multiplyC" zgemmc :: CInt -> CInt -> TCMCMCM
+foreign import ccall "multiplyF" sgemmc :: CInt -> CInt -> TFMFMFM
+foreign import ccall "multiplyQ" cgemmc :: CInt -> CInt -> TQMQMQM
 
 isT MF{} = 0
 isT MC{} = 1
@@ -69,11 +71,19 @@ multiplyAux f st a b = unsafePerformIO $ do
 
 -- | Matrix product based on BLAS's /dgemm/.
 multiplyR :: Matrix Double -> Matrix Double -> Matrix Double
-multiplyR a b = multiplyAux dgemmc "dgemmc" a b
+multiplyR a b = {-# SCC "multiplyR" #-} multiplyAux dgemmc "dgemmc" a b
 
 -- | Matrix product based on BLAS's /zgemm/.
 multiplyC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
 multiplyC a b = multiplyAux zgemmc "zgemmc" a b
+
+-- | Matrix product based on BLAS's /sgemm/.
+multiplyF :: Matrix Float -> Matrix Float -> Matrix Float
+multiplyF a b = multiplyAux sgemmc "sgemmc" a b
+
+-- | Matrix product based on BLAS's /cgemm/.
+multiplyQ :: Matrix (Complex Float) -> Matrix (Complex Float) -> Matrix (Complex Float)
+multiplyQ a b = multiplyAux cgemmc "cgemmc" a b
 
 -----------------------------------------------------------------------------
 foreign import ccall "svd_l_R" dgesvd :: TMMVM

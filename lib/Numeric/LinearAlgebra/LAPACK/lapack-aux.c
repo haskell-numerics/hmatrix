@@ -11,14 +11,24 @@
 
 #define MIN(A,B) ((A)<(B)?(A):(B))
 #define MAX(A,B) ((A)>(B)?(A):(B))
- 
+
+// #define DBGL
+
 #ifdef DBGL
-#define DEBUGMSG(M) printf("LAPACK Wrapper "M"\n: "); size_t t0 = time(NULL);
-#define OK MACRO(printf("%ld s\n",time(0)-t0); return 0;);
+#define DEBUGMSG(M) printf("\nLAPACK "M"\n");
 #else
 #define DEBUGMSG(M)
-#define OK return 0;
 #endif
+
+#define OK return 0;
+
+// #ifdef DBGL
+// #define DEBUGMSG(M) printf("LAPACK Wrapper "M"\n: "); size_t t0 = time(NULL);
+// #define OK MACRO(printf("%ld s\n",time(0)-t0); return 0;);
+// #else
+// #define DEBUGMSG(M)
+// #define OK return 0;
+// #endif
 
 #define TRACEMAT(M) {int q; printf(" %d x %d: ",M##r,M##c); \
                      for(q=0;q<M##r*M##c;q++) printf("%.1f ",M##p[q]); printf("\n");}
@@ -1004,6 +1014,7 @@ void dgemm_(char *, char *, integer *, integer *, integer *,
 
 int multiplyR(int ta, int tb, KDMAT(a),KDMAT(b),DMAT(r)) {
     //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
+    DEBUGMSG("dgemm_");
     integer m = ta?ac:ar;
     integer n = tb?br:bc;
     integer k = ta?ar:ac;
@@ -1022,6 +1033,7 @@ void zgemm_(char *, char *, integer *, integer *, integer *,
 
 int multiplyC(int ta, int tb, KCMAT(a),KCMAT(b),CMAT(r)) {
     //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
+    DEBUGMSG("zgemm_");
     integer m = ta?ac:ar;
     integer n = tb?br:bc;
     integer k = ta?ar:ac;
@@ -1034,6 +1046,47 @@ int multiplyC(int ta, int tb, KCMAT(a),KCMAT(b),CMAT(r)) {
            (doublecomplex*)ap,&lda,
            (doublecomplex*)bp,&ldb,&beta,
            (doublecomplex*)rp,&ldc);
+    OK
+}
+
+void sgemm_(char *, char *, integer *, integer *, integer *,
+            float *, const float *, integer *, const float *,
+           integer *, float *, float *, integer *);
+
+int multiplyF(int ta, int tb, KFMAT(a),KFMAT(b),FMAT(r)) {
+    //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
+    DEBUGMSG("sgemm_");
+    integer m = ta?ac:ar;
+    integer n = tb?br:bc;
+    integer k = ta?ar:ac;
+    integer lda = ar;
+    integer ldb = br;
+    integer ldc = rr;
+    float alpha = 1;
+    float beta = 0;
+    sgemm_(ta?"T":"N",tb?"T":"N",&m,&n,&k,&alpha,ap,&lda,bp,&ldb,&beta,rp,&ldc);
+    OK
+}
+
+void cgemm_(char *, char *, integer *, integer *, integer *,
+           complex *, const complex *, integer *, const complex *,
+           integer *, complex *, complex *, integer *);
+
+int multiplyQ(int ta, int tb, KQMAT(a),KQMAT(b),QMAT(r)) {
+    //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
+    DEBUGMSG("cgemm_");
+    integer m = ta?ac:ar;
+    integer n = tb?br:bc;
+    integer k = ta?ar:ac;
+    integer lda = ar;
+    integer ldb = br;
+    integer ldc = rr;
+    complex alpha = {1,0};
+    complex beta = {0,0};
+    cgemm_(ta?"T":"N",tb?"T":"N",&m,&n,&k,&alpha,
+           (complex*)ap,&lda,
+           (complex*)bp,&ldb,&beta,
+           (complex*)rp,&ldc);
     OK
 }
 
@@ -1125,6 +1178,26 @@ int constantC(doublecomplex* pval, CVEC(r)) {
     doublecomplex val = *pval;
     for(k=0;k<rn;k++) {
         ((doublecomplex*)rp)[k]=val;
+    }
+    OK
+}
+
+//////////////////// float-double conversion /////////////////////////
+
+int float2double(FVEC(x),DVEC(y)) {
+    DEBUGMSG("float2double")
+    int k;
+    for(k=0;k<xn;k++) {
+        yp[k]=xp[k];
+    }
+    OK
+}
+
+int double2float(DVEC(x),FVEC(y)) {
+    DEBUGMSG("double2float")
+    int k;
+    for(k=0;k<xn;k++) {
+        yp[k]=xp[k];
     }
     OK
 }

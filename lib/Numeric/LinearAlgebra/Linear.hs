@@ -19,15 +19,19 @@ module Numeric.LinearAlgebra.Linear (
     -- * Linear Algebra Typeclasses
     Vectors(..),
     Linear(..),
+    -- * Products
+    Prod(..),
+    mXm,mXv,vXm, mulH,
+    outer, kronecker,
     -- * Creation of numeric vectors
     constant, linspace
 ) where
 
-import Data.Packed.Internal.Vector
-import Data.Packed.Internal.Matrix
+import Data.Packed.Internal
 import Data.Packed.Matrix
 import Data.Complex
 import Numeric.GSL.Vector
+import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ)
 
 import Control.Monad(ap)
 
@@ -86,7 +90,7 @@ instance Vectors Vector (Complex Double) where
 ----------------------------------------------------
 
 -- | Basic element-by-element functions.
-class (Element e, AutoReal e, Convert e, Container c) => Linear c e where
+class (Element e, AutoReal e, Container c) => Linear c e where
     -- | create a structure with a single element
     scalar      :: e -> c e
     scale       :: e -> c e -> c e
@@ -184,3 +188,83 @@ linspace :: (Enum e, Linear Vector e) => Int -> (e, e) -> Vector e
 linspace n (a,b) = addConstant a $ scale s $ fromList [0 .. fromIntegral n-1]
     where s = (b-a)/fromIntegral (n-1)
 
+----------------------------------------------------
+
+-- reference multiply
+mulH a b = fromLists [[ doth ai bj | bj <- toColumns b] | ai <- toRows a ]
+    where doth u v = sum $ zipWith (*) (toList u) (toList v)
+
+class Element t => Prod t where
+    multiply :: Matrix t -> Matrix t -> Matrix t
+    multiply = mulH
+    ctrans :: Matrix t -> Matrix t
+
+instance Prod Double where
+    multiply = multiplyR
+    ctrans = trans
+
+instance Prod (Complex Double) where
+    multiply = multiplyC
+    ctrans = conj . trans
+
+instance Prod Float where
+    multiply = multiplyF
+    ctrans = trans
+
+instance Prod (Complex Float) where
+    multiply = multiplyQ
+    ctrans = conj . trans
+
+----------------------------------------------------------
+
+-- synonym for matrix product
+mXm :: Prod t => Matrix t -> Matrix t -> Matrix t
+mXm = multiply
+
+-- matrix - vector product
+mXv :: Prod t => Matrix t -> Vector t -> Vector t
+mXv m v = flatten $ m `mXm` (asColumn v)
+
+-- vector - matrix product
+vXm :: Prod t => Vector t -> Matrix t -> Vector t
+vXm v m = flatten $ (asRow v) `mXm` m
+
+{- | Outer product of two vectors.
+
+@\> 'fromList' [1,2,3] \`outer\` 'fromList' [5,2,3]
+(3><3)
+ [  5.0, 2.0, 3.0
+ , 10.0, 4.0, 6.0
+ , 15.0, 6.0, 9.0 ]@
+-}
+outer :: (Prod t) => Vector t -> Vector t -> Matrix t
+outer u v = asColumn u `multiply` asRow v
+
+{- | Kronecker product of two matrices.
+
+@m1=(2><3)
+ [ 1.0,  2.0, 0.0
+ , 0.0, -1.0, 3.0 ]
+m2=(4><3)
+ [  1.0,  2.0,  3.0
+ ,  4.0,  5.0,  6.0
+ ,  7.0,  8.0,  9.0
+ , 10.0, 11.0, 12.0 ]@
+
+@\> kronecker m1 m2
+(8><9)
+ [  1.0,  2.0,  3.0,   2.0,   4.0,   6.0,  0.0,  0.0,  0.0
+ ,  4.0,  5.0,  6.0,   8.0,  10.0,  12.0,  0.0,  0.0,  0.0
+ ,  7.0,  8.0,  9.0,  14.0,  16.0,  18.0,  0.0,  0.0,  0.0
+ , 10.0, 11.0, 12.0,  20.0,  22.0,  24.0,  0.0,  0.0,  0.0
+ ,  0.0,  0.0,  0.0,  -1.0,  -2.0,  -3.0,  3.0,  6.0,  9.0
+ ,  0.0,  0.0,  0.0,  -4.0,  -5.0,  -6.0, 12.0, 15.0, 18.0
+ ,  0.0,  0.0,  0.0,  -7.0,  -8.0,  -9.0, 21.0, 24.0, 27.0
+ ,  0.0,  0.0,  0.0, -10.0, -11.0, -12.0, 30.0, 33.0, 36.0 ]@
+-}
+kronecker :: (Prod t) => Matrix t -> Matrix t -> Matrix t
+kronecker a b = fromBlocks
+              . splitEvery (cols a)
+              . map (reshape (cols b))
+              . toRows
+              $ flatten a `outer` flatten b

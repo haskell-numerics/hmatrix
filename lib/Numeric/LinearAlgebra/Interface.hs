@@ -35,7 +35,7 @@ import Numeric.LinearAlgebra.Linear
 class Mul a b c | a b -> c where
  infixl 7 <>
  -- | Matrix-matrix, matrix-vector, and vector-matrix products.
- (<>) :: Field t => a t -> b t -> c t
+ (<>) :: Prod t => a t -> b t -> c t
 
 instance Mul Matrix Matrix Matrix where
     (<>) = multiply

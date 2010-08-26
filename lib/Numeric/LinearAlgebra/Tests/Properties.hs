@@ -42,7 +42,7 @@ module Numeric.LinearAlgebra.Tests.Properties (
     linearSolveProp, linearSolveProp2
 ) where
 
-import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra hiding (mulH)
 import Numeric.LinearAlgebra.LAPACK
 import Debug.Trace
 #include "quickCheckCompat.h"
@@ -237,9 +237,9 @@ expmDiagProp m = expm (logm m) :~ 7 ~: complex m
 mulH a b = fromLists [[ doth ai bj | bj <- toColumns b] | ai <- toRows a ]
     where doth u v = sum $ zipWith (*) (toList u) (toList v)
 
-multProp1 (a,b) = a <> b |~| mulH a b
+multProp1 p (a,b) = (a <> b) :~p~: (mulH a b)
 
-multProp2 (a,b) = ctrans (a <> b) |~| ctrans b <> ctrans a
+multProp2 p (a,b) = (ctrans (a <> b)) :~p~: (ctrans b <> ctrans a)
 
 linearSolveProp f m = f m m |~| ident (rows m)
 

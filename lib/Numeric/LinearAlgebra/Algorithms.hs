@@ -21,9 +21,6 @@ imported from "Numeric.LinearAlgebra.LAPACK".
 module Numeric.LinearAlgebra.Algorithms (
 -- * Supported types
     Field(),
--- * Products
-    multiply, -- dot, moved dot to typeclass
-    outer, kronecker,
 -- * Linear Systems
     linearSolve,
     luSolve,
@@ -64,7 +61,6 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Norms
     Normed(..), NormType(..),
 -- * Misc
-    ctrans,
     eps, i,
 -- * Util
     haussholder,
@@ -86,7 +82,7 @@ import Data.List(foldl1')
 import Data.Array
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
-class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
+class (Prod t, Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
     svd'         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     thinSVD'     :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     sv'          :: Matrix t -> Vector Double
@@ -105,8 +101,6 @@ class (Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
     qr'          :: Matrix t -> (Matrix t, Matrix t)
     hess'        :: Matrix t -> (Matrix t, Matrix t)
     schur'       :: Matrix t -> (Matrix t, Matrix t)
-    ctrans'      :: Matrix t -> Matrix t
-    multiply'    :: Matrix t -> Matrix t -> Matrix t
 
 
 instance Field Double where
@@ -119,7 +113,6 @@ instance Field Double where
     cholSolve' = cholSolveR
     linearSolveLS' = linearSolveLSR
     linearSolveSVD' = linearSolveSVDR Nothing
-    ctrans' = trans
     eig' = eigR
     eigSH'' = eigS
     eigOnly = eigOnlyR
@@ -129,7 +122,6 @@ instance Field Double where
     qr' = unpackQR . qrR
     hess' = unpackHess hessR
     schur' = schurR
-    multiply' = multiplyR
 
 instance Field (Complex Double) where
 #ifdef NOZGESDD
@@ -146,7 +138,6 @@ instance Field (Complex Double) where
     cholSolve' = cholSolveC
     linearSolveLS' = linearSolveLSC
     linearSolveSVD' = linearSolveSVDC Nothing
-    ctrans' = conj . trans
     eig' = eigC
     eigOnly = eigOnlyC
     eigSH'' = eigH
@@ -156,7 +147,6 @@ instance Field (Complex Double) where
     qr' = unpackQR . qrC
     hess' = unpackHess hessC
     schur' = schurC
-    multiply' = multiplyC
 
 --------------------------------------------------------------
 
@@ -324,13 +314,6 @@ hess = hess'
 schur       :: Field t => Matrix t -> (Matrix t, Matrix t)
 schur = schur'
 
--- | Generic conjugate transpose.
-ctrans :: Field t => Matrix t -> Matrix t
-ctrans = ctrans'
-
--- | Matrix product.
-multiply :: Field t => Matrix t -> Matrix t -> Matrix t
-multiply = {-# SCC "multiply" #-} multiply'
 
 -- | Similar to 'cholSH', but instead of an error (e.g., caused by a matrix not positive definite) it returns 'Nothing'.
 mbCholSH :: Field t => Matrix t -> Maybe (Matrix t)
@@ -403,20 +386,6 @@ peps x = 2.0**(fromIntegral $ 1-floatDigits x)
 -- | The imaginary unit: @i = 0.0 :+ 1.0@
 i :: Complex Double
 i = 0:+1
-
-
--- matrix product
-mXm :: (Num t, Field t) => Matrix t -> Matrix t -> Matrix t
-mXm = multiply
-
--- matrix - vector product
-mXv :: (Num t, Field t) => Matrix t -> Vector t -> Vector t
-mXv m v = flatten $ m `mXm` (asColumn v)
-
--- vector - matrix product
-vXm :: (Num t, Field t) => Vector t -> Matrix t -> Vector t
-vXm v m = flatten $ (asRow v) `mXm` m
-
 
 ---------------------------------------------------------------------------
 
@@ -723,51 +692,3 @@ luFact (l_u,perm) | r <= c    = (l ,u ,p, s)
     (|*|) = mul
 
 --------------------------------------------------
-
-{- moved to Numeric.LinearAlgebra.Interface Vector typeclass
--- | Euclidean inner product.
-dot :: (Field t) => Vector t -> Vector t -> t
-dot u v = multiply r c  @@> (0,0)
-    where r = asRow u
-          c = asColumn v
--}
-
-{- | Outer product of two vectors.
-
-@\> 'fromList' [1,2,3] \`outer\` 'fromList' [5,2,3]
-(3><3)
- [  5.0, 2.0, 3.0
- , 10.0, 4.0, 6.0
- , 15.0, 6.0, 9.0 ]@
--}
-outer :: (Field t) => Vector t -> Vector t -> Matrix t
-outer u v = asColumn u `multiply` asRow v
-
-{- | Kronecker product of two matrices.
-
-@m1=(2><3)
- [ 1.0,  2.0, 0.0
- , 0.0, -1.0, 3.0 ]
-m2=(4><3)
- [  1.0,  2.0,  3.0
- ,  4.0,  5.0,  6.0
- ,  7.0,  8.0,  9.0
- , 10.0, 11.0, 12.0 ]@
-
-@\> kronecker m1 m2
-(8><9)
- [  1.0,  2.0,  3.0,   2.0,   4.0,   6.0,  0.0,  0.0,  0.0
- ,  4.0,  5.0,  6.0,   8.0,  10.0,  12.0,  0.0,  0.0,  0.0
- ,  7.0,  8.0,  9.0,  14.0,  16.0,  18.0,  0.0,  0.0,  0.0
- , 10.0, 11.0, 12.0,  20.0,  22.0,  24.0,  0.0,  0.0,  0.0
- ,  0.0,  0.0,  0.0,  -1.0,  -2.0,  -3.0,  3.0,  6.0,  9.0
- ,  0.0,  0.0,  0.0,  -4.0,  -5.0,  -6.0, 12.0, 15.0, 18.0
- ,  0.0,  0.0,  0.0,  -7.0,  -8.0,  -9.0, 21.0, 24.0, 27.0
- ,  0.0,  0.0,  0.0, -10.0, -11.0, -12.0, 30.0, 33.0, 36.0 ]@
--}
-kronecker :: (Field t) => Matrix t -> Matrix t -> Matrix t
-kronecker a b = fromBlocks
-              . splitEvery (cols a)
-              . map (reshape (cols b))
-              . toRows
-              $ flatten a `outer` flatten b

@@ -21,7 +21,7 @@ module Data.Packed.Internal.Vector (
     mapVectorM, mapVectorM_,
     foldVector, foldVectorG, foldLoop,
     createVector, vec,
-    asComplex, asReal,
+    asComplex, asReal, float2DoubleV, double2FloatV,
     fwriteVector, freadVector, fprintfVector, fscanfVector,
     cloneVector,
     unsafeToForeignPtr,
@@ -273,6 +273,24 @@ asReal v = unsafeFromForeignPtr (castForeignPtr fp) (2*i) (2*n)
 asComplex :: (RealFloat a, Storable a) => Vector a -> Vector (Complex a)
 asComplex v = unsafeFromForeignPtr (castForeignPtr fp) (i `div` 2) (n `div` 2)
     where (fp,i,n) = unsafeToForeignPtr v
+
+---------------------------------------------------------------
+
+float2DoubleV :: Vector Float -> Vector Double
+float2DoubleV v = unsafePerformIO $ do
+    r <- createVector (dim v)
+    app2 c_float2double vec v vec r "float2double"
+    return r
+
+double2FloatV :: Vector Double -> Vector Float
+double2FloatV v = unsafePerformIO $ do
+    r <- createVector (dim v)
+    app2 c_double2float vec v vec r "double2float2"
+    return r
+
+
+foreign import ccall "float2double" c_float2double:: TFV
+foreign import ccall "double2float" c_double2float:: TVF
 
 ----------------------------------------------------------------
 

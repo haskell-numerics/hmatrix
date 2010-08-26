@@ -29,7 +29,6 @@ module Graphics.Plot(
 ) where
 
 import Data.Packed
-import Numeric.LinearAlgebra(outer)
 import Numeric.LinearAlgebra.Linear
 import Data.List(intersperse)
 import System.Process (system)

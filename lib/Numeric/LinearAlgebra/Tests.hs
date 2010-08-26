@@ -34,6 +34,7 @@ import qualified Prelude
 import System.CPUTime
 import Text.Printf
 import Data.Packed.Development(unsafeFromForeignPtr,unsafeToForeignPtr)
+import Control.Arrow((***))
 
 #include "Tests/quickCheckCompat.h"
 
@@ -224,11 +225,16 @@ runTests :: Int  -- ^ maximum dimension
 runTests n = do
     setErrorHandlerOff
     let test p = qCheck n p
-    putStrLn "------ mult"
-    test (multProp1  . rConsist)
-    test (multProp1  . cConsist)
-    test (multProp2  . rConsist)
-    test (multProp2  . cConsist)
+    putStrLn "------ mult Double"
+    test (multProp1 10 . rConsist)
+    test (multProp1 10 . cConsist)
+    test (multProp2 10 . rConsist)
+    test (multProp2 10 . cConsist)
+    putStrLn "------ mult Float"
+    test (multProp1  6 . (single *** single) . rConsist)
+    test (multProp1  6 . (single *** single) . cConsist)
+    test (multProp2  6 . (single *** single) . rConsist)
+    test (multProp2  6 . (single *** single) . cConsist)
     putStrLn "------ sub-trans"
     test (subProp . rM)
     test (subProp . cM)

@@ -5,7 +5,7 @@
 
 - Vectors typeclass
 
-- Initial support for Vector Float and Vector (Complex Float)
+- Support for Float and Complex Float elements (excluding LAPACK computations)
 
 - Binary instances for Vector and Matrix
 
