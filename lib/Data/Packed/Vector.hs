@@ -26,7 +26,7 @@ module Data.Packed.Vector (
 --    vectorFMax, vectorFMin, vectorFMaxIndex, vectorFMinIndex,
 --    vectorMax, vectorMin,
     vectorMaxIndex, vectorMinIndex,
-    mapVector, zipVector, unzipVector, unzipVectorWith,
+    mapVector, zipVector, zipVectorWith, unzipVector, unzipVectorWith,
     mapVectorM, mapVectorM_,
     fscanfVector, fprintfVector, freadVector, fwriteVector,
     foldLoop, foldVector, foldVectorG
@@ -113,6 +113,10 @@ buildVector :: Storable a => Int -> (Int -> a) -> Vector a
 buildVector len f =
     fromList $ map f [0 .. (len - 1)]
 
+
+-- | zip for Vectors
+zipVector :: (Storable a, Storable b, Storable (a,b)) => Vector a -> Vector b -> Vector (a,b)
+zipVector = zipVectorWith (,)
 
 -- | unzip for Vectors
 unzipVector :: (Storable a, Storable b, Storable (a,b)) => Vector (a,b) -> (Vector a,Vector b)

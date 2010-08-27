@@ -17,7 +17,7 @@ module Data.Packed.Internal.Vector (
     Vector, dim,
     fromList, toList, (|>),
     join, (@>), safe, at, at', subVector, takesV,
-    mapVector, zipVector, unzipVectorWith,
+    mapVector, zipVectorWith, unzipVectorWith,
     mapVectorM, mapVectorM_,
     foldVector, foldVectorG, foldLoop,
     createVector, vec,
@@ -319,8 +319,8 @@ mapVector f v = unsafePerformIO $ do
 {-# INLINE mapVector #-}
 
 -- | zipWith for Vectors
-zipVector :: (Storable a, Storable b, Storable c) => (a-> b -> c) -> Vector a -> Vector b -> Vector c
-zipVector f u v = unsafePerformIO $ do
+zipVectorWith :: (Storable a, Storable b, Storable c) => (a-> b -> c) -> Vector a -> Vector b -> Vector c
+zipVectorWith f u v = unsafePerformIO $ do
     let n = min (dim u) (dim v)
     w <- createVector n
     unsafeWith u $ \pu ->
@@ -333,7 +333,7 @@ zipVector f u v = unsafePerformIO $ do
                                go (k-1)
                 go (n -1)
     return w
-{-# INLINE zipVector #-}
+{-# INLINE zipVectorWith #-}
 
 -- | unzipWith for Vectors
 unzipVectorWith :: (Storable (a,b), Storable c, Storable d) 
