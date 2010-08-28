@@ -30,12 +30,45 @@ addInitialM = mapVectorM_ (\x -> do
                                  put $ x + i
                           )
 
+-- sum the values of the even indiced elements
+sumEvens :: Vector Int -> Int
+sumEvens = foldVectorWithIndex (\x a b -> if x `mod` 2 == 0 then a + b else b) 0 
+
+-- sum and print running total of evens
+sumEvensAndPrint :: Vector Int -> VectorMonadT ()
+sumEvensAndPrint = mapVectorWithIndexM_ (\ i x -> do
+                                                  when (i `mod` 2 == 0) (do
+                                                                         v <- get
+                                                                         put $ v + x
+                                                                         v' <- get
+                                                                         liftIO $ putStr $ (show v') ++ " " 
+                                                                         return ())
+                                                  return ()
+                                        )
+
+indexPlusSum :: Vector Int -> VectorMonadT ()
+indexPlusSum v' = do
+                  v <- mapVectorWithIndexM (\i x -> do
+                                                    s <- get
+                                                    let inc = x+s
+                                                    liftIO $ putStr $ show (i,inc) ++ " "
+                                                    put inc
+                                                    return inc) v'
+                  liftIO $ do
+                           putStrLn ""
+                           putStrLn $ show v
+
 -------------------------------------------
+
 main = do
        v' <- test1 v
        putStrLn ""
        putStrLn $ show v'
        evalStateT (addInitialM v) 0
        putStrLn ""
+       putStrLn $ show (sumEvens v)
+       evalStateT (sumEvensAndPrint v) 0
+       putStrLn ""
+       evalStateT (indexPlusSum v) 0
        return ()
 

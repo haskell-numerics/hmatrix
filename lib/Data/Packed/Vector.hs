@@ -27,9 +27,9 @@ module Data.Packed.Vector (
 --    vectorMax, vectorMin,
     vectorMaxIndex, vectorMinIndex,
     mapVector, zipVector, zipVectorWith, unzipVector, unzipVectorWith,
-    mapVectorM, mapVectorM_,
+    mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
     fscanfVector, fprintfVector, freadVector, fwriteVector,
-    foldLoop, foldVector, foldVectorG
+    foldLoop, foldVector, foldVectorG, foldVectorWithIndex
 ) where
 
 import Data.Packed.Internal.Vector
