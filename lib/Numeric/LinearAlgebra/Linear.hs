@@ -21,7 +21,7 @@ module Numeric.LinearAlgebra.Linear (
     Linear(..),
     -- * Products
     Prod(..),
-    mXm,mXv,vXm, mulH,
+    mXm,mXv,vXm,
     outer, kronecker,
     -- * Creation of numeric vectors
     constant, linspace
@@ -90,7 +90,7 @@ instance Vectors Vector (Complex Double) where
 ----------------------------------------------------
 
 -- | Basic element-by-element functions.
-class (Element e, AutoReal e, Container c) => Linear c e where
+class (Element e, Container c) => Linear c e where
     -- | create a structure with a single element
     scalar      :: e -> c e
     scale       :: e -> c e -> c e
@@ -190,13 +190,8 @@ linspace n (a,b) = addConstant a $ scale s $ fromList [0 .. fromIntegral n-1]
 
 ----------------------------------------------------
 
--- reference multiply
-mulH a b = fromLists [[ doth ai bj | bj <- toColumns b] | ai <- toRows a ]
-    where doth u v = sum $ zipWith (*) (toList u) (toList v)
-
 class Element t => Prod t where
     multiply :: Matrix t -> Matrix t -> Matrix t
-    multiply = mulH
     ctrans :: Matrix t -> Matrix t
 
 instance Prod Double where

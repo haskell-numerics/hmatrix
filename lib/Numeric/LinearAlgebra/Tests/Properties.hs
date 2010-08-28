@@ -42,11 +42,14 @@ module Numeric.LinearAlgebra.Tests.Properties (
     linearSolveProp, linearSolveProp2
 ) where
 
-import Numeric.LinearAlgebra hiding (mulH)
+import Numeric.LinearAlgebra hiding (real,complex)
 import Numeric.LinearAlgebra.LAPACK
 import Debug.Trace
 #include "quickCheckCompat.h"
 
+
+real x = real'' x
+complex x = complex'' x
 
 debug x = trace (show x) x
 

@@ -27,10 +27,12 @@ module Numeric.LinearAlgebra.Tests.Instances(
 ) where
 
 
-import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra hiding (real,complex)
 import Control.Monad(replicateM)
 #include "quickCheckCompat.h"
 
+real x = real'' x
+complex x = complex'' x
 
 #if MIN_VERSION_QuickCheck(2,0,0)
 shrinkListElementwise :: (Arbitrary a) => [a] -> [[a]]

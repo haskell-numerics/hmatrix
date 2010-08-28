@@ -82,7 +82,7 @@ import Data.List(foldl1')
 import Data.Array
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
-class (Prod t, Normed (Matrix t), Linear Vector t, Linear Matrix t) => Field t where
+class (AutoReal t, Prod t, Linear Vector t, Linear Matrix t) => Field t where
     svd'         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     thinSVD'     :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     sv'          :: Matrix t -> Vector Double
@@ -588,8 +588,8 @@ diagonalize m = if rank v == n
 --
 -- @logm = matFunc log@
 --
-matFunc :: Field t => (Complex Double -> Complex Double) -> Matrix t -> Matrix (Complex Double)
-matFunc f m = case diagonalize (complex m) of
+matFunc :: (Field t) => (Complex Double -> Complex Double) -> Matrix t -> Matrix (Complex Double)
+matFunc f m = case diagonalize (complex'' m) of
     Just (l,v) -> v `mXm` diag (mapVector f l) `mXm` inv v
     Nothing -> error "Sorry, matFunc requires a diagonalizable matrix" 
 
@@ -630,7 +630,7 @@ expGolub m = iterate msq f !! j
 {- | Matrix exponential. It uses a direct translation of Algorithm 11.3.1 in Golub & Van Loan,
      based on a scaled Pade approximation.
 -}
-expm :: Field t => Matrix t -> Matrix t
+expm :: (Normed (Matrix t), Field t) => Matrix t -> Matrix t
 expm = expGolub
 
 --------------------------------------------------------------
@@ -646,7 +646,7 @@ It only works with invertible matrices that have a real solution. For diagonaliz
  [ 2.0, 2.25
  , 0.0,  2.0 ]@
 -}
-sqrtm :: Field t => Matrix t -> Matrix t
+sqrtm ::  (Normed (Matrix t), Field t) => Matrix t -> Matrix t
 sqrtm = sqrtmInv
 
 sqrtmInv x = fst $ fixedPoint $ iterate f (x, ident (rows x))

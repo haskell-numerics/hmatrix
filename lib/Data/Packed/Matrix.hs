@@ -4,7 +4,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Matrix
@@ -22,6 +21,7 @@
 module Data.Packed.Matrix (
     Element, RealElement, Container(..),
     Convert(..), RealOf, ComplexOf, SingleOf, DoubleOf, ElementOf,
+    Precision(..), comp, real'', complex'',
     AutoReal(..),
     Matrix,rows,cols,
     (><),
@@ -471,53 +471,54 @@ toBlocksEvery r c m = toBlocks rs cs m where
 
 -------------------------------------------------------------------
 
--- | conversion utilities
-
-class (Element t, Element (Complex t), RealFloat t) => RealElement t
-
-instance RealElement Double
-instance RealElement Float
-
-class (Element s, Element d) => Prec s d | s -> d, d -> s where
+-- | Supported single-double precision type pairs
+class (Element s, Element d) => Precision s d | s -> d, d -> s where
     double2FloatG :: Vector d -> Vector s
     float2DoubleG :: Vector s -> Vector d
 
-instance Prec Float Double where
+instance Precision Float Double where
     double2FloatG = double2FloatV
     float2DoubleG = float2DoubleV
 
-instance Prec (Complex Float) (Complex Double) where
+instance Precision (Complex Float) (Complex Double) where
     double2FloatG = asComplex . double2FloatV . asReal
     float2DoubleG = asComplex . float2DoubleV . asReal
 
+-- | Supported real types
+class (Element t, Element (Complex t), RealFloat t) => RealElement t
 
+instance RealElement Double
+
+instance RealElement Float
+
+-- | Conversion utilities
 class Container c where
     toComplex   :: (RealElement e) => (c e, c e) -> c (Complex e)
     fromComplex :: (RealElement e) => c (Complex e) -> (c e, c e)
-    comp        :: (RealElement e) => c e -> c (Complex e)
+    complex'    :: (RealElement e) => c e -> c (Complex e)
     conj        :: (RealElement e) => c (Complex e) -> c (Complex e)
     cmap        :: (Element a, Element b) => (a -> b) -> c a -> c b
-    single      :: Prec a b => c b -> c a
-    double      :: Prec a b => c a -> c b
+    single'      :: Precision a b => c b -> c a
+    double'      :: Precision a b => c a -> c b
 
 instance Container Vector where
     toComplex = toComplexV
     fromComplex = fromComplexV
-    comp v = toComplex (v,constantD 0 (dim v))
+    complex' v = toComplex (v,constantD 0 (dim v))
     conj = conjV
     cmap = mapVector
-    single = double2FloatG
-    double = float2DoubleG
+    single' = double2FloatG
+    double' = float2DoubleG
 
 instance Container Matrix where
     toComplex = uncurry $ liftMatrix2 $ curry toComplex
     fromComplex z = (reshape c *** reshape c) . fromComplex . flatten $ z
         where c = cols z
-    comp = liftMatrix comp
+    complex' = liftMatrix complex'
     conj = liftMatrix conj
     cmap f = liftMatrix (cmap f)
-    single = liftMatrix single
-    double = liftMatrix double
+    single' = liftMatrix single'
+    double' = liftMatrix double'
 
 -------------------------------------------------------------------
 
@@ -560,54 +561,65 @@ type instance ElementOf (Matrix a) = a
 
 -- | generic conversion functions
 class Convert t where
-    real'    :: Container c => c (RealOf t) -> c t
-    complex' :: Container c => c t -> c (ComplexOf t)
-    single'  :: Container c => c t -> c (SingleOf t)
-    double'  :: Container c => c t -> c (DoubleOf t)
+    real    :: Container c => c (RealOf t) -> c t
+    complex :: Container c => c t -> c (ComplexOf t)
+    single  :: Container c => c t -> c (SingleOf t)
+    double  :: Container c => c t -> c (DoubleOf t)
 
 instance Convert Double where
-    real' = id
-    complex' = comp
-    single' = single
-    double' = id
+    real = id
+    complex = complex'
+    single = single'
+    double = id
 
 instance Convert Float where
-    real' = id
-    complex' = comp
-    single' = id
-    double' = double
+    real = id
+    complex = complex'
+    single = id
+    double = double'
 
 instance Convert (Complex Double) where
-    real' = comp
-    complex' = id
-    single' = single
-    double' = id
+    real = complex'
+    complex = id
+    single = single'
+    double = id
 
 instance Convert (Complex Float) where
-    real' = comp
-    complex' = id
-    single' = id
-    double' = double
+    real = complex'
+    complex = id
+    single = id
+    double = double'
 
 -------------------------------------------------------------------
 
+
 -- | to be replaced by Convert
-class AutoReal t where
-    real :: Container c => c Double -> c t
-    complex :: Container c => c t -> c (Complex Double)
+class Convert t => AutoReal t where
+    real''' :: Container c => c Double -> c t
+    complex''' :: Container c => c t -> c (Complex Double)
 
 instance AutoReal Double where
-    real = real'
-    complex = complex'
+    real''' = real
+    complex''' = complex
 
 instance AutoReal (Complex Double) where
-    real = real'
-    complex = complex'
+    real''' = real
+    complex''' = complex
 
 instance AutoReal Float where
-    real = real' . single
-    complex = double . complex'
+    real''' = real . single
+    complex''' = double . complex
 
 instance AutoReal (Complex Float) where
-    real = real' . single
-    complex = double . complex'
+    real''' = real . single
+    complex''' = double . complex
+
+
+comp x = complex' x
+
+-- complex'' x = double (complex x)
+-- real'' x = real (single x)
+
+real'' x = real''' x
+complex'' x = complex''' x
+
