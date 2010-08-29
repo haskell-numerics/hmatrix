@@ -99,6 +99,7 @@ library
                         Numeric.LinearAlgebra.LAPACK,
                         Numeric.LinearAlgebra.Interface,
                         Numeric.LinearAlgebra.Linear,
+                        Numeric.LinearAlgebra.Instances,
                         Numeric.LinearAlgebra.Algorithms,
                         Graphics.Plot,
                      -- Data.Packed.Convert,
@@ -110,7 +111,6 @@ library
                         Data.Packed.Internal.Signatures,
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix,
-                        Numeric.LinearAlgebra.Instances,
                         Numeric.GSL.Internal
 
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,

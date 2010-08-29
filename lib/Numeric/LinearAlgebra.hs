@@ -16,10 +16,12 @@ module Numeric.LinearAlgebra (
     module Data.Packed,
     module Numeric.LinearAlgebra.Algorithms,
     module Numeric.LinearAlgebra.Interface,
-    module Numeric.LinearAlgebra.Linear
+    module Numeric.LinearAlgebra.Linear,
+    module Numeric.LinearAlgebra.Instances
 ) where
 
 import Data.Packed
 import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Interface
 import Numeric.LinearAlgebra.Linear
+import Numeric.LinearAlgebra.Instances
