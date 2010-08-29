@@ -24,7 +24,6 @@ module Numeric.LinearAlgebra.Interface(
     (<|>),(<->),
 ) where
 
-import Numeric.LinearAlgebra.Instances()
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import Numeric.LinearAlgebra.Algorithms

@@ -23,7 +23,6 @@ import Numeric.GSL.Vector
 import Data.Packed.Matrix
 import Data.Packed.Vector
 import Numeric.LinearAlgebra.Algorithms
-import Numeric.LinearAlgebra.Interface
 import Numeric.LinearAlgebra.Linear
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
@@ -37,7 +36,7 @@ gaussianSample seed n med cov = m where
     c = dim med
     meds = constant 1 n `outer` med
     rs = reshape c $ randomVector seed Gaussian (c * n)
-    m = rs <> cholSH cov + meds
+    m = rs `mXm` cholSH cov `add` meds
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
 -- uniform distribution.
@@ -52,7 +51,7 @@ uniformSample seed n rgs = m where
     d = dim a
     dat = toRows $ reshape n $ randomVector seed Uniform (n*d)
     am = constant 1 n `outer` a
-    m = fromColumns (zipWith scale cs dat) + am
+    m = fromColumns (zipWith scale cs dat) `add` am
 
 ------------ utilities -------------------------------
 
@@ -61,7 +60,7 @@ meanCov :: Matrix Double -> (Vector Double, Matrix Double)
 meanCov x = (med,cov) where
     r    = rows x
     k    = 1 / fromIntegral r
-    med  = constant k r <> x
+    med  = constant k r `vXm` x
     meds = constant 1 r `outer` med
-    xc   = x - meds
-    cov  = (trans xc <> xc) / fromIntegral (r-1)
+    xc   = x `sub` meds
+    cov  = flip scale (trans xc `mXm` xc) (recip (fromIntegral (r-1)))
