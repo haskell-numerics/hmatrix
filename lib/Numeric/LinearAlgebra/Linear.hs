@@ -1,5 +1,6 @@
 {-# LANGUAGE UndecidableInstances, MultiParamTypeClasses, FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Linear
@@ -20,9 +21,11 @@ module Numeric.LinearAlgebra.Linear (
     Vectors(..),
     Linear(..),
     -- * Products
-    Prod(..),
+    Product(..),
     mXm,mXv,vXm,
     outer, kronecker,
+    -- * Norms
+    Norm(..), Norm2(..),
     -- * Creation of numeric vectors
     constant, linspace
 ) where
@@ -190,38 +193,38 @@ linspace n (a,b) = addConstant a $ scale s $ fromList [0 .. fromIntegral n-1]
 
 ----------------------------------------------------
 
-class Element t => Prod t where
+class Element t => Product t where
     multiply :: Matrix t -> Matrix t -> Matrix t
     ctrans :: Matrix t -> Matrix t
 
-instance Prod Double where
+instance Product Double where
     multiply = multiplyR
     ctrans = trans
 
-instance Prod (Complex Double) where
+instance Product (Complex Double) where
     multiply = multiplyC
     ctrans = conj . trans
 
-instance Prod Float where
+instance Product Float where
     multiply = multiplyF
     ctrans = trans
 
-instance Prod (Complex Float) where
+instance Product (Complex Float) where
     multiply = multiplyQ
     ctrans = conj . trans
 
 ----------------------------------------------------------
 
 -- synonym for matrix product
-mXm :: Prod t => Matrix t -> Matrix t -> Matrix t
+mXm :: Product t => Matrix t -> Matrix t -> Matrix t
 mXm = multiply
 
 -- matrix - vector product
-mXv :: Prod t => Matrix t -> Vector t -> Vector t
+mXv :: Product t => Matrix t -> Vector t -> Vector t
 mXv m v = flatten $ m `mXm` (asColumn v)
 
 -- vector - matrix product
-vXm :: Prod t => Vector t -> Matrix t -> Vector t
+vXm :: Product t => Vector t -> Matrix t -> Vector t
 vXm v m = flatten $ (asRow v) `mXm` m
 
 {- | Outer product of two vectors.
@@ -232,7 +235,7 @@ vXm v m = flatten $ (asRow v) `mXm` m
  , 10.0, 4.0, 6.0
  , 15.0, 6.0, 9.0 ]@
 -}
-outer :: (Prod t) => Vector t -> Vector t -> Matrix t
+outer :: (Product t) => Vector t -> Vector t -> Matrix t
 outer u v = asColumn u `multiply` asRow v
 
 {- | Kronecker product of two matrices.
@@ -257,9 +260,47 @@ m2=(4><3)
  ,  0.0,  0.0,  0.0,  -7.0,  -8.0,  -9.0, 21.0, 24.0, 27.0
  ,  0.0,  0.0,  0.0, -10.0, -11.0, -12.0, 30.0, 33.0, 36.0 ]@
 -}
-kronecker :: (Prod t) => Matrix t -> Matrix t -> Matrix t
+kronecker :: (Product t) => Matrix t -> Matrix t -> Matrix t
 kronecker a b = fromBlocks
               . splitEvery (cols a)
               . map (reshape (cols b))
               . toRows
               $ flatten a `outer` flatten b
+
+--------------------------------------------------
+
+-- | simple norms
+class (Element t, RealFloat (RealOf t)) => Norm c t where
+    norm1   :: c t -> RealOf t
+    normInf  :: c t -> RealOf t
+    normFrob :: c t -> RealOf t
+
+instance Norm Vector Double where
+    normFrob = toScalarR Norm2
+    norm1 = toScalarR AbsSum
+    normInf = vectorMax . vectorMapR Abs
+
+instance Norm Vector Float where
+    normFrob = toScalarF Norm2
+    norm1 = toScalarF AbsSum
+    normInf = vectorMax . vectorMapF Abs
+
+instance (Norm Vector t, Vectors Vector t, RealElement t
+         , RealOf t ~ t, RealOf (Complex t) ~ t
+         ) => Norm Vector (Complex t) where
+    normFrob = normFrob . asReal
+    norm1 = norm1 . mapVector magnitude
+    normInf = vectorMax . mapVector magnitude
+
+instance Norm Vector t => Norm Matrix t where
+    normFrob = normFrob . flatten
+    norm1 = maximum . map norm1 . toColumns
+    normInf = norm1 . trans
+
+class Norm2 c t where
+    norm2 :: c t -> RealOf t
+
+instance Norm Vector t => Norm2 Vector t where
+    norm2 = normFrob
+
+-- (the instance Norm2 Matrix t requires singular values and is defined later)

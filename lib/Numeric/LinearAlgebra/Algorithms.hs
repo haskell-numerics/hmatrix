@@ -1,5 +1,8 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Algorithms
@@ -58,10 +61,9 @@ module Numeric.LinearAlgebra.Algorithms (
     nullspacePrec,
     nullVector,
     nullspaceSVD,
--- * Norms
-    Normed(..), NormType(..),
 -- * Misc
-    eps, i,
+    eps, peps, i,
+    Normed(..), NormType(..),
 -- * Util
     haussholder,
     unpackQR, unpackHess,
@@ -72,17 +74,15 @@ module Numeric.LinearAlgebra.Algorithms (
 
 
 import Data.Packed.Internal hiding ((//))
---import Data.Packed.Vector
 import Data.Packed.Matrix
 import Data.Complex
-import Numeric.GSL.Vector
 import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Numeric.LinearAlgebra.Linear
 import Data.List(foldl1')
 import Data.Array
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
-class (AutoReal t, Prod t, Linear Vector t, Linear Matrix t) => Field t where
+class (Product t, Linear Vector t, Linear Matrix t) => Field t where
     svd'         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     thinSVD'     :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     sv'          :: Matrix t -> Vector Double
@@ -171,6 +171,9 @@ thinSVD = {-# SCC "thinSVD" #-} thinSVD'
 -- | Singular values only.
 singularValues :: Field t => Matrix t -> Vector Double
 singularValues = {-# SCC "singularValues" #-} sv'
+
+instance (Field t, RealOf t ~ Double) => Norm2 Matrix t where
+    norm2 m = singularValues m @> 0
 
 -- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values.
 --
@@ -379,79 +382,15 @@ ranksv teps maxdim s = k where
 eps :: Double
 eps =  2.22044604925031e-16
 
-peps :: RealFloat x => x -> x
-peps x = 2.0**(fromIntegral $ 1-floatDigits x)
+
+-- | 1 + 0.5*peps == 1,  1 + 0.6*peps /= 1
+peps :: RealFloat x => x
+peps = x where x = 2.0**(fromIntegral $ 1-floatDigits x)
 
 
 -- | The imaginary unit: @i = 0.0 :+ 1.0@
 i :: Complex Double
 i = 0:+1
-
----------------------------------------------------------------------------
-
-norm2 :: Vector Double -> Double
-norm2 = toScalarR Norm2
-
-norm1 :: Vector Double -> Double
-norm1 = toScalarR AbsSum
-
-data NormType = Infinity | PNorm1 | PNorm2 -- PNorm Int
-
-pnormRV PNorm2 = norm2
-pnormRV PNorm1 = norm1
-pnormRV Infinity = vectorMax . vectorMapR Abs
---pnormRV _ = error "pnormRV not yet defined"
-
-pnormCV PNorm2 = norm2 . asReal
-pnormCV PNorm1 = norm1 . mapVector magnitude
-pnormCV Infinity = vectorMax . mapVector magnitude
---pnormCV _ = error "pnormCV not yet defined"
-
-pnormRM PNorm2 m = singularValues m @> 0
-pnormRM PNorm1 m = vectorMax $ constant 1 (rows m) `vXm` liftMatrix (vectorMapR Abs) m
-pnormRM Infinity m = vectorMax $ liftMatrix (vectorMapR Abs) m `mXv` constant 1 (cols m)
---pnormRM _ _ = error "p norm not yet defined"
-
-pnormCM PNorm2 m = singularValues m @> 0
-pnormCM PNorm1 m = vectorMax $ constant 1 (rows m) `vXm` liftMatrix (mapVector magnitude) m
-pnormCM Infinity m = vectorMax $ liftMatrix (mapVector magnitude) m `mXv` constant 1 (cols m)
---pnormCM _ _ = error "p norm not yet defined"
-
--- | Objects which have a p-norm.
--- Using it you can define convenient shortcuts:
---
--- @norm2 x = pnorm PNorm2 x@
---
--- @frobenius m = norm2 . flatten $ m@
-class Normed t where
-    pnorm :: NormType -> t -> Double
-
-instance Normed (Vector Double) where
-    pnorm = pnormRV
-
-instance Normed (Vector (Complex Double)) where
-    pnorm = pnormCV
-
-instance Normed (Matrix Double) where
-    pnorm = pnormRM
-
-instance Normed (Matrix (Complex Double)) where
-    pnorm = pnormCM
-
------------------------------------------------------------------------
--- to be optimized
-
-instance Normed (Vector Float) where
-    pnorm t = pnorm t . double
-
-instance Normed (Vector (Complex Float)) where
-    pnorm t = pnorm t . double
-
-instance Normed (Matrix Float) where
-    pnorm t = pnorm t . double
-
-instance Normed (Matrix (Complex Float)) where
-    pnorm t = pnorm t . double
 
 -----------------------------------------------------------------------
 
@@ -588,8 +527,8 @@ diagonalize m = if rank v == n
 --
 -- @logm = matFunc log@
 --
-matFunc :: (Field t) => (Complex Double -> Complex Double) -> Matrix t -> Matrix (Complex Double)
-matFunc f m = case diagonalize (complex'' m) of
+matFunc :: (Complex Double -> Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
+matFunc f m = case diagonalize m of
     Just (l,v) -> v `mXm` diag (mapVector f l) `mXm` inv v
     Nothing -> error "Sorry, matFunc requires a diagonalizable matrix" 
 
@@ -607,7 +546,7 @@ epslist = [ (fromIntegral k, golubeps k k) | k <- [1..]]
 geps delta = head [ k | (k,g) <- epslist, g<delta]
 
 expGolub m = iterate msq f !! j
-    where j = max 0 $ floor $ log2 $ pnorm Infinity m
+    where j = max 0 $ floor $ log2 $ normInf m
           log2 x = log x / log 2
           a = m */ fromIntegral ((2::Int)^j)
           q = geps eps -- 7 steps
@@ -630,7 +569,7 @@ expGolub m = iterate msq f !! j
 {- | Matrix exponential. It uses a direct translation of Algorithm 11.3.1 in Golub & Van Loan,
      based on a scaled Pade approximation.
 -}
-expm :: (Normed (Matrix t), Field t) => Matrix t -> Matrix t
+expm :: (Norm Vector t, Field t) => Matrix t -> Matrix t
 expm = expGolub
 
 --------------------------------------------------------------
@@ -646,11 +585,11 @@ It only works with invertible matrices that have a real solution. For diagonaliz
  [ 2.0, 2.25
  , 0.0,  2.0 ]@
 -}
-sqrtm ::  (Normed (Matrix t), Field t) => Matrix t -> Matrix t
+sqrtm ::  (Norm Vector t, Field t) => Matrix t -> Matrix t
 sqrtm = sqrtmInv
 
 sqrtmInv x = fst $ fixedPoint $ iterate f (x, ident (rows x))
-    where fixedPoint (a:b:rest) | pnorm PNorm1 (fst a |-| fst b) < eps   = a
+    where fixedPoint (a:b:rest) | norm1 (fst a |-| fst b) < peps   = a
                                 | otherwise = fixedPoint (b:rest)
           fixedPoint _ = error "fixedpoint with impossible inputs"
           f (y,z) = (0.5 .* (y |+| inv z),
@@ -691,4 +630,35 @@ luFact (l_u,perm) | r <= c    = (l ,u ,p, s)
     (|+|) = add
     (|*|) = mul
 
---------------------------------------------------
+---------------------------------------------------------------------------
+
+data NormType = Infinity | PNorm1 | PNorm2
+
+-- | Old class
+class Normed t where
+    pnorm :: NormType -> t -> Double
+
+instance Norm Vector t => Normed (Vector t) where
+    pnorm PNorm1   = realToFrac . norm1
+    pnorm PNorm2   = realToFrac . normFrob
+    pnorm Infinity = realToFrac . normInf
+
+instance Normed (Matrix Double) where
+    pnorm PNorm1   = norm1
+    pnorm PNorm2   = norm2
+    pnorm Infinity = normInf
+
+instance Normed (Matrix (Complex Double)) where
+    pnorm PNorm1   = norm1
+    pnorm PNorm2   = norm2
+    pnorm Infinity = normInf
+
+instance Normed (Matrix Float) where
+    pnorm PNorm1   = realToFrac . norm1
+    pnorm PNorm2   = norm2 . double -- not yet optimized for Float
+    pnorm Infinity = realToFrac . normInf
+
+instance Normed (Matrix (Complex Float)) where
+    pnorm PNorm1   = realToFrac . norm1
+    pnorm PNorm2   = norm2 . double -- not yet optimized for Float
+    pnorm Infinity = realToFrac . normInf

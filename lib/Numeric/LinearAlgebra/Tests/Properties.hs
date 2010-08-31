@@ -54,15 +54,15 @@ complex x = complex'' x
 debug x = trace (show x) x
 
 -- relative error
-dist :: (Normed t, Num t) => t -> t -> Double
+--dist :: (Normed t, Num t) => t -> t -> Double
 dist a b = r
-    where norm = pnorm Infinity
+    where norm = normInf
           na = norm a
           nb = norm b
           nab = norm (a-b)
           mx = max na nb
           mn = min na nb
-          r = if mn < eps
+          r = if mn < peps
                 then mx
                 else nab/mx
 
@@ -71,7 +71,7 @@ a |~| b = a :~10~: b
 --a |~| b = dist a b < 10^^(-10)
 
 data Aprox a = (:~) a Int
-(~:) :: (Normed a, Num a) => Aprox a -> a -> Bool
+-- (~:) :: (Normed a, Num a) => Aprox a -> a -> Bool
 a :~n~: b = dist a b < 10^^(-n)
 
 ------------------------------------------------------

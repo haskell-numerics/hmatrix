@@ -21,7 +21,7 @@
 module Data.Packed.Matrix (
     Element, RealElement, Container(..),
     Convert(..), RealOf, ComplexOf, SingleOf, DoubleOf, ElementOf,
-    Precision(..), comp, real'', complex'',
+    Precision(..), comp,
     AutoReal(..),
     Matrix,rows,cols,
     (><),
@@ -485,7 +485,10 @@ instance Precision (Complex Float) (Complex Double) where
     float2DoubleG = asComplex . float2DoubleV . asReal
 
 -- | Supported real types
-class (Element t, Element (Complex t), RealFloat t) => RealElement t
+class (Element t, Element (Complex t), RealFloat t
+--       , RealOf t ~ t, RealOf (Complex t) ~ t
+       )
+       => RealElement t
 
 instance RealElement Double
 
@@ -500,6 +503,8 @@ class Container c where
     cmap        :: (Element a, Element b) => (a -> b) -> c a -> c b
     single'      :: Precision a b => c b -> c a
     double'      :: Precision a b => c a -> c b
+
+comp x = complex' x
 
 instance Container Vector where
     toComplex = toComplexV
@@ -592,34 +597,23 @@ instance Convert (Complex Float) where
 
 -------------------------------------------------------------------
 
-
 -- | to be replaced by Convert
 class Convert t => AutoReal t where
-    real''' :: Container c => c Double -> c t
-    complex''' :: Container c => c t -> c (Complex Double)
+    real'' :: Container c => c Double -> c t
+    complex'' :: Container c => c t -> c (Complex Double)
 
 instance AutoReal Double where
-    real''' = real
-    complex''' = complex
+    real'' = real
+    complex'' = complex
 
 instance AutoReal (Complex Double) where
-    real''' = real
-    complex''' = complex
+    real'' = real
+    complex'' = complex
 
 instance AutoReal Float where
-    real''' = real . single
-    complex''' = double . complex
+    real'' = real . single
+    complex'' = double . complex
 
 instance AutoReal (Complex Float) where
-    real''' = real . single
-    complex''' = double . complex
-
-
-comp x = complex' x
-
--- complex'' x = double (complex x)
--- real'' x = real (single x)
-
-real'' x = real''' x
-complex'' x = complex''' x
-
+    real'' = real . single
+    complex'' = double . complex
