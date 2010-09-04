@@ -54,9 +54,9 @@ complex x = complex'' x
 debug x = trace (show x) x
 
 -- relative error
---dist :: (Normed t, Num t) => t -> t -> Double
+dist :: (Normed t, Num t) => t -> t -> Double
 dist a b = r
-    where norm = normInf
+    where norm = pnorm Infinity
           na = norm a
           nb = norm b
           nab = norm (a-b)

@@ -24,8 +24,6 @@ module Numeric.LinearAlgebra.Linear (
     Product(..),
     mXm,mXv,vXm,
     outer, kronecker,
-    -- * Norms
-    Norm(..), Norm2(..),
     -- * Creation of numeric vectors
     constant, linspace
 ) where
@@ -42,53 +40,64 @@ import Control.Monad(ap)
 class Num e => Vectors a e where
     -- the C functions sumX are twice as fast as using foldVector
     vectorSum :: a e -> e
-    euclidean :: a e -> e
     absSum    :: a e -> e
     vectorMin :: a e -> e
     vectorMax :: a e -> e
     minIdx    :: a e -> Int
     maxIdx    :: a e -> Int
     dot       :: a e -> a e -> e
+    norm1     :: a e -> e
+    norm2     :: a e -> e
+    normInf   :: a e -> e
+
 
 instance Vectors Vector Float where
     vectorSum = sumF
-    euclidean = toScalarF Norm2
+    norm2     = toScalarF Norm2
     absSum    = toScalarF AbsSum
     vectorMin = toScalarF Min
     vectorMax = toScalarF Max
     minIdx    = round . toScalarF MinIdx
     maxIdx    = round . toScalarF MaxIdx
     dot       = dotF
+    norm1     = toScalarF AbsSum
+    normInf   = vectorMax . vectorMapF Abs
 
 instance Vectors Vector Double where
     vectorSum = sumR
-    euclidean = toScalarR Norm2
+    norm2     = toScalarR Norm2
     absSum    = toScalarR AbsSum
     vectorMin = toScalarR Min
     vectorMax = toScalarR Max
     minIdx    = round . toScalarR MinIdx
     maxIdx    = round . toScalarR MaxIdx
     dot       = dotR
+    norm1     = toScalarR AbsSum
+    normInf   = vectorMax . vectorMapR Abs
 
 instance Vectors Vector (Complex Float) where
     vectorSum = sumQ
-    euclidean = (:+ 0) . toScalarQ Norm2
+    norm2     = (:+ 0) . toScalarQ Norm2
     absSum    = (:+ 0) . toScalarQ AbsSum
     vectorMin = ap (@>) minIdx
     vectorMax = ap (@>) maxIdx
     minIdx    = minIdx . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
     maxIdx    = maxIdx . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
     dot       = dotQ
+    norm1     = (:+ 0) . vectorSum . fst . fromComplex . vectorMapQ Abs
+    normInf   = (:+ 0) . vectorMax . fst . fromComplex . vectorMapQ Abs
 
 instance Vectors Vector (Complex Double) where
-    vectorSum  = sumC
-    euclidean = (:+ 0) . toScalarC Norm2
+    vectorSum = sumC
+    norm2     = (:+ 0) . toScalarC Norm2
     absSum    = (:+ 0) . toScalarC AbsSum
     vectorMin = ap (@>) minIdx
     vectorMax = ap (@>) maxIdx
     minIdx    = minIdx . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
     maxIdx    = maxIdx . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
     dot       = dotC
+    norm1     = (:+ 0) . vectorSum . fst . fromComplex . vectorMapC Abs
+    normInf   = (:+ 0) . vectorMax . fst . fromComplex . vectorMapC Abs
 
 ----------------------------------------------------
 
@@ -268,39 +277,3 @@ kronecker a b = fromBlocks
               $ flatten a `outer` flatten b
 
 --------------------------------------------------
-
--- | simple norms
-class (Element t, RealFloat (RealOf t)) => Norm c t where
-    norm1   :: c t -> RealOf t
-    normInf  :: c t -> RealOf t
-    normFrob :: c t -> RealOf t
-
-instance Norm Vector Double where
-    normFrob = toScalarR Norm2
-    norm1 = toScalarR AbsSum
-    normInf = vectorMax . vectorMapR Abs
-
-instance Norm Vector Float where
-    normFrob = toScalarF Norm2
-    norm1 = toScalarF AbsSum
-    normInf = vectorMax . vectorMapF Abs
-
-instance (Norm Vector t, Vectors Vector t, RealElement t
-         , RealOf t ~ t, RealOf (Complex t) ~ t
-         ) => Norm Vector (Complex t) where
-    normFrob = normFrob . asReal
-    norm1 = norm1 . mapVector magnitude
-    normInf = vectorMax . mapVector magnitude
-
-instance Norm Vector t => Norm Matrix t where
-    normFrob = normFrob . flatten
-    norm1 = maximum . map norm1 . toColumns
-    normInf = norm1 . trans
-
-class Norm2 c t where
-    norm2 :: c t -> RealOf t
-
-instance Norm Vector t => Norm2 Vector t where
-    norm2 = normFrob
-
--- (the instance Norm2 Matrix t requires singular values and is defined later)

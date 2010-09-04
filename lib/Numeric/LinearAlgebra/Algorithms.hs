@@ -61,9 +61,10 @@ module Numeric.LinearAlgebra.Algorithms (
     nullspacePrec,
     nullVector,
     nullspaceSVD,
+-- * Norms
+    Normed(..), NormType(..),
 -- * Misc
     eps, peps, i,
-    Normed(..), NormType(..),
 -- * Util
     haussholder,
     unpackQR, unpackHess,
@@ -171,9 +172,6 @@ thinSVD = {-# SCC "thinSVD" #-} thinSVD'
 -- | Singular values only.
 singularValues :: Field t => Matrix t -> Vector Double
 singularValues = {-# SCC "singularValues" #-} sv'
-
-instance (Field t, RealOf t ~ Double) => Norm2 Matrix t where
-    norm2 m = singularValues m @> 0
 
 -- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values.
 --
@@ -546,7 +544,7 @@ epslist = [ (fromIntegral k, golubeps k k) | k <- [1..]]
 geps delta = head [ k | (k,g) <- epslist, g<delta]
 
 expGolub m = iterate msq f !! j
-    where j = max 0 $ floor $ log2 $ normInf m
+    where j = max 0 $ floor $ log2 $ pnorm Infinity m
           log2 x = log x / log 2
           a = m */ fromIntegral ((2::Int)^j)
           q = geps eps -- 7 steps
@@ -569,7 +567,7 @@ expGolub m = iterate msq f !! j
 {- | Matrix exponential. It uses a direct translation of Algorithm 11.3.1 in Golub & Van Loan,
      based on a scaled Pade approximation.
 -}
-expm :: (Norm Vector t, Field t) => Matrix t -> Matrix t
+expm :: (Normed (Matrix t), Field t) => Matrix t -> Matrix t
 expm = expGolub
 
 --------------------------------------------------------------
@@ -585,11 +583,11 @@ It only works with invertible matrices that have a real solution. For diagonaliz
  [ 2.0, 2.25
  , 0.0,  2.0 ]@
 -}
-sqrtm ::  (Norm Vector t, Field t) => Matrix t -> Matrix t
+sqrtm ::  (Normed (Matrix t), Field t) => Matrix t -> Matrix t
 sqrtm = sqrtmInv
 
 sqrtmInv x = fst $ fixedPoint $ iterate f (x, ident (rows x))
-    where fixedPoint (a:b:rest) | norm1 (fst a |-| fst b) < peps   = a
+    where fixedPoint (a:b:rest) | pnorm PNorm1 (fst a |-| fst b) < peps   = a
                                 | otherwise = fixedPoint (b:rest)
           fixedPoint _ = error "fixedpoint with impossible inputs"
           f (y,z) = (0.5 .* (y |+| inv z),
@@ -632,33 +630,56 @@ luFact (l_u,perm) | r <= c    = (l ,u ,p, s)
 
 ---------------------------------------------------------------------------
 
-data NormType = Infinity | PNorm1 | PNorm2
+data NormType = Infinity | PNorm1 | PNorm2 | Frobenius
 
--- | Old class
 class Normed t where
     pnorm :: NormType -> t -> Double
 
-instance Norm Vector t => Normed (Vector t) where
-    pnorm PNorm1   = realToFrac . norm1
-    pnorm PNorm2   = realToFrac . normFrob
-    pnorm Infinity = realToFrac . normInf
+instance Normed (Vector Double) where
+    pnorm PNorm1    = norm1
+    pnorm PNorm2    = norm2
+    pnorm Infinity  = normInf
+    pnorm Frobenius = normInf
+
+instance Normed (Vector (Complex Double)) where
+    pnorm PNorm1    = realPart . norm1
+    pnorm PNorm2    = realPart . norm2
+    pnorm Infinity  = realPart . normInf
+    pnorm Frobenius = realPart . normInf
+
+instance Normed (Vector Float) where
+    pnorm PNorm1    = realToFrac . norm1
+    pnorm PNorm2    = realToFrac . norm2
+    pnorm Infinity  = realToFrac . normInf
+    pnorm Frobenius = realToFrac . normInf
+
+instance Normed (Vector (Complex Float)) where
+    pnorm PNorm1    = realToFrac . realPart . norm1
+    pnorm PNorm2    = realToFrac . realPart . norm2
+    pnorm Infinity  = realToFrac . realPart . normInf
+    pnorm Frobenius = realToFrac . realPart . normInf
+
 
 instance Normed (Matrix Double) where
-    pnorm PNorm1   = norm1
-    pnorm PNorm2   = norm2
-    pnorm Infinity = normInf
+    pnorm PNorm1    = maximum . map norm1 . toColumns
+    pnorm PNorm2    = (@>0) . singularValues
+    pnorm Infinity  = pnorm PNorm1 . trans
+    pnorm Frobenius = norm2 . flatten
 
 instance Normed (Matrix (Complex Double)) where
-    pnorm PNorm1   = norm1
-    pnorm PNorm2   = norm2
-    pnorm Infinity = normInf
+    pnorm PNorm1    = maximum . map (realPart.norm1) . toColumns
+    pnorm PNorm2    = (@>0) . singularValues
+    pnorm Infinity  = pnorm PNorm1 . trans
+    pnorm Frobenius = realPart . norm2 . flatten
 
 instance Normed (Matrix Float) where
-    pnorm PNorm1   = realToFrac . norm1
-    pnorm PNorm2   = norm2 . double -- not yet optimized for Float
-    pnorm Infinity = realToFrac . normInf
+    pnorm PNorm1    = realToFrac . maximum . map norm1 . toColumns
+    pnorm PNorm2    = realToFrac . (@>0) . singularValues . double
+    pnorm Infinity  = realToFrac . pnorm PNorm1 . trans
+    pnorm Frobenius = realToFrac . norm2 . flatten
 
 instance Normed (Matrix (Complex Float)) where
-    pnorm PNorm1   = realToFrac . norm1
-    pnorm PNorm2   = norm2 . double -- not yet optimized for Float
-    pnorm Infinity = realToFrac . normInf
+    pnorm PNorm1    = realToFrac . maximum . map (realPart.norm1) . toColumns
+    pnorm PNorm2    = realToFrac . (@>0) . singularValues . double
+    pnorm Infinity  = realToFrac . pnorm PNorm1 . trans
+    pnorm Frobenius = realToFrac . realPart . norm2 . flatten
