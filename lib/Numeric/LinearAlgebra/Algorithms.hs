@@ -639,47 +639,47 @@ instance Normed (Vector Double) where
     pnorm PNorm1    = norm1
     pnorm PNorm2    = norm2
     pnorm Infinity  = normInf
-    pnorm Frobenius = normInf
+    pnorm Frobenius = norm2
 
 instance Normed (Vector (Complex Double)) where
     pnorm PNorm1    = realPart . norm1
     pnorm PNorm2    = realPart . norm2
     pnorm Infinity  = realPart . normInf
-    pnorm Frobenius = realPart . normInf
+    pnorm Frobenius = pnorm PNorm2
 
 instance Normed (Vector Float) where
     pnorm PNorm1    = realToFrac . norm1
     pnorm PNorm2    = realToFrac . norm2
     pnorm Infinity  = realToFrac . normInf
-    pnorm Frobenius = realToFrac . normInf
+    pnorm Frobenius = pnorm PNorm2
 
 instance Normed (Vector (Complex Float)) where
     pnorm PNorm1    = realToFrac . realPart . norm1
     pnorm PNorm2    = realToFrac . realPart . norm2
     pnorm Infinity  = realToFrac . realPart . normInf
-    pnorm Frobenius = realToFrac . realPart . normInf
+    pnorm Frobenius = pnorm PNorm2
 
 
 instance Normed (Matrix Double) where
-    pnorm PNorm1    = maximum . map norm1 . toColumns
+    pnorm PNorm1    = maximum . map (pnorm PNorm1) . toColumns
     pnorm PNorm2    = (@>0) . singularValues
     pnorm Infinity  = pnorm PNorm1 . trans
-    pnorm Frobenius = norm2 . flatten
+    pnorm Frobenius = pnorm PNorm2 . flatten
 
 instance Normed (Matrix (Complex Double)) where
-    pnorm PNorm1    = maximum . map (realPart.norm1) . toColumns
+    pnorm PNorm1    = maximum . map (pnorm PNorm1) . toColumns
     pnorm PNorm2    = (@>0) . singularValues
     pnorm Infinity  = pnorm PNorm1 . trans
-    pnorm Frobenius = realPart . norm2 . flatten
+    pnorm Frobenius = pnorm PNorm2 . flatten
 
 instance Normed (Matrix Float) where
-    pnorm PNorm1    = realToFrac . maximum . map norm1 . toColumns
-    pnorm PNorm2    = realToFrac . (@>0) . singularValues . double
-    pnorm Infinity  = realToFrac . pnorm PNorm1 . trans
-    pnorm Frobenius = realToFrac . norm2 . flatten
+    pnorm PNorm1    = maximum . map (pnorm PNorm1) . toColumns
+    pnorm PNorm2    = (@>0) . singularValues . double
+    pnorm Infinity  = pnorm PNorm1 . trans
+    pnorm Frobenius = pnorm PNorm2 . flatten
 
 instance Normed (Matrix (Complex Float)) where
-    pnorm PNorm1    = realToFrac . maximum . map (realPart.norm1) . toColumns
-    pnorm PNorm2    = realToFrac . (@>0) . singularValues . double
-    pnorm Infinity  = realToFrac . pnorm PNorm1 . trans
-    pnorm Frobenius = realToFrac . realPart . norm2 . flatten
+    pnorm PNorm1    = maximum . map (pnorm PNorm1) . toColumns
+    pnorm PNorm2    = (@>0) . singularValues . double
+    pnorm Infinity  = pnorm PNorm1 . trans
+    pnorm Frobenius = pnorm PNorm2 . flatten

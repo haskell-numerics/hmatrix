@@ -35,8 +35,11 @@ import System.CPUTime
 import Text.Printf
 import Data.Packed.Development(unsafeFromForeignPtr,unsafeToForeignPtr)
 import Control.Arrow((***))
+import Debug.Trace
 
 #include "Tests/quickCheckCompat.h"
+
+debug x = trace (show x) x
 
 a ^ b = a Prelude.^ (b :: Int)
 
@@ -217,6 +220,56 @@ offsetTest = y == y' where
 
 ---------------------------------------------------------------------
 
+normsVTest = TestList [
+    utest "normv2CD" $ norm2PropC v
+  , utest "normv2CF" $ norm2PropC (single v)
+  , utest "normv2D"  $ norm2PropR x
+  , utest "normv2F"  $ norm2PropR (single x)
+
+  , utest "normv1CD" $ norm1 v          == 8
+  , utest "normv1CF" $ norm1 (single v) == 8
+  , utest "normv1D"  $ norm1 x          == 6
+  , utest "normv1F"  $ norm1 (single x) == 6
+
+  , utest "normvInfCD" $ normInf v          == 5
+  , utest "normvInfCF" $ normInf (single v) == 5
+  , utest "normvInfD"  $ normInf x          == 3
+  , utest "normvInfF"  $ normInf (single x) == 3
+
+ ] where v = fromList [1,-2,3:+4] :: Vector (Complex Double)
+         x = fromList [1,2,-3] :: Vector Double
+         norm2PropR a = norm2 a =~= sqrt (dot a a)
+         norm2PropC a = norm2 a =~= sqrt (dot a (conj a))
+         a =~= b = fromList [a] |~| fromList [b]
+
+normsMTest = TestList [
+    utest "norm2mCD" $ pnorm PNorm2 v          =~= 8.86164970498005
+  , utest "norm2mCF" $ pnorm PNorm2 (single v) =~= 8.86164970498005
+  , utest "norm2mD"  $ pnorm PNorm2 x          =~= 5.96667765076216
+  , utest "norm2mF"  $ pnorm PNorm2 (single x) =~= 5.96667765076216
+
+  , utest "norm1mCD" $ pnorm PNorm1 v          == 9
+  , utest "norm1mCF" $ pnorm PNorm1 (single v) == 9
+  , utest "norm1mD"  $ pnorm PNorm1 x          == 7
+  , utest "norm1mF"  $ pnorm PNorm1 (single x) == 7
+
+  , utest "normmInfCD" $ pnorm Infinity v          == 12
+  , utest "normmInfCF" $ pnorm Infinity (single v) == 12
+  , utest "normmInfD"  $ pnorm Infinity x          == 8
+  , utest "normmInfF"  $ pnorm Infinity (single x) == 8
+
+  , utest "normmFroCD" $ pnorm Frobenius v          =~= 8.88819441731559
+  , utest "normmFroCF" $ pnorm Frobenius (single v) =~~= 8.88819441731559
+  , utest "normmFroD"  $ pnorm Frobenius x          =~= 6.24499799839840
+  , utest "normmFroF"  $ pnorm Frobenius (single x) =~~= 6.24499799839840
+
+ ] where v = (2><2) [1,-2*i,3:+4,7] :: Matrix (Complex Double)
+         x = (2><2) [1,2,-3,5] :: Matrix Double
+         a =~= b = fromList [a] :~10~: fromList [b]
+         a =~~= b = fromList [a] :~5~: fromList [b]
+
+---------------------------------------------------------------------
+
 
 -- | All tests must pass with a maximum dimension of about 20
 --  (some tests may fail with bigger sizes due to precision loss).
@@ -373,6 +426,8 @@ runTests n = do
         , fittingTest
         , mbCholTest
         , utest "offset" offsetTest
+        , normsVTest
+        , normsMTest
         ]
     return ()
 
