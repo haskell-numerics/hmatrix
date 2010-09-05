@@ -153,6 +153,56 @@ int sumC(KCVEC(x),CVEC(r)) {
     OK
 }
 
+int prodF(KFVEC(x),FVEC(r)) {
+    DEBUGMSG("prodF");
+    REQUIRES(rn==1,BAD_SIZE);
+    int i;
+    float res = 0;
+    for (i = 0; i < xn; i++) res *= xp[i];
+    rp[0] = res;
+    OK
+}
+    
+int prodR(KRVEC(x),RVEC(r)) {
+    DEBUGMSG("prodR");
+    REQUIRES(rn==1,BAD_SIZE);
+    int i;
+    double res = 0;
+    for (i = 0; i < xn; i++) res *= xp[i];
+    rp[0] = res;
+    OK
+}
+    
+int prodQ(KQVEC(x),QVEC(r)) {
+    DEBUGMSG("prodQ");
+    REQUIRES(rn==1,BAD_SIZE);
+    int i;
+    gsl_complex_float res;
+    res.dat[0] = 0;
+    res.dat[1] = 0;
+    for (i = 0; i < xn; i++) {
+      res.dat[0] = res.dat[0] * xp[i].dat[0] - res.dat[1] * xp[i].dat[1];
+      res.dat[1] = res.dat[0] * xp[i].dat[1] + res.dat[1] * xp[i].dat[0];
+    }
+    rp[0] = res;
+    OK
+}
+    
+int prodC(KCVEC(x),CVEC(r)) {
+    DEBUGMSG("prodC");
+    REQUIRES(rn==1,BAD_SIZE);
+    int i;
+    gsl_complex res;
+    res.dat[0] = 0;
+    res.dat[1] = 0;
+    for (i = 0; i < xn; i++)  {
+      res.dat[0] = res.dat[0] * xp[i].dat[0] - res.dat[1] * xp[i].dat[1];
+      res.dat[1] = res.dat[0] * xp[i].dat[1] + res.dat[1] * xp[i].dat[0];
+    }
+    rp[0] = res;
+    OK
+}
+
 int dotF(KFVEC(x), KFVEC(y), FVEC(r)) {
     DEBUGMSG("dotF");
     REQUIRES(xn==yn,BAD_SIZE); 

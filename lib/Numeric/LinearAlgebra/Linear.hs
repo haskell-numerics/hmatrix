@@ -39,65 +39,70 @@ import Control.Monad(ap)
 -- | basic Vector functions
 class Num e => Vectors a e where
     -- the C functions sumX are twice as fast as using foldVector
-    vectorSum :: a e -> e
-    absSum    :: a e -> e
-    vectorMin :: a e -> e
-    vectorMax :: a e -> e
-    minIdx    :: a e -> Int
-    maxIdx    :: a e -> Int
-    dot       :: a e -> a e -> e
-    norm1     :: a e -> e
-    norm2     :: a e -> e
-    normInf   :: a e -> e
+    vectorSum  :: a e -> e
+    vectorProd :: a e -> e
+    absSum     :: a e -> e
+    vectorMin  :: a e -> e
+    vectorMax  :: a e -> e
+    minIdx     :: a e -> Int
+    maxIdx     :: a e -> Int
+    dot        :: a e -> a e -> e
+    norm1      :: a e -> e
+    norm2      :: a e -> e
+    normInf    :: a e -> e
 
 
 instance Vectors Vector Float where
-    vectorSum = sumF
-    norm2     = toScalarF Norm2
-    absSum    = toScalarF AbsSum
-    vectorMin = toScalarF Min
-    vectorMax = toScalarF Max
-    minIdx    = round . toScalarF MinIdx
-    maxIdx    = round . toScalarF MaxIdx
-    dot       = dotF
-    norm1     = toScalarF AbsSum
-    normInf   = vectorMax . vectorMapF Abs
+    vectorSum  = sumF
+    vectorProd = prodF
+    norm2      = toScalarF Norm2
+    absSum     = toScalarF AbsSum
+    vectorMin  = toScalarF Min
+    vectorMax  = toScalarF Max
+    minIdx     = round . toScalarF MinIdx
+    maxIdx     = round . toScalarF MaxIdx
+    dot        = dotF
+    norm1      = toScalarF AbsSum
+    normInf    = vectorMax . vectorMapF Abs
 
 instance Vectors Vector Double where
-    vectorSum = sumR
-    norm2     = toScalarR Norm2
-    absSum    = toScalarR AbsSum
-    vectorMin = toScalarR Min
-    vectorMax = toScalarR Max
-    minIdx    = round . toScalarR MinIdx
-    maxIdx    = round . toScalarR MaxIdx
-    dot       = dotR
-    norm1     = toScalarR AbsSum
-    normInf   = vectorMax . vectorMapR Abs
+    vectorSum  = sumR
+    vectorProd = prodR
+    norm2      = toScalarR Norm2
+    absSum     = toScalarR AbsSum
+    vectorMin  = toScalarR Min
+    vectorMax  = toScalarR Max
+    minIdx     = round . toScalarR MinIdx
+    maxIdx     = round . toScalarR MaxIdx
+    dot        = dotR
+    norm1      = toScalarR AbsSum
+    normInf    = vectorMax . vectorMapR Abs
 
 instance Vectors Vector (Complex Float) where
-    vectorSum = sumQ
-    norm2     = (:+ 0) . toScalarQ Norm2
-    absSum    = (:+ 0) . toScalarQ AbsSum
-    vectorMin = ap (@>) minIdx
-    vectorMax = ap (@>) maxIdx
-    minIdx    = minIdx . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
-    maxIdx    = maxIdx . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
-    dot       = dotQ
-    norm1     = (:+ 0) . vectorSum . fst . fromComplex . vectorMapQ Abs
-    normInf   = (:+ 0) . vectorMax . fst . fromComplex . vectorMapQ Abs
+    vectorSum  = sumQ
+    vectorProd = prodQ
+    norm2      = (:+ 0) . toScalarQ Norm2
+    absSum     = (:+ 0) . toScalarQ AbsSum
+    vectorMin  = ap (@>) minIdx
+    vectorMax  = ap (@>) maxIdx
+    minIdx     = minIdx . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
+    maxIdx     = maxIdx . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
+    dot        = dotQ
+    norm1      = (:+ 0) . vectorSum . fst . fromComplex . vectorMapQ Abs
+    normInf    = (:+ 0) . vectorMax . fst . fromComplex . vectorMapQ Abs
 
 instance Vectors Vector (Complex Double) where
-    vectorSum = sumC
-    norm2     = (:+ 0) . toScalarC Norm2
-    absSum    = (:+ 0) . toScalarC AbsSum
-    vectorMin = ap (@>) minIdx
-    vectorMax = ap (@>) maxIdx
-    minIdx    = minIdx . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
-    maxIdx    = maxIdx . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
-    dot       = dotC
-    norm1     = (:+ 0) . vectorSum . fst . fromComplex . vectorMapC Abs
-    normInf   = (:+ 0) . vectorMax . fst . fromComplex . vectorMapC Abs
+    vectorSum  = sumC
+    vectorProd = prodC
+    norm2      = (:+ 0) . toScalarC Norm2
+    absSum     = (:+ 0) . toScalarC AbsSum
+    vectorMin  = ap (@>) minIdx
+    vectorMax  = ap (@>) maxIdx
+    minIdx     = minIdx . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
+    maxIdx     = maxIdx . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
+    dot        = dotC
+    norm1      = (:+ 0) . vectorSum . fst . fromComplex . vectorMapC Abs
+    normInf    = (:+ 0) . vectorMax . fst . fromComplex . vectorMapC Abs
 
 ----------------------------------------------------
 

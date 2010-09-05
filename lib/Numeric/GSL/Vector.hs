@@ -15,6 +15,7 @@
 
 module Numeric.GSL.Vector (
     sumF, sumR, sumQ, sumC,
+    prodF, prodR, prodQ, prodC,
     dotF, dotR, dotQ, dotC,
     FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ,
     FunCodeV(..), vectorMapR, vectorMapC, vectorMapF, vectorMapQ,
@@ -110,6 +111,39 @@ foreign import ccall safe "gsl-aux.h sumF" c_sumF :: TFF
 foreign import ccall safe "gsl-aux.h sumR" c_sumR :: TVV
 foreign import ccall safe "gsl-aux.h sumQ" c_sumQ :: TQVQV
 foreign import ccall safe "gsl-aux.h sumC" c_sumC :: TCVCV
+
+-- | product of elements
+prodF :: Vector Float -> Float
+prodF x = unsafePerformIO $ do
+           r <- createVector 1
+           app2 c_prodF vec x vec r "prodF"
+           return $ r @> 0
+
+-- | product of elements
+prodR :: Vector Double -> Double
+prodR x = unsafePerformIO $ do
+           r <- createVector 1
+           app2 c_prodR vec x vec r "prodR"
+           return $ r @> 0
+
+-- | product of elements
+prodQ :: Vector (Complex Float) -> Complex Float
+prodQ x = unsafePerformIO $ do
+           r <- createVector 1
+           app2 c_prodQ vec x vec r "prodQ"
+           return $ r @> 0
+
+-- | product of elements
+prodC :: Vector (Complex Double) -> Complex Double
+prodC x = unsafePerformIO $ do
+           r <- createVector 1
+           app2 c_prodC vec x vec r "prodC"
+           return $ r @> 0
+
+foreign import ccall safe "gsl-aux.h prodF" c_prodF :: TFF
+foreign import ccall safe "gsl-aux.h prodR" c_prodR :: TVV
+foreign import ccall safe "gsl-aux.h prodQ" c_prodQ :: TQVQV
+foreign import ccall safe "gsl-aux.h prodC" c_prodC :: TCVCV
 
 -- | dot product
 dotF :: Vector Float -> Vector Float -> Float
