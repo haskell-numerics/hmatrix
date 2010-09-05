@@ -150,8 +150,8 @@ matrixToPGM m = header ++ unlines (map unwords ll) where
     r = rows m
     header = "P2 "++show c++" "++show r++" "++show (round maxgray :: Int)++"\n"
     maxgray = 255.0
-    maxval = vectorMax $ flatten $ m
-    minval = vectorMin $ flatten $ m
+    maxval = maxElement m
+    minval = minElement m
     scale' = if (maxval == minval) 
         then 0.0
         else maxgray / (maxval - minval)

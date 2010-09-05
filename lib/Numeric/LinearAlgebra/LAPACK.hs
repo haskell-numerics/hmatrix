@@ -44,6 +44,7 @@ module Numeric.LinearAlgebra.LAPACK (
 import Data.Packed.Internal
 import Data.Packed.Matrix
 import Data.Complex
+import Numeric.Container
 import Numeric.GSL.Vector(vectorMapValR, FunCodeSV(Scale))
 import Foreign
 import Foreign.C.Types (CInt)

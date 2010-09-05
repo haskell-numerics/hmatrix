@@ -24,4 +24,3 @@ import Data.Packed.Vector
 import Data.Packed.Matrix
 import Data.Packed.Random
 import Data.Complex
-import Numeric.LinearAlgebra.Instances()

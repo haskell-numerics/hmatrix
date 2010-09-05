@@ -77,8 +77,8 @@ module Numeric.LinearAlgebra.Algorithms (
 import Data.Packed.Internal hiding ((//))
 import Data.Packed.Matrix
 import Data.Complex
-import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Numeric.LinearAlgebra.Linear
+import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Data.List(foldl1')
 import Data.Array
 

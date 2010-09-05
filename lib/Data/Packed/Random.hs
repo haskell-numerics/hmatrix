@@ -22,8 +22,8 @@ module Data.Packed.Random (
 import Numeric.GSL.Vector
 import Data.Packed.Matrix
 import Data.Packed.Vector
-import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Linear
+import Numeric.LinearAlgebra.Algorithms
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
 -- Gaussian distribution.

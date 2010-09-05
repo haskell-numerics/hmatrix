@@ -21,6 +21,7 @@ module Numeric.LinearAlgebra.Tests(
 --, runBigTests
 ) where
 
+import Data.Packed.Random
 import Numeric.LinearAlgebra
 import Numeric.LinearAlgebra.LAPACK
 import Numeric.LinearAlgebra.Tests.Instances

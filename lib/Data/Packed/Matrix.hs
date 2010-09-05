@@ -19,10 +19,7 @@
 -----------------------------------------------------------------------------
 
 module Data.Packed.Matrix (
-    Element, RealElement, Container(..),
-    Convert(..), RealOf, ComplexOf, SingleOf, DoubleOf, ElementOf,
-    Precision(..), comp,
-    AutoReal(..),
+    Element(..),
     Matrix,rows,cols,
     (><),
     trans,
@@ -55,7 +52,7 @@ import Data.Complex
 import Data.Binary
 import Foreign.Storable
 import Control.Monad(replicateM)
-import Control.Arrow((***))
+--import Control.Arrow((***))
 --import GHC.Float(double2Float,float2Double)
 
 -------------------------------------------------------------------
@@ -74,6 +71,33 @@ instance (Binary a, Element a, Storable a) => Binary (Matrix a) where
           return $ fromLists xs
 
 -------------------------------------------------------------------
+
+instance (Show a, Element a) => (Show (Matrix a)) where
+    show m = (sizes++) . dsp . map (map show) . toLists $ m
+        where sizes = "("++show (rows m)++"><"++show (cols m)++")\n"
+
+dsp as = (++" ]") . (" ["++) . init . drop 2 . unlines . map (" , "++) . map unwords' $ transpose mtp
+    where
+        mt = transpose as
+        longs = map (maximum . map length) mt
+        mtp = zipWith (\a b -> map (pad a) b) longs mt
+        pad n str = replicate (n - length str) ' ' ++ str
+        unwords' = concat . intersperse ", "
+
+------------------------------------------------------------------
+
+instance (Element a, Read a) => Read (Matrix a) where
+    readsPrec _ s = [((rs><cs) . read $ listnums, rest)]
+        where (thing,rest) = breakAt ']' s
+              (dims,listnums) = breakAt ')' thing
+              cs = read . init . fst. breakAt ')' . snd . breakAt '<' $ dims
+              rs = read . snd . breakAt '(' .init . fst . breakAt '>' $ dims
+
+
+breakAt c l = (a++[c],tail b) where
+    (a,b) = break (==c) l
+
+------------------------------------------------------------------
 
 -- | creates a matrix from a vertical list of matrices
 joinVert :: Element t => [Matrix t] -> Matrix t
@@ -470,150 +494,3 @@ toBlocksEvery r c m = toBlocks rs cs m where
     cs = replicate qc c ++ if rc > 0 then [rc] else []
 
 -------------------------------------------------------------------
-
--- | Supported single-double precision type pairs
-class (Element s, Element d) => Precision s d | s -> d, d -> s where
-    double2FloatG :: Vector d -> Vector s
-    float2DoubleG :: Vector s -> Vector d
-
-instance Precision Float Double where
-    double2FloatG = double2FloatV
-    float2DoubleG = float2DoubleV
-
-instance Precision (Complex Float) (Complex Double) where
-    double2FloatG = asComplex . double2FloatV . asReal
-    float2DoubleG = asComplex . float2DoubleV . asReal
-
--- | Supported real types
-class (Element t, Element (Complex t), RealFloat t
---       , RealOf t ~ t, RealOf (Complex t) ~ t
-       )
-       => RealElement t
-
-instance RealElement Double
-
-instance RealElement Float
-
--- | Conversion utilities
-class Container c where
-    toComplex   :: (RealElement e) => (c e, c e) -> c (Complex e)
-    fromComplex :: (RealElement e) => c (Complex e) -> (c e, c e)
-    complex'    :: (RealElement e) => c e -> c (Complex e)
-    conj        :: (RealElement e) => c (Complex e) -> c (Complex e)
-    cmap        :: (Element a, Element b) => (a -> b) -> c a -> c b
-    single'      :: Precision a b => c b -> c a
-    double'      :: Precision a b => c a -> c b
-
-comp x = complex' x
-
-instance Container Vector where
-    toComplex = toComplexV
-    fromComplex = fromComplexV
-    complex' v = toComplex (v,constantD 0 (dim v))
-    conj = conjV
-    cmap = mapVector
-    single' = double2FloatG
-    double' = float2DoubleG
-
-instance Container Matrix where
-    toComplex = uncurry $ liftMatrix2 $ curry toComplex
-    fromComplex z = (reshape c *** reshape c) . fromComplex . flatten $ z
-        where c = cols z
-    complex' = liftMatrix complex'
-    conj = liftMatrix conj
-    cmap f = liftMatrix (cmap f)
-    single' = liftMatrix single'
-    double' = liftMatrix double'
-
--------------------------------------------------------------------
-
-type family RealOf x
-
-type instance RealOf Double = Double
-type instance RealOf (Complex Double) = Double
-
-type instance RealOf Float = Float
-type instance RealOf (Complex Float) = Float
-
-type family ComplexOf x
-
-type instance ComplexOf Double = Complex Double
-type instance ComplexOf (Complex Double) = Complex Double
-
-type instance ComplexOf Float = Complex Float
-type instance ComplexOf (Complex Float) = Complex Float
-
-type family SingleOf x
-
-type instance SingleOf Double = Float
-type instance SingleOf Float  = Float
-
-type instance SingleOf (Complex a) = Complex (SingleOf a)
-
-type family DoubleOf x
-
-type instance DoubleOf Double = Double
-type instance DoubleOf Float  = Double
-
-type instance DoubleOf (Complex a) = Complex (DoubleOf a)
-
-type family ElementOf c
-
-type instance ElementOf (Vector a) = a
-type instance ElementOf (Matrix a) = a
-
--------------------------------------------------------------------
-
--- | generic conversion functions
-class Convert t where
-    real    :: Container c => c (RealOf t) -> c t
-    complex :: Container c => c t -> c (ComplexOf t)
-    single  :: Container c => c t -> c (SingleOf t)
-    double  :: Container c => c t -> c (DoubleOf t)
-
-instance Convert Double where
-    real = id
-    complex = complex'
-    single = single'
-    double = id
-
-instance Convert Float where
-    real = id
-    complex = complex'
-    single = id
-    double = double'
-
-instance Convert (Complex Double) where
-    real = complex'
-    complex = id
-    single = single'
-    double = id
-
-instance Convert (Complex Float) where
-    real = complex'
-    complex = id
-    single = id
-    double = double'
-
--------------------------------------------------------------------
-
--- | to be replaced by Convert
-class Convert t => AutoReal t where
-    real'' :: Container c => c Double -> c t
-    complex'' :: Container c => c t -> c (Complex Double)
-
-instance AutoReal Double where
-    real'' = real
-    complex'' = complex
-
-instance AutoReal (Complex Double) where
-    real'' = real
-    complex'' = complex
-
-instance AutoReal Float where
-    real'' = real . single
-    complex'' = double . complex
-
-instance AutoReal (Complex Float) where
-    real'' = real . single
-    complex'' = double . complex
