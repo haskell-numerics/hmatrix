@@ -18,7 +18,7 @@ Basic optimized operations on vectors and matrices.
 
 module Numeric.LinearAlgebra.Linear (
     -- * Linear Algebra Typeclasses
-    Vectors(..), Linear(..),
+    Vectors(..),
     -- * Products
     Product(..),
     mXm,mXv,vXm,
@@ -34,21 +34,51 @@ import Data.Packed.Matrix
 import Data.Packed.Vector
 import Data.Complex
 import Numeric.Container
---import Numeric.Vector
---import Numeric.Matrix
---import Numeric.GSL.Vector
+import Numeric.Vector()
+import Numeric.Matrix()
+import Numeric.GSL.Vector
 import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ)
 
--- | basic Vector functions
+-- | Linear algebraic properties of objects
 class Num e => Vectors a e where
-    -- the C functions sumX are twice as fast as using foldVector
-    vectorSum  :: a e -> e
-    vectorProd :: a e -> e
-    absSum     :: a e -> e
+    -- | dot (inner) product
     dot        :: a e -> a e -> e
+    -- | sum of absolute value of elements (differs in complex case from @norm1@
+    absSum     :: a e -> e
+    -- | sum of absolute value of elements
     norm1      :: a e -> e
+    -- | euclidean norm
     norm2      :: a e -> e
+    -- | element of maximum magnitude
     normInf    :: a e -> e
+
+instance Vectors Vector Float where
+    norm2      = toScalarF Norm2
+    absSum     = toScalarF AbsSum
+    dot        = dotF
+    norm1      = toScalarF AbsSum
+    normInf    = maxElement . vectorMapF Abs
+
+instance Vectors Vector Double where
+    norm2      = toScalarR Norm2
+    absSum     = toScalarR AbsSum
+    dot        = dotR
+    norm1      = toScalarR AbsSum
+    normInf    = maxElement . vectorMapR Abs
+
+instance Vectors Vector (Complex Float) where
+    norm2      = (:+ 0) . toScalarQ Norm2
+    absSum     = (:+ 0) . toScalarQ AbsSum
+    dot        = dotQ
+    norm1      = (:+ 0) . sumElements . fst . fromComplex . vectorMapQ Abs
+    normInf    = (:+ 0) . maxElement . fst . fromComplex . vectorMapQ Abs
+
+instance Vectors Vector (Complex Double) where
+    norm2      = (:+ 0) . toScalarC Norm2
+    absSum     = (:+ 0) . toScalarC AbsSum
+    dot        = dotC
+    norm1      = (:+ 0) . sumElements . fst . fromComplex . vectorMapC Abs
+    normInf    = (:+ 0) . maxElement . fst . fromComplex . vectorMapC Abs
 
 ----------------------------------------------------
 
@@ -128,22 +158,3 @@ kronecker a b = fromBlocks
 
 
 -------------------------------------------------------------------
-
-
--- | Basic element-by-element functions.
-class (Element e, Container c e) => Linear c e where
-    -- | create a structure with a single element
-    scalar      :: e -> c e
-    scale       :: e -> c e -> c e
-    -- | scale the element by element reciprocal of the object:
-    --
-    -- @scaleRecip 2 (fromList [5,i]) == 2 |> [0.4 :+ 0.0,0.0 :+ (-2.0)]@
-    scaleRecip  :: e -> c e -> c e
-    addConstant :: e -> c e -> c e
-    add         :: c e -> c e -> c e
-    sub         :: c e -> c e -> c e
-    -- | element by element multiplication
-    mul         :: c e -> c e -> c e
-    -- | element by element division
-    divide      :: c e -> c e -> c e
-    equal       :: c e -> c e -> Bool

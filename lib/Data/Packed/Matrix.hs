@@ -55,6 +55,7 @@ import Control.Monad(replicateM)
 --import Control.Arrow((***))
 --import GHC.Float(double2Float,float2Double)
 
+
 -------------------------------------------------------------------
 
 instance (Binary a, Element a, Storable a) => Binary (Matrix a) where

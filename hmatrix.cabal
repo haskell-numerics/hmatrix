@@ -123,7 +123,7 @@ library
        cpp-options:     -DVECTOR
 
     if flag(tests)
-       Build-Depends:   QuickCheck, HUnit
+       Build-Depends:   QuickCheck, HUnit, random
        exposed-modules: Numeric.LinearAlgebra.Tests
        other-modules:   Numeric.LinearAlgebra.Tests.Instances,
                         Numeric.LinearAlgebra.Tests.Properties

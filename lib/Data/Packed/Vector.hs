@@ -72,7 +72,6 @@ instance (Binary a, Storable a) => Binary (Vector a) where
 
 -------------------------------------------------------------------
 
-
 {-
 vectorFMax :: Vector Float -> Float
 vectorFMax = toScalarF Max

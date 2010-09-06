@@ -27,10 +27,12 @@ module Numeric.Matrix (
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import Numeric.Container
-import Numeric.LinearAlgebra.Linear
---import Numeric.Vector
+--import Numeric.LinearAlgebra.Linear
+import Numeric.Vector()
 
 import Control.Monad(ap)
+
+import Control.Arrow((***))
 
 -------------------------------------------------------------------
 
@@ -75,7 +77,34 @@ instance (Linear Vector a, Floating (Vector a), Fractional (Matrix a)) => Floati
 
 ---------------------------------------------------------------
 
-instance (Linear Vector a, NumericContainer Matrix) => (Linear Matrix a) where
+instance NumericContainer Matrix where
+    toComplex = uncurry $ liftMatrix2 $ curry toComplex
+    fromComplex z = (reshape c *** reshape c) . fromComplex . flatten $ z
+        where c = cols z
+    complex' = liftMatrix complex'
+    conj = liftMatrix conj
+--    cmap f = liftMatrix (cmap f)
+    single' = liftMatrix single'
+    double' = liftMatrix double'
+
+---------------------------------------------------------------
+{-
+instance (RealElement e, Complexable Vector e) => Complexable Matrix e where
+    v_toComplex = uncurry $ liftMatrix2 $ curry toComplex
+    v_fromComplex z = (reshape c *** reshape c) . fromComplex . flatten $ z
+        where c = cols z
+    v_conj = liftMatrix conj
+    v_complex' = liftMatrix complex'
+
+---------------------------------------------------------------
+
+instance (Precisionable Vector e) => Precisionable Matrix e where
+    v_single' = liftMatrix single'
+    v_double' = liftMatrix double'
+-}
+---------------------------------------------------------------
+
+instance (Linear Vector a, Container Matrix a) => Linear Matrix a where
     scale x = liftMatrix (scale x)
     scaleRecip x = liftMatrix (scaleRecip x)
     addConstant x = liftMatrix (addConstant x)
@@ -85,16 +114,19 @@ instance (Linear Vector a, NumericContainer Matrix) => (Linear Matrix a) where
     divide = liftMatrix2 divide
     equal a b = cols a == cols b && flatten a `equal` flatten b
     scalar x = (1><1) [x]
-
-
-instance (Linear Vector a, NumericContainer Matrix) => (Container Matrix a) where
+    --
+instance (Container Vector a) => Container Matrix a where
+    cmap f = liftMatrix (mapVector f)
+    atIndex = (@@>)
     minIndex m = let (r,c) = (rows m,cols m)
-                     i = 1 + (minIndex $ flatten m)
-                 in (i `div` r,i `mod` r)
+                     i = (minIndex $ flatten m)
+                 in (i `div` c,(i `mod` c) + 1)
     maxIndex m = let (r,c) = (rows m,cols m)
-                     i = 1 + (maxIndex $ flatten m)
-                 in (i `div` r,i `mod` r)
+                     i = (maxIndex $ flatten m)
+                 in (i `div` c,(i `mod` c) + 1)
     minElement = ap (@@>) minIndex
     maxElement = ap (@@>) maxIndex
+    sumElements = sumElements . flatten
+    prodElements = prodElements . flatten
 
 ----------------------------------------------------

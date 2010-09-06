@@ -19,11 +19,13 @@
 -----------------------------------------------------------------------------
 
 module Numeric.Container (
-    Container(..), RealElement, Precision, NumericContainer(..), comp,
-    Convert(..), AutoReal(..),
-    RealOf, ComplexOf, SingleOf, DoubleOf,
+    Linear(..),
+    Container(..), RealElement, Precision(..), NumericContainer(..), comp, 
+--    Complexable(..), Precisionable(..),
+    Convert(..), --AutoReal(..), 
+    RealOf, ComplexOf, SingleOf, DoubleOf, 
 
---    ElementOf,
+--    ElementOf, 
 
     IndexOf,
 
@@ -33,11 +35,10 @@ module Numeric.Container (
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import Data.Packed.Internal.Vector
-import Data.Packed.Internal.Matrix
+--import Data.Packed.Internal.Matrix
 --import qualified Data.Packed.ST as ST
 
-import Control.Arrow((***))
-
+--import Control.Arrow((***))
 import Data.Complex
 
 -------------------------------------------------------------------
@@ -71,32 +72,13 @@ class NumericContainer c where
     fromComplex :: (RealElement e) => c (Complex e) -> (c e, c e)
     complex'    :: (RealElement e) => c e -> c (Complex e)
     conj        :: (RealElement e) => c (Complex e) -> c (Complex e)
-    cmap        :: (Element a, Element b) => (a -> b) -> c a -> c b
+--    cmap        :: (Element a, Element b) => (a -> b) -> c a -> c b
     single'      :: Precision a b => c b -> c a
     double'      :: Precision a b => c a -> c b
 
 -- | a synonym for "complex'"
 comp :: (NumericContainer c, RealElement e) => c e -> c (Complex e)
 comp x = complex' x
-
-instance NumericContainer Vector where
-    toComplex = toComplexV
-    fromComplex = fromComplexV
-    complex' v = toComplex (v,constantD 0 (dim v))
-    conj = conjV
-    cmap = mapVector
-    single' = double2FloatG
-    double' = float2DoubleG
-
-instance NumericContainer Matrix where
-    toComplex = uncurry $ liftMatrix2 $ curry toComplex
-    fromComplex z = (reshape c *** reshape c) . fromComplex . flatten $ z
-        where c = cols z
-    complex' = liftMatrix complex'
-    conj = liftMatrix conj
-    cmap f = liftMatrix (cmap f)
-    single' = liftMatrix single'
-    double' = liftMatrix double'
 
 -------------------------------------------------------------------
 
@@ -141,13 +123,77 @@ type instance IndexOf Vector = Int
 type instance IndexOf Matrix = (Int,Int)
 
 -------------------------------------------------------------------
+{-
+-- | Supported single-double precision type pairs
+class (Element e) => V_Precision e where
+    v_double2FloatG :: Vector e -> Vector (SingleOf e)
+    v_float2DoubleG :: Vector (SingleOf e) -> Vector e
+{-
+instance V_Precision Float where
+    v_double2FloatG = double2FloatV
+    v_float2DoubleG = float2DoubleV
+-}
+instance V_Precision Double where
+    v_double2FloatG = double2FloatV
+    v_float2DoubleG = float2DoubleV
+{-
+instance V_Precision (Complex Float) where
+    v_double2FloatG = asComplex . double2FloatV . asReal
+    v_float2DoubleG = asComplex . float2DoubleV . asReal
+-}
+instance V_Precision (Complex Double) where
+    v_double2FloatG = asComplex . double2FloatV . asReal
+    v_float2DoubleG = asComplex . float2DoubleV . asReal
+-}
+-------------------------------------------------------------------
+{-
+-- | converting to/from complex containers
+class RealElement t => Complexable c t where
+    v_toComplex   :: (c t, c t) -> c (Complex t)
+    v_fromComplex :: c (Complex t) -> (c t, c t)
+    v_complex'    :: c t -> c (Complex t)
+    v_conj        :: c (Complex t) -> c (Complex t)
+
+-- | converting to/from single/double precision numbers
+class (Element (SingleOf t), Element t, RealElement (RealOf t)) => Precisionable c t where
+    v_single'      :: (V_Precision (DoubleOf t)) => c t -> c (SingleOf t)
+    v_double'      :: (V_Precision (DoubleOf t)) => c t -> c (DoubleOf t)
 
 -- | generic conversion functions
-class Convert t where
+class (Element t, RealElement (RealOf t)) => V_Convert t where
+    -- | real/complex
+    v_real    :: Complexable c (RealOf t) => c (RealOf t) -> c t    -- from the instances, this looks like it turns a real object into a complex object WHEN the context is a complex object
+    v_complex :: Complexable c (RealOf t) => c t -> c (ComplexOf t)
+    -- | single/double
+    v_single  :: Precisionable c t => c t -> c (SingleOf t)
+    v_double  :: Precisionable c t => c t -> c (DoubleOf t)
+-}
+-------------------------------------------------------------------
+{-
+instance Precisionable Vector Float where
+    v_single' = id
+    v_double' = float2DoubleG
+
+instance Precisionable Vector Double where
+    v_single' = double2FloatG
+    v_double' = id
+
+instance Precisionable Vector (Complex Float) where
+    v_single' = id
+    v_double' = float2DoubleG
+
+instance Precisionable Vector (Complex Double) where
+    v_single' = double2FloatG
+    v_double' = id
+-}
+-------------------------------------------------------------------
+
+class (Element t, Element (RealOf t)) => Convert t where
     real    :: NumericContainer c => c (RealOf t) -> c t
     complex :: NumericContainer c => c t -> c (ComplexOf t)
     single  :: NumericContainer c => c t -> c (SingleOf t)
     double  :: NumericContainer c => c t -> c (DoubleOf t)
+
 
 instance Convert Double where
     real = id
@@ -180,6 +226,7 @@ class Convert t => AutoReal t where
     real'' :: NumericContainer c => c Double -> c t
     complex'' :: NumericContainer c => c t -> c (Complex Double)
 
+
 instance AutoReal Double where
     real'' = real
     complex'' = complex
@@ -198,13 +245,60 @@ instance AutoReal (Complex Float) where
 
 -------------------------------------------------------------------
 
--- | Basic element-by-element functions.
+-- | Basic element-by-element functions for numeric containers
 class (Element e) => Container c e where
+{-
+    -- | create a structure with a single element
+    scalar      :: e -> c e
+    -- | multiply every element by a scalar
+    scale       :: e -> c e -> c e
+    -- | scale the element by element reciprocal of the object:
+    --
+    -- @scaleRecip 2 (fromList [5,i]) == 2 |> [0.4 :+ 0.0,0.0 :+ (-2.0)]@
+    scaleRecip  :: e -> c e -> c e
+    -- | add a constant to each element
+    addConstant :: e -> c e -> c e
+    add         :: c e -> c e -> c e
+    sub         :: c e -> c e -> c e
+    -- | element by element multiplication
+    mul         :: c e -> c e -> c e
+    -- | element by element division
+    divide      :: c e -> c e -> c e
+    equal       :: c e -> c e -> Bool
+-}
+    -- | cannot implement instance Functor because of Element class constraint
+    cmap        :: (Element a, Element b) => (a -> b) -> c a -> c b
+    --
+    -- | indexing function
+    atIndex     :: c e -> IndexOf c -> e
+    -- | index of min/max element
     minIndex    :: c e -> IndexOf c
     maxIndex    :: c e -> IndexOf c
+    -- | value of min/max element
     minElement  :: c e -> e
     maxElement  :: c e -> e
+    -- the C functions sumX/prodX are twice as fast as using foldVector
+    -- | the sum/product of elements (faster than using @fold@
+    sumElements :: c e -> e
+    prodElements :: c e -> e
 
+-- | Basic element-by-element functions.
+class (Element e, Container c e) => Linear c e where
+    -- | create a structure with a single element
+    scalar      :: e -> c e
+    scale       :: e -> c e -> c e
+    -- | scale the element by element reciprocal of the object:
+    --
+    -- @scaleRecip 2 (fromList [5,i]) == 2 |> [0.4 :+ 0.0,0.0 :+ (-2.0)]@
+    scaleRecip  :: e -> c e -> c e
+    addConstant :: e -> c e -> c e
+    add         :: c e -> c e -> c e
+    sub         :: c e -> c e -> c e
+    -- | element by element multiplication
+    mul         :: c e -> c e -> c e
+    -- | element by element division
+    divide      :: c e -> c e -> c e
+    equal       :: c e -> c e -> Bool
 
 
 

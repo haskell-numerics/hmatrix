@@ -85,7 +85,7 @@ import Numeric.Vector
 import Numeric.Matrix()
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
-class (Product t, Linear Vector t, Linear Matrix t) => Field t where
+class (Product t, Linear Vector t, Container Vector t, Container Matrix t) => Field t where
     svd'         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     thinSVD'     :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     sv'          :: Matrix t -> Vector Double
