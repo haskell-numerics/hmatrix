@@ -19,7 +19,7 @@
 -----------------------------------------------------------------------------
 
 module Data.Packed.Matrix (
-    Element(..),
+    Element,
     Matrix,rows,cols,
     (><),
     trans,

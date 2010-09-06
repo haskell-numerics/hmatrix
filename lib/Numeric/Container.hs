@@ -19,10 +19,14 @@
 -----------------------------------------------------------------------------
 
 module Numeric.Container (
-    RealElement, AutoReal(..),
-    Container(..), Linear(..),
-    Convert(..), RealOf, ComplexOf, SingleOf, DoubleOf, ElementOf, IndexOf,
-    Precision(..), comp,
+    Container(..), RealElement, Precision, NumericContainer(..), comp,
+    Convert(..), AutoReal(..),
+    RealOf, ComplexOf, SingleOf, DoubleOf,
+
+--    ElementOf,
+
+    IndexOf,
+
     module Data.Complex
 ) where
 
@@ -62,7 +66,7 @@ instance RealElement Double
 instance RealElement Float
 
 -- | Conversion utilities
-class Container c where
+class NumericContainer c where
     toComplex   :: (RealElement e) => (c e, c e) -> c (Complex e)
     fromComplex :: (RealElement e) => c (Complex e) -> (c e, c e)
     complex'    :: (RealElement e) => c e -> c (Complex e)
@@ -71,9 +75,11 @@ class Container c where
     single'      :: Precision a b => c b -> c a
     double'      :: Precision a b => c a -> c b
 
+-- | a synonym for "complex'"
+comp :: (NumericContainer c, RealElement e) => c e -> c (Complex e)
 comp x = complex' x
 
-instance Container Vector where
+instance NumericContainer Vector where
     toComplex = toComplexV
     fromComplex = fromComplexV
     complex' v = toComplex (v,constantD 0 (dim v))
@@ -82,7 +88,7 @@ instance Container Vector where
     single' = double2FloatG
     double' = float2DoubleG
 
-instance Container Matrix where
+instance NumericContainer Matrix where
     toComplex = uncurry $ liftMatrix2 $ curry toComplex
     fromComplex z = (reshape c *** reshape c) . fromComplex . flatten $ z
         where c = cols z
@@ -138,10 +144,10 @@ type instance IndexOf Matrix = (Int,Int)
 
 -- | generic conversion functions
 class Convert t where
-    real    :: Container c => c (RealOf t) -> c t
-    complex :: Container c => c t -> c (ComplexOf t)
-    single  :: Container c => c t -> c (SingleOf t)
-    double  :: Container c => c t -> c (DoubleOf t)
+    real    :: NumericContainer c => c (RealOf t) -> c t
+    complex :: NumericContainer c => c t -> c (ComplexOf t)
+    single  :: NumericContainer c => c t -> c (SingleOf t)
+    double  :: NumericContainer c => c t -> c (DoubleOf t)
 
 instance Convert Double where
     real = id
@@ -171,8 +177,8 @@ instance Convert (Complex Float) where
 
 -- | to be replaced by Convert
 class Convert t => AutoReal t where
-    real'' :: Container c => c Double -> c t
-    complex'' :: Container c => c t -> c (Complex Double)
+    real'' :: NumericContainer c => c Double -> c t
+    complex'' :: NumericContainer c => c t -> c (Complex Double)
 
 instance AutoReal Double where
     real'' = real
@@ -193,27 +199,12 @@ instance AutoReal (Complex Float) where
 -------------------------------------------------------------------
 
 -- | Basic element-by-element functions.
-class (Element e, Container c) => Linear c e where
-    -- | create a structure with a single element
-    scalar      :: e -> c e
-    scale       :: e -> c e -> c e
-    -- | scale the element by element reciprocal of the object:
-    --
-    -- @scaleRecip 2 (fromList [5,i]) == 2 |> [0.4 :+ 0.0,0.0 :+ (-2.0)]@
-    scaleRecip  :: e -> c e -> c e
-    addConstant :: e -> c e -> c e
-    add         :: c e -> c e -> c e
-    sub         :: c e -> c e -> c e
-    -- | element by element multiplication
-    mul         :: c e -> c e -> c e
-    -- | element by element division
-    divide      :: c e -> c e -> c e
-    equal       :: c e -> c e -> Bool
-    --
+class (Element e) => Container c e where
     minIndex    :: c e -> IndexOf c
     maxIndex    :: c e -> IndexOf c
     minElement  :: c e -> e
     maxElement  :: c e -> e
+
 
 
 

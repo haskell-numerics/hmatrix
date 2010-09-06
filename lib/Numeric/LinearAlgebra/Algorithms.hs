@@ -81,6 +81,8 @@ import Numeric.LinearAlgebra.Linear
 import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Data.List(foldl1')
 import Data.Array
+import Numeric.Vector
+import Numeric.Matrix()
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
 class (Product t, Linear Vector t, Linear Matrix t) => Field t where

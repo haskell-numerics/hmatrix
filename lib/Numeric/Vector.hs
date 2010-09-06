@@ -29,10 +29,11 @@ import Data.Complex
 import Control.Monad(ap)
 
 import Data.Packed.Vector
-import Data.Packed.Matrix(Element(..))
+import Data.Packed.Internal.Matrix(Element(..))
 import Numeric.GSL.Vector
 
 import Numeric.Container
+import Numeric.LinearAlgebra.Linear
 
 -------------------------------------------------------------------
 
@@ -263,11 +264,12 @@ instance Linear Vector Float where
     divide = vectorZipF Div
     equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
     scalar x = fromList [x]
+
+instance Container Vector Float where
     minIndex     = round . toScalarF MinIdx
     maxIndex     = round . toScalarF MaxIdx
     minElement  = toScalarF Min
     maxElement  = toScalarF Max
-
 
 instance Linear Vector Double where
     scale = vectorMapValR Scale
@@ -279,6 +281,8 @@ instance Linear Vector Double where
     divide = vectorZipR Div
     equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
     scalar x = fromList [x]
+
+instance Container Vector Double where
     minIndex     = round . toScalarR MinIdx
     maxIndex     = round . toScalarR MaxIdx
     minElement  = toScalarR Min
@@ -294,6 +298,8 @@ instance Linear Vector (Complex Double) where
     divide = vectorZipC Div
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     scalar x = fromList [x]
+
+instance Container Vector (Complex Double) where
     minIndex     = minIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
     maxIndex     = maxIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
     minElement  = ap (@>) minIndex
@@ -309,9 +315,47 @@ instance Linear Vector (Complex Float) where
     divide = vectorZipQ Div
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     scalar x = fromList [x]
+
+instance Container Vector (Complex Float) where
     minIndex     = minIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
     maxIndex     = maxIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
     minElement  = ap (@>) minIndex
     maxElement  = ap (@>) maxIndex
 
 ---------------------------------------------------------------
+
+instance Vectors Vector Float where
+    vectorSum  = sumF
+    vectorProd = prodF
+    norm2      = toScalarF Norm2
+    absSum     = toScalarF AbsSum
+    dot        = dotF
+    norm1      = toScalarF AbsSum
+    normInf    = maxElement . vectorMapF Abs
+
+instance Vectors Vector Double where
+    vectorSum  = sumR
+    vectorProd = prodR
+    norm2      = toScalarR Norm2
+    absSum     = toScalarR AbsSum
+    dot        = dotR
+    norm1      = toScalarR AbsSum
+    normInf    = maxElement . vectorMapR Abs
+
+instance Vectors Vector (Complex Float) where
+    vectorSum  = sumQ
+    vectorProd = prodQ
+    norm2      = (:+ 0) . toScalarQ Norm2
+    absSum     = (:+ 0) . toScalarQ AbsSum
+    dot        = dotQ
+    norm1      = (:+ 0) . vectorSum . fst . fromComplex . vectorMapQ Abs
+    normInf    = (:+ 0) . maxElement . fst . fromComplex . vectorMapQ Abs
+
+instance Vectors Vector (Complex Double) where
+    vectorSum  = sumC
+    vectorProd = prodC
+    norm2      = (:+ 0) . toScalarC Norm2
+    absSum     = (:+ 0) . toScalarC AbsSum
+    dot        = dotC
+    norm1      = (:+ 0) . vectorSum . fst . fromComplex . vectorMapC Abs
+    normInf    = (:+ 0) . maxElement . fst . fromComplex . vectorMapC Abs

@@ -27,7 +27,8 @@ module Numeric.Matrix (
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import Numeric.Container
-import Numeric.Vector()
+import Numeric.LinearAlgebra.Linear
+--import Numeric.Vector
 
 import Control.Monad(ap)
 
@@ -74,7 +75,7 @@ instance (Linear Vector a, Floating (Vector a), Fractional (Matrix a)) => Floati
 
 ---------------------------------------------------------------
 
-instance (Linear Vector a, Container Matrix) => (Linear Matrix a) where
+instance (Linear Vector a, NumericContainer Matrix) => (Linear Matrix a) where
     scale x = liftMatrix (scale x)
     scaleRecip x = liftMatrix (scaleRecip x)
     addConstant x = liftMatrix (addConstant x)
@@ -84,6 +85,9 @@ instance (Linear Vector a, Container Matrix) => (Linear Matrix a) where
     divide = liftMatrix2 divide
     equal a b = cols a == cols b && flatten a `equal` flatten b
     scalar x = (1><1) [x]
+
+
+instance (Linear Vector a, NumericContainer Matrix) => (Container Matrix a) where
     minIndex m = let (r,c) = (rows m,cols m)
                      i = 1 + (minIndex $ flatten m)
                  in (i `div` r,i `mod` r)
@@ -94,4 +98,3 @@ instance (Linear Vector a, Container Matrix) => (Linear Matrix a) where
     maxElement = ap (@@>) maxIndex
 
 ----------------------------------------------------
-
