@@ -88,21 +88,6 @@ instance NumericContainer Matrix where
     double' = liftMatrix double'
 
 ---------------------------------------------------------------
-{-
-instance (RealElement e, Complexable Vector e) => Complexable Matrix e where
-    v_toComplex = uncurry $ liftMatrix2 $ curry toComplex
-    v_fromComplex z = (reshape c *** reshape c) . fromComplex . flatten $ z
-        where c = cols z
-    v_conj = liftMatrix conj
-    v_complex' = liftMatrix complex'
-
----------------------------------------------------------------
-
-instance (Precisionable Vector e) => Precisionable Matrix e where
-    v_single' = liftMatrix single'
-    v_double' = liftMatrix double'
--}
----------------------------------------------------------------
 
 instance (Linear Vector a, Container Matrix a) => Linear Matrix a where
     scale x = liftMatrix (scale x)

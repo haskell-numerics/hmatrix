@@ -21,7 +21,6 @@
 module Numeric.Container (
     Linear(..),
     Container(..), RealElement, Precision(..), NumericContainer(..), comp, 
---    Complexable(..), Precisionable(..),
     Convert(..), --AutoReal(..), 
     RealOf, ComplexOf, SingleOf, DoubleOf, 
 
@@ -122,70 +121,6 @@ type family IndexOf c
 type instance IndexOf Vector = Int
 type instance IndexOf Matrix = (Int,Int)
 
--------------------------------------------------------------------
-{-
--- | Supported single-double precision type pairs
-class (Element e) => V_Precision e where
-    v_double2FloatG :: Vector e -> Vector (SingleOf e)
-    v_float2DoubleG :: Vector (SingleOf e) -> Vector e
-{-
-instance V_Precision Float where
-    v_double2FloatG = double2FloatV
-    v_float2DoubleG = float2DoubleV
--}
-instance V_Precision Double where
-    v_double2FloatG = double2FloatV
-    v_float2DoubleG = float2DoubleV
-{-
-instance V_Precision (Complex Float) where
-    v_double2FloatG = asComplex . double2FloatV . asReal
-    v_float2DoubleG = asComplex . float2DoubleV . asReal
--}
-instance V_Precision (Complex Double) where
-    v_double2FloatG = asComplex . double2FloatV . asReal
-    v_float2DoubleG = asComplex . float2DoubleV . asReal
--}
--------------------------------------------------------------------
-{-
--- | converting to/from complex containers
-class RealElement t => Complexable c t where
-    v_toComplex   :: (c t, c t) -> c (Complex t)
-    v_fromComplex :: c (Complex t) -> (c t, c t)
-    v_complex'    :: c t -> c (Complex t)
-    v_conj        :: c (Complex t) -> c (Complex t)
-
--- | converting to/from single/double precision numbers
-class (Element (SingleOf t), Element t, RealElement (RealOf t)) => Precisionable c t where
-    v_single'      :: (V_Precision (DoubleOf t)) => c t -> c (SingleOf t)
-    v_double'      :: (V_Precision (DoubleOf t)) => c t -> c (DoubleOf t)
-
--- | generic conversion functions
-class (Element t, RealElement (RealOf t)) => V_Convert t where
-    -- | real/complex
-    v_real    :: Complexable c (RealOf t) => c (RealOf t) -> c t    -- from the instances, this looks like it turns a real object into a complex object WHEN the context is a complex object
-    v_complex :: Complexable c (RealOf t) => c t -> c (ComplexOf t)
-    -- | single/double
-    v_single  :: Precisionable c t => c t -> c (SingleOf t)
-    v_double  :: Precisionable c t => c t -> c (DoubleOf t)
--}
--------------------------------------------------------------------
-{-
-instance Precisionable Vector Float where
-    v_single' = id
-    v_double' = float2DoubleG
-
-instance Precisionable Vector Double where
-    v_single' = double2FloatG
-    v_double' = id
-
-instance Precisionable Vector (Complex Float) where
-    v_single' = id
-    v_double' = float2DoubleG
-
-instance Precisionable Vector (Complex Double) where
-    v_single' = double2FloatG
-    v_double' = id
--}
 -------------------------------------------------------------------
 
 class (Element t, Element (RealOf t)) => Convert t where

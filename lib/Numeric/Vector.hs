@@ -281,14 +281,6 @@ instance NumericContainer Vector where
     double' = float2DoubleG
 
 --------------------------------------------------------------------------
-{-
-instance RealElement e => Complexable Vector e where
-    v_toComplex = toComplexV
-    v_fromComplex = fromComplexV
-    v_conj = conjV
-    v_complex' v = toComplex (v,constantD 0 (dim v))
--}
--------------------------------------------------------------------
 
 instance Linear Vector Float where
     scale = vectorMapValF Scale
