@@ -16,11 +16,13 @@ The Vector and Matrix types and some utilities.
 module Data.Packed (
     module Data.Packed.Vector,
     module Data.Packed.Matrix,
-    module Data.Packed.Random,
-    module Data.Complex
+--    module Numeric.Conversion,
+--    module Data.Packed.Random,
+--    module Data.Complex
 ) where
 
 import Data.Packed.Vector
 import Data.Packed.Matrix
-import Data.Packed.Random
-import Data.Complex
+--import Data.Packed.Random
+--import Data.Complex
+--import Numeric.Conversion

@@ -100,8 +100,8 @@ library
                         Numeric.Container,
                         Numeric.LinearAlgebra,
                         Numeric.LinearAlgebra.LAPACK,
-                        Numeric.LinearAlgebra.Interface,
-                        Numeric.LinearAlgebra.Linear,
+                      --Numeric.LinearAlgebra.Interface,
+                      --Numeric.LinearAlgebra.Linear,
                         Numeric.LinearAlgebra.Algorithms,
                         Graphics.Plot,
                      -- Data.Packed.Convert,
@@ -113,7 +113,8 @@ library
                         Data.Packed.Internal.Signatures,
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix,
-                        Numeric.GSL.Internal
+                        Numeric.GSL.Internal,
+                        Numeric.Conversion
 
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c

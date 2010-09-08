@@ -14,14 +14,12 @@ This module reexports all normally required functions for Linear Algebra applica
 -----------------------------------------------------------------------------
 module Numeric.LinearAlgebra (
     module Numeric.LinearAlgebra.Algorithms,
-    module Numeric.LinearAlgebra.Interface,
-    module Numeric.LinearAlgebra.Linear,
+--    module Numeric.LinearAlgebra.Interface,
     module Numeric.Matrix,
-    module Numeric.Vector
+    module Data.Packed.Random
 ) where
 
 import Numeric.LinearAlgebra.Algorithms
-import Numeric.LinearAlgebra.Interface
-import Numeric.LinearAlgebra.Linear
+--import Numeric.LinearAlgebra.Interface
 import Numeric.Matrix
-import Numeric.Vector
+import Data.Packed.Random

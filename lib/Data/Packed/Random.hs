@@ -20,11 +20,12 @@ module Data.Packed.Random (
 ) where
 
 import Numeric.GSL.Vector
-import Data.Packed.Matrix
-import Numeric.Vector
-import Numeric.LinearAlgebra.Linear
+import Data.Packed
+import Numeric.Container
+import Data.Packed.Internal(constantD)
 import Numeric.LinearAlgebra.Algorithms
 
+constant k v = constantD k v
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
 -- Gaussian distribution.

@@ -77,15 +77,16 @@ module Numeric.LinearAlgebra.Algorithms (
 import Data.Packed.Internal hiding ((//))
 import Data.Packed.Matrix
 import Data.Complex
-import Numeric.LinearAlgebra.Linear
+--import Numeric.LinearAlgebra.Linear
 import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Data.List(foldl1')
 import Data.Array
-import Numeric.Vector
-import Numeric.Matrix()
+import Numeric.Container
+
+constant x = constantD x
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
-class (Product t, Linear Vector t, Container Vector t, Container Matrix t) => Field t where
+class (Product t, Container Vector t, Container Matrix t) => Field t where
     svd'         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     thinSVD'     :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     sv'          :: Matrix t -> Vector Double
