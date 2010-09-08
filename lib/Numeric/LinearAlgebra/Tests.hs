@@ -240,7 +240,7 @@ normsVTest = TestList [
  ] where v = fromList [1,-2,3:+4] :: Vector (Complex Double)
          x = fromList [1,2,-3] :: Vector Double
          norm2PropR a = norm2 a =~= sqrt (dot a a)
-         norm2PropC a = norm2 a =~= sqrt (dot a (conj a))
+         norm2PropC a = norm2 a =~= realPart (sqrt (dot a (conj a)))
          a =~= b = fromList [a] |~| fromList [b]
 
 normsMTest = TestList [

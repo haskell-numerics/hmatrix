@@ -645,9 +645,9 @@ instance Normed (Vector Double) where
     pnorm Frobenius = norm2
 
 instance Normed (Vector (Complex Double)) where
-    pnorm PNorm1    = realPart . norm1
-    pnorm PNorm2    = realPart . norm2
-    pnorm Infinity  = realPart . normInf
+    pnorm PNorm1    = norm1
+    pnorm PNorm2    = norm2
+    pnorm Infinity  = normInf
     pnorm Frobenius = pnorm PNorm2
 
 instance Normed (Vector Float) where
@@ -657,9 +657,9 @@ instance Normed (Vector Float) where
     pnorm Frobenius = pnorm PNorm2
 
 instance Normed (Vector (Complex Float)) where
-    pnorm PNorm1    = realToFrac . realPart . norm1
-    pnorm PNorm2    = realToFrac . realPart . norm2
-    pnorm Infinity  = realToFrac . realPart . normInf
+    pnorm PNorm1    = realToFrac . norm1
+    pnorm PNorm2    = realToFrac . norm2
+    pnorm Infinity  = realToFrac . normInf
     pnorm Frobenius = pnorm PNorm2
 
 

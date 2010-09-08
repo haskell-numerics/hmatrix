@@ -216,13 +216,13 @@ class Num e => Vectors a e where
     -- | dot (inner) product
     dot        :: a e -> a e -> e
     -- | sum of absolute value of elements (differs in complex case from @norm1@
-    absSum     :: a e -> e
+    absSum     :: a e -> RealOf e
     -- | sum of absolute value of elements
-    norm1      :: a e -> e
+    norm1      :: a e -> RealOf e
     -- | euclidean norm
-    norm2      :: a e -> e
+    norm2      :: a e -> RealOf e
     -- | element of maximum magnitude
-    normInf    :: a e -> e
+    normInf    :: a e -> RealOf e
 
 instance Vectors Vector Float where
     norm2      = toScalarF Norm2
@@ -239,18 +239,18 @@ instance Vectors Vector Double where
     normInf    = maxElement . vectorMapR Abs
 
 instance Vectors Vector (Complex Float) where
-    norm2      = (:+ 0) . toScalarQ Norm2
-    absSum     = (:+ 0) . toScalarQ AbsSum
+    norm2      = toScalarQ Norm2
+    absSum     = toScalarQ AbsSum
     dot        = dotQ
-    norm1      = (:+ 0) . sumElements . fst . fromComplex . vectorMapQ Abs
-    normInf    = (:+ 0) . maxElement . fst . fromComplex . vectorMapQ Abs
+    norm1      = sumElements . fst . fromComplex . vectorMapQ Abs
+    normInf    = maxElement . fst . fromComplex . vectorMapQ Abs
 
 instance Vectors Vector (Complex Double) where
-    norm2      = (:+ 0) . toScalarC Norm2
-    absSum     = (:+ 0) . toScalarC AbsSum
+    norm2      = toScalarC Norm2
+    absSum     = toScalarC AbsSum
     dot        = dotC
-    norm1      = (:+ 0) . sumElements . fst . fromComplex . vectorMapC Abs
-    normInf    = (:+ 0) . maxElement . fst . fromComplex . vectorMapC Abs
+    norm1      = sumElements . fst . fromComplex . vectorMapC Abs
+    normInf    = maxElement . fst . fromComplex . vectorMapC Abs
 
 ----------------------------------------------------
 
