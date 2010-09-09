@@ -255,22 +255,27 @@ class (Storable a, Floating a) => Element a where
     transdata = transdata'
     constantD  :: a -> Int -> Vector a
     constantD = constant'
+    ctrans' :: Matrix a -> Matrix a
 
 instance Element Float where
     transdata  = transdataAux ctransF
     constantD  = constantAux cconstantF
+    ctrans'    = trans
 
 instance Element Double where
     transdata  = transdataAux ctransR
     constantD  = constantAux cconstantR
+    ctrans'    = trans
 
 instance Element (Complex Float) where
     transdata  = transdataAux ctransQ
     constantD  = constantAux cconstantQ
+    ctrans'    = liftMatrix (mapVector conjugate) . trans
 
 instance Element (Complex Double) where
     transdata  = transdataAux ctransC
     constantD  = constantAux cconstantC
+    ctrans'    = liftMatrix (mapVector conjugate) . trans
 
 -------------------------------------------------------------------
 

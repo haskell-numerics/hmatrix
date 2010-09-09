@@ -22,7 +22,7 @@ module Data.Packed.Matrix (
     Element,
     Matrix,rows,cols,
     (><),
-    trans,
+    trans, ctrans,
     reshape, flatten,
     fromLists, toLists, buildMatrix,
     (@@>),
@@ -267,6 +267,10 @@ asRow v = reshape (dim v) v
 -- | creates a 1-column matrix from a vector
 asColumn :: Element a => Vector a -> Matrix a
 asColumn v = reshape 1 v
+
+-- | conjugate transpose
+ctrans :: Element e => Matrix e -> Matrix e
+ctrans = ctrans'
 
 
 {- | creates a Matrix of the specified size using the supplied function to

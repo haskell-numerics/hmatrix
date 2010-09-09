@@ -213,8 +213,6 @@ instance (Container Vector a) => Container Matrix a where
 class Element e => Product e where
     -- | matrix product
     multiply :: Matrix e -> Matrix e -> Matrix e
-    -- | conjugate transpose
-    ctrans :: Matrix e -> Matrix e
     -- | dot (inner) product
     dot        :: Vector e -> Vector e -> e
     -- | sum of absolute value of elements (differs in complex case from @norm1@
@@ -233,7 +231,6 @@ instance Product Float where
     norm1      = toScalarF AbsSum
     normInf    = maxElement . vectorMapF Abs
     multiply = multiplyF
-    ctrans = trans
 
 instance Product Double where
     norm2      = toScalarR Norm2
@@ -242,7 +239,6 @@ instance Product Double where
     norm1      = toScalarR AbsSum
     normInf    = maxElement . vectorMapR Abs
     multiply = multiplyR
-    ctrans = trans
 
 instance Product (Complex Float) where
     norm2      = toScalarQ Norm2
@@ -251,7 +247,6 @@ instance Product (Complex Float) where
     norm1      = sumElements . fst . fromComplex . vectorMapQ Abs
     normInf    = maxElement . fst . fromComplex . vectorMapQ Abs
     multiply = multiplyQ
-    ctrans = conj . trans
 
 instance Product (Complex Double) where
     norm2      = toScalarC Norm2
@@ -260,7 +255,6 @@ instance Product (Complex Double) where
     norm1      = sumElements . fst . fromComplex . vectorMapC Abs
     normInf    = maxElement . fst . fromComplex . vectorMapC Abs
     multiply = multiplyC
-    ctrans = conj . trans
 
 ----------------------------------------------------------
 
