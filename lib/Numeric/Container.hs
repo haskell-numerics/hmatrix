@@ -20,9 +20,7 @@
 -----------------------------------------------------------------------------
 
 module Numeric.Container (
-    --Linear(..),
     Container(..),
-    Vectors(..),
     Product(..),
     mXm,mXv,vXm,
     outer, kronecker,
@@ -212,66 +210,56 @@ instance (Container Vector a) => Container Matrix a where
 
 
 -- | Linear algebraic properties of objects
-class Num e => Vectors a e where
+class Element e => Product e where
+    -- | matrix product
+    multiply :: Matrix e -> Matrix e -> Matrix e
+    -- | conjugate transpose
+    ctrans :: Matrix e -> Matrix e
     -- | dot (inner) product
-    dot        :: a e -> a e -> e
+    dot        :: Vector e -> Vector e -> e
     -- | sum of absolute value of elements (differs in complex case from @norm1@
-    absSum     :: a e -> RealOf e
+    absSum     :: Vector e -> RealOf e
     -- | sum of absolute value of elements
-    norm1      :: a e -> RealOf e
+    norm1      :: Vector e -> RealOf e
     -- | euclidean norm
-    norm2      :: a e -> RealOf e
+    norm2      :: Vector e -> RealOf e
     -- | element of maximum magnitude
-    normInf    :: a e -> RealOf e
+    normInf    :: Vector e -> RealOf e
 
-instance Vectors Vector Float where
+instance Product Float where
     norm2      = toScalarF Norm2
     absSum     = toScalarF AbsSum
     dot        = dotF
     norm1      = toScalarF AbsSum
     normInf    = maxElement . vectorMapF Abs
+    multiply = multiplyF
+    ctrans = trans
 
-instance Vectors Vector Double where
+instance Product Double where
     norm2      = toScalarR Norm2
     absSum     = toScalarR AbsSum
     dot        = dotR
     norm1      = toScalarR AbsSum
     normInf    = maxElement . vectorMapR Abs
+    multiply = multiplyR
+    ctrans = trans
 
-instance Vectors Vector (Complex Float) where
+instance Product (Complex Float) where
     norm2      = toScalarQ Norm2
     absSum     = toScalarQ AbsSum
     dot        = dotQ
     norm1      = sumElements . fst . fromComplex . vectorMapQ Abs
     normInf    = maxElement . fst . fromComplex . vectorMapQ Abs
+    multiply = multiplyQ
+    ctrans = conj . trans
 
-instance Vectors Vector (Complex Double) where
+instance Product (Complex Double) where
     norm2      = toScalarC Norm2
     absSum     = toScalarC AbsSum
     dot        = dotC
     norm1      = sumElements . fst . fromComplex . vectorMapC Abs
     normInf    = maxElement . fst . fromComplex . vectorMapC Abs
-
-----------------------------------------------------
-
-class Element t => Product t where
-    multiply :: Matrix t -> Matrix t -> Matrix t
-    ctrans :: Matrix t -> Matrix t
-
-instance Product Double where
-    multiply = multiplyR
-    ctrans = trans
-
-instance Product (Complex Double) where
     multiply = multiplyC
-    ctrans = conj . trans
-
-instance Product Float where
-    multiply = multiplyF
-    ctrans = trans
-
-instance Product (Complex Float) where
-    multiply = multiplyQ
     ctrans = conj . trans
 
 ----------------------------------------------------------

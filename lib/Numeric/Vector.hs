@@ -99,7 +99,7 @@ linspace n (a,b) = addConstant a $ scale s $ fromList [0 .. fromIntegral n-1]
     where s = (b-a)/fromIntegral (n-1)
 
 -- | Dot product: @u \<.\> v = dot u v@
-(<.>) :: Vectors Vector t => Vector t -> Vector t -> t
+(<.>) :: Product t => Vector t -> Vector t -> t
 infixl 7 <.>
 (<.>) = dot
 
