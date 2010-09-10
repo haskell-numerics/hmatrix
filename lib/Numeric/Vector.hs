@@ -3,11 +3,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
---{-# LANGUAGE FunctionalDependencies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Vector
--- Copyright   :  (c) Alberto Ruiz 2007
+-- Copyright   :  (c) Alberto Ruiz 2010
 -- License     :  GPL-style
 --
 -- Maintainer  :  Alberto Ruiz <aruiz@um.es>
@@ -32,12 +31,9 @@ import Data.Complex
 
 import Data.Packed.Vector
 import Data.Packed.Internal.Matrix
---import Data.Packed.Internal.Vector(asComplex,asReal)
---import Data.Packed.Matrix(toColumns,fromColumns,flatten,reshape)
 import Numeric.GSL.Vector
 
 import Numeric.Container
---import Numeric.LinearAlgebra.Linear
 
 -------------------------------------------------------------------
 

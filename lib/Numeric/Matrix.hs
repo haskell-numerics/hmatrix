@@ -8,7 +8,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Matrix
--- Copyright   :  (c) Alberto Ruiz 2007
+-- Copyright   :  (c) Alberto Ruiz 2010
 -- License     :  GPL-style
 --
 -- Maintainer  :  Alberto Ruiz <aruiz@um.es>
@@ -37,13 +37,10 @@ module Numeric.Matrix (
 
 import Data.Packed.Vector
 import Data.Packed.Matrix
+
 import Numeric.Container
---import Numeric.LinearAlgebra.Linear
 import Numeric.Vector
 import Numeric.LinearAlgebra.Algorithms
---import Control.Monad(ap)
-
---import Control.Arrow((***))
 
 -------------------------------------------------------------------
 

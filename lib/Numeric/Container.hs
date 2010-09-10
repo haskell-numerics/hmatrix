@@ -8,7 +8,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Container
--- Copyright   :  (c) Alberto Ruiz 2007
+-- Copyright   :  (c) Alberto Ruiz 2010
 -- License     :  GPL-style
 --
 -- Maintainer  :  Alberto Ruiz <aruiz@um.es>
@@ -41,7 +41,6 @@ import Numeric.GSL.Vector
 
 import Data.Complex
 import Control.Monad(ap)
---import Control.Arrow((***))
 
 import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ)
 
@@ -78,15 +77,18 @@ class (Element e) => Container c e where
     --
     -- | indexing function
     atIndex     :: c e -> IndexOf c -> e
-    -- | index of min/max element
+    -- | index of min element
     minIndex    :: c e -> IndexOf c
+    -- | index of max element
     maxIndex    :: c e -> IndexOf c
-    -- | value of min/max element
+    -- | value of min element
     minElement  :: c e -> e
+    -- | value of max element
     maxElement  :: c e -> e
     -- the C functions sumX/prodX are twice as fast as using foldVector
-    -- | the sum/product of elements (faster than using @fold@
+    -- | the sum of elements (faster than using @fold@)
     sumElements :: c e -> e
+    -- | the product of elements (faster than using @fold@)
     prodElements :: c e -> e
 
 -- -- | Basic element-by-element functions.
@@ -215,7 +217,7 @@ class Element e => Product e where
     multiply :: Matrix e -> Matrix e -> Matrix e
     -- | dot (inner) product
     dot        :: Vector e -> Vector e -> e
-    -- | sum of absolute value of elements (differs in complex case from @norm1@
+    -- | sum of absolute value of elements (differs in complex case from @norm1@)
     absSum     :: Vector e -> RealOf e
     -- | sum of absolute value of elements
     norm1      :: Vector e -> RealOf e
