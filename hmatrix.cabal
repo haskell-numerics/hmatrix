@@ -115,6 +115,7 @@ library
                         Data.Packed.Internal.Matrix,
                         Numeric.GSL.Internal,
                         Numeric.Conversion
+                        Numeric.Chain
 
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c

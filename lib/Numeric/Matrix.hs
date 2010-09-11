@@ -26,6 +26,7 @@ module Numeric.Matrix (
     module Data.Packed.Matrix,
     module Numeric.Vector,
     --module Numeric.Container,
+    chain,
     -- * Operators
     (<>), (<\>),
     -- * Deprecated
@@ -40,6 +41,7 @@ import Data.Packed.Matrix
 
 import Numeric.Container
 import Numeric.Vector
+import Numeric.Chain
 import Numeric.LinearAlgebra.Algorithms
 
 -------------------------------------------------------------------

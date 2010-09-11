@@ -308,3 +308,5 @@ kronecker a b = fromBlocks
               . map (reshape (cols b))
               . toRows
               $ flatten a `outer` flatten b
+
+----------------------------------------------------------
