@@ -271,6 +271,31 @@ normsMTest = TestList [
 
 ---------------------------------------------------------------------
 
+sumprodTest = TestList [
+    utest "sumCD" $ sumElements z            == 6
+  , utest "sumCF" $ sumElements (single z)   == 6
+  , utest "sumD"  $ sumElements v            == 6
+  , utest "sumF"  $ sumElements (single v)   == 6
+
+  , utest "prodCD" $ prodProp z
+  , utest "prodCF" $ prodProp (single z)
+  , utest "prodD"  $ prodProp v
+  , utest "prodF"  $ prodProp (single v)
+ ] where v = fromList [1,2,3] :: Vector Double
+         z = fromList [1,2-i,3+i]
+         prodProp x = prodElements x == product (toList x)
+
+---------------------------------------------------------------------
+
+chainTest = utest "chain" $ foldl1' (<>) ms |~| chain ms where
+    ms = [ diag (fromList [1,2,3 :: Double])
+         , konst 3 (3,5)
+         , (5><10) [1 .. ]
+         , konst 5 (10,2)
+         ]
+
+---------------------------------------------------------------------
+
 conjuTest m = mapVector conjugate (flatten (trans m)) == flatten (ctrans m)
 
 ---------------------------------------------------------------------
@@ -439,6 +464,8 @@ runTests n = do
         , utest "offset" offsetTest
         , normsVTest
         , normsMTest
+        , sumprodTest
+        , chainTest
         ]
     return ()
 

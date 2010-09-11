@@ -27,12 +27,9 @@ module Numeric.Vector (
     (<.>)
                       ) where
 
-import Data.Complex
-
 import Data.Packed.Vector
 import Data.Packed.Internal.Matrix
 import Numeric.GSL.Vector
-
 import Numeric.Container
 
 -------------------------------------------------------------------

@@ -43,7 +43,7 @@ module Numeric.LinearAlgebra.LAPACK (
 
 import Data.Packed.Internal
 import Data.Packed.Matrix
-import Data.Complex
+--import Data.Complex
 import Numeric.Conversion
 import Numeric.GSL.Vector(vectorMapValR, FunCodeSV(Scale))
 import Foreign

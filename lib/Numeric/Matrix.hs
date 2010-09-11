@@ -36,10 +36,7 @@ module Numeric.Matrix (
 
 -------------------------------------------------------------------
 
-import Data.Packed.Vector
 import Data.Packed.Matrix
-
-import Numeric.Container
 import Numeric.Vector
 import Numeric.Chain
 import Numeric.LinearAlgebra.Algorithms

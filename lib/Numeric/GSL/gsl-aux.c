@@ -157,7 +157,7 @@ int prodF(KFVEC(x),FVEC(r)) {
     DEBUGMSG("prodF");
     REQUIRES(rn==1,BAD_SIZE);
     int i;
-    float res = 0;
+    float res = 1;
     for (i = 0; i < xn; i++) res *= xp[i];
     rp[0] = res;
     OK
@@ -167,7 +167,7 @@ int prodR(KRVEC(x),RVEC(r)) {
     DEBUGMSG("prodR");
     REQUIRES(rn==1,BAD_SIZE);
     int i;
-    double res = 0;
+    double res = 1;
     for (i = 0; i < xn; i++) res *= xp[i];
     rp[0] = res;
     OK
@@ -178,11 +178,13 @@ int prodQ(KQVEC(x),QVEC(r)) {
     REQUIRES(rn==1,BAD_SIZE);
     int i;
     gsl_complex_float res;
-    res.dat[0] = 0;
+    float temp;
+    res.dat[0] = 1;
     res.dat[1] = 0;
     for (i = 0; i < xn; i++) {
-      res.dat[0] = res.dat[0] * xp[i].dat[0] - res.dat[1] * xp[i].dat[1];
+      temp       = res.dat[0] * xp[i].dat[0] - res.dat[1] * xp[i].dat[1];
       res.dat[1] = res.dat[0] * xp[i].dat[1] + res.dat[1] * xp[i].dat[0];
+      res.dat[0] = temp;
     }
     rp[0] = res;
     OK
@@ -193,11 +195,13 @@ int prodC(KCVEC(x),CVEC(r)) {
     REQUIRES(rn==1,BAD_SIZE);
     int i;
     gsl_complex res;
-    res.dat[0] = 0;
+    double temp;
+    res.dat[0] = 1;
     res.dat[1] = 0;
     for (i = 0; i < xn; i++)  {
-      res.dat[0] = res.dat[0] * xp[i].dat[0] - res.dat[1] * xp[i].dat[1];
+      temp       = res.dat[0] * xp[i].dat[0] - res.dat[1] * xp[i].dat[1];
       res.dat[1] = res.dat[0] * xp[i].dat[1] + res.dat[1] * xp[i].dat[0];
+      res.dat[0] = temp;
     }
     rp[0] = res;
     OK
