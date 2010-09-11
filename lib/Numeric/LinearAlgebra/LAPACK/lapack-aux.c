@@ -1201,3 +1201,28 @@ int double2float(DVEC(x),FVEC(y)) {
     }
     OK
 }
+
+//////////////////// conjugate /////////////////////////
+
+int conjugateQ(KQVEC(x),QVEC(t)) {
+    REQUIRES(xn==tn,BAD_SIZE);
+    DEBUGMSG("conjugateQ");
+    int k;
+    for(k=0;k<xn;k++) {
+        ((complex*)tp)[k].r=((complex*)xp)[k].r;
+        ((complex*)tp)[k].i=-((complex*)xp)[k].i;
+    }
+    OK
+}
+
+int conjugateC(KCVEC(x),CVEC(t)) {
+    REQUIRES(xn==tn,BAD_SIZE);
+    DEBUGMSG("conjugateC");
+    int k;
+    for(k=0;k<xn;k++) {
+        ((doublecomplex*)tp)[k].r=((doublecomplex*)xp)[k].r;
+        ((doublecomplex*)tp)[k].i=-((doublecomplex*)xp)[k].i;
+    }
+    OK
+}
+

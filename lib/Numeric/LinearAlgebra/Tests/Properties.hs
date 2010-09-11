@@ -32,7 +32,7 @@ module Numeric.LinearAlgebra.Tests.Properties (
     svdProp1, svdProp1a, svdProp1b, svdProp2, svdProp3, svdProp4,
     svdProp5a, svdProp5b, svdProp6a, svdProp6b, svdProp7,
     eigProp, eigSHProp, eigProp2, eigSHProp2,
-    qrProp, rqProp,
+    qrProp, rqProp, rqProp1, rqProp2, rqProp3,
     hessProp,
     schurProp1, schurProp2,
     cholProp,
@@ -210,15 +210,21 @@ eigSHProp2 m = fst (eigSH m) |~| eigenvaluesSH m
 qrProp m = q <> r |~| m && unitary q && upperTriang r
     where (q,r) = qr m
 
-rqProp m = r <> q |~| m && unitary q && utr
+rqProp m = r <> q |~| m && unitary q && upperTriang' r
     where (r,q) = rq m
-          upptr f c = buildMatrix f c $ \(r',c') -> if r'-t > c' then 0 else 1
-              where t = f-c
-          utr = upptr (rows r) (cols r) * r |~| r
 
-upperTriang' m = rows m == 1 || down |~| z
-    where down = fromList $ concat $ zipWith drop [1..] (toLists (ctrans m))
-          z = constant 0 (dim down)
+rqProp1 m = r <> q |~| m
+    where (r,q) = rq m
+
+rqProp2 m = unitary q
+    where (r,q) = rq m
+
+rqProp3 m = upperTriang' r
+    where (r,q) = rq m
+
+upperTriang' r = upptr (rows r) (cols r) * r |~| r
+    where upptr f c = buildMatrix f c $ \(r',c') -> if r'-t > c' then 0 else 1
+              where t = f-c
 
 hessProp m = m |~| p <> h <> ctrans p && unitary p && upperHessenberg h
     where (p,h) = hess m

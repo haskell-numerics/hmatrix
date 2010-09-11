@@ -270,7 +270,7 @@ asColumn v = reshape 1 v
 
 -- | conjugate transpose
 ctrans :: Element e => Matrix e -> Matrix e
-ctrans = ctrans'
+ctrans = liftMatrix conjugateD . trans
 
 
 {- | creates a Matrix of the specified size using the supplied function to

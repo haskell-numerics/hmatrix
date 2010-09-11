@@ -271,6 +271,10 @@ normsMTest = TestList [
 
 ---------------------------------------------------------------------
 
+conjuTest m = mapVector conjugate (flatten (trans m)) == flatten (ctrans m)
+
+---------------------------------------------------------------------
+
 
 -- | All tests must pass with a maximum dimension of about 20
 --  (some tests may fail with bigger sizes due to precision loss).
@@ -292,6 +296,9 @@ runTests n = do
     putStrLn "------ sub-trans"
     test (subProp . rM)
     test (subProp . cM)
+    putStrLn "------ ctrans"
+    test (conjuTest . cM)
+    test (conjuTest . zM)
     putStrLn "------ lu"
     test (luProp    . rM)
     test (luProp    . cM)
@@ -362,6 +369,9 @@ runTests n = do
     test (qrProp     . cM)
     test (rqProp     . rM)
     test (rqProp     . cM)
+    test (rqProp1     . cM)
+    test (rqProp2     . cM)
+    test (rqProp3     . cM)
     putStrLn "------ hess"
     test (hessProp   . rSq)
     test (hessProp   . cSq)

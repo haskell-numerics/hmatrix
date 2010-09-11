@@ -69,7 +69,6 @@ class ComplexContainer c where
     fromComplex :: (RealElement e) => c (Complex e) -> (c e, c e)
     comp        :: (RealElement e) => c e -> c (Complex e)
     conj        :: (RealElement e) => c (Complex e) -> c (Complex e)
---    cmap        :: (Element a, Element b) => (a -> b) -> c a -> c b
     single'      :: Precision a b => c b -> c a
     double'      :: Precision a b => c a -> c b
 
@@ -78,15 +77,10 @@ instance ComplexContainer Vector where
     toComplex = toComplexV
     fromComplex = fromComplexV
     comp v = toComplex (v,constantD 0 (dim v))
-    conj = conjV
---    cmap = mapVector
+    conj = conjugateD
     single' = double2FloatG
     double' = float2DoubleG
 
-
--- | obtains the complex conjugate of a complex vector
-conjV :: (RealElement a) => Vector (Complex a) -> Vector (Complex a)
-conjV = mapVector conjugate
 
 -- | creates a complex vector from vectors with real and imaginary parts
 toComplexV :: (RealElement a) => (Vector a, Vector a) ->  Vector (Complex a)
@@ -104,7 +98,6 @@ instance ComplexContainer Matrix where
         where c = cols z
     comp = liftMatrix comp
     conj = liftMatrix conj
---    cmap f = liftMatrix (cmap f)
     single' = liftMatrix single'
     double' = liftMatrix double'
 

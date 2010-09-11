@@ -255,27 +255,27 @@ class (Storable a, Floating a) => Element a where
     transdata = transdata'
     constantD  :: a -> Int -> Vector a
     constantD = constant'
-    ctrans' :: Matrix a -> Matrix a
+    conjugateD :: Vector a -> Vector a
 
 instance Element Float where
     transdata  = transdataAux ctransF
     constantD  = constantAux cconstantF
-    ctrans'    = trans
+    conjugateD = id
 
 instance Element Double where
     transdata  = transdataAux ctransR
     constantD  = constantAux cconstantR
-    ctrans'    = trans
+    conjugateD = id
 
 instance Element (Complex Float) where
     transdata  = transdataAux ctransQ
     constantD  = constantAux cconstantQ
-    ctrans'    = liftMatrix (mapVector conjugate) . trans
+    conjugateD = conjugateQ
 
 instance Element (Complex Double) where
     transdata  = transdataAux ctransC
     constantD  = constantAux cconstantC
-    ctrans'    = liftMatrix (mapVector conjugate) . trans
+    conjugateD = conjugateC
 
 -------------------------------------------------------------------
 
@@ -358,6 +358,21 @@ foreign import ccall "constantQ" cconstantQ :: Ptr (Complex Float) -> TQV
 constantC :: Complex Double -> Int -> Vector (Complex Double)
 constantC = constantAux cconstantC
 foreign import ccall "constantC" cconstantC :: Ptr (Complex Double) -> TCV
+
+---------------------------------------
+
+conjugateAux fun x = unsafePerformIO $ do
+    v <- createVector (dim x)
+    app2 fun vec x vec v "conjugateAux"
+    return v
+
+conjugateQ :: Vector (Complex Float) -> Vector (Complex Float)
+conjugateQ = conjugateAux c_conjugateQ
+foreign import ccall "conjugateQ" c_conjugateQ :: TQVQV
+
+conjugateC :: Vector (Complex Double) -> Vector (Complex Double)
+conjugateC = conjugateAux c_conjugateC
+foreign import ccall "conjugateC" c_conjugateC :: TCVCV
 
 ----------------------------------------------------------------------
 
