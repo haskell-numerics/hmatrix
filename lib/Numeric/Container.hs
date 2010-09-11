@@ -71,9 +71,11 @@ class (Element e) => Container c e where
     -- | element by element division
     divide      :: c e -> c e -> c e
     equal       :: c e -> c e -> Bool
-
+    --
     -- | cannot implement instance Functor because of Element class constraint
     cmap        :: (Element a, Element b) => (a -> b) -> c a -> c b
+    -- | constant structure of given size
+    konst    :: e -> IndexOf c -> c e
     --
     -- | indexing function
     atIndex     :: c e -> IndexOf c -> e
@@ -107,8 +109,7 @@ instance Container Vector Float where
     divide = vectorZipF Div
     equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
     scalar x = fromList [x]
-    --
---instance Container Vector Float where
+    konst = constantD
     cmap = mapVector
     atIndex = (@>)
     minIndex     = round . toScalarF MinIdx
@@ -128,8 +129,7 @@ instance Container Vector Double where
     divide = vectorZipR Div
     equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
     scalar x = fromList [x]
-    --
---instance Container Vector Double where
+    konst = constantD
     cmap = mapVector
     atIndex = (@>)
     minIndex     = round . toScalarR MinIdx
@@ -149,8 +149,7 @@ instance Container Vector (Complex Double) where
     divide = vectorZipC Div
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     scalar x = fromList [x]
-    --
---instance Container Vector (Complex Double) where
+    konst = constantD
     cmap = mapVector
     atIndex = (@>)
     minIndex     = minIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
@@ -170,8 +169,7 @@ instance Container Vector (Complex Float) where
     divide = vectorZipQ Div
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     scalar x = fromList [x]
-    --
---instance Container Vector (Complex Float) where
+    konst = constantD
     cmap = mapVector
     atIndex = (@>)
     minIndex     = minIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
@@ -193,8 +191,7 @@ instance (Container Vector a) => Container Matrix a where
     divide = liftMatrix2 divide
     equal a b = cols a == cols b && flatten a `equal` flatten b
     scalar x = (1><1) [x]
-    --
---instance (Container Vector a) => Container Matrix a where
+    konst v (r,c) = reshape c (konst v (r*c))
     cmap f = liftMatrix (mapVector f)
     atIndex = (@@>)
     minIndex m = let (r,c) = (rows m,cols m)

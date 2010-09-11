@@ -67,13 +67,13 @@ diagl = diag . vector
 zeros :: Int -- ^ rows
       -> Int -- ^ columns
       -> Matrix Double
-zeros r c = reshape c (constant 0 (r*c))
+zeros r c = konst 0 (r,c)
 
 -- | Create a matrix or ones.
 ones :: Int -- ^ rows
      -> Int -- ^ columns
      -> Matrix Double
-ones r c = reshape c (constant 1 (r*c))
+ones r c = konst 1 (r,c)
 
 -- | Concatenation of real vectors.
 infixl 9 #
