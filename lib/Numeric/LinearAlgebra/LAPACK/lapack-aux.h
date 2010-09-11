@@ -42,21 +42,21 @@ typedef short ftnlen;
 
 #define FVEC(A) int A##n, float*A##p
 #define DVEC(A) int A##n, double*A##p
-#define QVEC(A) int A##n, float*A##p
-#define CVEC(A) int A##n, double*A##p
+#define QVEC(A) int A##n, complex*A##p
+#define CVEC(A) int A##n, doublecomplex*A##p
 #define FMAT(A) int A##r, int A##c, float* A##p
 #define DMAT(A) int A##r, int A##c, double* A##p
-#define QMAT(A) int A##r, int A##c, float* A##p
-#define CMAT(A) int A##r, int A##c, double* A##p
+#define QMAT(A) int A##r, int A##c, complex* A##p
+#define CMAT(A) int A##r, int A##c, doublecomplex* A##p
 
 #define KFVEC(A) int A##n, const float*A##p
 #define KDVEC(A) int A##n, const double*A##p
-#define KQVEC(A) int A##n, const float*A##p
-#define KCVEC(A) int A##n, const double*A##p
+#define KQVEC(A) int A##n, const complex*A##p
+#define KCVEC(A) int A##n, const doublecomplex*A##p
 #define KFMAT(A) int A##r, int A##c, const float* A##p
 #define KDMAT(A) int A##r, int A##c, const double* A##p
-#define KQMAT(A) int A##r, int A##c, const float* A##p
-#define KCMAT(A) int A##r, int A##c, const double* A##p
+#define KQMAT(A) int A##r, int A##c, const complex* A##p
+#define KCMAT(A) int A##r, int A##c, const doublecomplex* A##p
 
 /********************************************************/
 
@@ -72,6 +72,12 @@ int constantF(float * pval, FVEC(r));
 int constantR(double * pval, DVEC(r));
 int constantQ(complex* pval, QVEC(r));
 int constantC(doublecomplex* pval, CVEC(r));
+
+int float2double(FVEC(x),DVEC(y));
+int double2float(DVEC(x),FVEC(y));
+
+int conjugateQ(KQVEC(x),QVEC(t));
+int conjugateC(KCVEC(x),CVEC(t));
 
 int svd_l_R(KDMAT(x),DMAT(u),DVEC(s),DMAT(v));
 int svd_l_Rdd(KDMAT(x),DMAT(u),DVEC(s),DMAT(v));

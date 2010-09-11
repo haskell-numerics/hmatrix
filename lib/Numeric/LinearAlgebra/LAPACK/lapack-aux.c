@@ -187,9 +187,9 @@ int svd_l_C(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
             ldvt = q;
         }
     }DEBUGMSG("svd_l_C");
-    double *B = (double*)malloc(2*m*n*sizeof(double));
+    doublecomplex *B = (doublecomplex*)malloc(m*n*sizeof(doublecomplex));
     CHECK(!B,MEM);
-    memcpy(B,ap,m*n*2*sizeof(double));
+    memcpy(B,ap,m*n*sizeof(doublecomplex));
 
     double *rwork = (double*) malloc(5*q*sizeof(double));
     CHECK(!rwork,MEM);
@@ -198,21 +198,21 @@ int svd_l_C(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
     // ask for optimal lwork
     doublecomplex ans;
     zgesvd_ (jobu,jobvt,
-             &m,&n,(doublecomplex*)B,&m,
+             &m,&n,B,&m,
              sp,
-             (doublecomplex*)up,&m,
-             (doublecomplex*)vp,&ldvt,
+             up,&m,
+             vp,&ldvt,
              &ans, &lwork,
              rwork,
              &res);
     lwork = ceil(ans.r);
-    doublecomplex * work = (doublecomplex*)malloc(lwork*2*sizeof(double));
+    doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     CHECK(!work,MEM);
     zgesvd_ (jobu,jobvt,
-             &m,&n,(doublecomplex*)B,&m,
+             &m,&n,B,&m,
              sp,
-             (doublecomplex*)up,&m,
-             (doublecomplex*)vp,&ldvt,
+             up,&m,
+             vp,&ldvt,
              work, &lwork,
              rwork,
              &res);
@@ -267,12 +267,12 @@ int svd_l_Cdd(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
     integer res;
     // ask for optimal lwk
     doublecomplex ans;
-    zgesdd_ (jobz,&m,&n,B,&m,sp,(doublecomplex*)up,&m,(doublecomplex*)vp,&ldvt,&ans,&lwk,rwk,iwk,&res);
+    zgesdd_ (jobz,&m,&n,B,&m,sp,up,&m,vp,&ldvt,&ans,&lwk,rwk,iwk,&res);
     lwk = ans.r;
     //printf("lwk = %ld\n",lwk);
     doublecomplex * workv = (doublecomplex*)malloc(lwk*sizeof(doublecomplex));
     CHECK(!workv,MEM);
-    zgesdd_ (jobz,&m,&n,B,&m,sp,(doublecomplex*)up,&m,(doublecomplex*)vp,&ldvt,workv,&lwk,rwk,iwk,&res);
+    zgesdd_ (jobz,&m,&n,B,&m,sp,up,&m,vp,&ldvt,workv,&lwk,rwk,iwk,&res);
     //printf("res = %ld\n",res);
     CHECK(res,res);
     free(workv); // printf("freed workv\n");
@@ -303,10 +303,10 @@ int eig_l_C(KCMAT(a), CMAT(u), CVEC(s),CMAT(v)) {
     doublecomplex ans;
     //printf("ask zgeev\n");
     zgeev_  (&jobvl,&jobvr,
-             &n,(doublecomplex*)B,&n,
-             (doublecomplex*)sp,
-             (doublecomplex*)up,&n,
-             (doublecomplex*)vp,&n,
+             &n,B,&n,
+             sp,
+             up,&n,
+             vp,&n,
              &ans, &lwork,
              rwork,
              &res);
@@ -316,10 +316,10 @@ int eig_l_C(KCMAT(a), CMAT(u), CVEC(s),CMAT(v)) {
     CHECK(!work,MEM);
     //printf("zgeev\n");
     zgeev_  (&jobvl,&jobvr,
-             &n,(doublecomplex*)B,&n,
-             (doublecomplex*)sp,
-             (doublecomplex*)up,&n,
-             (doublecomplex*)vp,&n,
+             &n,B,&n,
+             sp,
+             up,&n,
+             vp,&n,
              work, &lwork,
              rwork,
              &res);
@@ -352,7 +352,7 @@ int eig_l_R(KDMAT(a),DMAT(u), CVEC(s),DMAT(v)) {
     //printf("ask dgeev\n");
     dgeev_  (&jobvl,&jobvr,
              &n,B,&n,
-             sp, sp+n,
+             (double*)sp, (double*)sp+n,
              up,&n,
              vp,&n,
              &ans, &lwork,
@@ -364,7 +364,7 @@ int eig_l_R(KDMAT(a),DMAT(u), CVEC(s),DMAT(v)) {
     //printf("dgeev\n");
     dgeev_  (&jobvl,&jobvr,
              &n,B,&n,
-             sp, sp+n,
+             (double*)sp, (double*)sp+n,
              up,&n,
              vp,&n,
              work, &lwork,
@@ -429,7 +429,7 @@ int eig_l_H(int wantV,KCMAT(a),DVEC(s),CMAT(v)) {
     doublecomplex ans;
     //printf("ask zheev\n");
     zheev_  (&jobz,&uplo,
-             &n,(doublecomplex*)vp,&n,
+             &n,vp,&n,
              sp,
              &ans, &lwork,
              rwork,
@@ -439,7 +439,7 @@ int eig_l_H(int wantV,KCMAT(a),DVEC(s),CMAT(v)) {
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     CHECK(!work,MEM);
     zheev_  (&jobz,&uplo,
-             &n,(doublecomplex*)vp,&n,
+             &n,vp,&n,
              sp,
              work, &lwork,
              rwork,
@@ -483,15 +483,15 @@ int linearSolveC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
     integer nhrs = bc;
     REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
     DEBUGMSG("linearSolveC_l");
-    double*AC = (double*)malloc(2*n*n*sizeof(double));
-    memcpy(AC,ap,2*n*n*sizeof(double));
-    memcpy(xp,bp,2*n*nhrs*sizeof(double));
+    doublecomplex*AC = (doublecomplex*)malloc(n*n*sizeof(doublecomplex));
+    memcpy(AC,ap,n*n*sizeof(doublecomplex));
+    memcpy(xp,bp,n*nhrs*sizeof(doublecomplex));
     integer * ipiv = (integer*)malloc(n*sizeof(integer));
     integer res;
     zgesv_  (&n,&nhrs,
-             (doublecomplex*)AC, &n,
+             AC, &n,
              ipiv,
-             (doublecomplex*)xp, &n,
+             xp, &n,
              &res);
     if(res>0) {
         return SINGULAR;
@@ -527,12 +527,12 @@ int cholSolveC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
     integer nhrs = bc;
     REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
     DEBUGMSG("cholSolveC_l");
-    memcpy(xp,bp,2*n*nhrs*sizeof(double));
+    memcpy(xp,bp,n*nhrs*sizeof(doublecomplex));
     integer res;
     zpotrs_  ("U",
              &n,&nhrs,
              (doublecomplex*)ap, &n,
-             (doublecomplex*)xp, &n,
+             xp, &n,
              &res);
     CHECK(res,res);
     OK
@@ -591,31 +591,30 @@ int linearSolveLSC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
     integer ldb = xr;
     REQUIRES(m>=1 && n>=1 && ar==br && xr==MAX(m,n) && xc == bc, BAD_SIZE);
     DEBUGMSG("linearSolveLSC_l");
-    double*AC = (double*)malloc(2*m*n*sizeof(double));
-    memcpy(AC,ap,2*m*n*sizeof(double));
-    memcpy(AC,ap,2*m*n*sizeof(double));
+    doublecomplex*AC = (doublecomplex*)malloc(m*n*sizeof(doublecomplex));
+    memcpy(AC,ap,m*n*sizeof(doublecomplex));
     if (m>=n) {
-        memcpy(xp,bp,2*m*nrhs*sizeof(double));
+        memcpy(xp,bp,m*nrhs*sizeof(doublecomplex));
     } else {
         int k;
         for(k = 0; k<nrhs; k++) {
-            memcpy(xp+2*ldb*k,bp+2*m*k,m*2*sizeof(double));
+            memcpy(xp+ldb*k,bp+m*k,m*sizeof(doublecomplex));
         }
     }
     integer res;
     integer lwork = -1;
     doublecomplex ans;
     zgels_  ("N",&m,&n,&nrhs,
-             (doublecomplex*)AC,&m,
-             (doublecomplex*)xp,&ldb,
+             AC,&m,
+             xp,&ldb,
              &ans,&lwork,
              &res);
     lwork = ceil(ans.r);
     //printf("ans = %d\n",lwork);
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     zgels_  ("N",&m,&n,&nrhs,
-             (doublecomplex*)AC,&m,
-             (doublecomplex*)xp,&ldb,
+             AC,&m,
+             xp,&ldb,
              work,&lwork,
              &res);
     if(res>0) {
@@ -695,16 +694,16 @@ int linearSolveSVDC_l(double rcond, KCMAT(a),KCMAT(b),CMAT(x)) {
     integer ldb = xr;
     REQUIRES(m>=1 && n>=1 && ar==br && xr==MAX(m,n) && xc == bc, BAD_SIZE);
     DEBUGMSG("linearSolveSVDC_l");
-    double*AC = (double*)malloc(2*m*n*sizeof(double));
+    doublecomplex*AC = (doublecomplex*)malloc(m*n*sizeof(doublecomplex));
     double*S = (double*)malloc(MIN(m,n)*sizeof(double));
     double*RWORK = (double*)malloc(5*MIN(m,n)*sizeof(double));
-    memcpy(AC,ap,2*m*n*sizeof(double));
+    memcpy(AC,ap,m*n*sizeof(doublecomplex));
     if (m>=n) {
-        memcpy(xp,bp,2*m*nrhs*sizeof(double));
+        memcpy(xp,bp,m*nrhs*sizeof(doublecomplex));
     } else {
         int k;
         for(k = 0; k<nrhs; k++) {
-            memcpy(xp+2*ldb*k,bp+2*m*k,m*2*sizeof(double));
+            memcpy(xp+ldb*k,bp+m*k,m*sizeof(doublecomplex));
         }
     }
     integer res;
@@ -712,8 +711,8 @@ int linearSolveSVDC_l(double rcond, KCMAT(a),KCMAT(b),CMAT(x)) {
     integer rank;
     doublecomplex ans;
     zgelss_  (&m,&n,&nrhs,
-             (doublecomplex*)AC,&m,
-             (doublecomplex*)xp,&ldb,
+             AC,&m,
+             xp,&ldb,
              S,
              &rcond,&rank,
              &ans,&lwork,
@@ -723,8 +722,8 @@ int linearSolveSVDC_l(double rcond, KCMAT(a),KCMAT(b),CMAT(x)) {
     //printf("ans = %d\n",lwork);
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     zgelss_  (&m,&n,&nrhs,
-             (doublecomplex*)AC,&m,
-             (doublecomplex*)xp,&ldb,
+             AC,&m,
+             xp,&ldb,
              S,
              &rcond,&rank,
              work,&lwork,
@@ -750,14 +749,14 @@ int chol_l_H(KCMAT(a),CMAT(l)) {
     memcpy(lp,ap,n*n*sizeof(doublecomplex));
     char uplo = 'U';
     integer res;
-    zpotrf_ (&uplo,&n,(doublecomplex*)lp,&n,&res);
+    zpotrf_ (&uplo,&n,lp,&n,&res);
     CHECK(res>0,NODEFPOS);
     CHECK(res,res);
     doublecomplex zero = {0.,0.};
     int r,c;
     for (r=0; r<lr-1; r++) {
         for(c=r+1; c<lc; c++) {
-            ((doublecomplex*)lp)[r*lc+c] = zero;
+            lp[r*lc+c] = zero;
         }
     }
     OK
@@ -810,7 +809,7 @@ int qr_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
     CHECK(!WORK,MEM);
     memcpy(rp,ap,m*n*sizeof(doublecomplex));
     integer res;
-    zgeqr2_ (&m,&n,(doublecomplex*)rp,&m,(doublecomplex*)taup,WORK,&res);
+    zgeqr2_ (&m,&n,rp,&m,taup,WORK,&res);
     CHECK(res,res);
     free(WORK);
     OK
@@ -848,7 +847,7 @@ int hess_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
     memcpy(rp,ap,m*n*sizeof(doublecomplex));
     integer res;
     integer one = 1;
-    zgehrd_ (&n,&one,&n,(doublecomplex*)rp,&n,(doublecomplex*)taup,WORK,&lwork,&res);
+    zgehrd_ (&n,&one,&n,rp,&n,taup,WORK,&lwork,&res);
     CHECK(res,res);
     free(WORK);
     OK
@@ -904,8 +903,8 @@ int schur_l_C(KCMAT(a), CMAT(u), CMAT(s)) {
     double *RWORK = (double*)malloc(n*sizeof(double));
     integer res;
     integer sdim;
-    zgees_ ("V","N",NULL,&n,(doublecomplex*)sp,&n,&sdim,W,
-                            (doublecomplex*)up,&n,
+    zgees_ ("V","N",NULL,&n,sp,&n,&sdim,W,
+                            up,&n,
                             WORK,&lwork,RWORK,BWORK,&res);
     if(res>0) {
         return NOCONVER;
@@ -950,7 +949,7 @@ int lu_l_C(KCMAT(a), DVEC(ipiv), CMAT(r)) {
     integer* auxipiv = (integer*)malloc(mn*sizeof(integer));
     memcpy(rp,ap,m*n*sizeof(doublecomplex));
     integer res;
-    zgetrf_ (&m,&n,(doublecomplex*)rp,&m,auxipiv,&res);
+    zgetrf_ (&m,&n,rp,&m,auxipiv,&res);
     if(res>0) {
         res = 0; // fixme
     }
@@ -1000,7 +999,7 @@ int luS_l_C(KCMAT(a), KDVEC(ipiv), KCMAT(b), CMAT(x)) {
     }
     integer res;
     memcpy(xp,bp,mrhs*nrhs*sizeof(doublecomplex));
-    zgetrs_ ("N",&n,&nrhs,(doublecomplex*)ap,&m,auxipiv,(doublecomplex*)xp,&mrhs,&res);
+    zgetrs_ ("N",&n,&nrhs,(doublecomplex*)ap,&m,auxipiv,xp,&mrhs,&res);
     CHECK(res,res);
     free(auxipiv);
     OK
@@ -1043,9 +1042,9 @@ int multiplyC(int ta, int tb, KCMAT(a),KCMAT(b),CMAT(r)) {
     doublecomplex alpha = {1,0};
     doublecomplex beta = {0,0};
     zgemm_(ta?"T":"N",tb?"T":"N",&m,&n,&k,&alpha,
-           (doublecomplex*)ap,&lda,
-           (doublecomplex*)bp,&ldb,&beta,
-           (doublecomplex*)rp,&ldc);
+           ap,&lda,
+           bp,&ldb,&beta,
+           rp,&ldc);
     OK
 }
 
@@ -1084,9 +1083,9 @@ int multiplyQ(int ta, int tb, KQMAT(a),KQMAT(b),QMAT(r)) {
     complex alpha = {1,0};
     complex beta = {0,0};
     cgemm_(ta?"T":"N",tb?"T":"N",&m,&n,&k,&alpha,
-           (complex*)ap,&lda,
-           (complex*)bp,&ldb,&beta,
-           (complex*)rp,&ldc);
+           ap,&lda,
+           bp,&ldb,&beta,
+           rp,&ldc);
     OK
 }
 
@@ -1122,7 +1121,7 @@ int transQ(KQMAT(x),QMAT(t)) {
     int i,j;
     for (i=0; i<tr; i++) {
         for (j=0; j<tc; j++) {
-        ((complex*)tp)[i*tc+j] = ((complex*)xp)[j*xc+i];
+        tp[i*tc+j] = xp[j*xc+i];
         }
     }
     OK
@@ -1134,7 +1133,7 @@ int transC(KCMAT(x),CMAT(t)) {
     int i,j;
     for (i=0; i<tr; i++) {
         for (j=0; j<tc; j++) {
-        ((doublecomplex*)tp)[i*tc+j] = ((doublecomplex*)xp)[j*xc+i];
+        tp[i*tc+j] = xp[j*xc+i];
         }
     }
     OK
@@ -1167,7 +1166,7 @@ int constantQ(complex* pval, QVEC(r)) {
     int k;
     complex val = *pval;
     for(k=0;k<rn;k++) {
-        ((complex*)rp)[k]=val;
+        rp[k]=val;
     }
     OK
 }
@@ -1177,7 +1176,7 @@ int constantC(doublecomplex* pval, CVEC(r)) {
     int k;
     doublecomplex val = *pval;
     for(k=0;k<rn;k++) {
-        ((doublecomplex*)rp)[k]=val;
+        rp[k]=val;
     }
     OK
 }
@@ -1209,8 +1208,8 @@ int conjugateQ(KQVEC(x),QVEC(t)) {
     DEBUGMSG("conjugateQ");
     int k;
     for(k=0;k<xn;k++) {
-        ((complex*)tp)[k].r=((complex*)xp)[k].r;
-        ((complex*)tp)[k].i=-((complex*)xp)[k].i;
+        tp[k].r =  xp[k].r;
+        tp[k].i = -xp[k].i;
     }
     OK
 }
@@ -1220,8 +1219,8 @@ int conjugateC(KCVEC(x),CVEC(t)) {
     DEBUGMSG("conjugateC");
     int k;
     for(k=0;k<xn;k++) {
-        ((doublecomplex*)tp)[k].r=((doublecomplex*)xp)[k].r;
-        ((doublecomplex*)tp)[k].i=-((doublecomplex*)xp)[k].i;
+        tp[k].r =  xp[k].r;
+        tp[k].i = -xp[k].i;
     }
     OK
 }
