@@ -287,7 +287,7 @@ sumprodTest = TestList [
 
 ---------------------------------------------------------------------
 
-chainTest = utest "chain" $ foldl1' (<>) ms |~| chain ms where
+chainTest = utest "chain" $ foldl1' (<>) ms |~| optimiseMult ms where
     ms = [ diag (fromList [1,2,3 :: Double])
          , konst 3 (3,5)
          , (5><10) [1 .. ]

@@ -1,10 +1,10 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Chain
--- Copyright   :  (c) Alberto Ruiz 2010
+-- Copyright   :  (c) Vivian McPhail 2010
 -- License     :  GPL-style
 --
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- Maintainer  :  Vivian McPhail <haskell.vivian.mcphail <at> gmail.com>
 -- Stability   :  provisional
 -- Portability :  portable
 --
@@ -13,7 +13,7 @@
 -----------------------------------------------------------------------------
 
 module Numeric.Chain (
-                      chain
+                      optimiseMult,
                      ) where
 
 import Data.Maybe
@@ -22,6 +22,34 @@ import Data.Packed.Matrix
 import Numeric.Container
 
 import qualified Data.Array.IArray as A
+
+-----------------------------------------------------------------------------
+{- | 
+     Provide optimal association order for a chain of matrix multiplications 
+     and apply the multiplications.
+
+     The algorithm is the well-known O(n\^3) dynamic programming algorithm
+     that builds a pyramid of optimal associations.
+
+> m1, m2, m3, m4 :: Matrix Double
+> m1 = (10><15) [1..]
+> m2 = (15><20) [1..]
+> m3 = (20><5) [1..]
+> m4 = (5><10) [1..]
+
+> >>> optimiseMult [m1,m2,m3,m4]
+
+will perform @((m1 `multiply` (m2 `multiply` m3)) `multiply` m4)@
+
+The naive left-to-right multiplication would take @4500@ scalar multiplications
+whereas the optimised version performs @2750@ scalar multiplications.  The complexity
+in this case is 32 (= 4^3/2) * (2 comparisons, 3 scalar multiplications, 3 scalar additions,
+5 lookups, 2 updates) + a constant (= three table allocations)
+-}
+optimiseMult :: Product t => [Matrix t] -> Matrix t
+optimiseMult = chain
+
+-----------------------------------------------------------------------------
 
 type Matrices a = A.Array Int (Matrix a)
 type Sizes      = A.Array Int (Int,Int)
@@ -42,8 +70,10 @@ newWorkSpaceIndexes n = A.array (1,n) $ map (\i -> (i, subArray i)) [1..n]
 matricesToSizes :: [Matrix a] -> Sizes
 matricesToSizes ms = A.listArray (1,length ms) $ map (\m -> (rows m,cols m)) ms
 
--- | provide optimal association order for a chain of matrix multiplications and apply the multiplications
 chain :: Product a => [Matrix a] -> Matrix a
+chain []  = error "chain: zero matrices to multiply"
+chain [m] = m
+chain [ml,mr] = ml `multiply` mr
 chain ms = let ln = length ms
                ma = A.listArray (1,ln) ms
                mz = matricesToSizes ms

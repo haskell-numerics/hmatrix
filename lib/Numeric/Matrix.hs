@@ -26,7 +26,7 @@ module Numeric.Matrix (
     module Data.Packed.Matrix,
     module Numeric.Vector,
     --module Numeric.Container,
-    chain,
+    optimiseMult,
     -- * Operators
     (<>), (<\>),
     -- * Deprecated
