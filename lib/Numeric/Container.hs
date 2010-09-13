@@ -25,9 +25,10 @@ module Numeric.Container (
     mXm,mXv,vXm,
     outer, kronecker,
 
-    RealElement, --Precision,
-    ComplexContainer(toComplex,fromComplex,comp,conj),
-    Convert(..), --AutoReal(..),
+    Convert(..),
+    Complexable(),
+    RealElement(),
+
     RealOf, ComplexOf, SingleOf, DoubleOf,
 
     IndexOf,
@@ -54,10 +55,11 @@ type instance IndexOf Matrix = (Int,Int)
 -------------------------------------------------------------------
 
 -- | Basic element-by-element functions for numeric containers
-class (Element e) => Container c e where
-
+class (Complexable c, Element e) => Container c e where
     -- | create a structure with a single element
     scalar      :: e -> c e
+    -- | complex conjugate
+    conj        :: c e -> c e
     scale       :: e -> c e -> c e
     -- | scale the element by element reciprocal of the object:
     --
@@ -75,7 +77,7 @@ class (Element e) => Container c e where
     -- | cannot implement instance Functor because of Element class constraint
     cmap        :: (Element a, Element b) => (a -> b) -> c a -> c b
     -- | constant structure of given size
-    konst    :: e -> IndexOf c -> c e
+    konst       :: e -> IndexOf c -> c e
     --
     -- | indexing function
     atIndex     :: c e -> IndexOf c -> e
@@ -110,6 +112,7 @@ instance Container Vector Float where
     equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
     scalar x = fromList [x]
     konst = constantD
+    conj = conjugateD
     cmap = mapVector
     atIndex = (@>)
     minIndex     = round . toScalarF MinIdx
@@ -130,6 +133,7 @@ instance Container Vector Double where
     equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
     scalar x = fromList [x]
     konst = constantD
+    conj = conjugateD
     cmap = mapVector
     atIndex = (@>)
     minIndex     = round . toScalarR MinIdx
@@ -150,6 +154,7 @@ instance Container Vector (Complex Double) where
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     scalar x = fromList [x]
     konst = constantD
+    conj = conjugateD
     cmap = mapVector
     atIndex = (@>)
     minIndex     = minIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
@@ -170,6 +175,7 @@ instance Container Vector (Complex Float) where
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     scalar x = fromList [x]
     konst = constantD
+    conj = conjugateD
     cmap = mapVector
     atIndex = (@>)
     minIndex     = minIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
@@ -192,6 +198,7 @@ instance (Container Vector a) => Container Matrix a where
     equal a b = cols a == cols b && flatten a `equal` flatten b
     scalar x = (1><1) [x]
     konst v (r,c) = reshape c (konst v (r*c))
+    conj = liftMatrix conjugateD
     cmap f = liftMatrix (mapVector f)
     atIndex = (@@>)
     minIndex m = let (r,c) = (rows m,cols m)
@@ -208,7 +215,7 @@ instance (Container Vector a) => Container Matrix a where
 ----------------------------------------------------
 
 
--- | Linear algebraic properties of objects
+-- | Matrix product and related functions
 class Element e => Product e where
     -- | matrix product
     multiply :: Matrix e -> Matrix e -> Matrix e
@@ -309,4 +316,84 @@ kronecker a b = fromBlocks
               . toRows
               $ flatten a `outer` flatten b
 
-----------------------------------------------------------
+-------------------------------------------------------------------
+
+
+class Convert t where
+    real    :: Container c t => c (RealOf t) -> c t
+    complex :: Container c t => c t -> c (ComplexOf t)
+    single  :: Container c t => c t -> c (SingleOf t)
+    double  :: Container c t => c t -> c (DoubleOf t)
+    toComplex   :: (Container c t, RealElement t) => (c t, c t) -> c (Complex t)
+    fromComplex :: (Container c t, RealElement t) => c (Complex t) -> (c t, c t)
+
+
+instance Convert Double where
+    real = id
+    complex = comp'
+    single = single'
+    double = id
+    toComplex = toComplex'
+    fromComplex = fromComplex'
+
+instance Convert Float where
+    real = id
+    complex = comp'
+    single = id
+    double = double'
+    toComplex = toComplex'
+    fromComplex = fromComplex'
+
+instance Convert (Complex Double) where
+    real = comp'
+    complex = id
+    single = single'
+    double = id
+    toComplex = toComplex'
+    fromComplex = fromComplex'
+
+instance Convert (Complex Float) where
+    real = comp'
+    complex = id
+    single = id
+    double = double'
+    toComplex = toComplex'
+    fromComplex = fromComplex'
+
+-------------------------------------------------------------------
+
+type family RealOf x
+
+type instance RealOf Double = Double
+type instance RealOf (Complex Double) = Double
+
+type instance RealOf Float = Float
+type instance RealOf (Complex Float) = Float
+
+type family ComplexOf x
+
+type instance ComplexOf Double = Complex Double
+type instance ComplexOf (Complex Double) = Complex Double
+
+type instance ComplexOf Float = Complex Float
+type instance ComplexOf (Complex Float) = Complex Float
+
+type family SingleOf x
+
+type instance SingleOf Double = Float
+type instance SingleOf Float  = Float
+
+type instance SingleOf (Complex a) = Complex (SingleOf a)
+
+type family DoubleOf x
+
+type instance DoubleOf Double = Double
+type instance DoubleOf Float  = Double
+
+type instance DoubleOf (Complex a) = Complex (DoubleOf a)
+
+type family ElementOf c
+
+type instance ElementOf (Vector a) = a
+type instance ElementOf (Matrix a) = a
+

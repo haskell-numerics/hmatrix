@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, UndecidableInstances, CPP #-}
+{-# LANGUAGE FlexibleContexts, UndecidableInstances, CPP, FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -----------------------------------------------------------------------------
 {- |
@@ -135,10 +135,14 @@ instance (Field a, Arbitrary a, Num (Vector a)) => Arbitrary (Her a) where
     coarbitrary = undefined
 #endif
 
+class (Field a, Arbitrary a, Element (RealOf a), Random (RealOf a)) => ArbitraryField a
+instance ArbitraryField Double
+instance ArbitraryField (Complex Double)
+
 
 -- a well-conditioned general matrix (the singular values are between 1 and 100)
 newtype (WC a) = WC (Matrix a) deriving Show
-instance (Convert a, Field a, Arbitrary a, Random (RealOf a)) => Arbitrary (WC a) where
+instance (ArbitraryField a) => Arbitrary (WC a) where
     arbitrary = do
         m <- arbitrary
         let (u,_,v) = svd m
@@ -157,7 +161,7 @@ instance (Convert a, Field a, Arbitrary a, Random (RealOf a)) => Arbitrary (WC a
 
 -- a well-conditioned square matrix (the singular values are between 1 and 100)
 newtype (SqWC a) = SqWC (Matrix a) deriving Show
-instance (Convert a, Field a, Arbitrary a, Random (RealOf a)) => Arbitrary (SqWC a) where
+instance (ArbitraryField a) => Arbitrary (SqWC a) where
     arbitrary = do
         Sq m <- arbitrary
         let (u,_,v) = svd m
@@ -174,7 +178,7 @@ instance (Convert a, Field a, Arbitrary a, Random (RealOf a)) => Arbitrary (SqWC
 
 -- a positive definite square matrix (the eigenvalues are between 0 and 100)
 newtype (PosDef a) = PosDef (Matrix a) deriving Show
-instance (Convert a, Field a, Arbitrary a, Num (Vector a), Random (RealOf a)) 
+instance (ArbitraryField a, Num (Vector a)) 
     => Arbitrary (PosDef a) where
     arbitrary = do
         Her m <- arbitrary
