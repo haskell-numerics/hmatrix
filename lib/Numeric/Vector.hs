@@ -15,6 +15,9 @@
 --
 -- Numeric instances and functions for 'Vector'.
 --
+-- Provides instances of standard classes 'Show', 'Read', 'Eq',
+-- 'Num', 'Fractional',  and 'Floating' for 'Vector'.
+-- 
 -----------------------------------------------------------------------------
 
 module Numeric.Vector (

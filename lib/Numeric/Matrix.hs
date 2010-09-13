@@ -19,6 +19,9 @@
 -- In the context of the standard numeric operators, one-component
 -- vectors and matrices automatically expand to match the dimensions of the other operand.
 --
+-- Provides instances of standard classes 'Show', 'Read', 'Eq',
+-- 'Num', 'Fractional', and 'Floating' for 'Matrix'.
+-- 
 -----------------------------------------------------------------------------
 
 module Numeric.Matrix (
