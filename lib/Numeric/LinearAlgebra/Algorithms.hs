@@ -82,7 +82,12 @@ import Data.Array
 import Numeric.Container
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
-class (Product t, Convert t, Container Vector t, Container Matrix t) => Field t where
+class (Product t,
+       Convert t,
+       Container Vector t,
+       Container Matrix t,
+       Normed Matrix t,
+       Normed Vector t) => Field t where
     svd'         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     thinSVD'     :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     sv'          :: Matrix t -> Vector Double
@@ -566,7 +571,7 @@ expGolub m = iterate msq f !! j
 {- | Matrix exponential. It uses a direct translation of Algorithm 11.3.1 in Golub & Van Loan,
      based on a scaled Pade approximation.
 -}
-expm :: (Normed (Matrix t), Field t) => Matrix t -> Matrix t
+expm :: Field t => Matrix t -> Matrix t
 expm = expGolub
 
 --------------------------------------------------------------
@@ -582,7 +587,7 @@ It only works with invertible matrices that have a real solution. For diagonaliz
  [ 2.0, 2.25
  , 0.0,  2.0 ]@
 -}
-sqrtm ::  (Normed (Matrix t), Field t) => Matrix t -> Matrix t
+sqrtm ::  Field t => Matrix t -> Matrix t
 sqrtm = sqrtmInv
 
 sqrtmInv x = fst $ fixedPoint $ iterate f (x, ident (rows x))
@@ -631,54 +636,54 @@ luFact (l_u,perm) | r <= c    = (l ,u ,p, s)
 
 data NormType = Infinity | PNorm1 | PNorm2 | Frobenius
 
-class Normed t where
-    pnorm :: NormType -> t -> Double
+class (RealFloat (RealOf t)) => Normed c t where
+    pnorm :: NormType -> c t -> RealOf t
 
-instance Normed (Vector Double) where
+instance Normed Vector Double where
     pnorm PNorm1    = norm1
     pnorm PNorm2    = norm2
     pnorm Infinity  = normInf
     pnorm Frobenius = norm2
 
-instance Normed (Vector (Complex Double)) where
+instance Normed Vector (Complex Double) where
     pnorm PNorm1    = norm1
     pnorm PNorm2    = norm2
     pnorm Infinity  = normInf
     pnorm Frobenius = pnorm PNorm2
 
-instance Normed (Vector Float) where
-    pnorm PNorm1    = realToFrac . norm1
-    pnorm PNorm2    = realToFrac . norm2
-    pnorm Infinity  = realToFrac . normInf
+instance Normed Vector Float where
+    pnorm PNorm1    = norm1
+    pnorm PNorm2    = norm2
+    pnorm Infinity  = normInf
     pnorm Frobenius = pnorm PNorm2
 
-instance Normed (Vector (Complex Float)) where
-    pnorm PNorm1    = realToFrac . norm1
-    pnorm PNorm2    = realToFrac . norm2
-    pnorm Infinity  = realToFrac . normInf
+instance Normed Vector (Complex Float) where
+    pnorm PNorm1    = norm1
+    pnorm PNorm2    = norm2
+    pnorm Infinity  = normInf
     pnorm Frobenius = pnorm PNorm2
 
 
-instance Normed (Matrix Double) where
+instance Normed Matrix Double where
     pnorm PNorm1    = maximum . map (pnorm PNorm1) . toColumns
     pnorm PNorm2    = (@>0) . singularValues
     pnorm Infinity  = pnorm PNorm1 . trans
     pnorm Frobenius = pnorm PNorm2 . flatten
 
-instance Normed (Matrix (Complex Double)) where
+instance Normed Matrix (Complex Double) where
     pnorm PNorm1    = maximum . map (pnorm PNorm1) . toColumns
     pnorm PNorm2    = (@>0) . singularValues
     pnorm Infinity  = pnorm PNorm1 . trans
     pnorm Frobenius = pnorm PNorm2 . flatten
 
-instance Normed (Matrix Float) where
+instance Normed Matrix Float where
     pnorm PNorm1    = maximum . map (pnorm PNorm1) . toColumns
-    pnorm PNorm2    = (@>0) . singularValues . double
+    pnorm PNorm2    = realToFrac . (@>0) . singularValues . double
     pnorm Infinity  = pnorm PNorm1 . trans
     pnorm Frobenius = pnorm PNorm2 . flatten
 
-instance Normed (Matrix (Complex Float)) where
+instance Normed Matrix (Complex Float) where
     pnorm PNorm1    = maximum . map (pnorm PNorm1) . toColumns
-    pnorm PNorm2    = (@>0) . singularValues . double
+    pnorm PNorm2    = realToFrac . (@>0) . singularValues . double
     pnorm Infinity  = pnorm PNorm1 . trans
     pnorm Frobenius = pnorm PNorm2 . flatten

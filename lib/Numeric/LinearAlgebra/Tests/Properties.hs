@@ -54,8 +54,8 @@ import Debug.Trace
 debug x = trace (show x) x
 
 -- relative error
-dist :: (Normed t, Num t) => t -> t -> Double
-dist a b = r
+dist :: (Normed c t, Num (c t)) => c t -> c t -> Double
+dist a b = realToFrac r
     where norm = pnorm Infinity
           na = norm a
           nb = norm b
