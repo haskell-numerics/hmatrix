@@ -203,10 +203,10 @@ instance (Container Vector a) => Container Matrix a where
     atIndex = (@@>)
     minIndex m = let (r,c) = (rows m,cols m)
                      i = (minIndex $ flatten m)
-                 in (i `div` c,(i `mod` c) + 1)
+                 in (i `div` c,i `mod` c)
     maxIndex m = let (r,c) = (rows m,cols m)
                      i = (maxIndex $ flatten m)
-                 in (i `div` c,(i `mod` c) + 1)
+                 in (i `div` c,i `mod` c)
     minElement = ap (@@>) minIndex
     maxElement = ap (@@>) maxIndex
     sumElements = sumElements . flatten
