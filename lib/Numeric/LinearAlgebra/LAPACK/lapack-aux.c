@@ -1139,6 +1139,19 @@ int transC(KCMAT(x),CMAT(t)) {
     OK
 }
 
+int transP(KPMAT(x), PMAT(t)) {
+    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
+    REQUIRES(xs==ts,NOCONVER);
+    DEBUGMSG("transP");
+    int i,j;
+    for (i=0; i<tr; i++) {
+        for (j=0; j<tc; j++) {
+	  memcpy(tp+(i*tc+j)*xs,xp +(j*xc+i)*xs,xs);
+        }
+    }
+    OK
+}
+
 //////////////////// constant /////////////////////////
 
 int constantF(float * pval, FVEC(r)) {
@@ -1177,6 +1190,15 @@ int constantC(doublecomplex* pval, CVEC(r)) {
     doublecomplex val = *pval;
     for(k=0;k<rn;k++) {
         rp[k]=val;
+    }
+    OK
+}
+
+int constantP(void* pval, PVEC(r)) {
+    DEBUGMSG("constantP")
+    int k;
+    for(k=0;k<rn;k++) {
+      memcpy(rp+k*rs,pval,rs);
     }
     OK
 }

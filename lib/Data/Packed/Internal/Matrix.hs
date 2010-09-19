@@ -252,10 +252,11 @@ class (Storable a, Floating a) => Element a where
                -> Matrix a -> Matrix a
     subMatrixD = subMatrix'
     transdata :: Int -> Vector a -> Int -> Vector a
-    transdata = transdata'
+    transdata = transdataP -- transdata'
     constantD  :: a -> Int -> Vector a
-    constantD = constant'
+    constantD = constantP -- constant'
     conjugateD :: Vector a -> Vector a
+    conjugateD = id
 
 instance Element Float where
     transdata  = transdataAux ctransF
@@ -320,10 +321,27 @@ transdataAux fun c1 d c2 =
         r2 = dim d `div` c2
         noneed = r1 == 1 || c1 == 1
 
+transdataP :: Storable a => Int -> Vector a -> Int -> Vector a
+transdataP c1 d c2 =
+    if noneed
+       then d
+       else unsafePerformIO $ do
+          v <- createVector (dim d)
+          unsafeWith d $ \pd ->
+              unsafeWith v $ \pv ->
+                  ctransP (fi r1) (fi c1) (castPtr pd) (fi sz) (fi r2) (fi c2) (castPtr pv) (fi sz) // check "transdataStorable"
+          return v
+   where r1 = dim d `div` c1
+         r2 = dim d `div` c2
+         sz = sizeOf (d @> 0)
+         noneed = r1 == 1 || c1 == 1
+
 foreign import ccall "transF" ctransF :: TFMFM
 foreign import ccall "transR" ctransR :: TMM
 foreign import ccall "transQ" ctransQ :: TQMQM
 foreign import ccall "transC" ctransC :: TCMCM
+foreign import ccall "transP" ctransP :: CInt -> CInt -> Ptr () -> CInt -> CInt -> CInt -> Ptr () -> CInt -> IO CInt
+
 ----------------------------------------------------------------------
 
 constant' v n = unsafePerformIO $ do
@@ -358,6 +376,17 @@ foreign import ccall "constantQ" cconstantQ :: Ptr (Complex Float) -> TQV
 constantC :: Complex Double -> Int -> Vector (Complex Double)
 constantC = constantAux cconstantC
 foreign import ccall "constantC" cconstantC :: Ptr (Complex Double) -> TCV
+
+constantP :: Storable a => a -> Int -> Vector a
+constantP a n = unsafePerformIO $ do
+    let sz = sizeOf a
+    v <- createVector n
+    unsafeWith v $ \p -> do
+       alloca $ \k -> do
+                      poke k a
+                      cconstantP (castPtr k) (fi n) (castPtr p) (fi sz) // check "constantP"
+    return v
+foreign import ccall "constantP" cconstantP :: Ptr () -> CInt -> Ptr () -> CInt -> IO CInt
 
 ---------------------------------------
 

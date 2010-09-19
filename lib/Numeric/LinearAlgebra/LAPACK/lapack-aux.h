@@ -44,19 +44,23 @@ typedef short ftnlen;
 #define DVEC(A) int A##n, double*A##p
 #define QVEC(A) int A##n, complex*A##p
 #define CVEC(A) int A##n, doublecomplex*A##p
+#define PVEC(A) int A##n, void* A##p, int A##s
 #define FMAT(A) int A##r, int A##c, float* A##p
 #define DMAT(A) int A##r, int A##c, double* A##p
 #define QMAT(A) int A##r, int A##c, complex* A##p
 #define CMAT(A) int A##r, int A##c, doublecomplex* A##p
+#define PMAT(A) int A##r, int A##c, void* A##p, int A##s
 
 #define KFVEC(A) int A##n, const float*A##p
 #define KDVEC(A) int A##n, const double*A##p
 #define KQVEC(A) int A##n, const complex*A##p
 #define KCVEC(A) int A##n, const doublecomplex*A##p
+#define KPVEC(A) int A##n, const void* A##p, int A##s
 #define KFMAT(A) int A##r, int A##c, const float* A##p
 #define KDMAT(A) int A##r, int A##c, const double* A##p
 #define KQMAT(A) int A##r, int A##c, const complex* A##p
 #define KCMAT(A) int A##r, int A##c, const doublecomplex* A##p
+#define KPMAT(A) int A##r, int A##c, const void* A##p, int A##s
 
 /********************************************************/
 
