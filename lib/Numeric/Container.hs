@@ -20,11 +20,14 @@
 -----------------------------------------------------------------------------
 
 module Numeric.Container (
+    -- * Generic operations
     Container(..),
+    -- * Matrix product and related functions
     Product(..),
     mXm,mXv,vXm,
     outer, kronecker,
 
+    -- * Element conversion
     Convert(..),
     Complexable(),
     RealElement(),
@@ -32,7 +35,11 @@ module Numeric.Container (
     RealOf, ComplexOf, SingleOf, DoubleOf,
 
     IndexOf,
-    module Data.Complex
+    module Data.Complex,
+    -- * Deprecated
+    (.*),(*/),(<|>),(<->),
+    vectorMax,vectorMin,
+    vectorMaxIndex, vectorMinIndex
 ) where
 
 import Data.Packed
@@ -396,4 +403,86 @@ type family ElementOf c
 
 type instance ElementOf (Vector a) = a
 type instance ElementOf (Matrix a) = a
+
+------------------------------------------------------------
+
+----------------------------------------------------
+
+{-# DEPRECATED (.*) "use scale a x or scalar a * x" #-}
+
+-- -- | @x .* a = scale x a@
+-- (.*) :: (Linear c a) => a -> c a -> c a
+infixl 7 .*
+a .* x = scale a x
+
+----------------------------------------------------
+
+{-# DEPRECATED (*/) "use scale (recip a) x or x / scalar a" #-}
+
+-- -- | @a *\/ x = scale (recip x) a@
+-- (*/) :: (Linear c a) => c a -> a -> c a
+infixl 7 */
+v */ x = scale (recip x) v
+
+
+------------------------------------------------
+
+{-# DEPRECATED (<|>) "define operator a & b = fromBlocks[[a,b]] and use asRow/asColumn to join vectors" #-}
+{-# DEPRECATED (<->) "define operator a // b = fromBlocks[[a],[b]] and use asRow/asColumn to join vectors" #-}
+
+class Joinable a b where
+    joinH :: Element t => a t -> b t -> Matrix t
+    joinV :: Element t => a t -> b t -> Matrix t
+
+instance Joinable Matrix Matrix where
+    joinH m1 m2 = fromBlocks [[m1,m2]]
+    joinV m1 m2 = fromBlocks [[m1],[m2]]
+
+instance Joinable Matrix Vector where
+    joinH m v = joinH m (asColumn v)
+    joinV m v = joinV m (asRow v)
+
+instance Joinable Vector Matrix where
+    joinH v m = joinH (asColumn v) m
+    joinV v m = joinV (asRow v) m
+
+infixl 4 <|>
+infixl 3 <->
+
+{-- - | Horizontal concatenation of matrices and vectors:
+
+@> (ident 3 \<-\> 3 * ident 3) \<|\> fromList [1..6.0]
+(6><4)
+ [ 1.0, 0.0, 0.0, 1.0
+ , 0.0, 1.0, 0.0, 2.0
+ , 0.0, 0.0, 1.0, 3.0
+ , 3.0, 0.0, 0.0, 4.0
+ , 0.0, 3.0, 0.0, 5.0
+ , 0.0, 0.0, 3.0, 6.0 ]@
+-}
+-- (<|>) :: (Element t, Joinable a b) => a t -> b t -> Matrix t
+a <|> b = joinH a b
+
+-- -- | Vertical concatenation of matrices and vectors.
+-- (<->) :: (Element t, Joinable a b) => a t -> b t -> Matrix t
+a <-> b = joinV a b
+
+-------------------------------------------------------------------
+
+{-# DEPRECATED vectorMin "use minElement" #-}
+vectorMin :: (Container Vector t, Element t) => Vector t -> t
+vectorMin = minElement
+
+{-# DEPRECATED vectorMax "use maxElement" #-}
+vectorMax :: (Container Vector t, Element t) => Vector t -> t
+vectorMax = maxElement
+
+
+{-# DEPRECATED vectorMaxIndex "use minIndex" #-}
+vectorMaxIndex :: Vector Double -> Int
+vectorMaxIndex = round . toScalarR MaxIdx
+
+{-# DEPRECATED vectorMinIndex "use maxIndex" #-}
+vectorMinIndex :: Vector Double -> Int
+vectorMinIndex = round . toScalarR MinIdx
 

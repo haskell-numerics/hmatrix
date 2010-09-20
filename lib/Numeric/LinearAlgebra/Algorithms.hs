@@ -79,7 +79,7 @@ import Data.Packed.Matrix
 import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Data.List(foldl1')
 import Data.Array
-import Numeric.Container
+import Numeric.Container hiding ((.*),(*/))
 
 -- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
 class (Product t,

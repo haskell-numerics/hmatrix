@@ -31,10 +31,7 @@ module Numeric.Matrix (
     --module Numeric.Container,
     optimiseMult,
     -- * Operators
-    (<>), (<\>),
-    -- * Deprecated
-    (.*),(*/),(<|>),(<->),
-    vectorMax,vectorMin
+    (<>), (<\>)
                       ) where
 
 -------------------------------------------------------------------
@@ -101,77 +98,9 @@ instance Mul Matrix Vector Vector where
 instance Mul Vector Matrix Vector where
     (<>) v m = flatten $ (asRow v) <> m
 
-----------------------------------------------------
-
-{-# DEPRECATED (.*) "use scale a x or scalar a * x" #-}
-
--- -- | @x .* a = scale x a@
--- (.*) :: (Linear c a) => a -> c a -> c a
-infixl 7 .*
-a .* x = scale a x
-
-----------------------------------------------------
-
-{-# DEPRECATED (*/) "use scale (recip a) x or x / scalar a" #-}
-
--- -- | @a *\/ x = scale (recip x) a@
--- (*/) :: (Linear c a) => c a -> a -> c a
-infixl 7 */
-v */ x = scale (recip x) v
+--------------------------------------------------------
 
 -- | least squares solution of a linear system, similar to the \\ operator of Matlab\/Octave (based on linearSolveSVD).
 (<\>) :: (Field a) => Matrix a -> Vector a -> Vector a
 infixl 7 <\>
 m <\> v = flatten (linearSolveSVD m (reshape 1 v))
-
-------------------------------------------------
-
-{-# DEPRECATED (<|>) "define operator a & b = fromBlocks[[a,b]] and use asRow/asColumn to join vectors" #-}
-{-# DEPRECATED (<->) "define operator a // b = fromBlocks[[a],[b]] and use asRow/asColumn to join vectors" #-}
-
-class Joinable a b where
-    joinH :: Element t => a t -> b t -> Matrix t
-    joinV :: Element t => a t -> b t -> Matrix t
-
-instance Joinable Matrix Matrix where
-    joinH m1 m2 = fromBlocks [[m1,m2]]
-    joinV m1 m2 = fromBlocks [[m1],[m2]]
-
-instance Joinable Matrix Vector where
-    joinH m v = joinH m (asColumn v)
-    joinV m v = joinV m (asRow v)
-
-instance Joinable Vector Matrix where
-    joinH v m = joinH (asColumn v) m
-    joinV v m = joinV (asRow v) m
-
-infixl 4 <|>
-infixl 3 <->
-
-{-- - | Horizontal concatenation of matrices and vectors:
-
-@> (ident 3 \<-\> 3 * ident 3) \<|\> fromList [1..6.0]
-(6><4)
- [ 1.0, 0.0, 0.0, 1.0
- , 0.0, 1.0, 0.0, 2.0
- , 0.0, 0.0, 1.0, 3.0
- , 3.0, 0.0, 0.0, 4.0
- , 0.0, 3.0, 0.0, 5.0
- , 0.0, 0.0, 3.0, 6.0 ]@
--}
--- (<|>) :: (Element t, Joinable a b) => a t -> b t -> Matrix t
-a <|> b = joinH a b
-
--- -- | Vertical concatenation of matrices and vectors.
--- (<->) :: (Element t, Joinable a b) => a t -> b t -> Matrix t
-a <-> b = joinV a b
-
--------------------------------------------------------------------
-
-{-# DEPRECATED vectorMin "use minElement" #-}
-vectorMin :: (Container Vector t, Element t) => Vector t -> t
-vectorMin = minElement
-
-{-# DEPRECATED vectorMax "use maxElement" #-}
-vectorMax :: (Container Vector t, Element t) => Vector t -> t
-vectorMax = maxElement
