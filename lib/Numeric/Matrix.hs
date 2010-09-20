@@ -63,7 +63,7 @@ instance (Container Vector a, Fractional (Vector a), Num (Matrix a)) => Fraction
 
 ---------------------------------------------------------
 
-instance (Container Vector a, Floating (Vector a), Fractional (Matrix a)) => Floating (Matrix a) where
+instance (Floating a, Container Vector a, Floating (Vector a), Fractional (Matrix a)) => Floating (Matrix a) where
     sin   = liftMatrix sin
     cos   = liftMatrix cos
     tan   = liftMatrix tan

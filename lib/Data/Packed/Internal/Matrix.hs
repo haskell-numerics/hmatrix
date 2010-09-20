@@ -246,7 +246,8 @@ compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
 ------------------------------------------------------------------
 
 -- | Supported element types for basic matrix operations.
-class (Storable a, Floating a) => Element a where
+--class (Storable a, Floating a) => Element a where
+class (Storable a) => Element a where
     subMatrixD :: (Int,Int) -- ^ (r0,c0) starting position 
                -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
                -> Matrix a -> Matrix a

@@ -62,7 +62,7 @@ type instance IndexOf Matrix = (Int,Int)
 -------------------------------------------------------------------
 
 -- | Basic element-by-element functions for numeric containers
-class (Complexable c, Element e) => Container c e where
+class (Complexable c, Fractional e, Element e) => Container c e where
     -- | create a structure with a single element
     scalar      :: e -> c e
     -- | complex conjugate

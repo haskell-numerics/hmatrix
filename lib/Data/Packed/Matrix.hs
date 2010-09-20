@@ -170,7 +170,7 @@ fliprl m = fromColumns . reverse . toColumns $ m
 ------------------------------------------------------------
 
 -- | Creates a square matrix with a given diagonal.
-diag :: Element a => Vector a -> Matrix a
+diag :: (Num a, Element a) => Vector a -> Matrix a
 diag v = ST.runSTMatrix $ do
     let d = dim v
     m <- ST.newMatrix 0 d d
@@ -199,7 +199,7 @@ takeDiag :: (Element t) => Matrix t -> Vector t
 takeDiag m = fromList [flatten m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
 
 -- | creates the identity matrix of given dimension
-ident :: Element a => Int -> Matrix a
+ident :: (Num a, Element a) => Int -> Matrix a
 ident n = diag (constantD 1 n)
 
 ------------------------------------------------------------

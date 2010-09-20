@@ -64,18 +64,22 @@ typedef short ftnlen;
 
 /********************************************************/
 
+int multiplyF(int ta, int tb, KFMAT(a),KFMAT(b),FMAT(r));
 int multiplyR(int ta, int tb, KDMAT(a),KDMAT(b),DMAT(r));
 int multiplyC(int ta, int tb, KCMAT(a),KCMAT(b),CMAT(r));
+int multiplyQ(int ta, int tb, KQMAT(a),KQMAT(b),QMAT(r));
 
 int transF(KFMAT(x),FMAT(t));
 int transR(KDMAT(x),DMAT(t));
 int transQ(KQMAT(x),QMAT(t));
 int transC(KCMAT(x),CMAT(t));
+int transP(KPMAT(x),PMAT(t));
 
 int constantF(float * pval, FVEC(r));
 int constantR(double * pval, DVEC(r));
 int constantQ(complex* pval, QVEC(r));
 int constantC(doublecomplex* pval, CVEC(r));
+int constantP(void* pval, PVEC(r));
 
 int float2double(FVEC(x),DVEC(y));
 int double2float(DVEC(x),FVEC(y));
