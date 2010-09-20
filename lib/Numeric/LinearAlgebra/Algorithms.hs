@@ -183,7 +183,7 @@ singularValues = {-# SCC "singularValues" #-} sv'
 fullSVD :: Field t => Matrix t -> (Matrix t, Matrix Double, Matrix t)
 fullSVD m = (u,d,v) where
     (u,s,v) = svd m
-    d = diagRect s r c
+    d = diagRect 0 s r c
     r = rows m
     c = cols m
 
@@ -210,7 +210,7 @@ leftSV m  | vertical m = let (u,s,_) = svd m     in (u,s)
 {-# DEPRECATED full "use fullSVD instead" #-}
 full svdFun m = (u, d ,v) where
     (u,s,v) = svdFun m
-    d = diagRect s r c
+    d = diagRect 0 s r c
     r = rows m
     c = cols m
 
@@ -624,10 +624,10 @@ luFact (l_u,perm) | r <= c    = (l ,u ,p, s)
     c = cols l_u
     tu = triang r c 0 1
     tl = triang r c 0 0
-    l = takeColumns r (l_u |*| tl) |+| diagRect (konst 1 r) r r
+    l = takeColumns r (l_u |*| tl) |+| diagRect 0 (konst 1 r) r r
     u = l_u |*| tu
     (p,s) = fixPerm r perm
-    l' = (l_u |*| tl) |+| diagRect (konst 1 c) r c
+    l' = (l_u |*| tl) |+| diagRect 0 (konst 1 c) r c
     u' = takeRows c (l_u |*| tu)
     (|+|) = add
     (|*|) = mul

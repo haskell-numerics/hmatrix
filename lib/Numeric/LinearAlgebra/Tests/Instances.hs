@@ -150,7 +150,7 @@ instance (ArbitraryField a) => Arbitrary (WC a) where
             c = cols m
             n = min r c
         sv' <- replicateM n (choose (1,100))
-        let s = diagRect (fromList sv') r c
+        let s = diagRect 0 (fromList sv') r c
         return $ WC (u <> real s <> trans v)
 
 #if MIN_VERSION_QuickCheck(2,0,0)

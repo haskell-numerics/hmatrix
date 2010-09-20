@@ -28,7 +28,6 @@ module Numeric.Matrix (
     -- * Basic functions
     module Data.Packed.Matrix,
     module Numeric.Vector,
-    --module Numeric.Container,
     optimiseMult,
     -- * Operators
     (<>), (<\>)

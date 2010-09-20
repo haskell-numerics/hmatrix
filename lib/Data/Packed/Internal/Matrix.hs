@@ -221,13 +221,13 @@ where r is the desired number of rows.)
  , 9.0, 10.0, 11.0, 12.0 ]@
 
 -}
-reshape :: Element t => Int -> Vector t -> Matrix t
+reshape :: Storable t => Int -> Vector t -> Matrix t
 reshape c v = matrixFromVector RowMajor c v
 
 singleton x = reshape 1 (fromList [x])
 
 -- | application of a vector function on the flattened matrix elements
-liftMatrix :: (Element a, Element b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
+liftMatrix :: (Storable a, Storable b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
 liftMatrix f MC { icols = c, cdat = d } = matrixFromVector RowMajor    c (f d)
 liftMatrix f MF { icols = c, fdat = d } = matrixFromVector ColumnMajor c (f d)
 
@@ -246,7 +246,6 @@ compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
 ------------------------------------------------------------------
 
 -- | Supported element types for basic matrix operations.
---class (Storable a, Floating a) => Element a where
 class (Storable a) => Element a where
     subMatrixD :: (Int,Int) -- ^ (r0,c0) starting position 
                -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix

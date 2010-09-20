@@ -138,7 +138,7 @@ svdProp1 m = m |~| u <> real d <> trans v && unitary u && unitary v
 
 svdProp1a svdfun m = m |~| u <> real d <> trans v && unitary u && unitary v where
     (u,s,v) = svdfun m
-    d = diagRect s (rows m) (cols m)
+    d = diagRect 0 s (rows m) (cols m)
 
 svdProp1b svdfun m = unitary u && unitary v where
     (u,_,v) = svdfun m

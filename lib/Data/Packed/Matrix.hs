@@ -22,7 +22,7 @@ module Data.Packed.Matrix (
     Element,
     Matrix,rows,cols,
     (><),
-    trans, ctrans,
+    trans,
     reshape, flatten,
     fromLists, toLists, buildMatrix,
     (@@>),
@@ -33,7 +33,7 @@ module Data.Packed.Matrix (
     flipud, fliprl,
     subMatrix, takeRows, dropRows, takeColumns, dropColumns,
     extractRows,
-    ident, diag, diagRect, takeDiag,
+    diagRect, takeDiag,
     liftMatrix, liftMatrix2, liftMatrix2Auto,
     dispf, disps, dispcf, vecdisp, latexFormat, format,
     loadMatrix, saveMatrix, fromFile, fileDimensions,
@@ -169,38 +169,25 @@ fliprl m = fromColumns . reverse . toColumns $ m
 
 ------------------------------------------------------------
 
--- | Creates a square matrix with a given diagonal.
-diag :: (Num a, Element a) => Vector a -> Matrix a
-diag v = ST.runSTMatrix $ do
-    let d = dim v
-    m <- ST.newMatrix 0 d d
-    mapM_ (\k -> ST.writeMatrix m k k (v@>k)) [0..d-1]
-    return m
+{- | creates a rectangular diagonal matrix:
 
-{- | creates a rectangular diagonal matrix
-
-@> diagRect (constant 5 3) 3 4 :: Matrix Double
-(3><4)
- [ 5.0, 0.0, 0.0, 0.0
- , 0.0, 5.0, 0.0, 0.0
- , 0.0, 0.0, 5.0, 0.0 ]@
+@> diagRect 7 (fromList [10,20,30]) 4 5 :: Matrix Double
+(4><5)
+ [ 10.0,  7.0,  7.0, 7.0, 7.0
+ ,  7.0, 20.0,  7.0, 7.0, 7.0
+ ,  7.0,  7.0, 30.0, 7.0, 7.0
+ ,  7.0,  7.0,  7.0, 7.0, 7.0 ]@
 -}
-diagRect :: (Element t, Num t) => Vector t -> Int -> Int -> Matrix t
-diagRect v r c
-    | dim v < min r c = error "diagRect called with dim v < min r c"
-    | otherwise = ST.runSTMatrix $ do
-        m <- ST.newMatrix 0 r c
-        let d = min r c
+diagRect :: (Storable t) => t -> Vector t -> Int -> Int -> Matrix t
+diagRect z v r c = ST.runSTMatrix $ do
+        m <- ST.newMatrix z r c
+        let d = min r c `min` (dim v)
         mapM_ (\k -> ST.writeMatrix m k k (v@>k)) [0..d-1]
         return m
 
 -- | extracts the diagonal from a rectangular matrix
 takeDiag :: (Element t) => Matrix t -> Vector t
 takeDiag m = fromList [flatten m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
-
--- | creates the identity matrix of given dimension
-ident :: (Num a, Element a) => Int -> Matrix a
-ident n = diag (constantD 1 n)
 
 ------------------------------------------------------------
 
@@ -225,7 +212,7 @@ Example:
  , 4.0, 5.0, 6.0 ]@
 
 -}
-(><) :: (Element a) => Int -> Int -> [a] -> Matrix a
+(><) :: (Storable a) => Int -> Int -> [a] -> Matrix a
 r >< c = f where
     f l | dim v == r*c = matrixFromVector RowMajor c v
         | otherwise    = error $ "inconsistent list size = "
@@ -261,16 +248,13 @@ fromLists :: Element t => [[t]] -> Matrix t
 fromLists = fromRows . map fromList
 
 -- | creates a 1-row matrix from a vector
-asRow :: Element a => Vector a -> Matrix a
+asRow :: Storable a => Vector a -> Matrix a
 asRow v = reshape (dim v) v
 
 -- | creates a 1-column matrix from a vector
-asColumn :: Element a => Vector a -> Matrix a
+asColumn :: Storable a => Vector a -> Matrix a
 asColumn v = reshape 1 v
 
--- | conjugate transpose
-ctrans :: Element e => Matrix e -> Matrix e
-ctrans = liftMatrix conjugateD . trans
 
 
 {- | creates a Matrix of the specified size using the supplied function to
@@ -289,7 +273,7 @@ buildMatrix rc cc f =
 
 -----------------------------------------------------
 
-fromArray2D :: (Element e) => Array (Int, Int) e -> Matrix e
+fromArray2D :: (Storable e) => Array (Int, Int) e -> Matrix e
 fromArray2D m = (r><c) (elems m)
     where ((r0,c0),(r1,c1)) = bounds m
           r = r1-r0+1

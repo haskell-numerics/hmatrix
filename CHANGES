@@ -1,9 +1,14 @@
 0.10.0.0
 ========
 
-- vectorMapM, unzipVectorWith
+- diagRect admits diagonal vectors of any length without producing an error,
+  and takes an additional argument for the off-diagonal elements.
 
-- Vectors typeclass
+- optimiseMult
+
+- module reorganization, introducing Numeric.Container
+
+- vectorMapM, unzipVectorWith
 
 - Support for Float and Complex Float elements (excluding LAPACK computations)
 

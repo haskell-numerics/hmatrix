@@ -90,11 +90,11 @@ writeVector :: Storable t => STVector s t -> Int -> t -> ST s ()
 writeVector = safeIndexV unsafeWriteVector
 
 {-# NOINLINE newUndefinedVector #-}
-newUndefinedVector :: Element t => Int -> ST s (STVector s t)
+newUndefinedVector :: Storable t => Int -> ST s (STVector s t)
 newUndefinedVector = unsafeIOToST . fmap STVector . createVector
 
 {-# INLINE newVector #-}
-newVector :: Element t => t -> Int -> ST s (STVector s t)
+newVector :: Storable t => t -> Int -> ST s (STVector s t)
 newVector x n = do
     v <- newUndefinedVector n
     let go (-1) = return v
@@ -164,9 +164,9 @@ writeMatrix :: Storable t => STMatrix s t -> Int -> Int -> t -> ST s ()
 writeMatrix = safeIndexM unsafeWriteMatrix
 
 {-# NOINLINE newUndefinedMatrix #-}
-newUndefinedMatrix :: Element t => MatrixOrder -> Int -> Int -> ST s (STMatrix s t)
+newUndefinedMatrix :: Storable t => MatrixOrder -> Int -> Int -> ST s (STMatrix s t)
 newUndefinedMatrix order r c = unsafeIOToST $ fmap STMatrix $ createMatrix order r c
 
 {-# NOINLINE newMatrix #-}
-newMatrix :: Element t => t -> Int -> Int -> ST s (STMatrix s t)
+newMatrix :: Storable t => t -> Int -> Int -> ST s (STMatrix s t)
 newMatrix v r c = unsafeThawMatrix $ reshape c $ runSTVector $ newVector v (r*c)
