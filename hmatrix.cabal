@@ -116,6 +116,7 @@ library
                         Numeric.GSL.Internal,
                         Numeric.Conversion
                         Numeric.MatrixBoot
+                        Numeric.IO
                         Numeric.Chain
 
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,

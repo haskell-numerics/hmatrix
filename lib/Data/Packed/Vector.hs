@@ -20,7 +20,6 @@ module Data.Packed.Vector (
     subVector, takesV, join,
     mapVector, zipVector, zipVectorWith, unzipVector, unzipVectorWith,
     mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
-    fscanfVector, fprintfVector, freadVector, fwriteVector,
     foldLoop, foldVector, foldVectorG, foldVectorWithIndex
 ) where
 

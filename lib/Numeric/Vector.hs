@@ -27,13 +27,16 @@ module Numeric.Vector (
     -- * Vector creation
     constant, linspace,
     -- * Operators
-    (<.>)
+    (<.>),
+    -- * IO
+    fscanfVector, fprintfVector, freadVector, fwriteVector
                       ) where
 
 import Data.Packed.Vector
 import Data.Packed.Internal.Matrix
 import Numeric.GSL.Vector
 import Numeric.Container
+import Numeric.IO
 
 -------------------------------------------------------------------
 

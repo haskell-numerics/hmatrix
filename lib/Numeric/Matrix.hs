@@ -34,7 +34,11 @@ module Numeric.Matrix (
     ctrans, 
     optimiseMult,
     -- * Operators
-    (<>), (<\>)
+    (<>), (<\>),
+    -- * IO
+    dispf, disps, dispcf, vecdisp, latexFormat, format,
+    loadMatrix, saveMatrix, fromFile, fileDimensions,
+    readMatrix
                       ) where
 
 -------------------------------------------------------------------
@@ -43,6 +47,7 @@ import Data.Packed.Matrix
 import Numeric.Vector
 import Numeric.Chain
 import Numeric.MatrixBoot
+import Numeric.IO
 import Numeric.LinearAlgebra.Algorithms
 
 -------------------------------------------------------------------
