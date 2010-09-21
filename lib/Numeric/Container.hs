@@ -22,7 +22,6 @@
 module Numeric.Container (
     -- * Generic operations
     Container(..),
-    ctrans, diag, ident,
     -- * Matrix product and related functions
     Product(..),
     mXm,mXv,vXm,
@@ -221,21 +220,6 @@ instance (Container Vector a) => Container Matrix a where
     prodElements = prodElements . flatten
 
 ----------------------------------------------------
-
--- | conjugate transpose
-ctrans :: Element e => Matrix e -> Matrix e
-ctrans = liftMatrix conjugateD . trans
-
--- | Creates a square matrix with a given diagonal.
-diag :: (Num a, Element a) => Vector a -> Matrix a
-diag v = diagRect 0 v n n where n = dim v
-
--- | creates the identity matrix of given dimension
-ident :: (Num a, Element a) => Int -> Matrix a
-ident n = diag (constantD 1 n)
-
-----------------------------------------------------
-
 
 -- | Matrix product and related functions
 class Element e => Product e where

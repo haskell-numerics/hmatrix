@@ -7,15 +7,15 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numeric.Container
--- Copyright   :  (c) Alberto Ruiz 2007
+-- Module      :  Numeric.Conversion
+-- Copyright   :  (c) Alberto Ruiz 2010
 -- License     :  GPL-style
 --
 -- Maintainer  :  Alberto Ruiz <aruiz@um.es>
 -- Stability   :  provisional
 -- Portability :  portable
 --
--- Numeric classes for containers of numbers, including conversion routines
+-- Conversion routines
 --
 -----------------------------------------------------------------------------
 

@@ -28,6 +28,10 @@ module Numeric.Matrix (
     -- * Basic functions
     module Data.Packed.Matrix,
     module Numeric.Vector,
+    -- * Matrix creation
+    diag, ident,
+    -- * matrix operations
+    ctrans, 
     optimiseMult,
     -- * Operators
     (<>), (<\>)
@@ -38,6 +42,7 @@ module Numeric.Matrix (
 import Data.Packed.Matrix
 import Numeric.Vector
 import Numeric.Chain
+import Numeric.MatrixBoot
 import Numeric.LinearAlgebra.Algorithms
 
 -------------------------------------------------------------------

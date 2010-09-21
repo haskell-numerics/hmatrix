@@ -246,6 +246,8 @@ compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
 ------------------------------------------------------------------
 
 -- | Supported element types for basic matrix operations.
+--     provides unoptimised defaults for all (Storable a) instances
+--     @instance Element Foo where@
 class (Storable a) => Element a where
     subMatrixD :: (Int,Int) -- ^ (r0,c0) starting position 
                -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
@@ -329,7 +331,7 @@ transdataP c1 d c2 =
           v <- createVector (dim d)
           unsafeWith d $ \pd ->
               unsafeWith v $ \pv ->
-                  ctransP (fi r1) (fi c1) (castPtr pd) (fi sz) (fi r2) (fi c2) (castPtr pv) (fi sz) // check "transdataStorable"
+                  ctransP (fi r1) (fi c1) (castPtr pd) (fi sz) (fi r2) (fi c2) (castPtr pv) (fi sz) // check "transdataP"
           return v
    where r1 = dim d `div` c1
          r2 = dim d `div` c2
