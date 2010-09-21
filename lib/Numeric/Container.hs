@@ -52,6 +52,8 @@ import Control.Monad(ap)
 
 import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ)
 
+import System.IO.Unsafe
+
 -------------------------------------------------------------------
 
 type family IndexOf c
@@ -119,7 +121,7 @@ instance Container Vector Float where
     equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
     scalar x = fromList [x]
     konst = constantD
-    conj = conjugateD
+    conj = id
     cmap = mapVector
     atIndex = (@>)
     minIndex     = round . toScalarF MinIdx
@@ -140,7 +142,7 @@ instance Container Vector Double where
     equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
     scalar x = fromList [x]
     konst = constantD
-    conj = conjugateD
+    conj = id
     cmap = mapVector
     atIndex = (@>)
     minIndex     = round . toScalarR MinIdx
@@ -161,7 +163,7 @@ instance Container Vector (Complex Double) where
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     scalar x = fromList [x]
     konst = constantD
-    conj = conjugateD
+    conj = conjugateC
     cmap = mapVector
     atIndex = (@>)
     minIndex     = minIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
@@ -182,7 +184,7 @@ instance Container Vector (Complex Float) where
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     scalar x = fromList [x]
     konst = constantD
-    conj = conjugateD
+    conj = conjugateQ
     cmap = mapVector
     atIndex = (@>)
     minIndex     = minIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
@@ -205,7 +207,7 @@ instance (Container Vector a) => Container Matrix a where
     equal a b = cols a == cols b && flatten a `equal` flatten b
     scalar x = (1><1) [x]
     konst v (r,c) = reshape c (konst v (r*c))
-    conj = liftMatrix conjugateD
+    conj = liftMatrix conj
     cmap f = liftMatrix (mapVector f)
     atIndex = (@@>)
     minIndex m = let (r,c) = (rows m,cols m)
@@ -404,6 +406,19 @@ type instance ElementOf (Vector a) = a
 type instance ElementOf (Matrix a) = a
 
 ------------------------------------------------------------
+
+conjugateAux fun x = unsafePerformIO $ do
+    v <- createVector (dim x)
+    app2 fun vec x vec v "conjugateAux"
+    return v
+
+conjugateQ :: Vector (Complex Float) -> Vector (Complex Float)
+conjugateQ = conjugateAux c_conjugateQ
+foreign import ccall "conjugateQ" c_conjugateQ :: TQVQV
+
+conjugateC :: Vector (Complex Double) -> Vector (Complex Double)
+conjugateC = conjugateAux c_conjugateC
+foreign import ccall "conjugateC" c_conjugateC :: TCVCV
 
 ----------------------------------------------------
 

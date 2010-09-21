@@ -257,28 +257,30 @@ class (Storable a) => Element a where
     transdata = transdataP -- transdata'
     constantD  :: a -> Int -> Vector a
     constantD = constantP -- constant'
+{-
     conjugateD :: Vector a -> Vector a
     conjugateD = id
+-}
 
 instance Element Float where
     transdata  = transdataAux ctransF
     constantD  = constantAux cconstantF
-    conjugateD = id
+--    conjugateD = id
 
 instance Element Double where
     transdata  = transdataAux ctransR
     constantD  = constantAux cconstantR
-    conjugateD = id
+--    conjugateD = id
 
 instance Element (Complex Float) where
     transdata  = transdataAux ctransQ
     constantD  = constantAux cconstantQ
-    conjugateD = conjugateQ
+--    conjugateD = conjugateQ
 
 instance Element (Complex Double) where
     transdata  = transdataAux ctransC
     constantD  = constantAux cconstantC
-    conjugateD = conjugateC
+--    conjugateD = conjugateC
 
 -------------------------------------------------------------------
 
@@ -389,21 +391,6 @@ constantP a n = unsafePerformIO $ do
                       cconstantP (castPtr k) (fi n) (castPtr p) (fi sz) // check "constantP"
     return v
 foreign import ccall "constantP" cconstantP :: Ptr () -> CInt -> Ptr () -> CInt -> IO CInt
-
----------------------------------------
-
-conjugateAux fun x = unsafePerformIO $ do
-    v <- createVector (dim x)
-    app2 fun vec x vec v "conjugateAux"
-    return v
-
-conjugateQ :: Vector (Complex Float) -> Vector (Complex Float)
-conjugateQ = conjugateAux c_conjugateQ
-foreign import ccall "conjugateQ" c_conjugateQ :: TQVQV
-
-conjugateC :: Vector (Complex Double) -> Vector (Complex Double)
-conjugateC = conjugateAux c_conjugateC
-foreign import ccall "conjugateC" c_conjugateC :: TCVCV
 
 ----------------------------------------------------------------------
 
