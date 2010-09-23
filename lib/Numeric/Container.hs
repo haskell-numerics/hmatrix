@@ -36,6 +36,8 @@ module Numeric.Container (
 
     IndexOf,
     module Data.Complex,
+    -- * Experimental
+    build', konst',
     -- * Deprecated
     (.*),(*/),(<|>),(<->),
     vectorMax,vectorMin,
@@ -60,6 +62,11 @@ type family IndexOf c
 
 type instance IndexOf Vector = Int
 type instance IndexOf Matrix = (Int,Int)
+
+type family ArgOf c a
+
+type instance ArgOf Vector a = a -> a
+type instance ArgOf Matrix a = a -> a -> a
 
 -------------------------------------------------------------------
 
@@ -87,6 +94,13 @@ class (Complexable c, Fractional e, Element e) => Container c e where
     cmap        :: (Element a, Element b) => (a -> b) -> c a -> c b
     -- | constant structure of given size
     konst       :: e -> IndexOf c -> c e
+    -- | create a structure using a function
+    --
+    -- Hilbert matrix of order N:
+    --
+    -- @hilb n = build (n,n) (\\i j -> 1/(i+j+1))@
+    build       :: IndexOf c -> (ArgOf c e) -> c e
+    --build       :: BoundsOf f -> f -> (ContainerOf f) e
     --
     -- | indexing function
     atIndex     :: c e -> IndexOf c -> e
@@ -104,10 +118,6 @@ class (Complexable c, Fractional e, Element e) => Container c e where
     -- | the product of elements (faster than using @fold@)
     prodElements :: c e -> e
 
--- -- | Basic element-by-element functions.
--- class (Element e, Container c e) => Linear c e where
-
-
 --------------------------------------------------------------------------
 
 instance Container Vector Float where
@@ -121,6 +131,7 @@ instance Container Vector Float where
     equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
     scalar x = fromList [x]
     konst = constantD
+    build = buildV
     conj = id
     cmap = mapVector
     atIndex = (@>)
@@ -142,6 +153,7 @@ instance Container Vector Double where
     equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
     scalar x = fromList [x]
     konst = constantD
+    build = buildV
     conj = id
     cmap = mapVector
     atIndex = (@>)
@@ -163,6 +175,7 @@ instance Container Vector (Complex Double) where
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     scalar x = fromList [x]
     konst = constantD
+    build = buildV
     conj = conjugateC
     cmap = mapVector
     atIndex = (@>)
@@ -184,6 +197,7 @@ instance Container Vector (Complex Float) where
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     scalar x = fromList [x]
     konst = constantD
+    build = buildV
     conj = conjugateQ
     cmap = mapVector
     atIndex = (@>)
@@ -207,6 +221,7 @@ instance (Container Vector a) => Container Matrix a where
     equal a b = cols a == cols b && flatten a `equal` flatten b
     scalar x = (1><1) [x]
     konst v (r,c) = reshape c (konst v (r*c))
+    build = buildM
     conj = liftMatrix conj
     cmap f = liftMatrix (mapVector f)
     atIndex = (@@>)
@@ -500,3 +515,47 @@ vectorMaxIndex = round . toScalarR MaxIdx
 vectorMinIndex :: Vector Double -> Int
 vectorMinIndex = round . toScalarR MinIdx
 
+-----------------------------------------------------
+
+class Build f where
+    build' :: BoundsOf f -> f -> ContainerOf f
+
+type family BoundsOf x
+
+type instance BoundsOf (a->a) = Int
+type instance BoundsOf (a->a->a) = (Int,Int)
+
+type family ContainerOf x
+
+type instance ContainerOf (a->a) = Vector a
+type instance ContainerOf (a->a->a) = Matrix a
+
+instance (Element a, Num a) => Build (a->a) where
+    build' = buildV
+
+instance (Element a, Num a) => Build (a->a->a) where
+    build' = buildM
+
+buildM (rc,cc) f = fromLists [ [f r c | c <- cs] | r <- rs ]
+    where rs = map fromIntegral [0 .. (rc-1)]
+          cs = map fromIntegral [0 .. (cc-1)]
+
+buildV n f = fromList [f k | k <- ks]
+    where ks = map fromIntegral [0 .. (n-1)]
+
+----------------------------------------------------
+-- experimental
+
+class Konst s where
+    konst' :: Element e => e -> s -> ContainerOf' s e
+
+type family ContainerOf' x y
+
+type instance ContainerOf' Int a = Vector a
+type instance ContainerOf' (Int,Int) a = Matrix a
+
+instance Konst Int where
+    konst' = constantD
+
+instance Konst (Int,Int) where
+    konst' k (r,c) = reshape c $ konst' k (r*c)
