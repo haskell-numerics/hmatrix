@@ -82,41 +82,27 @@ ww10 w1 o1 w2 o2 w3 o3 w4 o4 w5 o5 w6 o6 w7 o7 w8 o8 w9 o9 w10 o10 f = w1 o1 $ w
 
 type Adapt f t r = t -> ((f -> r) -> IO()) -> IO()
 
-app1 :: f
-     -> Adapt f t (IO CInt)
-     -> t
-     -> String
-     -> IO()
+type Adapt1 f t1 = Adapt f t1 (IO CInt) -> t1 -> String -> IO()
+type Adapt2 f t1 r1 t2 = Adapt f t1 r1 -> t1 -> Adapt1 r1 t2
+type Adapt3 f t1 r1 t2 r2 t3 = Adapt f t1 r1 -> t1 -> Adapt2 r1 t2 r2 t3
+type Adapt4 f t1 r1 t2 r2 t3 r3 t4 = Adapt f t1 r1 -> t1 -> Adapt3 r1 t2 r2 t3 r3 t4
+type Adapt5 f t1 r1 t2 r2 t3 r3 t4 r4 t5 = Adapt f t1 r1 -> t1 -> Adapt4 r1 t2 r2 t3 r3 t4 r4 t5
+type Adapt6 f t1 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6 = Adapt f t1 r1 -> t1 -> Adapt5 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6
+type Adapt7 f t1 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6 r6 t7 = Adapt f t1 r1 -> t1 -> Adapt6 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6 r6 t7
+type Adapt8 f t1 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6 r6 t7 r7 t8 = Adapt f t1 r1 -> t1 -> Adapt7 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6 r6 t7 r7 t8
+type Adapt9 f t1 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6 r6 t7 r7 t8 r8 t9 = Adapt f t1 r1 -> t1 -> Adapt8 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6 r6 t7 r7 t8 r8 t9
+type Adapt10 f t1 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6 r6 t7 r7 t8 r8 t9 r9 t10 = Adapt f t1 r1 -> t1 -> Adapt9 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6 r6 t7 r7 t8 r8 t9 r9 t10
 
-app2 :: f
-     -> Adapt f t1 r
-     -> t1
-     -> Adapt r t2 (IO CInt)
-     -> t2
-     -> String
-     -> IO()
-
-app3 :: f
-     -> Adapt f t1 r1
-     -> t1
-     -> Adapt r1 t2 r2
-     -> t2
-     -> Adapt r2 t3 (IO CInt)
-     -> t3
-     -> String
-     -> IO()
-
-app4 :: f
-     -> Adapt f t1 r1
-     -> t1
-     -> Adapt r1 t2 r2
-     -> t2
-     -> Adapt r2 t3 r3
-     -> t3
-     -> Adapt r3 t4 (IO CInt)
-     -> t4
-     -> String
-     -> IO()
+app1 :: f -> Adapt1 f t1
+app2 :: f -> Adapt2 f t1 r1 t2
+app3 :: f -> Adapt3 f t1 r1 t2 r2 t3
+app4 :: f -> Adapt4 f t1 r1 t2 r2 t3 r3 t4
+app5 :: f -> Adapt5 f t1 r1 t2 r2 t3 r3 t4 r4 t5
+app6 :: f -> Adapt6 f t1 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6
+app7 :: f -> Adapt7 f t1 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6 r6 t7
+app8 :: f -> Adapt8 f t1 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6 r6 t7 r7 t8
+app9 :: f -> Adapt9 f t1 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6 r6 t7 r7 t8 r8 t9
+app10 :: f -> Adapt10 f t1 r1 t2 r2 t3 r3 t4 r4 t5 r5 t6 r6 t7 r7 t8 r8 t9 r9 t10
 
 app1 f w1 o1 s = w1 o1 $ \a1 -> f // a1 // check s
 app2 f w1 o1 w2 o2 s = ww2 w1 o1 w2 o2 $ \a1 a2 -> f // a1 // a2 // check s
