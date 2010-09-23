@@ -7,7 +7,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Matrix
--- Copyright   :  (c) Alberto Ruiz 2007
+-- Copyright   :  (c) Alberto Ruiz 2007-10
 -- License     :  GPL-style
 --
 -- Maintainer  :  Alberto Ruiz <aruiz@um.es>
@@ -16,11 +16,14 @@
 --
 -- A Matrix representation suitable for numerical computations using LAPACK and GSL.
 --
+-- This module provides basic functions for manipulation of structure.
+
 -----------------------------------------------------------------------------
 
 module Data.Packed.Matrix (
+    Matrix,
     Element,
-    Matrix,rows,cols,
+    rows,cols,
     (><),
     trans,
     reshape, flatten,

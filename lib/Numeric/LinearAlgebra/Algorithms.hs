@@ -82,7 +82,10 @@ import Data.Array
 import Numeric.Container hiding ((.*),(*/))
 import Numeric.MatrixBoot
 
--- | Auxiliary typeclass used to define generic computations for both real and complex matrices.
+{- | Auxiliary typeclass used to define generic linear algebra computations for both real and complex matrices. Only double precision is supported in this version (we can
+transform single precision objects using 'single' and 'double').
+
+-}
 class (Product t,
        Convert t,
        Container Vector t,

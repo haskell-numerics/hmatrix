@@ -15,7 +15,13 @@
 -- Stability   :  provisional
 -- Portability :  portable
 --
--- Numeric classes for containers of numbers, including conversion routines
+-- Basic numeric operations on 'Vector' and 'Matrix', including conversion routines.
+--
+-- The 'Container' class is used to define optimized generic functions which work
+-- on 'Vector' and 'Matrix' with real or complex elements.
+--
+-- Some of these functions are also available in the instances of the standard
+-- numeric Haskell classes provided by "Numeric.Vector" and "Numeric.Matrix".
 --
 -----------------------------------------------------------------------------
 

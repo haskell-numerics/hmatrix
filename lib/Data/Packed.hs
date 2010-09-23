@@ -1,14 +1,14 @@
 -----------------------------------------------------------------------------
 {- |
 Module      :  Data.Packed
-Copyright   :  (c) Alberto Ruiz 2006-7
+Copyright   :  (c) Alberto Ruiz 2006-2010
 License     :  GPL-style
 
 Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses ffi
 
-The Vector and Matrix types and some utilities.
+Types for dense 'Vector' and 'Matrix' of 'Storable' elements.
 
 -}
 -----------------------------------------------------------------------------

@@ -11,6 +11,8 @@
 --
 -- 1D arrays suitable for numeric computations using external libraries.
 --
+-- This module provides basic functions for manipulation of structure.
+--
 -----------------------------------------------------------------------------
 
 module Data.Packed.Vector (

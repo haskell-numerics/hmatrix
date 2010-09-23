@@ -75,7 +75,11 @@ import Foreign.C.String
 
 data MatrixOrder = RowMajor | ColumnMajor deriving (Show,Eq)
 
--- | Matrix representation suitable for GSL and LAPACK computations.
+{- | Matrix representation suitable for GSL and LAPACK computations.
+
+The elements are stored in a continuous memory array.
+
+-}
 data Matrix t = MC { irows :: {-# UNPACK #-} !Int
                    , icols :: {-# UNPACK #-} !Int
                    , cdat :: {-# UNPACK #-} !(Vector t) }
@@ -245,9 +249,14 @@ compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
 
 ------------------------------------------------------------------
 
--- | Supported element types for basic matrix operations.
---     provides unoptimised defaults for all (Storable a) instances
---     @instance Element Foo where@
+{- | Supported matrix elements.
+
+    This class provides optimized internal
+    operations for selected element types.
+    It provides unoptimised defaults for any 'Storable' type,
+    so you can create instances simply as:
+    @instance Element Foo@.
+-}
 class (Storable a) => Element a where
     subMatrixD :: (Int,Int) -- ^ (r0,c0) starting position 
                -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
@@ -257,30 +266,23 @@ class (Storable a) => Element a where
     transdata = transdataP -- transdata'
     constantD  :: a -> Int -> Vector a
     constantD = constantP -- constant'
-{-
-    conjugateD :: Vector a -> Vector a
-    conjugateD = id
--}
+
 
 instance Element Float where
     transdata  = transdataAux ctransF
     constantD  = constantAux cconstantF
---    conjugateD = id
 
 instance Element Double where
     transdata  = transdataAux ctransR
     constantD  = constantAux cconstantR
---    conjugateD = id
 
 instance Element (Complex Float) where
     transdata  = transdataAux ctransQ
     constantD  = constantAux cconstantQ
---    conjugateD = conjugateQ
 
 instance Element (Complex Double) where
     transdata  = transdataAux ctransC
     constantD  = constantAux cconstantC
---    conjugateD = conjugateC
 
 -------------------------------------------------------------------
 
