@@ -15,40 +15,20 @@
 -- Stability   :  provisional
 -- Portability :  portable
 --
--- Numeric instances and functions for 'Matrix'.
--- In the context of the standard numeric operators, one-component
--- vectors and matrices automatically expand to match the dimensions of the other operand.
---
 -- Provides instances of standard classes 'Show', 'Read', 'Eq',
 -- 'Num', 'Fractional', and 'Floating' for 'Matrix'.
--- 
+--
+-- In arithmetic operations one-component
+-- vectors and matrices automatically expand to match the dimensions of the other operand.
+
 -----------------------------------------------------------------------------
 
 module Numeric.Matrix (
-    -- * Basic functions
-    module Data.Packed.Matrix,
-    module Numeric.Vector,
-    -- * Matrix creation
-    diag, ident,
-    -- * matrix operations
-    ctrans, 
-    optimiseMult,
-    -- * Operators
-    (<>), (<\>),
-    -- * IO
-    dispf, disps, dispcf, vecdisp, latexFormat, format,
-    loadMatrix, saveMatrix, fromFile, fileDimensions,
-    readMatrix
                       ) where
 
 -------------------------------------------------------------------
 
-import Data.Packed.Matrix
-import Numeric.Vector
-import Numeric.Chain
-import Numeric.MatrixBoot
-import Numeric.IO
-import Numeric.LinearAlgebra.Algorithms
+import Numeric.Container
 
 -------------------------------------------------------------------
 
@@ -90,26 +70,3 @@ instance (Floating a, Container Vector a, Floating (Vector a), Fractional (Matri
     (**)  = liftMatrix2Auto (**)
     sqrt  = liftMatrix sqrt
     pi    = (1><1) [pi]
-
---------------------------------------------------------
-
-class Mul a b c | a b -> c where
- infixl 7 <>
- -- | Matrix-matrix, matrix-vector, and vector-matrix products.
- (<>)  :: Product t => a t -> b t -> c t
-
-instance Mul Matrix Matrix Matrix where
-    (<>) = mXm
-
-instance Mul Matrix Vector Vector where
-    (<>) m v = flatten $ m <> (asColumn v)
-
-instance Mul Vector Matrix Vector where
-    (<>) v m = flatten $ (asRow v) <> m
-
---------------------------------------------------------
-
--- | least squares solution of a linear system, similar to the \\ operator of Matlab\/Octave (based on linearSolveSVD).
-(<\>) :: (Field a) => Matrix a -> Vector a -> Vector a
-infixl 7 <\>
-m <\> v = flatten (linearSolveSVD m (reshape 1 v))

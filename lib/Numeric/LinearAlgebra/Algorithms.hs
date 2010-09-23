@@ -13,7 +13,7 @@ Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 Stability   :  provisional
 Portability :  uses ffi
 
-Generic interface for the most common functions. Using it we can write higher level algorithms and testing properties for both real and complex matrices.
+High level generic interface to common matrix computations.
 
 Specific functions for particular base types can also be explicitly
 imported from "Numeric.LinearAlgebra.LAPACK".
@@ -63,6 +63,7 @@ module Numeric.LinearAlgebra.Algorithms (
     nullspaceSVD,
 -- * Norms
     Normed(..), NormType(..),
+    relativeError,
 -- * Misc
     eps, peps, i,
 -- * Util
@@ -79,10 +80,10 @@ import Data.Packed.Matrix
 import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Data.List(foldl1')
 import Data.Array
-import Numeric.Container hiding ((.*),(*/))
-import Numeric.MatrixBoot
+import Numeric.ContainerBoot hiding ((.*),(*/))
 
-{- | Auxiliary typeclass used to define generic linear algebra computations for both real and complex matrices. Only double precision is supported in this version (we can
+
+{- | Class used to define generic linear algebra computations for both real and complex matrices. Only double precision is supported in this version (we can
 transform single precision objects using 'single' and 'double').
 
 -}
@@ -691,3 +692,9 @@ instance Normed Matrix (Complex Float) where
     pnorm PNorm2    = realToFrac . (@>0) . singularValues . double
     pnorm Infinity  = pnorm PNorm1 . trans
     pnorm Frobenius = pnorm PNorm2 . flatten
+
+-- | Approximate number of common digits in the maximum element.
+relativeError :: (Normed c t, Container c t) => c t -> c t -> Int
+relativeError x y = dig (norm (x `sub` y) / norm x)
+    where norm = pnorm Infinity
+          dig r = round $ -logBase 10 (realToFrac r :: Double)

@@ -26,7 +26,7 @@ module Graphics.Plot(
 
 ) where
 
-import Numeric.Matrix
+import Numeric.Container
 import Data.List(intersperse)
 import System.Process (system)
 

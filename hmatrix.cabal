@@ -93,31 +93,28 @@ library
                         Numeric.GSL.Root,
                         Numeric.GSL.Fitting,
                         Numeric.GSL.ODE,
-                        Numeric.GSL.Vector,
                         Numeric.GSL,
-                        Numeric.Vector,
-                        Numeric.Matrix,
                         Numeric.Container,
                         Numeric.LinearAlgebra,
                         Numeric.LinearAlgebra.LAPACK,
-                      --Numeric.LinearAlgebra.Interface,
-                      --Numeric.LinearAlgebra.Linear,
                         Numeric.LinearAlgebra.Algorithms,
                         Graphics.Plot,
-                     -- Data.Packed.Convert,
                         Data.Packed.ST,
-                        Data.Packed.Development,
-                        Data.Packed.Random
+                        Data.Packed.Development
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Signatures,
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix,
+                        Data.Packed.Random,
                         Numeric.GSL.Internal,
-                        Numeric.Conversion
-                        Numeric.MatrixBoot
-                        Numeric.IO
-                        Numeric.Chain
+                        Numeric.GSL.Vector,
+                        Numeric.Conversion,
+                        Numeric.ContainerBoot,
+                        Numeric.IO,
+                        Numeric.Chain,
+                        Numeric.Vector,
+                        Numeric.Matrix
 
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c

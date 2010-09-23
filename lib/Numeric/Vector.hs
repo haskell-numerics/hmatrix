@@ -13,30 +13,16 @@
 -- Stability   :  provisional
 -- Portability :  portable
 --
--- Numeric instances and functions for 'Vector'.
---
 -- Provides instances of standard classes 'Show', 'Read', 'Eq',
 -- 'Num', 'Fractional',  and 'Floating' for 'Vector'.
 -- 
 -----------------------------------------------------------------------------
 
 module Numeric.Vector (
-    -- * Basic vector functions
-    module Data.Packed.Vector,
-    module Numeric.Container,
-    -- * Vector creation
-    constant, linspace,
-    -- * Operators
-    (<.>),
-    -- * IO
-    fscanfVector, fprintfVector, freadVector, fwriteVector
                       ) where
 
-import Data.Packed.Vector
-import Data.Packed.Internal.Matrix
 import Numeric.GSL.Vector
 import Numeric.Container
-import Numeric.IO
 
 -------------------------------------------------------------------
 
@@ -73,34 +59,6 @@ instance (Element a, Read a) => Read (Vector a) where
 breakAt c l = (a++[c],tail b) where
     (a,b) = break (==c) l
 
-------------------------------------------------------------------
-
-{- | creates a vector with a given number of equal components:
-
-@> constant 2 7
-7 |> [2.0,2.0,2.0,2.0,2.0,2.0,2.0]@
--}
-constant :: Element a => a -> Int -> Vector a
--- constant x n = runSTVector (newVector x n)
-constant = constantD -- about 2x faster
-
-{- | Creates a real vector containing a range of values:
-
-@\> linspace 5 (-3,7)
-5 |> [-3.0,-0.5,2.0,4.5,7.0]@
-
-Logarithmic spacing can be defined as follows:
-
-@logspace n (a,b) = 10 ** linspace n (a,b)@
--}
-linspace :: (Enum e, Container Vector e) => Int -> (e, e) -> Vector e
-linspace n (a,b) = addConstant a $ scale s $ fromList [0 .. fromIntegral n-1]
-    where s = (b-a)/fromIntegral (n-1)
-
--- | Dot product: @u \<.\> v = dot u v@
-(<.>) :: Product t => Vector t -> Vector t -> t
-infixl 7 <.>
-(<.>) = dot
 
 ------------------------------------------------------------------
 

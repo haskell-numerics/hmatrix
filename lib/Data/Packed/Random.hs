@@ -21,7 +21,7 @@ module Data.Packed.Random (
 
 import Numeric.GSL.Vector
 import Data.Packed
-import Numeric.Container
+import Numeric.ContainerBoot
 import Numeric.LinearAlgebra.Algorithms
 
 
