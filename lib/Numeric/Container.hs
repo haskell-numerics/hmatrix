@@ -128,3 +128,5 @@ instance Mul Vector Matrix Vector where
 (<\>) :: (Field a) => Matrix a -> Vector a -> Vector a
 infixl 7 <\>
 m <\> v = flatten (linearSolveSVD m (reshape 1 v))
+
+--------------------------------------------------------
