@@ -390,64 +390,64 @@ foldVectorG f s0 v = foldLoop g s0 (dim v)
 mapVectorM :: (Storable a, Storable b, Monad m) => (a -> m b) -> Vector a -> m (Vector b)
 mapVectorM f v = do
     w <- return $! unsafePerformIO $! createVector (dim v)
-    mapVectorM' f v w 0 (dim v -1)
+    mapVectorM' w 0 (dim v -1)
     return w
-    where mapVectorM' f' v' w' !k !t
+    where mapVectorM' w' !k !t
               | k == t               = do
-                                       x <- return $! inlinePerformIO $! unsafeWith v' $! \p -> peekElemOff p k 
-                                       y <- f' x
+                                       x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k 
+                                       y <- f x
                                        return $! inlinePerformIO $! unsafeWith w' $! \q -> pokeElemOff q k y
               | otherwise            = do
-                                       x <- return $! inlinePerformIO $! unsafeWith v' $! \p -> peekElemOff p k 
-                                       y <- f' x
+                                       x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k 
+                                       y <- f x
                                        _ <- return $! inlinePerformIO $! unsafeWith w' $! \q -> pokeElemOff q k y
-                                       mapVectorM' f' v' w' (k+1) t
+                                       mapVectorM' w' (k+1) t
 {-# INLINE mapVectorM #-}
 
 -- | monadic map over Vectors
 mapVectorM_ :: (Storable a, Monad m) => (a -> m ()) -> Vector a -> m ()
 mapVectorM_ f v = do
-    mapVectorM' f v 0 (dim v -1)
-    where mapVectorM' f' v' !k !t
+    mapVectorM' 0 (dim v -1)
+    where mapVectorM' !k !t
               | k == t            = do
-                                    x <- return $! inlinePerformIO $! unsafeWith v' $! \p -> peekElemOff p k
-                                    f' x
+                                    x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k
+                                    f x
               | otherwise         = do
-                                    x <- return $! inlinePerformIO $! unsafeWith v' $! \p -> peekElemOff p k 
-                                    _ <- f' x
-                                    mapVectorM' f' v' (k+1) t
+                                    x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k 
+                                    _ <- f x
+                                    mapVectorM' (k+1) t
 {-# INLINE mapVectorM_ #-}
 
 -- | monadic map over Vectors with the zero-indexed index passed to the mapping function
 mapVectorWithIndexM :: (Storable a, Storable b, Monad m) => (Int -> a -> m b) -> Vector a -> m (Vector b)
 mapVectorWithIndexM f v = do
     w <- return $! unsafePerformIO $! createVector (dim v)
-    mapVectorM' f v w 0 (dim v -1)
+    mapVectorM' w 0 (dim v -1)
     return w
-    where mapVectorM' f' v' w' !k !t
+    where mapVectorM' w' !k !t
               | k == t               = do
-                                       x <- return $! inlinePerformIO $! unsafeWith v' $! \p -> peekElemOff p k 
-                                       y <- f' k x
+                                       x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k 
+                                       y <- f k x
                                        return $! inlinePerformIO $! unsafeWith w' $! \q -> pokeElemOff q k y
               | otherwise            = do
-                                       x <- return $! inlinePerformIO $! unsafeWith v' $! \p -> peekElemOff p k 
-                                       y <- f' k x
+                                       x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k 
+                                       y <- f k x
                                        _ <- return $! inlinePerformIO $! unsafeWith w' $! \q -> pokeElemOff q k y
-                                       mapVectorM' f' v' w' (k+1) t
+                                       mapVectorM' w' (k+1) t
 {-# INLINE mapVectorWithIndexM #-}
 
 -- | monadic map over Vectors with the zero-indexed index passed to the mapping function
 mapVectorWithIndexM_ :: (Storable a, Monad m) => (Int -> a -> m ()) -> Vector a -> m ()
 mapVectorWithIndexM_ f v = do
-    mapVectorM' f v 0 (dim v -1)
-    where mapVectorM' f' v' !k !t
+    mapVectorM' 0 (dim v -1)
+    where mapVectorM' !k !t
               | k == t            = do
-                                    x <- return $! inlinePerformIO $! unsafeWith v' $! \p -> peekElemOff p k
-                                    f' k x
+                                    x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k
+                                    f k x
               | otherwise         = do
-                                    x <- return $! inlinePerformIO $! unsafeWith v' $! \p -> peekElemOff p k 
-                                    _ <- f' k x
-                                    mapVectorM' f' v' (k+1) t
+                                    x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k 
+                                    _ <- f k x
+                                    mapVectorM' (k+1) t
 {-# INLINE mapVectorWithIndexM_ #-}
 
 -------------------------------------------------------------------
