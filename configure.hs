@@ -17,7 +17,9 @@
 
 -}
 
-import System
+import System.Process
+import System.Exit
+import System.Environment
 import System.Directory(createDirectoryIfMissing)
 import Data.List(isPrefixOf, intercalate)
 import Distribution.Simple.LocalBuildInfo

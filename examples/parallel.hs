@@ -1,6 +1,6 @@
 -- $ runhaskell parallel.hs 2000
 
-import System(getArgs)
+import System.Environment(getArgs)
 import Numeric.LinearAlgebra
 import Control.Parallel.Strategies
 import System.Time

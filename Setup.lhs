@@ -1,7 +1,7 @@
 #! /usr/bin/env runhaskell
 
 > import Distribution.Simple
-> import System(system)
+> import System.Process(system)
 
 > main = defaultMainWithHooks autoconfUserHooks {runTests = t}
 

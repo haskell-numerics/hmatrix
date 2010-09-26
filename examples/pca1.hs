@@ -2,7 +2,7 @@
 
 import Numeric.LinearAlgebra
 import System.Directory(doesFileExist)
-import System(system)
+import System.Process(system)
 import Control.Monad(when)
 
 type Vec = Vector Double

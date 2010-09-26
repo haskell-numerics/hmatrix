@@ -300,8 +300,8 @@ conjuTest m = mapVector conjugate (flatten (trans m)) == flatten (ctrans m)
 
 ---------------------------------------------------------------------
 
-succTest = utest "successive" $ successive_ (<) (fromList [1 :: Double,2,3,4]) == True 
-                                && successive_ (<) (fromList [1 :: Double,3,2,4]) == False
+succTest = utest "successive" $ successive_ (>) (fromList [1 :: Double,2,3,4]) == True
+                             && successive_ (<) (fromList [1 :: Double,3,2,4]) == False
 
 ---------------------------------------------------------------------
 

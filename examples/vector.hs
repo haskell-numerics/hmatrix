@@ -14,7 +14,7 @@ fromVector :: Storable t => V.Vector t -> H.Vector t
 fromVector v = unsafeFromForeignPtr p i n where
     (p,i,n) = V.unsafeToForeignPtr v
 
-toVector :: H.Vector t -> V.Vector t
+toVector :: Storable t => H.Vector t -> V.Vector t
 toVector v = V.unsafeFromForeignPtr p i n where
     (p,i,n) = unsafeToForeignPtr v
 
@@ -22,11 +22,10 @@ toVector v = V.unsafeFromForeignPtr p i n where
 
 v = V.slice 5 10 (V.fromList [1 .. 10::Double] V.++ V.replicate 10 7)
 
-w = subVector 2 3 (linspace 10 (0,2))
+w = subVector 2 3 (linspace 5 (0,1)) :: Vector Double
 
 main = do
     print v
     print $ fromVector v
     print w
     print $ toVector w
-
