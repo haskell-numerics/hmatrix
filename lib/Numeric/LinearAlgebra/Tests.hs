@@ -300,6 +300,11 @@ conjuTest m = mapVector conjugate (flatten (trans m)) == flatten (ctrans m)
 
 ---------------------------------------------------------------------
 
+succTest = utest "successive" $ successive_ (<) (fromList [1 :: Double,2,3,4]) == True 
+                                && successive_ (<) (fromList [1 :: Double,3,2,4]) == False
+
+---------------------------------------------------------------------
+
 
 -- | All tests must pass with a maximum dimension of about 20
 --  (some tests may fail with bigger sizes due to precision loss).
@@ -466,6 +471,7 @@ runTests n = do
         , normsMTest
         , sumprodTest
         , chainTest
+        , succTest
         ]
     return ()
 
