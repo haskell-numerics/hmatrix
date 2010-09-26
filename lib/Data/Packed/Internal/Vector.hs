@@ -387,6 +387,7 @@ foldVectorG f s0 v = foldLoop g s0 (dim v)
 -------------------------------------------------------------------
 
 -- | monadic map over Vectors
+--    the monad @m@ must be strict
 mapVectorM :: (Storable a, Storable b, Monad m) => (a -> m b) -> Vector a -> m (Vector b)
 mapVectorM f v = do
     w <- return $! unsafePerformIO $! createVector (dim v)
@@ -419,6 +420,7 @@ mapVectorM_ f v = do
 {-# INLINE mapVectorM_ #-}
 
 -- | monadic map over Vectors with the zero-indexed index passed to the mapping function
+--    the monad @m@ must be strict
 mapVectorWithIndexM :: (Storable a, Storable b, Monad m) => (Int -> a -> m b) -> Vector a -> m (Vector b)
 mapVectorWithIndexM f v = do
     w <- return $! unsafePerformIO $! createVector (dim v)

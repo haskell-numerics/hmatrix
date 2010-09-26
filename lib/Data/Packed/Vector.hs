@@ -99,7 +99,8 @@ state_put :: s -> State s ()
 state_put s = State $ \_ -> ((),s)
 
 evalState :: State s a -> s -> a
-evalState m s = fst $ runState m s
+evalState m s = let (a,s') = runState m s
+                in seq s' a
 
 newtype MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
 
