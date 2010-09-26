@@ -92,7 +92,7 @@ class (Complexable c, Fractional e, Element e) => Container c e where
     equal       :: c e -> c e -> Bool
     --
     -- element by element inverse tangent
-    arctan      :: c e -> c e ->  c e
+    arctan2     :: c e -> c e -> c e
     --
     -- | cannot implement instance Functor because of Element class constraint
     cmap        :: (Element a, Element b) => (a -> b) -> c a -> c b
@@ -133,7 +133,7 @@ instance Container Vector Float where
     mul = vectorZipF Mul
     divide = vectorZipF Div
     equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
-    arctan = vectorZipF ATan2
+    arctan2 = vectorZipF ATan2
     scalar x = fromList [x]
     konst = constantD
     build = buildV
@@ -156,7 +156,7 @@ instance Container Vector Double where
     mul = vectorZipR Mul
     divide = vectorZipR Div
     equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
-    arctan = vectorZipR ATan2
+    arctan2 = vectorZipR ATan2
     scalar x = fromList [x]
     konst = constantD
     build = buildV
@@ -179,7 +179,7 @@ instance Container Vector (Complex Double) where
     mul = vectorZipC Mul
     divide = vectorZipC Div
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
-    arctan = vectorZipC ATan2
+    arctan2 = vectorZipC ATan2
     scalar x = fromList [x]
     konst = constantD
     build = buildV
@@ -202,7 +202,7 @@ instance Container Vector (Complex Float) where
     mul = vectorZipQ Mul
     divide = vectorZipQ Div
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
-    arctan = vectorZipQ ATan2
+    arctan2 = vectorZipQ ATan2
     scalar x = fromList [x]
     konst = constantD
     build = buildV
@@ -227,7 +227,7 @@ instance (Container Vector a) => Container Matrix a where
     mul = liftMatrix2 mul
     divide = liftMatrix2 divide
     equal a b = cols a == cols b && flatten a `equal` flatten b
-    arctan = liftMatrix2 arctan
+    arctan2 = liftMatrix2 arctan2
     scalar x = (1><1) [x]
     konst v (r,c) = reshape c (konst v (r*c))
     build = buildM
