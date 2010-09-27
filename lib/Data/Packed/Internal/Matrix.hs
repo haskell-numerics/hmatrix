@@ -1,5 +1,7 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
-{-# LANGUAGE CPP, BangPatterns #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE FlexibleContexts         #-}
+{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE BangPatterns             #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Matrix

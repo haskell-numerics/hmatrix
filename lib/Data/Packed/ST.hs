@@ -1,5 +1,6 @@
-{-# OPTIONS -XTypeOperators -XRank2Types  -XFlexibleContexts -XBangPatterns #-}
-
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE Rank2Types    #-}
+{-# LANGUAGE BangPatterns  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.ST

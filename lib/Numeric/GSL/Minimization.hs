@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.GSL.Minimization
