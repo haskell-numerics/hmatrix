@@ -22,8 +22,7 @@ module Data.Packed.Vector (
     subVector, takesV, join,
     mapVector, zipVector, zipVectorWith, unzipVector, unzipVectorWith,
     mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
-    foldLoop, foldVector, foldVectorG, foldVectorWithIndex,
-    successive_, successive
+    foldLoop, foldVector, foldVectorG, foldVectorWithIndex
 ) where
 
 import Data.Packed.Internal.Vector
@@ -82,56 +81,5 @@ zipVector = zipVectorWith (,)
 -- | unzip for Vectors
 unzipVector :: (Storable a, Storable b, Storable (a,b)) => Vector (a,b) -> (Vector a,Vector b)
 unzipVector = unzipVectorWith id
-
--------------------------------------------------------------------
-
-newtype State s a = State { runState :: s -> (a,s) }
-
-instance Monad (State s) where
-    return a = State $ \s -> (a,s)
-    m >>= f = State $ \s -> let (a,s') = runState m s
-                            in runState (f a) s'
-
-state_get :: State s s
-state_get = State $ \s -> (s,s)
-
-state_put :: s -> State s ()
-state_put s = State $ \_ -> ((),s)
-
-evalState :: State s a -> s -> a
-evalState m s = let (a,s') = runState m s
-                in seq s' a
-
-newtype MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
-
-instance Monad m => Monad (MaybeT m) where
-    return a = MaybeT $ return $ Just a
-    m >>= f  = MaybeT $ do
-                        res <- runMaybeT m
-                        case res of
-                                 Nothing -> return Nothing
-                                 Just r  -> runMaybeT (f r)
-    fail _   = MaybeT $ return Nothing
-
-lift_maybe m = MaybeT $ do
-                        res <- m
-                        return $ Just res
-
--- | apply a test to successive elements of a vector, evaluates to true iff test passes for all pairs
-successive_ :: Storable a => (a -> a -> Bool) -> Vector a -> Bool
-successive_ t v = maybe False (\_ -> True) $ evalState (runMaybeT (mapVectorM_ step (subVector 1 (dim v - 1) v))) (v @> 0)
-   where step e = do
-                  ep <- lift_maybe $ state_get
-                  if t e ep
-                     then lift_maybe $ state_put e
-                     else (fail "successive_ test failed")
-
--- | operate on successive elements of a vector and return the resulting vector, whose length 1 less than that of the input
-successive :: (Storable a, Storable b) => (a -> a -> b) -> Vector a -> Vector b
-successive f v = evalState (mapVectorM step (subVector 1 (dim v - 1) v)) (v @> 0)
-   where step e = do
-                  ep <- state_get
-                  state_put e
-                  return $ f ep e
 
 -------------------------------------------------------------------

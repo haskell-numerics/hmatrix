@@ -1,18 +1,20 @@
 0.10.0.0
 ========
 
-- diagRect admits diagonal vectors of any length without producing an error,
-  and takes an additional argument for the off-diagonal elements.
-
-- optimiseMult
-
-- module reorganization, introducing Numeric.Container
-
-- vectorMapM, unzipVectorWith
+- Module reorganization
 
 - Support for Float and Complex Float elements (excluding LAPACK computations)
 
 - Binary instances for Vector and Matrix
+
+- optimiseMult
+
+- mapVectorM, mapVectorWithIndexM, unzipVectorWith, and related functions.
+
+- diagRect admits diagonal vectors of any length without producing an error,
+  and takes an additional argument for the off-diagonal elements.
+
+- different signatures in some functions
 
 0.9.3.0
 =======

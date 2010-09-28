@@ -1,17 +1,16 @@
 -- monadic computations
 -- (contributed by Vivian McPhail)
 
-import Numeric.Container
-import Control.Monad.State
+import Numeric.LinearAlgebra
+import Control.Monad.State.Strict
 import Control.Monad.Maybe
+import Foreign.Storable(Storable)
+import System.Random(randomIO)
 
 -------------------------------------------
 
 -- an instance of MonadIO, a monad transformer
 type VectorMonadT = StateT Int IO
-
-v :: Vector Int
-v = 10 |> [0..]
 
 test1 :: Vector Int -> IO (Vector Int)
 test1 = mapVectorM $ \x -> do
@@ -69,9 +68,33 @@ isMonotoneIncreasing v =
         Nothing -> False
         Just _  -> True
 
-w = fromList ([1..10]++[10,9..1]) :: Vector Double
 
 -------------------------------------------
+
+-- | apply a test to successive elements of a vector, evaluates to true iff test passes for all pairs
+successive_ :: Storable a => (a -> a -> Bool) -> Vector a -> Bool
+successive_ t v = maybe False (\_ -> True) $ evalState (runMaybeT (mapVectorM_ step (subVector 1 (dim v - 1) v))) (v @> 0)
+   where step e = do
+                  ep <- lift $ get
+                  if t e ep
+                     then lift $ put e
+                     else (fail "successive_ test failed")
+
+-- | operate on successive elements of a vector and return the resulting vector, whose length 1 less than that of the input
+successive :: (Storable a, Storable b) => (a -> a -> b) -> Vector a -> Vector b
+successive f v = evalState (mapVectorM step (subVector 1 (dim v - 1) v)) (v @> 0)
+   where step e = do
+                  ep <- get
+                  put e
+                  return $ f ep e
+
+-------------------------------------------
+
+v :: Vector Int
+v = 10 |> [0..]
+
+w = fromList ([1..10]++[10,9..1]) :: Vector Double
+
 
 main = do
     v' <- test1 v
@@ -84,7 +107,12 @@ main = do
     putStrLn ""
     evalStateT (indexPlusSum v) 0
     putStrLn "-----------------------"
+    mapVectorM_ print v
+    print =<< (mapVectorM (const randomIO) v :: IO (Vector Double))
+    print =<< (mapVectorM (\a -> fmap (+a) randomIO) (5|>[0,100..1000]) :: IO (Vector Double))
+    putStrLn "-----------------------"
     print $ isMonotoneIncreasing w
     print $ isMonotoneIncreasing (subVector 0 7 w)
     print $ successive_ (>) v
     print $ successive_ (>) w
+    print $ successive (+) v

@@ -4,7 +4,7 @@ and all the people in the Haskell mailing lists for their help.
 I am particularly grateful to Vivian McPhail for his excellent
 contributions: improved configure.hs, Binary instances for
 Vector and Matrix, support for Float and Complex Float elements,
-Vectors typeclass, monadic vectorMapM, and many other improvements.
+module reorganization, monadic mapVectorM, and many other improvements.
 
 - Nico Mahlo discovered a bug in the eigendecomposition wrapper.
 

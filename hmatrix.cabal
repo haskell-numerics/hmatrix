@@ -11,11 +11,22 @@ Description:        Purely functional interface to basic linear algebra
                     and other numerical computations, internally implemented using
                     GSL, BLAS and LAPACK.
                     .
-                    See also hmatrix-special and hmatrix-glpk.
+                    The Linear Algebra API is organized as follows:
+                    .
+                    - "Data.Packed": structure manipulation
+                    .
+                    - "Numeric.Container": simple numeric functions
+                    .
+                    - "Numeric.LinearAlgebra.Algorithms": matrix computations
+                    .
+                    - "Numeric.LinearAlgebra": everything + instances of standard Haskell numeric classes
+                    .
+                    See also @hmatrix-special@ for GSL special functions
+                    and @hmatrix-glpk@ for linear programming (simplex).
 Category:           Math
 tested-with:        GHC ==6.10.4, GHC ==6.12.1
 
-cabal-version:      >=1.2
+cabal-version:      >=1.6
 
 build-type:         Custom
 
@@ -45,7 +56,7 @@ extra-source-files: examples/tests.hs
                     examples/devel/ej2/functions.c
                     examples/Real.hs
                     examples/vector.hs
-                    examples/vector-map.hs
+                    examples/monadic.hs
 
 extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
                     lib/Numeric/LinearAlgebra/LAPACK/clapack.h
@@ -120,7 +131,7 @@ library
                         lib/Numeric/GSL/gsl-aux.c
 
     if flag(vector)
-       Build-Depends:   vector
+       Build-Depends:   vector >= 0.7
        cpp-options:     -DVECTOR
 
     if flag(tests)
@@ -165,7 +176,6 @@ library
     extra-libraries:
     extra-lib-dirs:
 
-    source-repository head
-        type:     darcs
-        location: http://code.haskell.org/hmatrix
-
+source-repository head
+    type:     darcs
+    location: http://code.haskell.org/hmatrix
