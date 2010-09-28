@@ -21,7 +21,7 @@
 -- on 'Vector' and 'Matrix' with real or complex elements.
 --
 -- Some of these functions are also available in the instances of the standard
--- numeric Haskell classes provided by "Numeric.Vector" and "Numeric.Matrix".
+-- numeric Haskell classes provided by "Numeric.LinearAlgebra".
 --
 -----------------------------------------------------------------------------
 

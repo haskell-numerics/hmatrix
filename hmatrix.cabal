@@ -20,9 +20,6 @@ Description:        Purely functional interface to basic linear algebra
                     - "Numeric.LinearAlgebra.Algorithms": matrix computations
                     .
                     - "Numeric.LinearAlgebra": everything + instances of standard Haskell numeric classes
-                    .
-                    See also @hmatrix-special@ for GSL special functions
-                    and @hmatrix-glpk@ for linear programming (simplex).
 Category:           Math
 tested-with:        GHC ==6.10.4, GHC ==6.12.1
 
