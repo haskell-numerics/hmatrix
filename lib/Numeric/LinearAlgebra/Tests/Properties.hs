@@ -159,7 +159,7 @@ svdProp4 m' = m |~| u <> real (diag s) <> trans v
           m = fromBlocks [[m'],[m']]
           r = rank m'
 
-svdProp5a m = and (map (s1|~|) [s2,s3,s4,s5,s6]) where
+svdProp5a m = all (s1|~|) [s2,s3,s4,s5,s6] where
     s1       = svR  m
     s2       = svRd m
     (_,s3,_) = svdR m
@@ -167,7 +167,7 @@ svdProp5a m = and (map (s1|~|) [s2,s3,s4,s5,s6]) where
     (_,s5,_) = thinSVDR m
     (_,s6,_) = thinSVDRd m
 
-svdProp5b m = and (map (s1|~|) [s2,s3,s4,s5,s6]) where
+svdProp5b m = all (s1|~|) [s2,s3,s4,s5,s6] where
     s1       = svC  m
     s2       = svCd m
     (_,s3,_) = svdC m
