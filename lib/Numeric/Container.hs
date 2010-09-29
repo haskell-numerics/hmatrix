@@ -117,10 +117,10 @@ instance Mul Matrix Matrix Matrix where
     (<>) = mXm
 
 instance Mul Matrix Vector Vector where
-    (<>) m v = flatten $ m <> (asColumn v)
+    (<>) m v = flatten $ m <> asColumn v
 
 instance Mul Vector Matrix Vector where
-    (<>) v m = flatten $ (asRow v) <> m
+    (<>) v m = flatten $ asRow v <> m
 
 --------------------------------------------------------
 

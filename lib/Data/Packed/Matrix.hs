@@ -269,7 +269,7 @@ Hilbert matrix of order N:
 -}
 buildMatrix :: Element a => Int -> Int -> ((Int, Int) -> a) -> Matrix a
 buildMatrix rc cc f =
-    fromLists $ map (\x -> map f x)
+    fromLists $ map (map f)
     	$ map (\ ri -> map (\ ci -> (ri, ci)) [0 .. (cc - 1)]) [0 .. (rc - 1)]
 
 -----------------------------------------------------
@@ -283,7 +283,7 @@ fromArray2D m = (r><c) (elems m)
 
 -- | rearranges the rows of a matrix according to the order given in a list of integers. 
 extractRows :: Element t => [Int] -> Matrix t -> Matrix t
-extractRows l m = fromRows $ extract (toRows $ m) l
+extractRows l m = fromRows $ extract (toRows m) l
     where extract l' is = [l'!!i |i<-is]
 
 {- | creates matrix by repetition of a matrix a given number of rows and columns

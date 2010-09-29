@@ -84,7 +84,7 @@ instance (Element a, Arbitrary a) => Arbitrary (Matrix a) where
 
 #if MIN_VERSION_QuickCheck(2,0,0)
     -- shrink any one of the components
-    shrink a = map ((rows a) >< (cols a))
+    shrink a = map (rows a >< cols a)
                . shrinkListElementwise
                . concat . toLists 
                      $ a

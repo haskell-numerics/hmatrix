@@ -45,7 +45,7 @@ In certain versions you can interactively rotate the graphic using the mouse.
 mesh :: Matrix Double -> IO ()
 mesh m = gnuplotX (command++dat) where
     command = "splot "++datafollows++" matrix with lines\n"
-    dat = prep $ toLists $ m
+    dat = prep $ toLists m
 
 {- | Draws the surface represented by the function f in the desired ranges and number of points, internally using 'mesh'.
 
@@ -104,7 +104,7 @@ matrixToPGM m = header ++ unlines (map unwords ll) where
     maxgray = 255.0
     maxval = maxElement m
     minval = minElement m
-    scale' = if (maxval == minval) 
+    scale' = if maxval == minval
         then 0.0
         else maxgray / (maxval - minval)
     f x = show ( round ( scale' *(x - minval) ) :: Int )
@@ -124,7 +124,7 @@ gnuplotX command = do { _ <- system cmdstr; return()} where
 
 datafollows = "\\\"-\\\""
 
-prep = (++"e\n\n") . unlines . map (unwords . (map show))
+prep = (++"e\n\n") . unlines . map (unwords . map show)
 
 
 gnuplotpdf :: String -> String -> [([[Double]], String)] -> IO ()
@@ -158,7 +158,7 @@ gnuplotpdf title command ds = gnuplot (prelude ++ command ++" "++ draw) >> postp
 
        "\\end{document}"
 
-    pr = (++"e\n") . unlines . map (unwords . (map show))
+    pr = (++"e\n") . unlines . map (unwords . map show)
 
     gnuplot cmd = do
         writeFile "gnuplotcommand" cmd
@@ -172,7 +172,7 @@ gnuplotWin title command ds = gnuplot (prelude ++ command ++" "++ draw) where
     draw = concat (intersperse ", " (map ("\"-\" "++) defs)) ++ "\n" ++
            concatMap pr dats
 
-    pr = (++"e\n") . unlines . map (unwords . (map show))
+    pr = (++"e\n") . unlines . map (unwords . map show)
 
     prelude = "set title \""++title++"\";"
 

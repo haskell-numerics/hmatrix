@@ -160,7 +160,7 @@ fromRows vs = case compatdim (map dim vs) of
 -- | extracts the rows of a matrix as a list of vectors
 toRows :: Element t => Matrix t -> [Vector t]
 toRows m = toRows' 0 where
-    v = flatten $ m
+    v = flatten m
     r = rows m
     c = cols m
     toRows' k | k == r*c  = []

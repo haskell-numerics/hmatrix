@@ -392,7 +392,7 @@ eps =  2.22044604925031e-16
 
 -- | 1 + 0.5*peps == 1,  1 + 0.6*peps /= 1
 peps :: RealFloat x => x
-peps = x where x = 2.0**(fromIntegral $ 1-floatDigits x)
+peps = x where x = 2.0 ** fromIntegral (1 - floatDigits x)
 
 
 -- | The imaginary unit: @i = 0.0 :+ 1.0@
@@ -553,8 +553,7 @@ epslist = [ (fromIntegral k, golubeps k k) | k <- [1..]]
 geps delta = head [ k | (k,g) <- epslist, g<delta]
 
 expGolub m = iterate msq f !! j
-    where j = max 0 $ floor $ log2 $ pnorm Infinity m
-          log2 x = log x / log 2
+    where j = max 0 $ floor $ logBase 2 $ pnorm Infinity m
           a = m */ fromIntegral ((2::Int)^j)
           q = geps eps -- 7 steps
           eye = ident (rows m)

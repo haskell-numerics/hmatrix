@@ -63,4 +63,4 @@ meanCov x = (med,cov) where
     med  = konst k r `vXm` x
     meds = konst 1 r `outer` med
     xc   = x `sub` meds
-    cov  = flip scale (trans xc `mXm` xc) (recip (fromIntegral (r-1)))
+    cov  = scale (recip (fromIntegral (r-1))) (trans xc `mXm` xc)

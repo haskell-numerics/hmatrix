@@ -98,11 +98,11 @@ minimum_cost :: (Sizes,Cost,Indexes) -> (Int,Int) -> (Sizes,Cost,Indexes)
 minimum_cost sci fu = foldl (smaller_cost fu) sci (fulcrum_order fu)
 
 smaller_cost :: (Int,Int) -> (Sizes,Cost,Indexes) -> ((Int,Int),(Int,Int)) -> (Sizes,Cost,Indexes)
-smaller_cost (r,c) (mz,cost,ixes) ix@((lr,lc),(rr,rc)) = let op_cost = (fromJust ((cost A.! lr) A.! lc))
-                                                                       + (fromJust ((cost A.! rr) A.! rc))
-                                                                       + ((fst $ mz A.! (lr-lc+1))
-                                                                          *(snd $ mz A.! lc)
-                                                                          *(snd $ mz A.! rr))
+smaller_cost (r,c) (mz,cost,ixes) ix@((lr,lc),(rr,rc)) = let op_cost =   fromJust ((cost A.! lr) A.! lc)
+                                                                       + fromJust ((cost A.! rr) A.! rc)
+                                                                       + fst (mz A.! (lr-lc+1))
+                                                                         * snd (mz A.! lc)
+                                                                         * snd (mz A.! rr)
                                                              cost' = (cost A.! r) A.! c
                                                          in case cost' of
                                                                        Nothing -> let cost'' = update cost (r,c) (Just op_cost)
@@ -118,10 +118,10 @@ smaller_cost (r,c) (mz,cost,ixes) ix@((lr,lc),(rr,rc)) = let op_cost = (fromJust
 fulcrum_order (r,c) = let fs' = zip (repeat r) [1..(c-1)]
                       in map (partner (r,c)) fs'
 
-partner (r,c) (a,b) = (((r-b),(c-b)),(a,b))
+partner (r,c) (a,b) = ((r-b, c-b), (a,b))
 
 order 0 = []
-order n = (order (n-1)) ++ (zip (repeat n) [1..n])
+order n = order (n-1) ++ zip (repeat n) [1..n]
 
 chain_paren :: Product a => (Int,Int) -> Indexes -> Matrices a -> Matrix a
 chain_paren (r,c) ixes ma = let ((lr,lc),(rr,rc)) = fromJust $ (ixes A.! r) A.! c
