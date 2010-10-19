@@ -20,6 +20,7 @@ Support for Special functions.
 
 module Numeric.GSL.Special.Internal (
     createSFR,
+    create2SFR,
     createSFR_E10,
     Precision(..),
     Gsl_mode_t,
@@ -79,7 +80,7 @@ instance Storable Gsl_sf_result_e10 where
 
 
 ----------------------------------------------------------------
--- | access to a sf_result
+-- | access to one sf_result
 createSFR :: String -> (Ptr a -> IO CInt) -> (Double, Double)
 createSFR s f = unsafePerformIO $ do
     p <- malloc :: IO (Ptr Gsl_sf_result)
@@ -88,6 +89,18 @@ createSFR s f = unsafePerformIO $ do
     free p
     return (val,err)
 
+----------------------------------------------------------------
+-- | access to two sf_result 
+create2SFR :: String -> (Ptr a -> Ptr a -> IO CInt) -> ((Double, Double),(Double, Double))
+create2SFR s f = unsafePerformIO $ do
+    p1 <- malloc :: IO (Ptr Gsl_sf_result)
+    p2 <- malloc :: IO (Ptr Gsl_sf_result)
+    f (castPtr p1) (castPtr p2) // check s
+    SF val1 err1 <- peek p1
+    SF val2 err2 <- peek p2
+    free p1
+    free p2
+    return ((val1,err1),(val2,err2))
 
 ---------------------------------------------------------------------
 -- the sf_result_e10 contains two doubles and the exponent

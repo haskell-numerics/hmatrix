@@ -31,7 +31,8 @@ fixlong (x:xs) = x : fixlong xs
 
 
 safe (Header _ _ args) =  all ok args 
-                         || all ok (init args) && kn (last args)
+                       || all ok (init args) && kn (last args)
+                       || length args >= 2 && all ok (init (init args)) && kn (last args) && kn (last (init args))
     where ok ((Normal s),_) | s `elem` ["double","float","int","gsl_mode_t"] = True
           ok _ = False
           kn ((Pointer "gsl_sf_result"),_) = True
@@ -206,7 +207,9 @@ showFull hc h@(Header t n args) = -- "\n-- | wrapper for "++showC h
 fixmd1 = rep ("Gsl_mode_t","Precision")
 fixmd2 = rep ("mode"," (precCode mode)")
 
-boiler h@(Header t n args) | fst (last args) == Pointer "gsl_sf_result" = boilerResult h
+boiler h@(Header t n args) |    fst (last args)        == Pointer "gsl_sf_result" 
+                             && fst (last (init args)) == Pointer "gsl_sf_result" = boiler2Results h
+                           | fst (last args) == Pointer "gsl_sf_result" = boilerResult h
                            | fst (last args) == Pointer "gsl_sf_result_e10" = boilerResultE10 h
                            | any isMode args = boilerMode h
                            | otherwise = boilerBasic h
@@ -222,6 +225,11 @@ boilerResult h@(Header t n args) =
     hName n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$ map showHa (init args)) ++" -> " ++ "(Double,Double)\n" ++
      hName n ++ " "++ initArgs args ++
        " = createSFR \""++ hName n ++"\" $ " ++ n ++ " "++ (fixmd2 $ initArgs args)
+
+boiler2Results h@(Header t n args) =
+    hName n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$ map showHa (init (init args))) ++" -> " ++ "((Double,Double),(Double,Double))\n" ++
+     hName n ++ " "++ init2Args args ++
+       " = create2SFR \""++ hName n ++"\" $ " ++ n ++ " "++ (fixmd2 $ init2Args args)
 
 boilerResultE10 h@(Header t n args) =
     hName n++" :: "++ (fixmd1 $ concat $ intersperse" -> "$ map showHa (init args)) ++" -> " ++ "(Double,Int,Double)\n" ++
@@ -242,3 +250,5 @@ cVar (v:vs) | isUpper v = toLower v : v : vs
 
 allArgs args =  unwords (map (cVar.snd) args)
 initArgs args = unwords (map (cVar.snd) (init args))
+init2Args args = unwords (map (cVar.snd) (init $ init args))
+

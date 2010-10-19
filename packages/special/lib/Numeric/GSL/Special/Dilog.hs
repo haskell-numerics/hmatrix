@@ -15,6 +15,9 @@
 module Numeric.GSL.Special.Dilog(
   dilog_e
 , dilog
+, complex_dilog_xy_e
+, complex_dilog_e
+, complex_spence_xy_e
 ) where
 
 import Foreign(Ptr)
@@ -29,14 +32,14 @@ dilog :: Double -> Double
 dilog = gsl_sf_dilog
 foreign import ccall SAFE_CHEAP "gsl_sf_dilog" gsl_sf_dilog :: Double -> Double
 
-complex_dilog_xy_e :: Double -> Double -> Ptr () -> (Double,Double)
-complex_dilog_xy_e x y result_re = createSFR "complex_dilog_xy_e" $ gsl_sf_complex_dilog_xy_e x y result_re
+complex_dilog_xy_e :: Double -> Double -> ((Double,Double),(Double,Double))
+complex_dilog_xy_e x y = create2SFR "complex_dilog_xy_e" $ gsl_sf_complex_dilog_xy_e x y
 foreign import ccall SAFE_CHEAP "gsl_sf_complex_dilog_xy_e" gsl_sf_complex_dilog_xy_e :: Double -> Double -> Ptr () -> Ptr () -> IO CInt
 
-complex_dilog_e :: Double -> Double -> Ptr () -> (Double,Double)
-complex_dilog_e r theta result_re = createSFR "complex_dilog_e" $ gsl_sf_complex_dilog_e r theta result_re
+complex_dilog_e :: Double -> Double -> ((Double,Double),(Double,Double))
+complex_dilog_e r theta = create2SFR "complex_dilog_e" $ gsl_sf_complex_dilog_e r theta
 foreign import ccall SAFE_CHEAP "gsl_sf_complex_dilog_e" gsl_sf_complex_dilog_e :: Double -> Double -> Ptr () -> Ptr () -> IO CInt
 
-complex_spence_xy_e :: Double -> Double -> Ptr () -> (Double,Double)
-complex_spence_xy_e x y real_sp = createSFR "complex_spence_xy_e" $ gsl_sf_complex_spence_xy_e x y real_sp
+complex_spence_xy_e :: Double -> Double -> ((Double,Double),(Double,Double))
+complex_spence_xy_e x y = create2SFR "complex_spence_xy_e" $ gsl_sf_complex_spence_xy_e x y
 foreign import ccall SAFE_CHEAP "gsl_sf_complex_spence_xy_e" gsl_sf_complex_spence_xy_e :: Double -> Double -> Ptr () -> Ptr () -> IO CInt
