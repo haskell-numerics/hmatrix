@@ -77,5 +77,7 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Max Suica simplified the installation on Windows and improved the instructions.
 
-- John Billings reported an incompatibility with QuickCheck>=2.1.1
+- John Billings first reported an incompatibility with QuickCheck>=2.1.1
+
+- Alexey Khudyakov cleaned up PRAGMAS and fixed some hlint suggestions.
 

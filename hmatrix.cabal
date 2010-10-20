@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.10.0.0
+Version:            0.10.0.1
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -176,3 +176,4 @@ library
 source-repository head
     type:     darcs
     location: http://code.haskell.org/hmatrix
+
