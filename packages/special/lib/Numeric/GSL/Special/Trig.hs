@@ -19,12 +19,17 @@ module Numeric.GSL.Special.Trig(
 , Numeric.GSL.Special.Trig.cos
 , hypot_e
 , hypot
+, complex_sin_e
+, complex_cos_e
+, complex_logsin_e
 , sinc_e
 , sinc
 , lnsinh_e
 , lnsinh
 , lncosh_e
 , lncosh
+, polar_to_rect
+, rect_to_polar
 , sin_err_e
 , cos_err_e
 , angle_restrict_symm
@@ -61,16 +66,16 @@ hypot :: Double -> Double -> Double
 hypot = gsl_sf_hypot
 foreign import ccall SAFE_CHEAP "gsl_sf_hypot" gsl_sf_hypot :: Double -> Double -> Double
 
-complex_sin_e :: Double -> Double -> Ptr () -> (Double,Double)
-complex_sin_e zr zi szr = createSFR "complex_sin_e" $ gsl_sf_complex_sin_e zr zi szr
+complex_sin_e :: Double -> Double -> ((Double,Double),(Double,Double))
+complex_sin_e zr zi = create2SFR "complex_sin_e" $ gsl_sf_complex_sin_e zr zi
 foreign import ccall SAFE_CHEAP "gsl_sf_complex_sin_e" gsl_sf_complex_sin_e :: Double -> Double -> Ptr () -> Ptr () -> IO CInt
 
-complex_cos_e :: Double -> Double -> Ptr () -> (Double,Double)
-complex_cos_e zr zi czr = createSFR "complex_cos_e" $ gsl_sf_complex_cos_e zr zi czr
+complex_cos_e :: Double -> Double -> ((Double,Double),(Double,Double))
+complex_cos_e zr zi = create2SFR "complex_cos_e" $ gsl_sf_complex_cos_e zr zi
 foreign import ccall SAFE_CHEAP "gsl_sf_complex_cos_e" gsl_sf_complex_cos_e :: Double -> Double -> Ptr () -> Ptr () -> IO CInt
 
-complex_logsin_e :: Double -> Double -> Ptr () -> (Double,Double)
-complex_logsin_e zr zi lszr = createSFR "complex_logsin_e" $ gsl_sf_complex_logsin_e zr zi lszr
+complex_logsin_e :: Double -> Double -> ((Double,Double),(Double,Double))
+complex_logsin_e zr zi = create2SFR "complex_logsin_e" $ gsl_sf_complex_logsin_e zr zi
 foreign import ccall SAFE_CHEAP "gsl_sf_complex_logsin_e" gsl_sf_complex_logsin_e :: Double -> Double -> Ptr () -> Ptr () -> IO CInt
 
 sinc_e :: Double -> (Double,Double)
@@ -97,12 +102,12 @@ lncosh :: Double -> Double
 lncosh = gsl_sf_lncosh
 foreign import ccall SAFE_CHEAP "gsl_sf_lncosh" gsl_sf_lncosh :: Double -> Double
 
-polar_to_rect :: Double -> Double -> Ptr () -> (Double,Double)
-polar_to_rect r theta x = createSFR "polar_to_rect" $ gsl_sf_polar_to_rect r theta x
+polar_to_rect :: Double -> Double -> ((Double,Double),(Double,Double))
+polar_to_rect r theta = create2SFR "polar_to_rect" $ gsl_sf_polar_to_rect r theta
 foreign import ccall SAFE_CHEAP "gsl_sf_polar_to_rect" gsl_sf_polar_to_rect :: Double -> Double -> Ptr () -> Ptr () -> IO CInt
 
-rect_to_polar :: Double -> Double -> Ptr () -> (Double,Double)
-rect_to_polar x y r = createSFR "rect_to_polar" $ gsl_sf_rect_to_polar x y r
+rect_to_polar :: Double -> Double -> ((Double,Double),(Double,Double))
+rect_to_polar x y = create2SFR "rect_to_polar" $ gsl_sf_rect_to_polar x y
 foreign import ccall SAFE_CHEAP "gsl_sf_rect_to_polar" gsl_sf_rect_to_polar :: Double -> Double -> Ptr () -> Ptr () -> IO CInt
 
 sin_err_e :: Double -> Double -> (Double,Double)

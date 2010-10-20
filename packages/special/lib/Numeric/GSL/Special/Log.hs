@@ -17,6 +17,7 @@ module Numeric.GSL.Special.Log(
 , Numeric.GSL.Special.Log.log
 , log_abs_e
 , log_abs
+, complex_log_e
 , log_1plusx_e
 , log_1plusx
 , log_1plusx_mx_e
@@ -43,8 +44,8 @@ log_abs :: Double -> Double
 log_abs = gsl_sf_log_abs
 foreign import ccall SAFE_CHEAP "gsl_sf_log_abs" gsl_sf_log_abs :: Double -> Double
 
-complex_log_e :: Double -> Double -> Ptr () -> (Double,Double)
-complex_log_e zr zi lnr = createSFR "complex_log_e" $ gsl_sf_complex_log_e zr zi lnr
+complex_log_e :: Double -> Double -> ((Double,Double),(Double,Double))
+complex_log_e zr zi = create2SFR "complex_log_e" $ gsl_sf_complex_log_e zr zi
 foreign import ccall SAFE_CHEAP "gsl_sf_complex_log_e" gsl_sf_complex_log_e :: Double -> Double -> Ptr () -> Ptr () -> IO CInt
 
 log_1plusx_e :: Double -> (Double,Double)

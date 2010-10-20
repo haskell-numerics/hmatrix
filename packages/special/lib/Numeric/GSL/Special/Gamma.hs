@@ -21,6 +21,7 @@ module Numeric.GSL.Special.Gamma(
 , gammastar
 , gammainv_e
 , gammainv
+, lngamma_complex_e
 , taylorcoeff_e
 , taylorcoeff
 , fact_e
@@ -95,8 +96,8 @@ gammainv :: Double -> Double
 gammainv = gsl_sf_gammainv
 foreign import ccall SAFE_CHEAP "gsl_sf_gammainv" gsl_sf_gammainv :: Double -> Double
 
-lngamma_complex_e :: Double -> Double -> Ptr () -> (Double,Double)
-lngamma_complex_e zr zi lnr = createSFR "lngamma_complex_e" $ gsl_sf_lngamma_complex_e zr zi lnr
+lngamma_complex_e :: Double -> Double -> ((Double,Double),(Double,Double))
+lngamma_complex_e zr zi = create2SFR "lngamma_complex_e" $ gsl_sf_lngamma_complex_e zr zi
 foreign import ccall SAFE_CHEAP "gsl_sf_lngamma_complex_e" gsl_sf_lngamma_complex_e :: Double -> Double -> Ptr () -> Ptr () -> IO CInt
 
 taylorcoeff_e :: CInt -> Double -> (Double,Double)

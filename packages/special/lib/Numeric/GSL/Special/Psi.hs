@@ -19,6 +19,7 @@ module Numeric.GSL.Special.Psi(
 , psi
 , psi_1piy_e
 , psi_1piy
+, complex_psi_e
 , psi_1_int_e
 , psi_1_int
 , psi_1_e
@@ -55,8 +56,8 @@ psi_1piy :: Double -> Double
 psi_1piy = gsl_sf_psi_1piy
 foreign import ccall SAFE_CHEAP "gsl_sf_psi_1piy" gsl_sf_psi_1piy :: Double -> Double
 
-complex_psi_e :: Double -> Double -> Ptr () -> (Double,Double)
-complex_psi_e x y result_re = createSFR "complex_psi_e" $ gsl_sf_complex_psi_e x y result_re
+complex_psi_e :: Double -> Double -> ((Double,Double),(Double,Double))
+complex_psi_e x y = create2SFR "complex_psi_e" $ gsl_sf_complex_psi_e x y
 foreign import ccall SAFE_CHEAP "gsl_sf_complex_psi_e" gsl_sf_complex_psi_e :: Double -> Double -> Ptr () -> Ptr () -> IO CInt
 
 psi_1_int_e :: CInt -> (Double,Double)

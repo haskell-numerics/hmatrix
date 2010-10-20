@@ -33,7 +33,6 @@ import Foreign
 import Data.Packed.Development(check,(//))
 import Foreign.C.Types(CSize,CInt)
 
-
 data Precision = PrecDouble | PrecSingle | PrecApprox
 
 precCode :: Precision -> Int
@@ -90,7 +89,7 @@ createSFR s f = unsafePerformIO $ do
     return (val,err)
 
 ----------------------------------------------------------------
--- | access to two sf_result 
+-- | access to two sf_result's
 create2SFR :: String -> (Ptr a -> Ptr a -> IO CInt) -> ((Double, Double),(Double, Double))
 create2SFR s f = unsafePerformIO $ do
     p1 <- malloc :: IO (Ptr Gsl_sf_result)

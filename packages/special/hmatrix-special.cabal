@@ -1,5 +1,5 @@
 Name:               hmatrix-special
-Version:            0.1.0
+Version:            0.1.1
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -11,14 +11,15 @@ Description:
  Interface to GSL special functions.
 
 Category:           Math
-tested-with:        GHC ==6.10.4
+tested-with:        GHC ==6.12.3
 
-cabal-version:      >=1.2
+cabal-version:      >=1.6
 build-type:         Simple
 
 extra-source-files: lib/Numeric/GSL/Special/auto.hs,
                     lib/Numeric/GSL/Special/autoall.sh,
-                    lib/Numeric/GSL/Special/replace.hs
+                    lib/Numeric/GSL/Special/replace.hs,
+                    CHANGES
 
 flag safe-cheap
     description:    use slower non-blocking "safe" foreign calls
@@ -71,4 +72,8 @@ library
         cpp-options: -DSAFE_CHEAP=safe
     else
         cpp-options: -DSAFE_CHEAP=unsafe
+
+source-repository head
+    type:     darcs
+    location: http://code.haskell.org/hmatrix
 
