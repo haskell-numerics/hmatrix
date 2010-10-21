@@ -1,13 +1,13 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Vector
--- Copyright   :  (c) Alberto Ruiz 2007
--- License     :  GPL-style
+-- Copyright   :  (c) Alberto Ruiz 2007-10
+-- License     :  GPL
 --
 -- Maintainer  :  Alberto Ruiz <aruiz@um.es>
 -- Stability   :  provisional
--- Portability :  portable
 --
 -- 1D arrays suitable for numeric computations using external libraries.
 --
@@ -26,11 +26,14 @@ module Data.Packed.Vector (
 ) where
 
 import Data.Packed.Internal.Vector
-import Data.Binary
 import Foreign.Storable
-import Control.Monad(replicateM)
 
 -------------------------------------------------------------------
+
+#ifdef BINARY
+
+import Data.Binary
+import Control.Monad(replicateM)
 
 -- a 64K cache, with a Double taking 13 bytes in Bytestring,
 -- implies a chunk size of 5041
@@ -59,6 +62,8 @@ instance (Binary a, Storable a) => Binary (Vector a) where
           d <- get
           vs <- mapM getVector $ chunks d
           return $! join vs
+
+#endif
 
 -------------------------------------------------------------------
 

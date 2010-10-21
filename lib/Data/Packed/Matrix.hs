@@ -2,16 +2,16 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE CPP #-}
 
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Matrix
 -- Copyright   :  (c) Alberto Ruiz 2007-10
--- License     :  GPL-style
+-- License     :  GPL
 --
 -- Maintainer  :  Alberto Ruiz <aruiz@um.es>
 -- Stability   :  provisional
--- Portability :  portable
 --
 -- A Matrix representation suitable for numerical computations using LAPACK and GSL.
 --
@@ -43,16 +43,14 @@ import Data.Packed.Internal
 import qualified Data.Packed.ST as ST
 import Data.List(transpose,intersperse)
 import Data.Array
-
-
-import Data.Binary
 import Foreign.Storable
-import Control.Monad(replicateM)
---import Control.Arrow((***))
---import GHC.Float(double2Float,float2Double)
-
 
 -------------------------------------------------------------------
+
+#ifdef BINARY
+
+import Data.Binary
+import Control.Monad(replicateM)
 
 instance (Binary a, Element a, Storable a) => Binary (Matrix a) where
     put m = do
@@ -66,6 +64,8 @@ instance (Binary a, Element a, Storable a) => Binary (Matrix a) where
           c <- get
           xs <- replicateM r $ replicateM c get
           return $ fromLists xs
+
+#endif
 
 -------------------------------------------------------------------
 
