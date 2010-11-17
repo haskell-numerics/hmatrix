@@ -98,10 +98,14 @@ getUserLink = concatMap (g . drop (length linkop)) . filter (isPrefixOf linkop)
           cs x   = x
 
 main = do
+    info <- maybeGetPersistBuildConfig "dist"
+    case info of
+        Nothing -> putStrLn "Please run \"cabal clean\" first." >> exitFailure
+        Just bInfo -> mainOk bInfo
+        
+mainOk bInfo = do
     putStr "Checking foreign libraries..."
-
     args <- getArgs
-    Just bInfo <- maybeGetPersistBuildConfig "dist"
 
     let Just lib = library . localPkgDescr $ bInfo
         buildInfo = libBuildInfo lib
