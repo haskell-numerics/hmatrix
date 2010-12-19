@@ -31,7 +31,8 @@ module Numeric.LinearAlgebra.Algorithms (
     linearSolveLS,
     linearSolveSVD,
     inv, pinv,
-    det, rank, rcond,
+    det, invlndet,
+    rank, rcond,
 -- * Matrix factorizations
 -- ** Singular value decomposition
     svd,
@@ -165,6 +166,8 @@ square m = rows m == cols m
 vertical m = rows m >= cols m
 
 exactHermitian m = m `equal` ctrans m
+
+shSize m = "(" ++ show (rows m) ++"><"++ show (cols m)++")"
 
 --------------------------------------------------------------
 
@@ -341,12 +344,25 @@ chol m | exactHermitian m = cholSH m
        | otherwise = error "chol requires positive definite complex hermitian or real symmetric matrix"
 
 
+-- | Joint computation of inverse and logarithm of determinant of a square matrix.
+invlndet :: (Floating t, Field t)
+         => Matrix t
+         -> (Matrix t, (t, t)) -- ^ (inverse, (log abs det, sign or phase of det)) 
+invlndet m | square m = (im,(ladm,sdm))
+           | otherwise = error $ "invlndet of nonsquare "++ shSize m ++ " matrix"
+  where
+    lp@(lup,perm) = luPacked m
+    s = signlp (rows m) perm
+    dg = toList $ takeDiag $ lup
+    ladm = sum $ map (log.abs) dg
+    sdm = s* product (map signum dg)
+    im = luSolve lp (ident (rows m))
 
 
--- | Determinant of a square matrix.
+-- | Determinant of a square matrix. To avoid possible overflow or underflow use 'invlndet'.
 det :: Field t => Matrix t -> t
 det m | square m = {-# SCC "det" #-} s * (product $ toList $ takeDiag $ lup)
-      | otherwise = error "det of nonsquare matrix"
+      | otherwise = error $ "det of nonsquare "++ shSize m ++ " matrix"
     where (lup,perm) = luPacked m
           s = signlp (rows m) perm
 
@@ -357,10 +373,10 @@ det m | square m = {-# SCC "det" #-} s * (product $ toList $ takeDiag $ lup)
 lu :: Field t => Matrix t -> (Matrix t, Matrix t, Matrix t, t)
 lu = luFact . luPacked
 
--- | Inverse of a square matrix.
+-- | Inverse of a square matrix. See also 'invlndet'.
 inv :: Field t => Matrix t -> Matrix t
 inv m | square m = m `linearSolve` ident (rows m)
-      | otherwise = error "inv of nonsquare matrix"
+      | otherwise = error $ "inv of nonsquare "++ shSize m ++ " matrix"
 
 -- | Pseudoinverse of a general matrix.
 pinv :: Field t => Matrix t -> Matrix t
@@ -697,3 +713,4 @@ relativeError :: (Normed c t, Container c t) => c t -> c t -> Int
 relativeError x y = dig (norm (x `sub` y) / norm x)
     where norm = pnorm Infinity
           dig r = round $ -logBase 10 (realToFrac r :: Double)
+

@@ -67,6 +67,14 @@ detTest1 = det m == 26
             , 2, 8, i
             ]
 
+detTest2 = inv1 |~| inv2 && [det1] ~~ [det2]
+  where
+    m = complex (feye 6)
+    inv1 = inv m
+    det1 = det m
+    (inv2,(lda,sa)) = invlndet m
+    det2 = sa * exp lda
+
 --------------------------------------------------------------------
 
 polyEval cs x = foldr (\c ac->ac*x+c) 0 cs
@@ -493,6 +501,7 @@ runTests n = do
     _ <- runTestTT $ TestList
         [ utest "1E5 rots" rotTest
         , utest "det1" detTest1
+        , utest "invlndet" detTest2
         , utest "expm1" (expmTest1)
         , utest "expm2" (expmTest2)
         , utest "arith1" $ ((ones (100,100) * 5 + 2)/0.5 - 7)**2 |~| (49 :: RM)
