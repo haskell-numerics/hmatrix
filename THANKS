@@ -81,3 +81,6 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Alexey Khudyakov cleaned up PRAGMAS and fixed some hlint suggestions.
 
+- Torsten Kemps-Benedix reported a installation problem in OS/X.
+
+
