@@ -342,8 +342,8 @@ lift_maybe m = MaybeT $ do
 
 -- | apply a test to successive elements of a vector, evaluates to true iff test passes for all pairs
 --successive_ :: Storable a => (a -> a -> Bool) -> Vector a -> Bool
-successive_ t v = maybe False (\_ -> True) $ evalState (runMaybeT (mapVectorM_ step (subVector 1 (dim v - 1) v))) (v @> 0)
-   where step e = do
+successive_ t v = maybe False (\_ -> True) $ evalState (runMaybeT (mapVectorM_ stp (subVector 1 (dim v - 1) v))) (v @> 0)
+   where stp e  = do
                   ep <- lift_maybe $ state_get
                   if t e ep
                      then lift_maybe $ state_put e
@@ -351,8 +351,8 @@ successive_ t v = maybe False (\_ -> True) $ evalState (runMaybeT (mapVectorM_ s
 
 -- | operate on successive elements of a vector and return the resulting vector, whose length 1 less than that of the input
 --successive :: (Storable a, Storable b) => (a -> a -> b) -> Vector a -> Vector b
-successive f v = evalState (mapVectorM step (subVector 1 (dim v - 1) v)) (v @> 0)
-   where step e = do
+successive f v = evalState (mapVectorM stp (subVector 1 (dim v - 1) v)) (v @> 0)
+   where stp  e = do
                   ep <- state_get
                   state_put e
                   return $ f ep e
@@ -362,6 +362,14 @@ succTest = utest "successive" $
        successive_ (>) (fromList [1 :: Double,2,3,4]) == True
     && successive_ (>) (fromList [1 :: Double,3,2,4]) == False
     && successive (+) (fromList [1..10 :: Double]) == 9 |> [3,5,7,9,11,13,15,17,19]
+
+---------------------------------------------------------------------
+
+findAssocTest = utest "findAssoc" ok
+  where
+    ok = m1 == m2
+    m1 = assoc (6,6) 7 $ zip (find (>0) (ident 5 :: Matrix Float)) [10 ..] :: Matrix Double
+    m2 = diagRect 7 (fromList[10..14]) 6 6 :: Matrix Double
 
 ---------------------------------------------------------------------
 
@@ -533,6 +541,7 @@ runTests n = do
         , sumprodTest
         , chainTest
         , succTest
+        , findAssocTest
         ]
     return ()
 

@@ -1247,3 +1247,23 @@ int conjugateC(KCVEC(x),CVEC(t)) {
     OK
 }
 
+//////////////////// step /////////////////////////
+
+int stepF(FVEC(x),FVEC(y)) {
+    DEBUGMSG("stepF")
+    int k;
+    for(k=0;k<xn;k++) {
+        yp[k]=xp[k]>0;
+    }
+    OK
+}
+
+int stepD(DVEC(x),DVEC(y)) {
+    DEBUGMSG("stepD")
+    int k;
+    for(k=0;k<xn;k++) {
+        yp[k]=xp[k]>0;
+    }
+    OK
+}
+

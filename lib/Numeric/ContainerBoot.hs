@@ -45,6 +45,7 @@ module Numeric.ContainerBoot (
 ) where
 
 import Data.Packed
+import Data.Packed.ST as ST
 import Numeric.Conversion
 import Data.Packed.Internal
 import Numeric.GSL.Vector
@@ -120,6 +121,12 @@ class (Complexable c, Fractional e, Element e) => Container c e where
     sumElements :: c e -> e
     -- | the product of elements (faster than using @fold@)
     prodElements :: c e -> e
+    -- | map (if x_i>0 then 1.0 else 0.0)
+    step :: RealFloat e => c e -> c e
+    -- | find index of elements which satisfy a predicate
+    find :: (e -> Bool) -> c e -> [IndexOf c]
+    -- | create a structure from an association list
+    assoc :: IndexOf c -> e -> [(IndexOf c, e)] -> c e
 
 --------------------------------------------------------------------------
 
@@ -145,6 +152,9 @@ instance Container Vector Float where
     maxElement  = toScalarF Max
     sumElements  = sumF
     prodElements = prodF
+    step = stepF
+    find = findV
+    assoc = assocV
 
 instance Container Vector Double where
     scale = vectorMapValR Scale
@@ -168,6 +178,9 @@ instance Container Vector Double where
     maxElement  = toScalarR Max
     sumElements  = sumR
     prodElements = prodR
+    step = stepD
+    find = findV
+    assoc = assocV
 
 instance Container Vector (Complex Double) where
     scale = vectorMapValC Scale
@@ -191,6 +204,9 @@ instance Container Vector (Complex Double) where
     maxElement  = ap (@>) maxIndex
     sumElements  = sumC
     prodElements = prodC
+    step = undefined -- cannot match
+    find = findV
+    assoc = assocV
 
 instance Container Vector (Complex Float) where
     scale = vectorMapValQ Scale
@@ -214,6 +230,9 @@ instance Container Vector (Complex Float) where
     maxElement  = ap (@>) maxIndex
     sumElements  = sumQ
     prodElements = prodQ
+    step = undefined -- cannot match
+    find = findV
+    assoc = assocV
 
 ---------------------------------------------------------------
 
@@ -243,6 +262,9 @@ instance (Container Vector a) => Container Matrix a where
     maxElement = ap (@@>) maxIndex
     sumElements = sumElements . flatten
     prodElements = prodElements . flatten
+    step = liftMatrix step
+    find = findM
+    assoc = assocM
 
 ----------------------------------------------------
 
@@ -580,3 +602,21 @@ diag v = diagRect 0 v n n where n = dim v
 -- | creates the identity matrix of given dimension
 ident :: (Num a, Element a) => Int -> Matrix a
 ident n = diag (constantD 1 n)
+
+--------------------------------------------------------
+
+findV p x = foldVectorWithIndex g [] x where
+    g k z l = if p z then k:l else l
+
+findM p x = map ((`divMod` cols x)) $ findV p (flatten x)
+
+assocV n z xs = ST.runSTVector $ do
+        v <- ST.newVector z n
+        mapM_ (\(k,x) -> ST.writeVector v k x) xs
+        return v
+
+assocM (r,c) z xs = ST.runSTMatrix $ do
+        m <- ST.newMatrix z r c
+        mapM_ (\((i,j),x) -> ST.writeMatrix m i j x) xs
+        return m
+
