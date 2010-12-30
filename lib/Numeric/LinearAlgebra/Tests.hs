@@ -369,7 +369,14 @@ findAssocTest = utest "findAssoc" ok
   where
     ok = m1 == m2
     m1 = assoc (6,6) 7 $ zip (find (>0) (ident 5 :: Matrix Float)) [10 ..] :: Matrix Double
-    m2 = diagRect 7 (fromList[10..14]) 6 6 :: Matrix Double
+    m2 = diagRect 7 (fromList[10..14]) 6 6
+
+---------------------------------------------------------------------
+
+condTest = utest "cond" ok
+  where
+    ok = step v * v == cond v 0 0 0 v
+    v = fromList [-7 .. 7 ] :: Vector Float
 
 ---------------------------------------------------------------------
 
@@ -542,6 +549,7 @@ runTests n = do
         , chainTest
         , succTest
         , findAssocTest
+        , condTest
         ]
     return ()
 

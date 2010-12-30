@@ -90,6 +90,9 @@ int conjugateC(KCVEC(x),CVEC(t));
 int stepF(FVEC(x),FVEC(y));
 int stepD(DVEC(x),DVEC(y));
 
+int condF(FVEC(x),FVEC(y),FVEC(lt),FVEC(eq),FVEC(gt),FVEC(r));
+int condD(DVEC(x),DVEC(y),DVEC(lt),DVEC(eq),DVEC(gt),DVEC(r));
+
 int svd_l_R(KDMAT(x),DMAT(u),DVEC(s),DMAT(v));
 int svd_l_Rdd(KDMAT(x),DMAT(u),DVEC(s),DMAT(v));
 int svd_l_C(KCMAT(a),CMAT(u),DVEC(s),CMAT(v));

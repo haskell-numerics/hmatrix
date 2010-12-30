@@ -22,7 +22,7 @@ module Data.Packed.Internal.Vector (
     foldVector, foldVectorG, foldLoop, foldVectorWithIndex,
     createVector, vec,
     asComplex, asReal, float2DoubleV, double2FloatV,
-    stepF, stepD,
+    stepF, stepD, condF, condD,
     fwriteVector, freadVector, fprintfVector, fscanfVector,
     cloneVector,
     unsafeToForeignPtr,
@@ -309,6 +309,23 @@ stepD v = unsafePerformIO $ do
 
 foreign import ccall "stepF" c_stepF :: TFF
 foreign import ccall "stepD" c_stepD :: TVV
+
+---------------------------------------------------------------
+
+condF :: Vector Float -> Vector Float -> Vector Float -> Vector Float -> Vector Float -> Vector Float
+condF x y l e g = unsafePerformIO $ do
+    r <- createVector (dim x)
+    app6 c_condF vec x vec y vec l vec e vec g vec r "condF"
+    return r
+
+condD :: Vector Double -> Vector Double -> Vector Double -> Vector Double -> Vector Double -> Vector Double
+condD x y l e g = unsafePerformIO $ do
+    r <- createVector (dim x)
+    app6 c_condD vec x vec y vec l vec e vec g vec r "condD"
+    return r
+
+foreign import ccall "condF" c_condF :: CInt -> PF -> CInt -> PF -> CInt -> PF -> TFFF
+foreign import ccall "condD" c_condD :: CInt -> PD -> CInt -> PD -> CInt -> PD -> TVVV
 
 ----------------------------------------------------------------
 

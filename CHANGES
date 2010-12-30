@@ -3,7 +3,9 @@
 
 - invlndet (inverse and log of determinant)
 
-- step, find, assoc
+- step, cond,
+
+- find, assoc
 
 0.10.0.0
 ========

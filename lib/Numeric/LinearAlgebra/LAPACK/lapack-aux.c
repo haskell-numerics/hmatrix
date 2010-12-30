@@ -1267,3 +1267,25 @@ int stepD(DVEC(x),DVEC(y)) {
     OK
 }
 
+//////////////////// cond /////////////////////////
+
+int condF(FVEC(x),FVEC(y),FVEC(lt),FVEC(eq),FVEC(gt),FVEC(r)) {
+    REQUIRES(xn==yn && xn==ltn && xn==eqn && xn==gtn && xn==rn ,BAD_SIZE);
+    DEBUGMSG("condF")
+    int k;
+    for(k=0;k<xn;k++) {
+        rp[k] = xp[k]<yp[k]?ltp[k]:(xp[k]>yp[k]?gtp[k]:eqp[k]);
+    }
+    OK
+}
+
+int condD(DVEC(x),DVEC(y),DVEC(lt),DVEC(eq),DVEC(gt),DVEC(r)) {
+    REQUIRES(xn==yn && xn==ltn && xn==eqn && xn==gtn && xn==rn ,BAD_SIZE);
+    DEBUGMSG("condD")
+    int k;
+    for(k=0;k<xn;k++) {
+        rp[k] = xp[k]<yp[k]?ltp[k]:(xp[k]>yp[k]?gtp[k]:eqp[k]);
+    }
+    OK
+}
+

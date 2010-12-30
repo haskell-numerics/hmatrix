@@ -127,6 +127,8 @@ class (Complexable c, Fractional e, Element e) => Container c e where
     find :: (e -> Bool) -> c e -> [IndexOf c]
     -- | create a structure from an association list
     assoc :: IndexOf c -> e -> [(IndexOf c, e)] -> c e
+    -- | a vectorized form of case 'compare' a_i b_i of LT -> l_i; EQ -> e_i; GT -> g_i
+    cond :: RealFloat e => c e -> c e -> c e -> c e -> c e -> c e
 
 --------------------------------------------------------------------------
 
@@ -155,6 +157,7 @@ instance Container Vector Float where
     step = stepF
     find = findV
     assoc = assocV
+    cond = condV condF
 
 instance Container Vector Double where
     scale = vectorMapValR Scale
@@ -181,6 +184,7 @@ instance Container Vector Double where
     step = stepD
     find = findV
     assoc = assocV
+    cond = condV condD
 
 instance Container Vector (Complex Double) where
     scale = vectorMapValC Scale
@@ -207,6 +211,7 @@ instance Container Vector (Complex Double) where
     step = undefined -- cannot match
     find = findV
     assoc = assocV
+    cond = undefined -- cannot match
 
 instance Container Vector (Complex Float) where
     scale = vectorMapValQ Scale
@@ -233,6 +238,7 @@ instance Container Vector (Complex Float) where
     step = undefined -- cannot match
     find = findV
     assoc = assocV
+    cond = undefined -- cannot match
 
 ---------------------------------------------------------------
 
@@ -265,6 +271,7 @@ instance (Container Vector a) => Container Matrix a where
     step = liftMatrix step
     find = findM
     assoc = assocM
+    cond = condM
 
 ----------------------------------------------------
 
@@ -619,4 +626,36 @@ assocM (r,c) z xs = ST.runSTMatrix $ do
         m <- ST.newMatrix z r c
         mapM_ (\((i,j),x) -> ST.writeMatrix m i j x) xs
         return m
+
+----------------------------------------------------------------------
+
+conformMTo (r,c) m
+    | size m == (r,c) = m
+    | size m == (1,1) = konst (m@@>(0,0)) (r,c)
+    | size m == (r,1) = repCols c m
+    | size m == (1,c) = repRows r m
+    | otherwise = error $ "matrix " ++ shSize m ++ " cannot be expanded to (" ++ show r ++ "><"++ show c ++")"
+
+conformVTo n v
+    | dim v == n = v
+    | dim v == 1 = konst (v@>0) n
+    | otherwise = error $ "vector of dim=" ++ show (dim v) ++ " cannot be expanded to dim=" ++ show n
+
+repRows n x = fromRows (replicate n (flatten x))
+repCols n x = fromColumns (replicate n (flatten x))
+
+size m = (rows m, cols m)
+
+shSize m = "(" ++ show (rows m) ++"><"++ show (cols m)++")"
+
+condM a b l e t = reshape c $ cond a' b' l' e' t'
+  where
+    r = maximum (map rows [a,b,l,e,t])
+    c = maximum (map cols [a,b,l,e,t])
+    [a', b', l', e', t'] = map (flatten . conformMTo (r,c)) [a,b,l,e,t]
+
+condV f a b l e t = f a' b' l' e' t'
+  where
+    n = maximum (map dim [a,b,l,e,t])
+    [a', b', l', e', t'] = map (conformVTo n) [a,b,l,e,t]
 
