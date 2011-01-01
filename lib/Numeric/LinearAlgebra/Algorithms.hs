@@ -167,8 +167,6 @@ vertical m = rows m >= cols m
 
 exactHermitian m = m `equal` ctrans m
 
-shSize m = "(" ++ show (rows m) ++"><"++ show (cols m)++")"
-
 --------------------------------------------------------------
 
 -- | Full singular value decomposition.

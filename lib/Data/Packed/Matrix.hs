@@ -302,29 +302,21 @@ repmat m r c = fromBlocks $ splitEvery c $ replicate (r*c) m
 -- | A version of 'liftMatrix2' which automatically adapt matrices with a single row or column to match the dimensions of the other matrix.
 liftMatrix2Auto :: (Element t, Element a, Element b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
 liftMatrix2Auto f m1 m2
-    | compat' m1 m2 = lM f m1 m2
-
-    | r1 == 1  && c2 == 1 = lM f (repRows r2 m1) (repCols c1 m2)
-    | c1 == 1  && r2 == 1 = lM f (repCols c2 m1) (repRows r1 m2)
-    
-    | r1 == r2 && c2 == 1 = lM f m1              (repCols c1 m2)
-    | r1 == r2 && c1 == 1 = lM f (repCols c2 m1) m2
-
-    | c1 == c2 && r2 == 1 = lM f m1              (repRows r1 m2)
-    | c1 == c2 && r1 == 1 = lM f (repRows r2 m1) m2
-
-    | otherwise    = error $ "nonconformable matrices in liftMatrix2Auto: "
-                             ++ show (size m1) ++ ", " ++ show (size m2)
+    | compat' m1 m2 = lM f m1  m2
+    | ok            = lM f m1' m2'
+    | otherwise = error $ "nonconformable matrices in liftMatrix2Auto: " ++ shSize m1 ++ ", " ++ shSize m2
   where
     (r1,c1) = size m1
     (r2,c2) = size m2
-
-size m = (rows m, cols m)
+    r = max r1 r2
+    c = max c1 c2
+    r0 = min r1 r2
+    c0 = min c1 c2
+    ok = r0 == 1 || r1 == r2 && c0 == 1 || c1 == c2
+    m1' = conformMTo (r,c) m1
+    m2' = conformMTo (r,c) m2
 
 lM f m1 m2 = reshape (max (cols m1) (cols m2)) (f (flatten m1) (flatten m2))
-
-repRows n x = fromRows (replicate n (flatten x))
-repCols n x = fromColumns (replicate n (flatten x))
 
 compat' :: Matrix a -> Matrix b -> Bool
 compat' m1 m2 = s1 == (1,1) || s2 == (1,1) || s1 == s2

@@ -31,7 +31,8 @@ module Data.Packed.Internal.Matrix(
     liftMatrix, liftMatrix2,
     (@@>),
     saveMatrix,
-    singleton
+    singleton,
+    size, shSize, conformVs, conformMs, conformVTo, conformMTo
 ) where
 
 import Data.Packed.Internal.Common
@@ -441,3 +442,34 @@ saveMatrix filename fmt m = do
     free charfmt
 
 foreign import ccall "matrix_fprintf" matrix_fprintf :: Ptr CChar -> Ptr CChar -> CInt -> TM
+
+----------------------------------------------------------------------
+
+conformMs ms = map (conformMTo (r,c)) ms
+  where
+    r = maximum (map rows ms)
+    c = maximum (map cols ms)
+
+conformVs vs = map (conformVTo n) vs
+  where
+    n = maximum (map dim vs)
+
+conformMTo (r,c) m
+    | size m == (r,c) = m
+    | size m == (1,1) = reshape c (constantD (m@@>(0,0)) (r*c))
+    | size m == (r,1) = repCols c m
+    | size m == (1,c) = repRows r m
+    | otherwise = error $ "matrix " ++ shSize m ++ " cannot be expanded to (" ++ show r ++ "><"++ show c ++")"
+
+conformVTo n v
+    | dim v == n = v
+    | dim v == 1 = constantD (v@>0) n
+    | otherwise = error $ "vector of dim=" ++ show (dim v) ++ " cannot be expanded to dim=" ++ show n
+
+repRows n x = fromRows (replicate n (flatten x))
+repCols n x = fromColumns (replicate n (flatten x))
+
+size m = (rows m, cols m)
+
+shSize m = "(" ++ show (rows m) ++"><"++ show (cols m)++")"
+

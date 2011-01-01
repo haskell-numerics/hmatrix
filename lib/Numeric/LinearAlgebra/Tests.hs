@@ -380,6 +380,17 @@ condTest = utest "cond" ok
 
 ---------------------------------------------------------------------
 
+conformTest = utest "conform" ok
+  where
+    ok = 1 + row [1,2,3] + col [10,20,30,40] + (4><3) [1..]
+         == (4><3) [13,15,17
+                   ,26,28,30
+                   ,39,41,43
+                   ,52,54,56]
+    row = asRow . fromList
+    col = asColumn . fromList :: [Double] -> Matrix Double
+
+---------------------------------------------------------------------
 
 -- | All tests must pass with a maximum dimension of about 20
 --  (some tests may fail with bigger sizes due to precision loss).
@@ -550,6 +561,7 @@ runTests n = do
         , succTest
         , findAssocTest
         , condTest
+        , conformTest
         ]
     return ()
 
