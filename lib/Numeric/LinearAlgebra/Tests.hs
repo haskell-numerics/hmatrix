@@ -392,6 +392,18 @@ conformTest = utest "conform" ok
 
 ---------------------------------------------------------------------
 
+accumTest = utest "accum" ok
+  where
+    x = ident 3 :: Matrix Double
+    ok = accum x (+) [((1,2),7), ((2,2),3)]
+         == (3><3) [1,0,0
+                   ,0,1,7
+                   ,0,0,4]
+         &&
+         toList (flatten x) == [1,0,0,0,1,0,0,0,1] 
+
+---------------------------------------------------------------------
+
 -- | All tests must pass with a maximum dimension of about 20
 --  (some tests may fail with bigger sizes due to precision loss).
 runTests :: Int  -- ^ maximum dimension
@@ -562,6 +574,7 @@ runTests n = do
         , findAssocTest
         , condTest
         , conformTest
+        , accumTest
         ]
     return ()
 

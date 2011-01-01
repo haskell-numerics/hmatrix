@@ -40,6 +40,7 @@ q = row [0,1,0,1]
 main = do
     print $ find (>6) m
     disp $ assoc (6,8) 7 $ zip (find (/=0) (eye 5)) [10..]
+    disp $ accum (eye 5) (+) [((0,2),3), ((3,1),7), ((1,1),1)]
     disp $ m .>=. 10  .||.  m .<. 4
     (disp . fromColumns . map flatten) [p, q, p.&&.q, p .||.q, p `xor` q, p `equiv` q, p `imp` q]
     print $ taut $ (p `imp` q ) `equiv` (no q `imp` no p)

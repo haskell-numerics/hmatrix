@@ -121,15 +121,8 @@ class (Complexable c, Fractional e, Element e) => Container c e where
     sumElements :: c e -> e
     -- | the product of elements (faster than using @fold@)
     prodElements :: c e -> e
-    -- | a more efficient implementation of @cmap (\x -> if x>0 then 1 else 0)@
+    -- | a more efficient implementation of @cmap (\\x -> if x>0 then 1 else 0)@
     step :: RealElement e => c e -> c e
-    -- | find index of elements which satisfy a predicate
-    find :: (e -> Bool) -> c e -> [IndexOf c]
-    -- | create a structure from an association list
-    assoc :: IndexOf c        -- ^ size
-          -> e                -- ^ default value
-          -> [(IndexOf c, e)] -- ^ association list
-          -> c e              -- ^ result
 
     -- | element by element @case compare a b of LT -> l, EQ -> e, GT -> g@
     cond :: RealElement e 
@@ -139,6 +132,21 @@ class (Complexable c, Fractional e, Element e) => Container c e where
          -> c e -- ^ e
          -> c e -- ^ g
          -> c e -- ^ result
+
+    -- | find index of elements which satisfy a predicate
+    find :: (e -> Bool) -> c e -> [IndexOf c]
+
+    -- | create a structure from an association list
+    assoc :: IndexOf c        -- ^ size
+          -> e                -- ^ default value
+          -> [(IndexOf c, e)] -- ^ association list
+          -> c e              -- ^ result
+
+    -- | modify a structure using an update function
+    accum :: c e              -- ^ initial structure
+          -> (e -> e -> e)    -- ^ update function
+          -> [(IndexOf c, e)] -- ^ association list
+          -> c e              -- ^ result
 
 --------------------------------------------------------------------------
 
@@ -167,6 +175,7 @@ instance Container Vector Float where
     step = stepF
     find = findV
     assoc = assocV
+    accum = accumV
     cond = condV condF
 
 instance Container Vector Double where
@@ -194,6 +203,7 @@ instance Container Vector Double where
     step = stepD
     find = findV
     assoc = assocV
+    accum = accumV
     cond = condV condD
 
 instance Container Vector (Complex Double) where
@@ -221,6 +231,7 @@ instance Container Vector (Complex Double) where
     step = undefined -- cannot match
     find = findV
     assoc = assocV
+    accum = accumV
     cond = undefined -- cannot match
 
 instance Container Vector (Complex Float) where
@@ -248,6 +259,7 @@ instance Container Vector (Complex Float) where
     step = undefined -- cannot match
     find = findV
     assoc = assocV
+    accum = accumV
     cond = undefined -- cannot match
 
 ---------------------------------------------------------------
@@ -281,6 +293,7 @@ instance (Container Vector a) => Container Matrix a where
     step = liftMatrix step
     find = findM
     assoc = assocM
+    accum = accumM
     cond = condM
 
 ----------------------------------------------------
@@ -635,6 +648,16 @@ assocV n z xs = ST.runSTVector $ do
 assocM (r,c) z xs = ST.runSTMatrix $ do
         m <- ST.newMatrix z r c
         mapM_ (\((i,j),x) -> ST.writeMatrix m i j x) xs
+        return m
+
+accumV v0 f xs = ST.runSTVector $ do
+        v <- ST.thawVector v0
+        mapM_ (\(k,x) -> ST.modifyVector v k (f x)) xs
+        return v
+
+accumM m0 f xs = ST.runSTMatrix $ do
+        m <- ST.thawMatrix m0
+        mapM_ (\((i,j),x) -> ST.modifyMatrix m i j (f x)) xs
         return m
 
 ----------------------------------------------------------------------
