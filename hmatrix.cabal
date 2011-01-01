@@ -54,6 +54,7 @@ extra-source-files: examples/tests.hs
                     examples/Real.hs
                     examples/vector.hs
                     examples/monadic.hs
+                    examples/bool.hs
 
 extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
                     lib/Numeric/LinearAlgebra/LAPACK/clapack.h

@@ -121,14 +121,24 @@ class (Complexable c, Fractional e, Element e) => Container c e where
     sumElements :: c e -> e
     -- | the product of elements (faster than using @fold@)
     prodElements :: c e -> e
-    -- | map (if x_i>0 then 1.0 else 0.0)
-    step :: RealFloat e => c e -> c e
+    -- | a more efficient implementation of @cmap (\x -> if x>0 then 1 else 0)@
+    step :: RealElement e => c e -> c e
     -- | find index of elements which satisfy a predicate
     find :: (e -> Bool) -> c e -> [IndexOf c]
     -- | create a structure from an association list
-    assoc :: IndexOf c -> e -> [(IndexOf c, e)] -> c e
-    -- | a vectorized form of case 'compare' a_i b_i of LT -> l_i; EQ -> e_i; GT -> g_i
-    cond :: RealFloat e => c e -> c e -> c e -> c e -> c e -> c e
+    assoc :: IndexOf c        -- ^ size
+          -> e                -- ^ default value
+          -> [(IndexOf c, e)] -- ^ association list
+          -> c e              -- ^ result
+
+    -- | element by element @case compare a b of LT -> l, EQ -> e, GT -> g@
+    cond :: RealElement e 
+         => c e -- ^ a
+         -> c e -- ^ b
+         -> c e -- ^ l 
+         -> c e -- ^ e
+         -> c e -- ^ g
+         -> c e -- ^ result
 
 --------------------------------------------------------------------------
 
