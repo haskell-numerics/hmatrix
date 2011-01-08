@@ -121,10 +121,24 @@ class (Complexable c, Fractional e, Element e) => Container c e where
     sumElements :: c e -> e
     -- | the product of elements (faster than using @fold@)
     prodElements :: c e -> e
-    -- | a more efficient implementation of @cmap (\\x -> if x>0 then 1 else 0)@
+
+    -- | A more efficient implementation of @cmap (\\x -> if x>0 then 1 else 0)@
+    --
+    -- @> step $ linspace 5 (-1,1::Double)
+    -- 5 |> [0.0,0.0,0.0,1.0,1.0]@
+    
     step :: RealElement e => c e -> c e
 
-    -- | element by element @case compare a b of LT -> l, EQ -> e, GT -> g@
+    -- | Element by element version of @case compare a b of {LT -> l; EQ -> e; GT -> g}@.
+    --
+    -- Arguments with any dimension = 1 are automatically expanded: 
+    --
+    -- @> cond ((1>\<4)[1..]) ((3>\<1)[1..]) 0 100 ((3>\<4)[1..]) :: Matrix Double
+    -- (3><4)
+    -- [ 100.0,   2.0,   3.0,  4.0
+    -- ,   0.0, 100.0,   7.0,  8.0
+    -- ,   0.0,   0.0, 100.0, 12.0 ]@
+    
     cond :: RealElement e 
          => c e -- ^ a
          -> c e -- ^ b
@@ -133,16 +147,33 @@ class (Complexable c, Fractional e, Element e) => Container c e where
          -> c e -- ^ g
          -> c e -- ^ result
 
-    -- | find index of elements which satisfy a predicate
+    -- | Find index of elements which satisfy a predicate
+    --
+    -- @> find (>0) (ident 3 :: Matrix Double)
+    -- [(0,0),(1,1),(2,2)]@
+
     find :: (e -> Bool) -> c e -> [IndexOf c]
 
-    -- | create a structure from an association list
+    -- | Create a structure from an association list
+    --
+    -- @> assoc 5 0 [(2,7),(1,3)] :: Vector Double
+    -- 5 |> [0.0,3.0,7.0,0.0,0.0]@
+    
     assoc :: IndexOf c        -- ^ size
           -> e                -- ^ default value
           -> [(IndexOf c, e)] -- ^ association list
           -> c e              -- ^ result
 
-    -- | modify a structure using an update function
+    -- | Modify a structure using an update function
+    --
+    -- @> accum (ident 5) (+) [((1,1),5),((0,3),3)] :: Matrix Double
+    -- (5><5)
+    --  [ 1.0, 0.0, 0.0, 3.0, 0.0
+    --  , 0.0, 6.0, 0.0, 0.0, 0.0
+    --  , 0.0, 0.0, 1.0, 0.0, 0.0
+    --  , 0.0, 0.0, 0.0, 1.0, 0.0
+    --  , 0.0, 0.0, 0.0, 0.0, 1.0 ]@
+    
     accum :: c e              -- ^ initial structure
           -> (e -> e -> e)    -- ^ update function
           -> [(IndexOf c, e)] -- ^ association list
