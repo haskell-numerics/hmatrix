@@ -170,6 +170,7 @@ library
         extra-lib-dirs: /opt/local/lib/
         include-dirs: /opt/local/include
         extra-libraries: gsl
+        cc-options: -arch i386
         frameworks: Accelerate
 
     if os(windows)
