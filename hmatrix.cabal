@@ -77,7 +77,7 @@ flag unsafe
 
 flag vector
     description:    Use Data.Vector.Storable type from "vector" package.
-    default:        False
+    default:        True
 
 flag binary
     description:    Define Binary instances

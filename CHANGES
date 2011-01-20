@@ -1,6 +1,8 @@
 0.10.1.0
 ========
 
+- flag -fvector default = True
+
 - invlndet (inverse and log of determinant)
 
 - step, cond
