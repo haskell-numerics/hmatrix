@@ -160,6 +160,9 @@ library
     if impl(ghc < 6.10.2)
         cpp-options: -DFINIT
 
+    if impl(ghc == 7.0.1)
+        cpp-options: -DNONORMVTEST
+
     if flag(mkl)
       if arch(x86_64)
         extra-libraries:   gsl mkl_lapack mkl_intel_lp64 mkl_sequential mkl_core

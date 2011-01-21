@@ -232,9 +232,10 @@ offsetTest = y == y' where
 normsVTest = TestList [
     utest "normv2CD" $ norm2PropC v
   , utest "normv2CF" $ norm2PropC (single v)
+#ifndef NONORMVTEST
   , utest "normv2D"  $ norm2PropR x
   , utest "normv2F"  $ norm2PropR (single x)
-
+#endif
   , utest "normv1CD" $ norm1 v          == 8
   , utest "normv1CF" $ norm1 (single v) == 8
   , utest "normv1D"  $ norm1 x          == 6
@@ -247,7 +248,9 @@ normsVTest = TestList [
 
  ] where v = fromList [1,-2,3:+4] :: Vector (Complex Double)
          x = fromList [1,2,-3] :: Vector Double
+#ifndef NONORMVTEST
          norm2PropR a = norm2 a =~= sqrt (dot a a)
+#endif
          norm2PropC a = norm2 a =~= realPart (sqrt (dot a (conj a)))
          a =~= b = fromList [a] |~| fromList [b]
 
