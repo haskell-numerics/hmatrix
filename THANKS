@@ -83,4 +83,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Torsten Kemps-Benedix reported an installation problem in OS/X.
 
+- Stefan Kersten fixed hmatrix.cabal for 64-bit ghc-7 in OS/X
 
