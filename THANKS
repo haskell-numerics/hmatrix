@@ -85,3 +85,6 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Stefan Kersten fixed hmatrix.cabal for 64-bit ghc-7 in OS/X
 
+- Sacha Sokoloski reported an installation problem on Arch Linux and
+  helped with the configuration.
+

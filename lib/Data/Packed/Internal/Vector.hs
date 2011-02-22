@@ -201,12 +201,21 @@ subVector :: Storable t => Int       -- ^ index of the starting element
 
 subVector = Vector.slice
 
+{-
+subVector k l v
+    | k<0 || k >= n || k+l > n || l < 0 = error "subVector out of range"
+    | otherwise = unsafeFromForeignPtr fp (i+k) l
+  where
+    (fp, i, n) = unsafeToForeignPtr v
+-}
+
 #else
 
 subVector k l v@V{idim = n, ioff = i}
     | k<0 || k >= n || k+l > n || l < 0 = error "subVector out of range"
     | otherwise = v {idim = l, ioff = i+k}
 
+{-
 subVectorCopy k l (v@V {idim=n})
     | k<0 || k >= n || k+l > n || l < 0 = error "subVector out of range"
     | otherwise = unsafePerformIO $ do
@@ -214,6 +223,7 @@ subVectorCopy k l (v@V {idim=n})
         let f _ s _ d = copyArray d (advancePtr s k) l >> return 0
         app2 f vec v vec r "subVector"
         return r
+-}
 
 #endif
 
