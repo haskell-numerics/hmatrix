@@ -1,7 +1,4 @@
-#! /usr/bin/env runhaskell
-{- configure.hs for hmatrix
-   ------------------------
-
+{-
     GSL and LAPACK may require auxiliary libraries which depend on OS,
     distribution, and implementation. This script tries to to find out
     the correct link command for your system.
@@ -16,6 +13,8 @@
     flags (e.g., -fmkl, -faccelerate) or --configure-option=link:lib1,lib2,lib3,...
 
 -}
+
+module Config(config) where
 
 import System.Process
 import System.Exit
@@ -97,7 +96,7 @@ getUserLink = concatMap (g . drop (length linkop)) . filter (isPrefixOf linkop)
           cs ',' = ' '
           cs x   = x
 
-main = do
+config = do
     info <- maybeGetPersistBuildConfig "dist"
     case info of
         Nothing -> putStrLn "Please run \"cabal clean\" first." >> exitFailure
