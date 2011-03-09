@@ -88,3 +88,6 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - Sacha Sokoloski reported an installation problem on Arch Linux and
   helped with the configuration.
 
+- Carter Schonwald helped with the configuration for Homebrew OS X and
+  found a tolerance problem in test "1E5 rots".
+

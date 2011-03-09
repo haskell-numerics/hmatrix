@@ -213,7 +213,7 @@ rot a = (3><3) [ c,0,s
     where c = cos a
           s = sin a
 
-rotTest = fun (10^5) :~12~: rot 5E4
+rotTest = fun (10^5) :~11~: rot 5E4
     where fun n = foldl1' (<>) (map rot angles)
               where angles = toList $ linspace n (0,1)
 
