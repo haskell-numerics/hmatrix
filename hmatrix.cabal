@@ -21,7 +21,7 @@ Description:        Purely functional interface to basic linear algebra
                     .
                     - "Numeric.LinearAlgebra": everything + instances of standard Haskell numeric classes
 Category:           Math
-tested-with:        GHC ==6.10.4, GHC ==6.12.1, GHC ==6.12.3
+tested-with:        GHC ==6.10.4, GHC ==6.12.1, GHC ==6.12.3, GHC ==7.0.1, GHC==7.0.2
 
 cabal-version:      >=1.6
 
@@ -164,12 +164,14 @@ library
     if impl(ghc < 6.10.2)
         cpp-options: -DFINIT
 
+    if impl(ghc >= 7.0.1)
+        cpp-options: -DFINIT
+
     if flag(finit)
         cpp-options: -DFINIT
 
     if impl(ghc == 7.0.1)
         cpp-options: -DNONORMVTEST
-        cpp-options: -DFINIT
 
     if flag(mkl)
       if arch(x86_64)

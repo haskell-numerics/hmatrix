@@ -142,3 +142,4 @@ mainOk bInfo = do
                 if g
                     then ""
                     else "cc-options: -DGSL110\n"
+
