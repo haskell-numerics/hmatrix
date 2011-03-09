@@ -28,7 +28,7 @@ cabal-version:      >=1.6
 build-type:         Custom
 
 extra-source-files: lib/Numeric/LinearAlgebra/Tests/quickCheckCompat.h
-                    configure configure.hs THANKS INSTALL CHANGES
+                    Config.hs THANKS INSTALL CHANGES
 extra-tmp-files:    hmatrix.buildinfo
 
 extra-source-files: examples/tests.hs
