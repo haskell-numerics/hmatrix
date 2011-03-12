@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.11.0.3
+Version:            0.11.0.4
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -87,6 +87,10 @@ flag finit
     description:    Force FPU initialization in foreing calls
     default:        False
 
+flag fpudebug
+    description:    Check FPU stack
+    default:        False
+
 library
 
     Build-Depends:      base >= 4 && < 5,
@@ -169,6 +173,9 @@ library
 
     if flag(finit)
         cpp-options: -DFINIT
+
+    if flag(fpudebug)
+        cc-options: -DFPUDEBUG
 
     if impl(ghc == 7.0.1)
         cpp-options: -DNONORMVTEST

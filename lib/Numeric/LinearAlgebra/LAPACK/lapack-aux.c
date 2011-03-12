@@ -47,7 +47,24 @@
 //---------------------------------------
 void asm_finit() {
 #ifdef i386
-    asm("finit");
+
+    #if FPUDEBUG
+        uint val=0;
+        asm("fstsw"
+        : "=a" (val)
+        : "a"  (val)
+        );
+
+        val = (val%16384)/2048; // bits 13-11
+
+        if (val != 0) {
+            printf("Warning: FPU Stack: %d\n",val);
+            asm("finit");
+        }
+    #else
+        asm("finit");
+    #endif
+
 #endif
 }
 //---------------------------------------
