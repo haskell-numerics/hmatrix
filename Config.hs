@@ -96,13 +96,9 @@ getUserLink = concatMap (g . drop (length linkop)) . filter (isPrefixOf linkop)
           cs ',' = ' '
           cs x   = x
 
-config = do
-    info <- maybeGetPersistBuildConfig "dist"
-    case info of
-        Nothing -> putStrLn "Please run \"cabal clean\" first." >> exitFailure
-        Just bInfo -> mainOk bInfo
-        
-mainOk bInfo = do
+config :: LocalBuildInfo -> IO HookedBuildInfo
+          
+config bInfo = do
     putStr "Checking foreign libraries..."
     args <- getArgs
 
@@ -123,6 +119,7 @@ mainOk bInfo = do
     createDirectoryIfMissing True $ buildDir bInfo
     
     r <- try bInfo buildInfo base fwks fullOpts
+
     case r of
         Nothing -> do
             putStrLn " FAIL"
@@ -132,14 +129,13 @@ mainOk bInfo = do
                 else putStrLn " *** Sorry, I can't link GSL."
             putStrLn " *** Please make sure that the appropriate -dev packages are installed."
             putStrLn " *** You can also specify the required libraries using"
-            putStrLn " *** cabal install hmatrix --configure-option=link:lib1,lib2,lib3,etc."
-            writeFile "hmatrix.buildinfo" ("buildable: False\n")
+            putStrLn " *** cabal install hmatrix --configure-option=link:lib1,lib2,lib3,etc."            
+            return (Just emptyBuildInfo { buildable = False }, [])
         Just ops -> do
-            putStrLn " OK"
+            putStrLn $ " OK " ++ ops
             g <- checkCommand $ gsl112 bInfo buildInfo
-            writeFile "hmatrix.buildinfo" $ "extra-libraries: " ++
-                ops ++ "\n" ++
-                if g
-                    then ""
-                    else "cc-options: -DGSL110\n"
+            let hbi = if g
+                        then emptyBuildInfo { extraLibs = words ops}
+                        else emptyBuildInfo { extraLibs = words ops, ccOptions = ["-DGSL110"]}
+            return (Just hbi, [])
 
