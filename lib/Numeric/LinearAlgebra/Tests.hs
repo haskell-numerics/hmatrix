@@ -17,7 +17,7 @@ Some tests.
 module Numeric.LinearAlgebra.Tests(
 --  module Numeric.LinearAlgebra.Tests.Instances,
 --  module Numeric.LinearAlgebra.Tests.Properties,
-  qCheck, runTests, runBenchmarks
+  qCheck, runTests, runBenchmarks, findNaN
 --, runBigTests
 ) where
 
@@ -512,6 +512,8 @@ runTests n = do
     putStrLn "------ chol"
     test (cholProp   . rPosDef)
     test (cholProp   . cPosDef)
+    test (exactProp  . rPosDef)
+    test (exactProp  . cPosDef)
     putStrLn "------ expm"
     test (expmDiagProp . complex. rSqWC)
     test (expmDiagProp . cSqWC)
@@ -593,6 +595,11 @@ makeUnitary v | realPart n > 1    = v / scalar n
 -- -- | Some additional tests on big matrices. They take a few minutes.
 -- runBigTests :: IO ()
 -- runBigTests = undefined
+
+-- testcase for nonempty fpu stack
+findNaN :: Int -> Bool
+findNaN n = all (bugProp . eye) (take n $ cycle [1..20])
+  where eye m = ident m :: Matrix ( Double)
 
 --------------------------------------------------------------------------------
 

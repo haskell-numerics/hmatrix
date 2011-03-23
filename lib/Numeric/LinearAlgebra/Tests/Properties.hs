@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -----------------------------------------------------------------------------
 {- |
@@ -29,13 +29,14 @@ module Numeric.LinearAlgebra.Tests.Properties (
     pinvProp,
     detProp,
     nullspaceProp,
+    bugProp,
     svdProp1, svdProp1a, svdProp1b, svdProp2, svdProp3, svdProp4,
     svdProp5a, svdProp5b, svdProp6a, svdProp6b, svdProp7,
     eigProp, eigSHProp, eigProp2, eigSHProp2,
     qrProp, rqProp, rqProp1, rqProp2, rqProp3,
     hessProp,
     schurProp1, schurProp2,
-    cholProp,
+    cholProp, exactProp,
     expmDiagProp,
     multProp1, multProp2,
     subProp,
@@ -129,6 +130,15 @@ nullspaceProp m = null nl `trivial` (null nl || m <> n |~| zeros (r,c)
           n = fromColumns nl
           r = rows m
           c = cols m - rank m
+
+------------------------------------------------------------------
+
+-- testcase for nonempty fpu stack
+-- uncommenting unitary' signature eliminates the problem
+bugProp m = m |~| u <> real d <> trans v && unitary' u && unitary' v
+    where (u,d,v) = fullSVD m
+          -- unitary' :: (Num (Vector t), Field t) => Matrix t -> Bool
+          unitary' a = unitary a
 
 ------------------------------------------------------------------
 
@@ -237,7 +247,8 @@ schurProp2 m = m |~| u <> s <> ctrans u && unitary u && upperHessenberg s -- fix
 
 cholProp m = m |~| ctrans c <> c && upperTriang c
     where c = chol m
-          -- pos = positiveDefinite m
+
+exactProp m = chol m == chol (m+0)
 
 expmDiagProp m = expm (logm m) :~ 7 ~: complex m
     where logm = matFunc log

@@ -86,8 +86,12 @@ flag finit
     description:    Force FPU initialization in foreing calls
     default:        False
 
-flag fpudebug
+flag debugfpu
     description:    Check FPU stack
+    default:        False
+
+flag debugnan
+    description:    Check NaN
     default:        False
 
 library
@@ -173,8 +177,11 @@ library
     if flag(finit)
         cpp-options: -DFINIT
 
-    if flag(fpudebug)
+    if flag(debugfpu)
         cc-options: -DFPUDEBUG
+
+    if flag(debugnan)
+        cc-options: -DNANDEBUG
 
     if impl(ghc == 7.0.1)
         cpp-options: -DNONORMVTEST
@@ -208,4 +215,8 @@ source-repository head
     type:     darcs
     location: http://patch-tag.com/r/aruiz/hmatrix
 --    location: http://code.haskell.org/hmatrix
+
+-- Test-Suite tests
+--    type: exitcode-stdio-1.0
+--    main-is: examples/tests.hs
 

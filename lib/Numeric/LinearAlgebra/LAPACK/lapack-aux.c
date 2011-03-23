@@ -48,25 +48,55 @@
 void asm_finit() {
 #ifdef i386
 
+//  asm("finit");
+
+    static unsigned char buf[108];
+    asm("FSAVE %0":"=m" (buf));
+
     #if FPUDEBUG
-        uint val=0;
-        asm("fstsw"
-        : "=a" (val)
-        : "a"  (val)
-        );
+    if(buf[8]!=255 || buf[9]!=255) { 
+        printf("Warning: Nonempty FPU Stack. TAG = %x %x\n",buf[8],buf[9]);
+    }
+    #endif
 
-        val = (val%16384)/2048; // bits 13-11
-
-        if (val != 0) {
-            printf("Warning: FPU Stack: %d\n",val);
-            asm("finit");
-        }
-    #else
-        asm("finit");
+    #if NANDEBUG
+    asm("FRSTOR %0":"=m" (buf));
     #endif
 
 #endif
 }
+
+//---------------------------------------
+
+#if NANDEBUG
+
+#define CHECKNANR(M,msg)                     \
+{ int k;                                     \
+for(k=0; k<(M##r * M##c); k++) {             \
+    if(M##p[k] != M##p[k]) {                 \
+        printf(msg);                         \
+        TRACEMAT(M)                          \
+        /*exit(1);*/                         \
+    }                                        \
+}                                            \
+}
+
+#define CHECKNANC(M,msg)                     \
+{ int k;                                     \
+for(k=0; k<(M##r * M##c); k++) {             \
+    if(  M##p[k].r != M##p[k].r              \
+      || M##p[k].i != M##p[k].i) {           \
+        printf(msg);                         \
+        /*exit(1);*/                         \
+    }                                        \
+}                                            \
+}
+
+#else
+#define CHECKNANC(M,msg)
+#define CHECKNANR(M,msg)
+#endif
+
 //---------------------------------------
 
 //////////////////// real svd ////////////////////////////////////
@@ -1031,6 +1061,8 @@ void dgemm_(char *, char *, integer *, integer *, integer *,
 int multiplyR(int ta, int tb, KDMAT(a),KDMAT(b),DMAT(r)) {
     //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
     DEBUGMSG("dgemm_");
+    CHECKNANR(a,"NaN multR Input\n")
+    CHECKNANR(b,"NaN multR Input\n")
     integer m = ta?ac:ar;
     integer n = tb?br:bc;
     integer k = ta?ar:ac;
@@ -1040,6 +1072,7 @@ int multiplyR(int ta, int tb, KDMAT(a),KDMAT(b),DMAT(r)) {
     double alpha = 1;
     double beta = 0;
     dgemm_(ta?"T":"N",tb?"T":"N",&m,&n,&k,&alpha,ap,&lda,bp,&ldb,&beta,rp,&ldc);
+    CHECKNANR(r,"NaN multR Output\n")
     OK
 }
 
@@ -1050,6 +1083,8 @@ void zgemm_(char *, char *, integer *, integer *, integer *,
 int multiplyC(int ta, int tb, KCMAT(a),KCMAT(b),CMAT(r)) {
     //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
     DEBUGMSG("zgemm_");
+    CHECKNANC(a,"NaN multC Input\n")
+    CHECKNANC(b,"NaN multC Input\n")
     integer m = ta?ac:ar;
     integer n = tb?br:bc;
     integer k = ta?ar:ac;
@@ -1062,6 +1097,7 @@ int multiplyC(int ta, int tb, KCMAT(a),KCMAT(b),CMAT(r)) {
            ap,&lda,
            bp,&ldb,&beta,
            rp,&ldc);
+    CHECKNANC(r,"NaN multC Output\n")
     OK
 }
 
