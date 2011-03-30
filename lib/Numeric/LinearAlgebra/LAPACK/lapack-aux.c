@@ -54,8 +54,8 @@ void asm_finit() {
     asm("FSAVE %0":"=m" (buf));
 
     #if FPUDEBUG
-    if(buf[8]!=255 || buf[9]!=255) { 
-        printf("Warning: Nonempty FPU Stack. TAG = %x %x\n",buf[8],buf[9]);
+    if(buf[8]!=255 || buf[9]!=255) {  // print warning in red
+        printf("%c[;31mWarning: FPU TAG = %x %x\%c[0m\n",0x1B,buf[8],buf[9],0x1B);
     }
     #endif
 
