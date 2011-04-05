@@ -5,7 +5,7 @@ License-file:       LICENSE
 Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          experimental
-Homepage:           http://code.haskell.org/hmatrix
+Homepage:           http://perception.inf.um.es/hmatrix
 Synopsis:           Linear Programming based on GLPK
 Description:
  Simple interface to linear programming functions provided by GLPK.
