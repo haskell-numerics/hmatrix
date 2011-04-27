@@ -95,7 +95,7 @@ class (Complexable c, Fractional e, Element e) => Container c e where
     arctan2     :: c e -> c e -> c e
     --
     -- | cannot implement instance Functor because of Element class constraint
-    cmap        :: (Element a, Element b) => (a -> b) -> c a -> c b
+    cmap        :: (Element b) => (e -> b) -> c e -> c b
     -- | constant structure of given size
     konst       :: e -> IndexOf c -> c e
     -- | create a structure using a function
