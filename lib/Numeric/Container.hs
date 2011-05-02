@@ -36,7 +36,7 @@ module Numeric.Container (
     -- * Matrix product
     Product(..),
     optimiseMult,
-    mXm,mXv,vXm,(<.>),(<>),(<\>),
+    mXm,mXv,vXm,(<.>),Mul(..),(<\>),
     outer, kronecker,
     -- * Random numbers
     RandDist(..),

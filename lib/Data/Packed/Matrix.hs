@@ -36,6 +36,7 @@ module Data.Packed.Matrix (
     subMatrix, takeRows, dropRows, takeColumns, dropColumns,
     extractRows,
     diagRect, takeDiag,
+    mapMatrix, mapMatrixWithIndex, mapMatrixWithIndexM, mapMatrixWithIndexM_,
     liftMatrix, liftMatrix2, liftMatrix2Auto,fromArray2D
 ) where
 
@@ -44,6 +45,7 @@ import qualified Data.Packed.ST as ST
 import Data.List(transpose,intersperse)
 import Data.Array
 import Foreign.Storable
+import Control.Arrow((***))
 
 -------------------------------------------------------------------
 
@@ -348,3 +350,56 @@ toBlocksEvery r c m = toBlocks rs cs m where
     cs = replicate qc c ++ if rc > 0 then [rc] else []
 
 -------------------------------------------------------------------
+
+mk c g = \k v -> g ((fromIntegral *** fromIntegral) (divMod k c)) v 
+
+{- | 
+
+@ghci> mapMatrixWithIndexM_ (\\(i,j) v -> printf \"m[%.0f,%.0f] = %.f\\n\" i j v :: IO()) ((2><3)[1 :: Double ..])
+m[0,0] = 1
+m[0,1] = 2
+m[0,2] = 3
+m[1,0] = 4
+m[1,1] = 5
+m[1,2] = 6@
+-}
+mapMatrixWithIndexM_
+  :: (Element a, Num a,
+      Functor f, Monad f) =>
+      ((a, a) -> a -> f ()) -> Matrix a -> f ()
+mapMatrixWithIndexM_ g m = mapVectorWithIndexM_ (mk c g) . flatten $ m 
+  where
+    c = cols m
+
+{- |
+
+@ghci> mapMatrixWithIndexM (\\(i,j) v -> Just $ 100*v + 10*i + j) (ident 3:: Matrix Double)
+Just (3><3)
+ [ 100.0,   1.0,   2.0
+ ,  10.0, 111.0,  12.0
+ ,  20.0,  21.0, 122.0 ]@
+-}
+mapMatrixWithIndexM
+  :: (Foreign.Storable.Storable t, 
+      Element a, Num a,
+      Functor f, Monad f) =>
+      ((a, a) -> a -> f t) -> Matrix a -> f (Matrix t)
+mapMatrixWithIndexM g m = fmap (reshape c) . mapVectorWithIndexM (mk c g) . flatten $ m 
+    where
+      c = cols m
+
+{- |
+@ghci> mapMatrixWithIndex (\\(i,j) v -> 100*v + 10*i + j) (ident 3:: Matrix Double)
+(3><3)
+ [ 100.0,   1.0,   2.0
+ ,  10.0, 111.0,  12.0
+ ,  20.0,  21.0, 122.0 ]@
+ -}
+mapMatrixWithIndex :: (Foreign.Storable.Storable t, 
+      Element a, Num a) =>
+      ((a, a) -> a -> t) -> Matrix a -> Matrix t
+mapMatrixWithIndex g = head . mapMatrixWithIndexM (\a b -> [g a b])
+
+mapMatrix :: (Storable a, Storable b) => (a -> b) -> Matrix a -> Matrix b
+mapMatrix f = liftMatrix (mapVector f)
+
