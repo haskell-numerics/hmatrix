@@ -20,7 +20,7 @@ module Data.Packed.Vector (
     fromList, (|>), toList, buildVector,
     dim, (@>),
     subVector, takesV, join,
-    mapVector, zipVector, zipVectorWith, unzipVector, unzipVectorWith,
+    mapVector, mapVectorWithIndex, zipVector, zipVectorWith, unzipVector, unzipVectorWith,
     mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
     foldLoop, foldVector, foldVectorG, foldVectorWithIndex
 ) where

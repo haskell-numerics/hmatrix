@@ -17,7 +17,7 @@ module Data.Packed.Internal.Vector (
     Vector, dim,
     fromList, toList, (|>),
     join, (@>), safe, at, at', subVector, takesV,
-    mapVector, zipVectorWith, unzipVectorWith,
+    mapVector, mapVectorWithIndex, zipVectorWith, unzipVectorWith,
     mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
     foldVector, foldVectorG, foldLoop, foldVectorWithIndex,
     createVector, vec,
@@ -496,6 +496,21 @@ mapVectorWithIndexM_ f v = do
                                     _ <- f k x
                                     mapVectorM' (k+1) t
 {-# INLINE mapVectorWithIndexM_ #-}
+
+
+mapVectorWithIndex :: (Storable a, Storable b) => (Int -> a -> b) -> Vector a -> Vector b
+--mapVectorWithIndex g = head . mapVectorWithIndexM (\a b -> [g a b])
+mapVectorWithIndex f v = unsafePerformIO $ do
+    w <- createVector (dim v)
+    unsafeWith v $ \p ->
+        unsafeWith w $ \q -> do
+            let go (-1) = return ()
+                go !k = do x <- peekElemOff p k
+                           pokeElemOff      q k (f k x)
+                           go (k-1)
+            go (dim v -1)
+    return w
+{-# INLINE mapVectorWithIndex #-}
 
 -------------------------------------------------------------------
 
