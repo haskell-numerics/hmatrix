@@ -44,6 +44,7 @@ module Numeric.LinearAlgebra.Algorithms (
 -- ** Eigensystems
     eig, eigSH, eigSH',
     eigenvalues, eigenvaluesSH, eigenvaluesSH',
+    geigSH',
 -- ** QR
     qr, rq,
 -- ** Cholesky
@@ -711,4 +712,21 @@ relativeError :: (Normed c t, Container c t) => c t -> c t -> Int
 relativeError x y = dig (norm (x `sub` y) / norm x)
     where norm = pnorm Infinity
           dig r = round $ -logBase 10 (realToFrac r :: Double)
+
+----------------------------------------------------------------------
+
+-- | Generalized symmetric positive definite eigensystem Av = lBv,
+-- for A and B symmetric, B positive definite (conditions not checked).
+geigSH' :: Field t
+        => Matrix t -- ^ A
+        -> Matrix t -- ^ B
+        -> (Vector Double, Matrix t)
+geigSH' a b = (l,v')
+  where
+    u = cholSH b
+    iu = inv u
+    c = ctrans iu <> a <> iu
+    (l,v) = eigSH' c
+    v' = iu <> v
+    (<>) = mXm
 
