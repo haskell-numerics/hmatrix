@@ -9,11 +9,13 @@ Detailed installation instructions:
 
 INSTALLATION ON WINDOWS
 
-1) Install the Haskell Platform (tested on 2009.2.0.2).
+1) Install the Haskell Platform (tested on 2011.2.0.1)
+
+   > cabal update
 
 2) Download and unzip the following file into a stable folder %GSL%
 
-   http://code.haskell.org/hmatrix/gsl-lapack-windows.zip
+   http://perception.inf.um.es/hmatrix/gsl-lapack-windows.zip
 
 3.a) In a msys shell installation should be fully automatic:
 
@@ -23,9 +25,11 @@ INSTALLATION ON WINDOWS
 
     > cabal unpack hmatrix
 
-    Edit hmatrix.cabal, in line 18 change build-type to "Simple", and then
+    Edit hmatrix.cabal, in line 28 change build-type to "Simple", and then
 
     > cabal install --extra-lib-dir=%GSL% --extra-include-dir=%GSL%
+
+    It may be necessary to put the dlls in the search path.
 
 4) If everything is ok we can run the tests:
 
