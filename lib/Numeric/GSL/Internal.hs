@@ -13,8 +13,11 @@
 module Numeric.GSL.Internal where
 
 import Data.Packed.Internal
-import Foreign
+
+import Foreign.Marshal.Array(copyArray)
+import Foreign.Ptr(Ptr, FunPtr)
 import Foreign.C.Types(CInt)
+import System.IO.Unsafe(unsafePerformIO)
 
 iv :: (Vector Double -> Double) -> (CInt -> Ptr Double -> Double)
 iv f n p = f (createV (fromIntegral n) copy "iv") where

@@ -43,12 +43,13 @@ module Numeric.LinearAlgebra.LAPACK (
 
 import Data.Packed.Internal
 import Data.Packed.Matrix
---import Data.Complex
 import Numeric.Conversion
 import Numeric.GSL.Vector(vectorMapValR, FunCodeSV(Scale))
-import Foreign
-import Foreign.C.Types (CInt)
+
+import Foreign.Ptr(nullPtr)
+import Foreign.C.Types(CInt)
 import Control.Monad(when)
+import System.IO.Unsafe(unsafePerformIO)
 
 -----------------------------------------------------------------------------------
 

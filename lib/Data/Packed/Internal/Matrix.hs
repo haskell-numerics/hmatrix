@@ -39,10 +39,14 @@ import Data.Packed.Internal.Common
 import Data.Packed.Internal.Signatures
 import Data.Packed.Internal.Vector
 
-import Foreign hiding (xor)
-import Data.Complex
-import Foreign.C.Types
-import Foreign.C.String
+import Foreign.Marshal.Alloc(alloca, free)
+import Foreign.Marshal.Array(newArray)
+import Foreign.Ptr(Ptr, castPtr)
+import Foreign.Storable(Storable, peekElemOff, pokeElemOff, poke, sizeOf)
+import Data.Complex(Complex)
+import Foreign.C.Types(CInt, CChar)
+import Foreign.C.String(newCString)
+import System.IO.Unsafe(unsafePerformIO)
 
 -----------------------------------------------------------------
 

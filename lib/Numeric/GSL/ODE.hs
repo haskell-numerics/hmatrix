@@ -33,9 +33,11 @@ module Numeric.GSL.ODE (
 ) where
 
 import Data.Packed.Internal
-import Foreign
-import Foreign.C.Types(CInt)
 import Numeric.GSL.Internal
+
+import Foreign.Ptr(FunPtr, nullFunPtr, freeHaskellFunPtr)
+import Foreign.C.Types(CInt)
+import System.IO.Unsafe(unsafePerformIO)
 
 -------------------------------------------------------------------------
 

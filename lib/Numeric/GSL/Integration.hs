@@ -20,10 +20,12 @@ module Numeric.GSL.Integration (
     integrateQAGS
 ) where
 
-import Foreign
 import Foreign.C.Types(CInt)
+import Foreign.Marshal.Alloc(malloc, free)
+import Foreign.Ptr(Ptr, FunPtr, freeHaskellFunPtr)
+import Foreign.Storable(peek)
 import Data.Packed.Internal(check,(//))
-
+import System.IO.Unsafe(unsafePerformIO)
 
 {- | conversion of Haskell functions into function pointers that can be used in the C side
 -}

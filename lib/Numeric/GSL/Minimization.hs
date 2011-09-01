@@ -62,9 +62,11 @@ module Numeric.GSL.Minimization (
 
 import Data.Packed.Internal
 import Data.Packed.Matrix
-import Foreign
-import Foreign.C.Types(CInt)
 import Numeric.GSL.Internal
+
+import Foreign.Ptr(Ptr, FunPtr, freeHaskellFunPtr)
+import Foreign.C.Types(CInt)
+import System.IO.Unsafe(unsafePerformIO)
 
 ------------------------------------------------------------------------
 

@@ -42,9 +42,10 @@ module Data.Packed.Matrix (
 
 import Data.Packed.Internal
 import qualified Data.Packed.ST as ST
-import Data.List(transpose,intersperse)
 import Data.Array
-import Foreign.Storable
+
+import Data.List(transpose,intersperse)
+import Foreign.Storable(Storable)
 import Control.Arrow((***))
 
 -------------------------------------------------------------------

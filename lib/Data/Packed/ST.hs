@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE Rank2Types    #-}
 {-# LANGUAGE BangPatterns  #-}
@@ -33,8 +34,15 @@ module Data.Packed.ST (
 ) where
 
 import Data.Packed.Internal
-import Control.Monad.ST
-import Foreign
+
+import Control.Monad.ST(ST, runST)
+import Foreign.Storable(Storable, peekElemOff, pokeElemOff)
+
+#if MIN_VERSION_base(4,4,0)
+import Control.Monad.ST.Unsafe(unsafeIOToST)
+#else
+import Control.Monad.ST(unsafeIOToST)
+#endif
 
 {-# INLINE ioReadV #-}
 ioReadV :: Storable t => Vector t -> Int -> IO t

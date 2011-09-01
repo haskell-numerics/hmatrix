@@ -28,8 +28,11 @@ import Data.Packed.Internal.Signatures
 import Data.Packed.Internal.Vector
 
 import Data.Complex
-import Foreign
+import Foreign.Marshal.Alloc(free)
+import Foreign.Marshal.Array(newArray)
+import Foreign.Ptr(Ptr)
 import Foreign.C.Types(CInt)
+import System.IO.Unsafe(unsafePerformIO)
 
 fromei x = fromIntegral (fromEnum x) :: CInt
 

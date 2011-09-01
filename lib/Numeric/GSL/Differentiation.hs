@@ -22,9 +22,12 @@ module Numeric.GSL.Differentiation (
     derivBackward
 ) where
 
-import Foreign
 import Foreign.C.Types(CInt)
+import Foreign.Marshal.Alloc(malloc, free)
+import Foreign.Ptr(Ptr, FunPtr, freeHaskellFunPtr)
+import Foreign.Storable(peek)
 import Data.Packed.Internal(check,(//))
+import System.IO.Unsafe(unsafePerformIO)
 
 derivGen ::
     CInt                   -- ^ type: 0 central, 1 forward, 2 backward
