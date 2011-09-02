@@ -60,6 +60,8 @@ import Data.Vector.Storable(Vector,
                             unsafeToForeignPtr,
                             unsafeFromForeignPtr,
                             unsafeWith)
+#else
+import Foreign.ForeignPtr(withForeignPtr)
 #endif
 
 #ifdef VECTOR

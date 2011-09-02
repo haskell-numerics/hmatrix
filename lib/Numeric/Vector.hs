@@ -41,6 +41,7 @@ instance (Show a, Storable a) => (Show (Vector a)) where
 
 #ifdef VECTOR
 
+#if !MIN_VERSION_vector(0,8,0)
 instance (Element a, Read a) => Read (Vector a) where
     readsPrec _ s = [(fromList . read $ listnums, rest)]
         where (thing,trest) = breakAt ']' s

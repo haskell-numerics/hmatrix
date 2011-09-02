@@ -95,3 +95,8 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - Duncan Coutts reported a problem with configure.hs and contributed
   a solution and a simplified Setup.lhs.
 
+- Mark Wright fixed the import of vector >= 0.8.
+
+- Bas van Dijk fixed the import of vector >= 0.8, got rid of some
+  deprecation warnings and used more explicit imports.
+
