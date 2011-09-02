@@ -1,13 +1,16 @@
 0.11.2.0
 ========
 
-- geigSH'
+- geigSH' (symmetric generalized eigensystem)
+
 - mapVectorWithIndex
+
 
 0.11.1.0
 ========
 
 - exported Mul
+
 - mapMatrixWithIndex{,M,M_}
 
 0.11.0.0

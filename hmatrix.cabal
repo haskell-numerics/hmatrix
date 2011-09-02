@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.11.2.1
+Version:            0.12.0.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -21,7 +21,7 @@ Description:        Purely functional interface to basic linear algebra
                     .
                     - "Numeric.LinearAlgebra": everything + instances of standard Haskell numeric classes
 Category:           Math
-tested-with:        GHC ==6.10.4, GHC ==6.12.1, GHC ==6.12.3, GHC ==7.0.1, GHC==7.0.2
+tested-with:        GHC ==6.10.4, GHC ==6.12.1, GHC ==6.12.3, GHC ==7.0.1, GHC==7.0.2, GHC==7.2.1
 
 cabal-version:      >=1.6
 
@@ -144,7 +144,7 @@ library
                         lib/Numeric/GSL/gsl-aux.c
 
     if flag(vector)
-       Build-Depends:   vector >= 0.7
+       Build-Depends:   vector >= 0.8
        cpp-options:     -DVECTOR
 
     if flag(binary)

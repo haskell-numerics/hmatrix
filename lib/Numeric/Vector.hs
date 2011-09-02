@@ -6,7 +6,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Vector
--- Copyright   :  (c) Alberto Ruiz 2010
+-- Copyright   :  (c) Alberto Ruiz 2011
 -- License     :  GPL-style
 --
 -- Maintainer  :  Alberto Ruiz <aruiz@um.es>
@@ -18,8 +18,7 @@
 -- 
 -----------------------------------------------------------------------------
 
-module Numeric.Vector (
-                      ) where
+module Numeric.Vector () where
 
 import Numeric.GSL.Vector
 import Numeric.Container
@@ -37,29 +36,18 @@ import Foreign(Storable)
 instance (Show a, Storable a) => (Show (Vector a)) where
     show v = (show (dim v))++" |> " ++ show (toList v)
 
-#endif
-
-#ifdef VECTOR
-
-#if !MIN_VERSION_vector(0,8,0)
-instance (Element a, Read a) => Read (Vector a) where
-    readsPrec _ s = [(fromList . read $ listnums, rest)]
-        where (thing,trest) = breakAt ']' s
-              (dims,listnums) = breakAt ' ' (dropWhile (==' ') thing)
-              rest = drop 31 trest
-#endif
-#else
+instance Container Vector a => Eq (Vector a) where
+    (==) = equal
 
 instance (Element a, Read a) => Read (Vector a) where
     readsPrec _ s = [((d |>) . read $ listnums, rest)]
         where (thing,rest) = breakAt ']' s
               (dims,listnums) = breakAt '>' thing
               d = read . init . fst . breakAt '|' $ dims
+              breakAt c l = (a++[c],tail b) where
+                  (a,b) = break (==c) l
 
 #endif
-
-breakAt c l = (a++[c],tail b) where
-    (a,b) = break (==c) l
 
 
 ------------------------------------------------------------------
@@ -70,13 +58,6 @@ adaptScalar f1 f2 f3 x y
     | otherwise = f2 x y
 
 ------------------------------------------------------------------
-
-#ifndef VECTOR
-
-instance Container Vector a => Eq (Vector a) where
-    (==) = equal
-
-#endif
 
 instance Num (Vector Float) where
     (+) = adaptScalar addConstant add (flip addConstant)
@@ -201,25 +182,4 @@ instance Floating (Vector (Complex Float)) where
     sqrt  = vectorMapQ Sqrt
     (**)  = adaptScalar (vectorMapValQ PowSV) (vectorZipQ Pow) (flip (vectorMapValQ PowVS))
     pi    = fromList [pi]
-
------------------------------------------------------------
-
-
--- instance (Storable a, Num (Vector a)) => Monoid (Vector a) where
---     mempty = 0 { idim = 0 }
---     mappend a b = mconcat [a,b]
---     mconcat = j . filter ((>0).dim)
---         where j [] = mempty
---               j l  = join l
-
----------------------------------------------------------------
-
--- instance (NFData a, Storable a) => NFData (Vector a) where
---     rnf = rnf . (@>0)
---
--- instance (NFData a, Element a) => NFData (Matrix a) where
---     rnf = rnf . flatten
-
-
---------------------------------------------------------------------------
 
