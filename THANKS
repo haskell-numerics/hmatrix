@@ -100,3 +100,6 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - Bas van Dijk fixed the import of vector >= 0.8, got rid of some
   deprecation warnings and used more explicit imports.
 
+- Tom Nielsen discovered a problem in Config.hs, exposed by link problems
+  in Ubuntu 11.10 beta.
+

@@ -40,7 +40,7 @@ opts = [ ""                              -- Ubuntu/Debian
 
 -- compile a simple program with symbols from GSL and LAPACK with the given libs
 testprog bInfo buildInfo libs fmks =
-    "echo \"#include <gsl/gsl_sf_gamma.h>\nint main(){zgesvd_(); gsl_sf_gamma(5);}\""
+    "echo \"#include <gsl/gsl_sf_gamma.h>\nint main(){dgemm_(); zgesvd_(); gsl_sf_gamma(5);}\""
                      ++" > " ++ (buildDir bInfo) ++ "/dummy.c; gcc "
                      ++ (join $ ccOptions buildInfo) ++ " "
                      ++ (join $ cppOptions buildInfo) ++ " "
@@ -90,7 +90,7 @@ try l i b f (opt:rest) = do
           else try l i b f rest
 
 -- read --configure-option=link:lib1,lib2,lib3,etc
-linkop = "link:"
+linkop = "--configure-option=link:"
 getUserLink = concatMap (g . drop (length linkop)) . filter (isPrefixOf linkop)
     where g = map cs
           cs ',' = ' '
