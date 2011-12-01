@@ -33,3 +33,12 @@ library
     ghc-options:        -Wall
 
     extra-libraries:    glpk
+
+    if os(OSX)
+        extra-lib-dirs: /opt/local/lib/
+        include-dirs: /opt/local/include/
+        extra-lib-dirs: /usr/local/lib/
+        include-dirs: /usr/local/include/
+        if arch(i386)
+            cc-options: -arch i386
+
