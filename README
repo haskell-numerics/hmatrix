@@ -1,0 +1,4 @@
+Purely functional Haskell interface to basic linear algebra
+and other numerical computations, internally implemented using
+GSL, BLAS and LAPACK.
+
