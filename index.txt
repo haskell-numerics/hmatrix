@@ -20,9 +20,9 @@ This package includes standard matrix decompositions (eigensystems, singular val
 
 - [Installation help and known problems][Installation2]
 
-- Source repository: [darcs get http://patch-tag.com/r/aruiz/hmatrix][repo2]
+- Source repository: [https://github.com/AlbertoRuiz/hmatrix][repo3]
 
-- [Changelog][changes2]
+- [Changelog][changes3]
 
 Contributions, suggestions, and bug reports are welcome!
 
@@ -67,8 +67,10 @@ Related Projects
 [installation2]: http://perception.inf.um.es/hmatrix/install.html
 [repo]: http://perception.inf.um.es/cgi-bin/darcsweb.cgi?r=hmatrix;a=summary
 [repo2]: http://patch-tag.com/r/aruiz/hmatrix/
+[repo3]: https://github.com/AlbertoRuiz/hmatrix
 [changes]: http://code.haskell.org/hmatrix/CHANGES
 [changes2]: http://patch-tag.com/r/aruiz/hmatrix/snapshot/current/content/pretty/CHANGES
+[changes3]: https://github.com/AlbertoRuiz/hmatrix/blob/master/CHANGES
 [docum]:http://perception.inf.um.es/hmatrix/doc
 
 
