@@ -1,0 +1,88 @@
+<HEAD>
+    <TITLE>hmatrix</TITLE>
+    <STYLE> <!-- body{width: 600px; margin:50px auto;font-family:arial} --> </STYLE>
+</HEAD>
+
+
+<center>hmatrix</center>
+=======
+
+A Haskell library for numerical computation
+-------------------------------------------
+
+A purely functional interface to linear algebra and other numerical algorithms, internally implemented using [LAPACK][lapack], [BLAS][blas], and [GSL][gsl].
+
+This package includes standard matrix decompositions (eigensystems, singular values, Cholesky, QR, etc.), linear systems, numeric integration, root finding, etc.
+
+- [Tutorial][tutorial2]
+
+- [Source code and documentation (Hackage)][source]
+
+- [Installation help and known problems][Installation2]
+
+- Source repository: [darcs get http://patch-tag.com/r/aruiz/hmatrix][repo2]
+
+- [Changelog][changes2]
+
+Contributions, suggestions, and bug reports are welcome!
+
+Related Projects
+----------------
+
+- [hmatrix-static][hmatrix-static], by Reiner Pope.
+  A thin, lightweight wrapper over hmatrix to
+  support static checking of matrix and vector sizes (for instance, addition
+  of different-sized vectors will be disallowed at compile-time).
+
+- [hmatrix-gsl-stats][hmatrix-gsl-stats], [hstatistics][hstatistics],
+  and [hsignal][hsignal] by Vivian McPhail.
+
+- [repa][repa], regular, multi-dimensional, shape polymorphic parallel arrays.
+
+- [hTensor][hTensor], multidimensional arrays and simple tensor computations.
+
+- [BLAS][pBLAS] and [LAPACK][pLAPACK] Haskell bindings by Patrick Perry.
+
+- [GSL Haskell bindings][aGSL] by Mauricio C. Antunes.
+
+- The alternative [numeric prelude][nprelude] by Dylan Thurston, Henning Thielemann,
+  and Mikael Johansson.
+
+- [Math packages][mathHack] in Hackage.
+
+- [easyVision][easyVision2]: image processing and computer vision.
+
+- - -
+
+[Alberto Ruiz](http://dis.um.es/profesores/alberto)
+
+[lapack]: http://www.netlib.org/lapack/
+[blas]: http://www.netlib.org/blas/
+[gsl]: http://www.gnu.org/software/gsl/
+
+[source]: http://hackage.haskell.org/package/hmatrix
+[tutorial]: http://code.haskell.org/hmatrix/hmatrix.pdf
+[tutorial2]: http://perception.inf.um.es/hmatrix/hmatrix.pdf
+[installation]: http://code.haskell.org/hmatrix/install.html
+[installation2]: http://perception.inf.um.es/hmatrix/install.html
+[repo]: http://perception.inf.um.es/cgi-bin/darcsweb.cgi?r=hmatrix;a=summary
+[repo2]: http://patch-tag.com/r/aruiz/hmatrix/
+[changes]: http://code.haskell.org/hmatrix/CHANGES
+[changes2]: http://patch-tag.com/r/aruiz/hmatrix/snapshot/current/content/pretty/CHANGES
+[docum]:http://perception.inf.um.es/hmatrix/doc
+
+
+[hmatrix-static]: http://hackage.haskell.org/package/hmatrix-static
+[hTensor]: http://perception.inf.um.es/tensor
+[hmatrix-gsl-stats]: http://hackage.haskell.org/package/hmatrix-gsl-stats
+[hstatistics]: http://hackage.haskell.org/package/hstatistics
+[hsignal]: http://hackage.haskell.org/package/hsignal
+[pBLAS]: http://hackage.haskell.org/package/blas
+[pLAPACK]: http://github.com/patperry/lapack
+[aGSL]: http://hackage.haskell.org/package/bindings-gsl
+[nprelude]: http://hackage.haskell.org/package/numeric-prelude
+[mathHack]: http://hackage.haskell.org/packages/archive/pkg-list.html#cat:math
+[easyVision]: http://code.haskell.org/easyVision/
+[easyVision2]: http://perception.inf.um.es/easyVision/
+[repa]: http://hackage.haskell.org/package/repa
+
