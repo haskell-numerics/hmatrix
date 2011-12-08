@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.12.0.1
+Version:            0.12.0.2
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -216,9 +216,8 @@ library
     extra-lib-dirs:
 
 source-repository head
-    type:     darcs
-    location: http://patch-tag.com/r/aruiz/hmatrix
---    location: http://code.haskell.org/hmatrix
+    type:     git
+    location: https://github.com/AlbertoRuiz/hmatrix
 
 -- Test-Suite tests
 --    type: exitcode-stdio-1.0

@@ -103,3 +103,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - Tom Nielsen discovered a problem in Config.hs, exposed by link problems
   in Ubuntu 11.10 beta.
 
+- Daniel Fischer reported some Haddock markup errors.
+

@@ -205,7 +205,7 @@ safely be used with lists that are too long (like infinite lists).
 
 Example:
 
-@\> (2>|<3)[1..]
+@\> (2><3)[1..]
 (2><3)
  [ 1.0, 2.0, 3.0
  , 4.0, 5.0, 6.0 ]@
@@ -259,7 +259,7 @@ asColumn v = reshape 1 v
 {- | creates a Matrix of the specified size using the supplied function to
      to map the row\/column position to the value at that row\/column position.
 
-@> buildMatrix 3 4 (\ (r,c) -> fromIntegral r * fromIntegral c)
+@> buildMatrix 3 4 (\\(r,c) -> fromIntegral r * fromIntegral c)
 (3><4)
  [ 0.0, 0.0, 0.0, 0.0, 0.0
  , 0.0, 1.0, 2.0, 3.0, 4.0
@@ -267,7 +267,7 @@ asColumn v = reshape 1 v
 
 Hilbert matrix of order N:
 
-@hilb n = buildMatrix n n (\(i,j)->1/(fromIntegral i + fromIntegral j +1))@
+@hilb n = buildMatrix n n (\\(i,j)->1/(fromIntegral i + fromIntegral j +1))@
 
 -}
 buildMatrix :: Element a => Int -> Int -> ((Int, Int) -> a) -> Matrix a
