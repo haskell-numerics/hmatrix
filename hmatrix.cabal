@@ -46,6 +46,7 @@ extra-source-files: examples/tests.hs
                     examples/plot.hs
                     examples/inplace.hs
                     examples/error.hs
+                    examples/fitting.hs
                     examples/devel/ej1/wrappers.hs
                     examples/devel/ej1/functions.c
                     examples/devel/ej2/wrappers.hs
