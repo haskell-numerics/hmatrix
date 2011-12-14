@@ -36,16 +36,22 @@ import Numeric.GSL
 import Prelude hiding ((^))
 import qualified Prelude
 import System.CPUTime
+import System.Exit
 import Text.Printf
 import Data.Packed.Development(unsafeFromForeignPtr,unsafeToForeignPtr)
 import Control.Arrow((***))
 import Debug.Trace
+import Control.Monad(when)
 
 import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
                       ,sized,classify,Testable,Property
-                      ,quickCheckWith,maxSize,stdArgs,shrink)
+                      ,quickCheckWithResult,maxSize,stdArgs,shrink)
 
-qCheck n = quickCheckWith stdArgs {maxSize = n}
+import Test.QuickCheck.Test(isSuccess)
+
+qCheck n x = do
+    r <- quickCheckWithResult stdArgs {maxSize = n} x
+    when (not $ isSuccess r) (exitFailure)
 
 a ^ b = a Prelude.^ (b :: Int)
 
@@ -546,7 +552,7 @@ runTests n = do
     test (\m -> toRows (m::FM) == read (show (toRows m)))
     test (\m -> toRows (m::ZM) == read (show (toRows m)))
     putStrLn "------ some unit tests"
-    _ <- runTestTT $ TestList
+    c <- runTestTT $ TestList
         [ utest "1E5 rots" rotTest
         , utest "det1" detTest1
         , utest "invlndet" detTest2
@@ -586,6 +592,7 @@ runTests n = do
         , conformTest
         , accumTest
         ]
+    when (errors c + failures c > 0) exitFailure
     return ()
 
 
