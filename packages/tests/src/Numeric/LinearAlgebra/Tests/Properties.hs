@@ -46,13 +46,13 @@ module Numeric.LinearAlgebra.Tests.Properties (
 import Numeric.LinearAlgebra --hiding (real,complex)
 import Numeric.LinearAlgebra.LAPACK
 import Debug.Trace
-#include "quickCheckCompat.h"
+import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
+                      ,sized,classify,Testable,Property
+                      ,quickCheckWith,maxSize,stdArgs,shrink)
 
+trivial :: Testable a => Bool -> a -> Property
+trivial = (`classify` "trivial")
 
---real x = real'' x
---complex x = complex'' x
-
-debug x = trace (show x) x
 
 -- relative error
 dist :: (Normed c t, Num (c t)) => c t -> c t -> Double
@@ -227,10 +227,10 @@ rqProp1 m = r <> q |~| m
     where (r,q) = rq m
 
 rqProp2 m = unitary q
-    where (r,q) = rq m
+    where (_r,q) = rq m
 
 rqProp3 m = upperTriang' r
-    where (r,q) = rq m
+    where (r,_q) = rq m
 
 upperTriang' r = upptr (rows r) (cols r) * r |~| r
     where upptr f c = buildMatrix f c $ \(r',c') -> if r'-t > c' then 0 else 1

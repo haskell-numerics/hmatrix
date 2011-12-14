@@ -3,7 +3,7 @@
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Tests
-Copyright   :  (c) Alberto Ruiz 2007-9
+Copyright   :  (c) Alberto Ruiz 2007-11
 License     :  GPL-style
 
 Maintainer  :  Alberto Ruiz (aruiz at um dot es)
@@ -17,11 +17,14 @@ Some tests.
 module Numeric.LinearAlgebra.Tests(
 --  module Numeric.LinearAlgebra.Tests.Instances,
 --  module Numeric.LinearAlgebra.Tests.Properties,
-  qCheck, runTests, runBenchmarks, findNaN
+--  qCheck, 
+   runTests,
+   runBenchmarks
+-- , findNaN
 --, runBigTests
 ) where
 
-import Data.Packed.Random
+--import Data.Packed.Random
 import Numeric.LinearAlgebra
 import Numeric.LinearAlgebra.LAPACK
 import Numeric.LinearAlgebra.Tests.Instances
@@ -38,9 +41,11 @@ import Data.Packed.Development(unsafeFromForeignPtr,unsafeToForeignPtr)
 import Control.Arrow((***))
 import Debug.Trace
 
-#include "Tests/quickCheckCompat.h"
+import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
+                      ,sized,classify,Testable,Property
+                      ,quickCheckWith,maxSize,stdArgs,shrink)
 
-debug x = trace (show x) x
+qCheck n = quickCheckWith stdArgs {maxSize = n}
 
 a ^ b = a Prelude.^ (b :: Int)
 
@@ -343,7 +348,7 @@ lift_maybe m = MaybeT $ do
                         res <- m
                         return $ Just res
 
--- | apply a test to successive elements of a vector, evaluates to true iff test passes for all pairs
+-- apply a test to successive elements of a vector, evaluates to true iff test passes for all pairs
 --successive_ :: Storable a => (a -> a -> Bool) -> Vector a -> Bool
 successive_ t v = maybe False (\_ -> True) $ evalState (runMaybeT (mapVectorM_ stp (subVector 1 (dim v - 1) v))) (v @> 0)
    where stp e  = do
@@ -352,7 +357,7 @@ successive_ t v = maybe False (\_ -> True) $ evalState (runMaybeT (mapVectorM_ s
                      then lift_maybe $ state_put e
                      else (fail "successive_ test failed")
 
--- | operate on successive elements of a vector and return the resulting vector, whose length 1 less than that of the input
+-- operate on successive elements of a vector and return the resulting vector, whose length 1 less than that of the input
 --successive :: (Storable a, Storable b) => (a -> a -> b) -> Vector a -> Vector b
 successive f v = evalState (mapVectorM stp (subVector 1 (dim v - 1) v)) (v @> 0)
    where stp  e = do
@@ -596,20 +601,22 @@ makeUnitary v | realPart n > 1    = v / scalar n
 -- runBigTests :: IO ()
 -- runBigTests = undefined
 
--- testcase for nonempty fpu stack
+{-
+-- | testcase for nonempty fpu stack
 findNaN :: Int -> Bool
 findNaN n = all (bugProp . eye) (take n $ cycle [1..20])
   where eye m = ident m :: Matrix ( Double)
+-}
 
 --------------------------------------------------------------------------------
 
 -- | Performance measurements.
 runBenchmarks :: IO ()
 runBenchmarks = do
-  --cholBench
     solveBench
     subBench
     multBench
+    cholBench
     svdBench
     eigBench
     putStrLn ""
@@ -712,10 +719,11 @@ solveBench = do
 cholBenchN n = do
     let x = uniformSample 777 (2*n) (replicate n (-1,1))
         a = trans x <> x
-    a `seq` putStrLn ""
+    a `seq` putStr ""
     time ("chol " ++ show n) (chol a)
 
 cholBench = do
+    putStrLn ""
     cholBenchN 1200
     cholBenchN 600
     cholBenchN 300

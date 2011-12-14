@@ -30,7 +30,9 @@ import System.Random
 
 import Numeric.LinearAlgebra
 import Control.Monad(replicateM)
-#include "quickCheckCompat.h"
+import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
+                      ,sized,classify,Testable,Property
+                      ,quickCheckWith,maxSize,stdArgs,shrink)
 
 #if MIN_VERSION_QuickCheck(2,0,0)
 shrinkListElementwise :: (Arbitrary a) => [a] -> [[a]]

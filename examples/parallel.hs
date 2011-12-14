@@ -1,4 +1,5 @@
--- $ runhaskell parallel.hs 2000
+-- $ ghc --make -O -rtsopts -threaded parallel.hs
+-- $ ./parallel 3000 +RTS -N4 -s -A200M
 
 import System.Environment(getArgs)
 import Numeric.LinearAlgebra
@@ -6,7 +7,6 @@ import Control.Parallel.Strategies
 import System.Time
 
 inParallel = parMap rwhnf id
-
 
 -- matrix product decomposed into p parallel subtasks
 parMul p x y = fromBlocks [ inParallel ( map (x <>) ys ) ]
@@ -25,3 +25,4 @@ time act = do
     act
     t1 <- getClockTime
     print $ tdSec $ normalizeTimeDiff $ diffClockTimes t1 t0
+

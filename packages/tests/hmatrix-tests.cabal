@@ -1,0 +1,44 @@
+Name:               hmatrix-tests
+Version:            0.1.0.0
+License:            GPL
+License-file:       LICENSE
+Author:             Alberto Ruiz
+Maintainer:         Alberto Ruiz <aruiz@um.es>
+Stability:          provisional
+Homepage:           http://perception.inf.um.es/hmatrix
+Synopsis:           Tests for hmatrix
+Description:        Tests for hmatrix
+Category:           Math
+tested-with:        GHC==7.0.4
+
+cabal-version:      >=1.6
+
+build-type:         Simple
+
+extra-source-files: CHANGES
+                    src/tests.hs
+
+library
+
+    Build-Depends:      base >= 4 && < 5,
+                        hmatrix >= 0.13,
+                        QuickCheck >= 2, HUnit, random
+
+    hs-source-dirs:     src
+
+    exposed-modules:    Numeric.LinearAlgebra.Tests
+
+    other-modules:      Numeric.LinearAlgebra.Tests.Instances,
+                        Numeric.LinearAlgebra.Tests.Properties
+
+    ghc-options:        -Wall -fno-warn-missing-signatures -fno-warn-orphans
+
+
+source-repository head
+    type:     git
+    location: https://github.com/AlbertoRuiz/hmatrix
+
+Test-Suite tests
+    type: exitcode-stdio-1.0
+    main-is: src/tests.hs
+

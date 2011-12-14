@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.12.0.2
+Version:            0.13.0.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -27,11 +27,9 @@ cabal-version:      >=1.6
 
 build-type:         Custom
 
-extra-source-files: lib/Numeric/LinearAlgebra/Tests/quickCheckCompat.h
-                    Config.hs THANKS INSTALL CHANGES
+extra-source-files: Config.hs THANKS INSTALL CHANGES
 
-extra-source-files: examples/tests.hs
-                    examples/deriv.hs
+extra-source-files: examples/deriv.hs
                     examples/integrate.hs
                     examples/minimize.hs
                     examples/root.hs
@@ -59,10 +57,6 @@ extra-source-files: examples/tests.hs
 
 extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
                     lib/Numeric/LinearAlgebra/LAPACK/clapack.h
-
-flag tests
-    description:    Build tests
-    default:        True
 
 flag dd
     description:    svd = zgesdd
@@ -152,12 +146,6 @@ library
        Build-Depends:   binary
        cpp-options:     -DBINARY
 
-    if flag(tests)
-       Build-Depends:   QuickCheck, HUnit, random
-       exposed-modules: Numeric.LinearAlgebra.Tests
-       other-modules:   Numeric.LinearAlgebra.Tests.Instances,
-                        Numeric.LinearAlgebra.Tests.Properties
-
  -- ghc-prof-options:   -auto
 
     ghc-options:        -Wall -fno-warn-missing-signatures
@@ -220,7 +208,5 @@ source-repository head
     type:     git
     location: https://github.com/AlbertoRuiz/hmatrix
 
--- Test-Suite tests
---    type: exitcode-stdio-1.0
---    main-is: examples/tests.hs
+-- The tests are in package hmatrix-tests
 
