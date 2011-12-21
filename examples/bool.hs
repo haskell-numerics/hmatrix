@@ -22,6 +22,9 @@ imp a b   = no a .||. b
 
 taut x = minElement x == 1
 
+minEvery a b = cond a b a a b
+maxEvery a b = cond a b b b a
+
 -- examples
 
 clip a b x = cond y b y y b where y = cond x a a x x

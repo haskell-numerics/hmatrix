@@ -19,6 +19,7 @@ module Numeric.GSL.Polynomials (
     polySolve
 ) where
 
+import Foreign.C.Types(CInt(..))
 import Data.Packed.Internal
 import Data.Complex
 import System.IO.Unsafe (unsafePerformIO)
