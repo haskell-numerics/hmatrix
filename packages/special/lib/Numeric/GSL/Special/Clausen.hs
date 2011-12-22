@@ -1,7 +1,7 @@
 ------------------------------------------------------------
 -- |
 -- Module      :  Numeric.GSL.Special.Clausen
--- Copyright   :  (c) Alberto Ruiz 2006
+-- Copyright   :  (c) Alberto Ruiz 2006-11
 -- License     :  GPL
 -- Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 -- Stability   :  provisional
@@ -18,7 +18,7 @@ module Numeric.GSL.Special.Clausen(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt)
+import Foreign.C.Types(CInt(..))
 import Numeric.GSL.Special.Internal
 
 clausen_e :: Double -> (Double,Double)

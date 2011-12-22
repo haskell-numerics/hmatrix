@@ -2,8 +2,10 @@
 
 -- automatic generation of wrappers for simple GSL special functions
 
+{-# LANGUAGE NoMonomorphismRestriction #-}
+
 import Text.ParserCombinators.Parsec
-import System
+import System.Environment(getArgs)
 import Data.List(intersperse, isPrefixOf)
 import Data.Char(toUpper,isUpper,toLower)
 
@@ -64,7 +66,7 @@ main = do
     let exports = rep (")",") where") $ rep ("(\n","(\n  ") $ rep (",\n",", ") $ unlines $ ["("]++intersperse "," (map (\(Header _ n _) -> hName n) (filter safe parsed))++[")"]
     let defs = unlines $ map (showFull (name ++".h")) parsed
     let imports = "\nimport Foreign(Ptr)\n"
-                ++"import Foreign.C.Types(CInt)\n"
+                ++"import Foreign.C.Types(CInt(..))\n"
                 ++"import Numeric.GSL.Special.Internal\n"
     let mod = modhead name ++ "module Numeric.GSL.Special."++ upperFirst name++exports++imports++defs
     writeFile (upperFirst name ++ ".hs") mod
@@ -80,7 +82,7 @@ google name = "<http://www.google.com/search?q="
 
 modhead name = replicate 60 '-' ++ "\n-- |\n"
              ++"-- Module      :  Numeric.GSL.Special."++upperFirst name++"\n"
-             ++"-- Copyright   :  (c) Alberto Ruiz 2006\n"
+             ++"-- Copyright   :  (c) Alberto Ruiz 2006-11\n"
              ++"-- License     :  GPL\n"
              ++"-- Maintainer  :  Alberto Ruiz (aruiz at um dot es)\n"
              ++"-- Stability   :  provisional\n"

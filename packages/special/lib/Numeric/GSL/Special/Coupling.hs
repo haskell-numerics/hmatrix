@@ -1,7 +1,7 @@
 ------------------------------------------------------------
 -- |
 -- Module      :  Numeric.GSL.Special.Coupling
--- Copyright   :  (c) Alberto Ruiz 2006
+-- Copyright   :  (c) Alberto Ruiz 2006-11
 -- License     :  GPL
 -- Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 -- Stability   :  provisional
@@ -24,7 +24,7 @@ module Numeric.GSL.Special.Coupling(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt)
+import Foreign.C.Types(CInt(..))
 import Numeric.GSL.Special.Internal
 
 coupling_3j_e :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> (Double,Double)

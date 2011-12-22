@@ -1,5 +1,5 @@
 Name:               hmatrix-special
-Version:            0.1.1
+Version:            0.2.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -11,7 +11,7 @@ Description:
  Interface to GSL special functions.
 
 Category:           Math
-tested-with:        GHC ==6.12.3
+tested-with:        GHC ==7.4
 
 cabal-version:      >=1.6
 build-type:         Simple
@@ -74,6 +74,6 @@ library
         cpp-options: -DSAFE_CHEAP=unsafe
 
 source-repository head
-    type:     darcs
-    location: http://code.haskell.org/hmatrix
+    type:     git
+    location: https://github.com/AlbertoRuiz/hmatrix
 

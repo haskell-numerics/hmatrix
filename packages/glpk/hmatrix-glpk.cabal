@@ -1,5 +1,5 @@
 Name:               hmatrix-glpk
-Version:            0.2.2
+Version:            0.3.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -11,7 +11,7 @@ Description:
  Simple interface to linear programming functions provided by GLPK.
 
 Category:           Math
-tested-with:        GHC ==6.10.4, GHC ==7.0.3
+tested-with:        GHC ==7.4
 
 cabal-version:      >=1.2
 build-type:         Simple
@@ -41,4 +41,8 @@ library
         include-dirs: /usr/local/include/
         if arch(i386)
             cc-options: -arch i386
+
+source-repository head
+    type:     git
+    location: https://github.com/AlbertoRuiz/hmatrix
 

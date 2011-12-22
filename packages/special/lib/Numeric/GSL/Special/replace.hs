@@ -1,7 +1,7 @@
 #!/usr/bin/env runhaskell
 
 import Data.List(isPrefixOf)
-import System(getArgs)
+import System.Environment(getArgs)
 
 rep (c,r) [] = []
 rep (c,r) f@(x:xs) 

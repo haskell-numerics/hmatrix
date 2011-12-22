@@ -1,7 +1,7 @@
 ------------------------------------------------------------
 -- |
 -- Module      :  Numeric.GSL.Special.Gamma
--- Copyright   :  (c) Alberto Ruiz 2006
+-- Copyright   :  (c) Alberto Ruiz 2006-11
 -- License     :  GPL
 -- Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 -- Stability   :  provisional
@@ -57,7 +57,7 @@ module Numeric.GSL.Special.Gamma(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt)
+import Foreign.C.Types(CInt(..))
 import Numeric.GSL.Special.Internal
 
 lngamma_e :: Double -> (Double,Double)

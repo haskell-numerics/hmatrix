@@ -1,7 +1,7 @@
 ------------------------------------------------------------
 -- |
 -- Module      :  Numeric.GSL.Special.Hyperg
--- Copyright   :  (c) Alberto Ruiz 2006
+-- Copyright   :  (c) Alberto Ruiz 2006-11
 -- License     :  GPL
 -- Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 -- Stability   :  provisional
@@ -38,7 +38,7 @@ module Numeric.GSL.Special.Hyperg(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt)
+import Foreign.C.Types(CInt(..))
 import Numeric.GSL.Special.Internal
 
 hyperg_0F1_e :: Double -> Double -> (Double,Double)

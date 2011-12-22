@@ -29,7 +29,10 @@ module Numeric.GSL.Special.Internal (
 )
 where
 
-import Foreign
+import Foreign.Storable
+import Foreign.Ptr
+import Foreign.Marshal
+import System.IO.Unsafe(unsafePerformIO)
 import Data.Packed.Development(check,(//))
 import Foreign.C.Types(CSize,CInt)
 

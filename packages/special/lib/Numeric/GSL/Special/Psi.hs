@@ -1,7 +1,7 @@
 ------------------------------------------------------------
 -- |
 -- Module      :  Numeric.GSL.Special.Psi
--- Copyright   :  (c) Alberto Ruiz 2006
+-- Copyright   :  (c) Alberto Ruiz 2006-11
 -- License     :  GPL
 -- Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 -- Stability   :  provisional
@@ -29,7 +29,7 @@ module Numeric.GSL.Special.Psi(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt)
+import Foreign.C.Types(CInt(..))
 import Numeric.GSL.Special.Internal
 
 psi_int_e :: CInt -> (Double,Double)

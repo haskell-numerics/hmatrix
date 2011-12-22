@@ -16,8 +16,11 @@ module Numeric.GSL.Special.Elljac(
 elljac_e
 ) where
 
-import Foreign
-import Foreign.C.Types(CInt)
+import System.IO.Unsafe
+import Foreign.Ptr
+import Foreign.Storable
+import Foreign.Marshal
+import Foreign.C.Types(CInt(..))
 
 elljac_e :: Double -> Double -> (Double,Double,Double)
 elljac_e u m = unsafePerformIO $ do

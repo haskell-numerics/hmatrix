@@ -1,7 +1,7 @@
 ------------------------------------------------------------
 -- |
 -- Module      :  Numeric.GSL.Special.Bessel
--- Copyright   :  (c) Alberto Ruiz 2006
+-- Copyright   :  (c) Alberto Ruiz 2006-11
 -- License     :  GPL
 -- Maintainer  :  Alberto Ruiz (aruiz at um dot es)
 -- Stability   :  provisional
@@ -91,6 +91,7 @@ module Numeric.GSL.Special.Bessel(
 , bessel_Inu
 , bessel_Knu_scaled_e
 , bessel_Knu_scaled
+, bessel_Knu_scaled_e10_e
 , bessel_Knu_e
 , bessel_Knu
 , bessel_lnKnu_e
@@ -104,7 +105,7 @@ module Numeric.GSL.Special.Bessel(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt)
+import Foreign.C.Types(CInt(..),CSize(..))
 import Numeric.GSL.Special.Internal
 
 bessel_J0_e :: Double -> (Double,Double)
@@ -466,6 +467,10 @@ foreign import ccall SAFE_CHEAP "gsl_sf_bessel_Knu_scaled_e" gsl_sf_bessel_Knu_s
 bessel_Knu_scaled :: Double -> Double -> Double
 bessel_Knu_scaled = gsl_sf_bessel_Knu_scaled
 foreign import ccall SAFE_CHEAP "gsl_sf_bessel_Knu_scaled" gsl_sf_bessel_Knu_scaled :: Double -> Double -> Double
+
+bessel_Knu_scaled_e10_e :: Double -> Double -> (Double,Int,Double)
+bessel_Knu_scaled_e10_e nu x = createSFR_E10 "bessel_Knu_scaled_e10_e" $ gsl_sf_bessel_Knu_scaled_e10_e nu x
+foreign import ccall SAFE_CHEAP "gsl_sf_bessel_Knu_scaled_e10_e" gsl_sf_bessel_Knu_scaled_e10_e :: Double -> Double -> Ptr () -> IO CInt
 
 bessel_Knu_e :: Double -> Double -> (Double,Double)
 bessel_Knu_e nu x = createSFR "bessel_Knu_e" $ gsl_sf_bessel_Knu_e nu x
