@@ -59,11 +59,7 @@ module Numeric.Container (
     readMatrix,
     fscanfVector, fprintfVector, freadVector, fwriteVector,
     -- * Experimental
-    build', konst',
-    -- * Deprecated
-    (.*),(*/),(<|>),(<->),
-    vectorMax,vectorMin,
-    vectorMaxIndex, vectorMinIndex
+    build', konst'
 ) where
 
 import Data.Packed

@@ -69,8 +69,9 @@ module Numeric.LinearProgramming(
 
 import Numeric.LinearAlgebra hiding (i)
 import Data.Packed.Development
-import Foreign(Ptr,unsafePerformIO)
-import Foreign.C.Types(CInt)
+import Foreign(Ptr)
+import System.IO.Unsafe(unsafePerformIO)
+import Foreign.C.Types(CInt(..))
 import Data.List((\\),sortBy,nub)
 import Data.Function(on)
 

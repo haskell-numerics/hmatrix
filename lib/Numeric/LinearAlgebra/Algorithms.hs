@@ -3,6 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeFamilies #-}
+
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Algorithms
@@ -82,7 +83,7 @@ import Data.Packed.Matrix
 import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Data.List(foldl1')
 import Data.Array
-import Numeric.ContainerBoot hiding ((.*),(*/))
+import Numeric.ContainerBoot
 
 
 {- | Class used to define generic linear algebra computations for both real and complex matrices. Only double precision is supported in this version (we can
@@ -567,7 +568,11 @@ epslist = [ (fromIntegral k, golubeps k k) | k <- [1..]]
 
 geps delta = head [ k | (k,g) <- epslist, g<delta]
 
-expGolub m = iterate msq f !! j
+{- | Matrix exponential. It uses a direct translation of Algorithm 11.3.1 in Golub & Van Loan,
+     based on a scaled Pade approximation.
+-}
+expm :: Field t => Matrix t -> Matrix t
+expm m = iterate msq f !! j
     where j = max 0 $ floor $ logBase 2 $ pnorm Infinity m
           a = m */ fromIntegral ((2::Int)^j)
           q = geps eps -- 7 steps
@@ -586,12 +591,6 @@ expGolub m = iterate msq f !! j
           v */ x = scale (recip x) v
           (.*) = scale
           (|+|) = add
-
-{- | Matrix exponential. It uses a direct translation of Algorithm 11.3.1 in Golub & Van Loan,
-     based on a scaled Pade approximation.
--}
-expm :: Field t => Matrix t -> Matrix t
-expm = expGolub
 
 --------------------------------------------------------------
 
