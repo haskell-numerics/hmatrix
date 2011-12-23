@@ -19,7 +19,9 @@ module Numeric.GSL.Polynomials (
     polySolve
 ) where
 
+#ifndef ABSTRACTCINT
 import Foreign.C.Types(CInt(..))
+#endif
 import Data.Packed.Internal
 import Data.Complex
 import System.IO.Unsafe (unsafePerformIO)

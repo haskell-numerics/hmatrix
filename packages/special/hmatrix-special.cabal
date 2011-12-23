@@ -66,8 +66,12 @@ library
 
     other-modules:      Numeric.GSL.Special.Internal
 
-    ghc-options:        -Wall -fno-warn-unused-binds
-
+    if impl(ghc < 7.4)
+        ghc-options:  -Wall -fno-warn-unused-binds
+                            -fno-warn-dodgy-imports
+    else 
+        ghc-options:  -Wall -fno-warn-orphans
+                            
     if flag(safe-cheap)
         cpp-options: -DSAFE_CHEAP=safe
     else

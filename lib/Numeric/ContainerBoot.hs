@@ -3,7 +3,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
+#ifndef NOPOLYKINDS
 {-# LANGUAGE PolyKinds #-}
+#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -46,13 +48,10 @@ import Data.Packed.ST as ST
 import Numeric.Conversion
 import Data.Packed.Internal
 import Numeric.GSL.Vector
-import Foreign.C.Types(CInt(..))
 import Data.Complex
 import Control.Monad(ap)
 
 import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ)
-
-import System.IO.Unsafe
 
 -------------------------------------------------------------------
 
@@ -509,21 +508,6 @@ type instance ElementOf (Vector a) = a
 type instance ElementOf (Matrix a) = a
 
 ------------------------------------------------------------
-
-conjugateAux fun x = unsafePerformIO $ do
-    v <- createVector (dim x)
-    app2 fun vec x vec v "conjugateAux"
-    return v
-
-conjugateQ :: Vector (Complex Float) -> Vector (Complex Float)
-conjugateQ = conjugateAux c_conjugateQ
-foreign import ccall "conjugateQ" c_conjugateQ :: TQVQV
-
-conjugateC :: Vector (Complex Double) -> Vector (Complex Double)
-conjugateC = conjugateAux c_conjugateC
-foreign import ccall "conjugateC" c_conjugateC :: TCVCV
-
------------------------------------------------------
 
 class Build f where
     build' :: BoundsOf f -> f -> ContainerOf f

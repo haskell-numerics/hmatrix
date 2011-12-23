@@ -30,7 +30,10 @@ library
 
     c-sources:          lib/Numeric/LinearProgramming/glpk.c
 
-    ghc-options:        -Wall
+    if impl(ghc < 7.4)
+        ghc-options:  -Wall -fno-warn-dodgy-imports
+    else 
+        ghc-options:  -Wall
 
     extra-libraries:    glpk
 

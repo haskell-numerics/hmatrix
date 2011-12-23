@@ -148,9 +148,16 @@ library
 
  -- ghc-prof-options:   -auto
 
-    ghc-options:        -Wall -fno-warn-missing-signatures
-                              -fno-warn-orphans
-                              -fno-warn-unused-binds
+
+    if impl(ghc < 7.4)
+        ghc-options:  -Wall -fno-warn-missing-signatures
+                            -fno-warn-orphans
+                            -fno-warn-unused-binds
+                            -fno-warn-dodgy-imports
+    else 
+        ghc-options:  -Wall -fno-warn-missing-signatures
+                            -fno-warn-orphans
+                            -fno-warn-unused-binds
 
     if flag(unsafe)
         cpp-options: -DUNSAFE
@@ -178,6 +185,9 @@ library
 
     if impl(ghc == 7.0.1)
         cpp-options: -DNONORMVTEST
+
+    if impl(ghc < 7.4)
+        cpp-options: -DNOPOLYKINDS -DABSTRACTCINT
 
     if flag(mkl)
       if arch(x86_64)

@@ -23,6 +23,7 @@ module Data.Packed.Internal.Vector (
     createVector, vec,
     asComplex, asReal, float2DoubleV, double2FloatV,
     stepF, stepD, condF, condD,
+    conjugateQ, conjugateC,
     fwriteVector, freadVector, fprintfVector, fscanfVector,
     cloneVector,
     unsafeToForeignPtr,
@@ -344,7 +345,22 @@ condD x y l e g = unsafePerformIO $ do
 foreign import ccall "condF" c_condF :: CInt -> PF -> CInt -> PF -> CInt -> PF -> TFFF
 foreign import ccall "condD" c_condD :: CInt -> PD -> CInt -> PD -> CInt -> PD -> TVVV
 
-----------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+conjugateAux fun x = unsafePerformIO $ do
+    v <- createVector (dim x)
+    app2 fun vec x vec v "conjugateAux"
+    return v
+
+conjugateQ :: Vector (Complex Float) -> Vector (Complex Float)
+conjugateQ = conjugateAux c_conjugateQ
+foreign import ccall "conjugateQ" c_conjugateQ :: TQVQV
+
+conjugateC :: Vector (Complex Double) -> Vector (Complex Double)
+conjugateC = conjugateAux c_conjugateC
+foreign import ccall "conjugateC" c_conjugateC :: TCVCV
+
+--------------------------------------------------------------------------------
 
 cloneVector :: Storable t => Vector t -> IO (Vector t)
 cloneVector v = do
