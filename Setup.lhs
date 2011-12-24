@@ -8,13 +8,10 @@
 > import System.Process(system)
 > import Config(config)
 
-> main = defaultMainWithHooks simpleUserHooks { confHook = c, runTests = t }
+> main = defaultMainWithHooks simpleUserHooks { confHook = c }
 
 > c x y = do
 >     binfo <- confHook simpleUserHooks x y
 >     pbi <- config binfo
 >     let pkg_descr = localPkgDescr binfo
 >     return $ binfo { localPkgDescr = updatePackageDescription pbi pkg_descr }
-
-> t _ _ _ _ = system ( "runhaskell examples/tests.hs") >> return()
-
