@@ -16,7 +16,7 @@ import Data.Packed.Internal
 
 import Foreign.Marshal.Array(copyArray)
 import Foreign.Ptr(Ptr, FunPtr)
-import Foreign.C.Types(CInt)
+import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
 
 iv :: (Vector Double -> Double) -> (CInt -> Ptr Double -> Double)

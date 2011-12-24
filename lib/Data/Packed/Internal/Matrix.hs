@@ -44,7 +44,7 @@ import Foreign.Marshal.Array(newArray)
 import Foreign.Ptr(Ptr, castPtr)
 import Foreign.Storable(Storable, peekElemOff, pokeElemOff, poke, sizeOf)
 import Data.Complex(Complex)
-import Foreign.C.Types(CInt, CChar)
+import Foreign.C.Types
 import Foreign.C.String(newCString)
 import System.IO.Unsafe(unsafePerformIO)
 

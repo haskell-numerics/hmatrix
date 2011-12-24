@@ -36,7 +36,7 @@ import Data.Packed.Internal
 import Numeric.GSL.Internal
 
 import Foreign.Ptr(FunPtr, nullFunPtr, freeHaskellFunPtr)
-import Foreign.C.Types(CInt)
+import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
 
 -------------------------------------------------------------------------
