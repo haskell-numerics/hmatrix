@@ -27,7 +27,7 @@ module Data.Packed.Internal.Common(
 import Foreign
 import Control.Monad(when)
 import Foreign.C.String(peekCString)
-import Foreign.C.Types(CInt(..), CChar)
+import Foreign.C.Types
 import Foreign.Storable.Complex()
 import Data.List(transpose,intersperse)
 import Control.Exception as E

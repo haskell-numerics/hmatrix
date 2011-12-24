@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -49,7 +50,10 @@ import Data.Packed.ST as ST
 import Numeric.Conversion
 import Data.Packed.Internal
 import Numeric.GSL.Vector
+
+#if __GLASGOW_HASKELL__ >= 704
 import Foreign.C.Types(CInt(..))
+#endif
 
 import Data.Complex
 import Control.Monad(ap)
