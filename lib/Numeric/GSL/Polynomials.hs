@@ -21,6 +21,7 @@ module Numeric.GSL.Polynomials (
 
 import Data.Packed.Internal
 import Data.Complex
+import Foreign.C.Types(CInt(..))
 import System.IO.Unsafe (unsafePerformIO)
 
 {- | Solution of general polynomial equations, using /gsl_poly_complex_solve/. For example,

@@ -20,7 +20,7 @@ module Numeric.GSL.Integration (
     integrateQAGS
 ) where
 
-import Foreign.C.Types(CInt)
+import Foreign.C.Types(CInt(..))
 import Foreign.Marshal.Alloc(malloc, free)
 import Foreign.Ptr(Ptr, FunPtr, freeHaskellFunPtr)
 import Foreign.Storable(peek)
