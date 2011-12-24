@@ -567,6 +567,11 @@ epslist = [ (fromIntegral k, golubeps k k) | k <- [1..]]
 
 geps delta = head [ k | (k,g) <- epslist, g<delta]
 
+expGolub :: ( Fractional t, Element t, Field t
+            , Normed Matrix t
+            , RealFrac (RealOf t)
+            , Floating (RealOf t)
+            ) => Matrix t -> Matrix t
 expGolub m = iterate msq f !! j
     where j = max 0 $ floor $ logBase 2 $ pnorm Infinity m
           a = m */ fromIntegral ((2::Int)^j)

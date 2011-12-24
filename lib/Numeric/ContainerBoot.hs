@@ -59,12 +59,12 @@ import System.IO.Unsafe
 
 -------------------------------------------------------------------
 
-type family IndexOf c
+type family IndexOf (c :: * -> *)
 
 type instance IndexOf Vector = Int
 type instance IndexOf Matrix = (Int,Int)
 
-type family ArgOf c a
+type family ArgOf (c :: * -> *) a
 
 type instance ArgOf Vector a = a -> a
 type instance ArgOf Matrix a = a -> a -> a
