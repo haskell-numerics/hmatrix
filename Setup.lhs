@@ -16,4 +16,3 @@
 >     let pkg_descr = localPkgDescr binfo
 >     return $ binfo { localPkgDescr = updatePackageDescription pbi pkg_descr }
 
-

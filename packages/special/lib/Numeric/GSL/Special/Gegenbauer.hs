@@ -24,7 +24,7 @@ module Numeric.GSL.Special.Gegenbauer(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 gegenpoly_1_e :: Double -> Double -> (Double,Double)

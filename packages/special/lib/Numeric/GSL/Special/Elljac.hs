@@ -20,7 +20,7 @@ import System.IO.Unsafe
 import Foreign.Ptr
 import Foreign.Storable
 import Foreign.Marshal
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 
 elljac_e :: Double -> Double -> (Double,Double,Double)
 elljac_e u m = unsafePerformIO $ do

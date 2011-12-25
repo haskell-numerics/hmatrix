@@ -18,7 +18,7 @@ module Numeric.GSL.Special.Clausen(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 clausen_e :: Double -> (Double,Double)

@@ -14,9 +14,9 @@
 
 module Data.Packed.Internal.Signatures where
 
-import Foreign
-import Data.Complex
-import Foreign.C.Types
+import Foreign.Ptr(Ptr)
+import Data.Complex(Complex)
+import Foreign.C.Types(CInt)
 
 type PF = Ptr Float                             --
 type PD = Ptr Double                            --

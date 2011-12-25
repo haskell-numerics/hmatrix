@@ -38,7 +38,7 @@ module Numeric.GSL.Special.Hyperg(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 hyperg_0F1_e :: Double -> Double -> (Double,Double)

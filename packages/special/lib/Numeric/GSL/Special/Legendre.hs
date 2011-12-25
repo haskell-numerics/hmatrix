@@ -53,7 +53,7 @@ module Numeric.GSL.Special.Legendre(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 legendre_Pl_e :: CInt -> Double -> (Double,Double)

@@ -21,7 +21,7 @@ module Numeric.GSL.Special.Dilog(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 dilog_e :: Double -> (Double,Double)

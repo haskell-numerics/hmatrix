@@ -24,7 +24,7 @@ module Numeric.GSL.Special.Coupling(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 coupling_3j_e :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> (Double,Double)

@@ -34,7 +34,7 @@ import Foreign.Ptr
 import Foreign.Marshal
 import System.IO.Unsafe(unsafePerformIO)
 import Data.Packed.Development(check,(//))
-import Foreign.C.Types(CSize,CInt)
+import Foreign.C.Types
 
 data Precision = PrecDouble | PrecSingle | PrecApprox
 

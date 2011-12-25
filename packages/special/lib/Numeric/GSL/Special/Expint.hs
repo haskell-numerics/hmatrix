@@ -44,7 +44,7 @@ module Numeric.GSL.Special.Expint(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 expint_E1_e :: Double -> (Double,Double)

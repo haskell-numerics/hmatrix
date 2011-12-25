@@ -28,7 +28,7 @@ module Numeric.GSL.Special.Debye(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 debye_1_e :: Double -> (Double,Double)

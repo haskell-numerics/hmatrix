@@ -47,7 +47,7 @@ import Numeric.Conversion
 import Numeric.GSL.Vector(vectorMapValR, FunCodeSV(Scale))
 
 import Foreign.Ptr(nullPtr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Control.Monad(when)
 import System.IO.Unsafe(unsafePerformIO)
 

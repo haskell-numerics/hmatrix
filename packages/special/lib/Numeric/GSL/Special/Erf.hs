@@ -28,7 +28,7 @@ module Numeric.GSL.Special.Erf(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 erfc_e :: Double -> (Double,Double)

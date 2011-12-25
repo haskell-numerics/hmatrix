@@ -10,7 +10,6 @@ rm -f funs.txt
 ./auto.hs airy
 rep ') where' ', Precision(..)\n) where' Airy.hs
 ./auto.hs bessel
-rep 'Foreign.C.Types(CInt(..))' 'Foreign.C.Types(CInt(..),CSize(..))' Bessel.hs
 ./auto.hs clausen
 ./auto.hs coulomb
 ./auto.hs coupling

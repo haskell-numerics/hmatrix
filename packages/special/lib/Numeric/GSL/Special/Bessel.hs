@@ -105,7 +105,7 @@ module Numeric.GSL.Special.Bessel(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..),CSize(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 bessel_J0_e :: Double -> (Double,Double)

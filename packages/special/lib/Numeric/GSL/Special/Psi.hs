@@ -29,7 +29,7 @@ module Numeric.GSL.Special.Psi(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 psi_int_e :: CInt -> (Double,Double)

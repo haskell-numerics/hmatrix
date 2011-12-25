@@ -41,7 +41,7 @@ module Numeric.GSL.Special.Airy(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 airy_Ai_e :: Double -> Precision -> (Double,Double)

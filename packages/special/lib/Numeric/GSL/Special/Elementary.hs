@@ -19,7 +19,7 @@ module Numeric.GSL.Special.Elementary(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 multiply_e :: Double -> Double -> (Double,Double)

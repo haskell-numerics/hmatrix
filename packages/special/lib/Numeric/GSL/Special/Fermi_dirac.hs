@@ -34,7 +34,7 @@ module Numeric.GSL.Special.Fermi_dirac(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 fermi_dirac_m1_e :: Double -> (Double,Double)

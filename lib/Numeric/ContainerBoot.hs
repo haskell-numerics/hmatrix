@@ -1,11 +1,9 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
-#ifndef NOPOLYKINDS
-{-# LANGUAGE PolyKinds #-}
-#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -55,12 +53,12 @@ import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ)
 
 -------------------------------------------------------------------
 
-type family IndexOf c
+type family IndexOf (c :: * -> *)
 
 type instance IndexOf Vector = Int
 type instance IndexOf Matrix = (Int,Int)
 
-type family ArgOf c a
+type family ArgOf (c :: * -> *) a
 
 type instance ArgOf Vector a = a -> a
 type instance ArgOf Matrix a = a -> a -> a

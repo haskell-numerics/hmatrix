@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE CPP, ForeignFunctionInterface #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.GSL.Polynomials
@@ -19,12 +19,13 @@ module Numeric.GSL.Polynomials (
     polySolve
 ) where
 
-#ifndef ABSTRACTCINT
-import Foreign.C.Types(CInt(..))
-#endif
 import Data.Packed.Internal
 import Data.Complex
 import System.IO.Unsafe (unsafePerformIO)
+
+#if __GLASGOW_HASKELL__ >= 704
+import Foreign.C.Types (CInt(..))
+#endif
 
 {- | Solution of general polynomial equations, using /gsl_poly_complex_solve/. For example,
      the three solutions of x^3 + 8 = 0

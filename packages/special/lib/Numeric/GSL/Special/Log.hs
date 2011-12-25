@@ -25,7 +25,7 @@ module Numeric.GSL.Special.Log(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 log_e :: Double -> (Double,Double)

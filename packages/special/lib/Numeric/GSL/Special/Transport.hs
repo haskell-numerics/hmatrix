@@ -24,7 +24,7 @@ module Numeric.GSL.Special.Transport(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 transport_2_e :: Double -> (Double,Double)

@@ -40,7 +40,7 @@ module Numeric.GSL.Special.Ellint(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 ellint_Kcomp_e :: Double -> Precision -> (Double,Double)

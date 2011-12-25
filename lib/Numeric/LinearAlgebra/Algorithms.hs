@@ -568,11 +568,19 @@ epslist = [ (fromIntegral k, golubeps k k) | k <- [1..]]
 
 geps delta = head [ k | (k,g) <- epslist, g<delta]
 
+
 {- | Matrix exponential. It uses a direct translation of Algorithm 11.3.1 in Golub & Van Loan,
      based on a scaled Pade approximation.
 -}
 expm :: Field t => Matrix t -> Matrix t
-expm m = iterate msq f !! j
+expm = expGolub
+
+expGolub :: ( Fractional t, Element t, Field t
+            , Normed Matrix t
+            , RealFrac (RealOf t)
+            , Floating (RealOf t)
+            ) => Matrix t -> Matrix t
+expGolub m = iterate msq f !! j
     where j = max 0 $ floor $ logBase 2 $ pnorm Infinity m
           a = m */ fromIntegral ((2::Int)^j)
           q = geps eps -- 7 steps

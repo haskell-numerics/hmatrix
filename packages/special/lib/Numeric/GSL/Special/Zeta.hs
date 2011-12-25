@@ -30,7 +30,7 @@ module Numeric.GSL.Special.Zeta(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 zeta_int_e :: CInt -> (Double,Double)

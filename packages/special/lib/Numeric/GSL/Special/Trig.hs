@@ -39,7 +39,7 @@ module Numeric.GSL.Special.Trig(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 sin_e :: Double -> (Double,Double)

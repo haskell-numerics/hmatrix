@@ -18,7 +18,7 @@ module Numeric.GSL.Special.Pow_int(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 pow_int_e :: Double -> CInt -> (Double,Double)

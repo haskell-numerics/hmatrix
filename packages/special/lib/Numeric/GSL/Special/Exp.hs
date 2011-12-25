@@ -35,7 +35,7 @@ module Numeric.GSL.Special.Exp(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 exp_e :: Double -> (Double,Double)

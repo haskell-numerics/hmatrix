@@ -18,7 +18,7 @@ module Numeric.GSL.Special.Dawson(
 ) where
 
 import Foreign(Ptr)
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import Numeric.GSL.Special.Internal
 
 dawson_e :: Double -> (Double,Double)

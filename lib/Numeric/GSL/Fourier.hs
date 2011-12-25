@@ -22,7 +22,7 @@ module Numeric.GSL.Fourier (
 
 import Data.Packed.Internal
 import Data.Complex
-import Foreign.C.Types(CInt(..))
+import Foreign.C.Types
 import System.IO.Unsafe (unsafePerformIO)
 
 genfft code v = unsafePerformIO $ do
