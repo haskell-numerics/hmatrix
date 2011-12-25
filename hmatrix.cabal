@@ -23,7 +23,7 @@ Description:        Purely functional interface to basic linear algebra
 Category:           Math
 tested-with:        GHC ==6.10.4, GHC ==6.12.1, GHC ==6.12.3, GHC ==7.0.1, GHC==7.0.2, GHC==7.2.1
 
-cabal-version:      >=1.6
+cabal-version:      >=1.8
 
 build-type:         Custom
 
@@ -224,3 +224,16 @@ source-repository head
 --    type: exitcode-stdio-1.0
 --    main-is: examples/tests.hs
 
+test-suite test-hmatrix
+    type: exitcode-stdio-1.0
+    main-is: tests.hs
+    build-depends: hmatrix
+                 , base
+                 , QuickCheck
+                 , storable-complex
+                 , array
+                 , process
+                 , HUnit
+                 , random
+    hs-source-dirs: lib, examples
+    Extensions: ForeignFunctionInterface, CPP

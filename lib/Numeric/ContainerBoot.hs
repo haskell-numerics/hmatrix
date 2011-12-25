@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -50,6 +51,10 @@ import Numeric.Conversion
 import Data.Packed.Internal
 import Numeric.GSL.Vector
 
+#if __GLASGOW_HASKELL__ >= 704
+import Foreign.C.Types(CInt(..))
+#endif
+
 import Data.Complex
 import Control.Monad(ap)
 
@@ -59,12 +64,12 @@ import System.IO.Unsafe
 
 -------------------------------------------------------------------
 
-type family IndexOf c
+type family IndexOf (c :: * -> *)
 
 type instance IndexOf Vector = Int
 type instance IndexOf Matrix = (Int,Int)
 
-type family ArgOf c a
+type family ArgOf (c :: * -> *) a
 
 type instance ArgOf Vector a = a -> a
 type instance ArgOf Matrix a = a -> a -> a

@@ -65,7 +65,7 @@ import Data.Packed.Matrix
 import Numeric.GSL.Internal
 
 import Foreign.Ptr(Ptr, FunPtr, freeHaskellFunPtr)
-import Foreign.C.Types(CInt)
+import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
 
 ------------------------------------------------------------------------

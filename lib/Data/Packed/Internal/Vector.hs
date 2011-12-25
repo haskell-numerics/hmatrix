@@ -38,7 +38,7 @@ import Foreign.ForeignPtr(ForeignPtr, castForeignPtr)
 import Foreign.Ptr(Ptr)
 import Foreign.Storable(Storable, peekElemOff, pokeElemOff, sizeOf)
 import Foreign.C.String
-import Foreign.C.Types(CInt,CChar)
+import Foreign.C.Types
 import Data.Complex
 import Control.Monad(when)
 import System.IO.Unsafe(unsafePerformIO)
