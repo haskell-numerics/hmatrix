@@ -13,7 +13,7 @@ Description:
 Category:           Math
 tested-with:        GHC ==7.4
 
-cabal-version:      >=1.2
+cabal-version:      >=1.6
 build-type:         Simple
 
 extra-source-files:     examples/simplex1.hs

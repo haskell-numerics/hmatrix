@@ -27,7 +27,7 @@ cabal-version:      >=1.8
 
 build-type:         Custom
 
-extra-source-files: Config.hs THANKS INSTALL CHANGES
+extra-source-files: Config.hs THANKS.md INSTALL.md CHANGES.md
 
 extra-source-files: examples/deriv.hs
                     examples/integrate.hs
