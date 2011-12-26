@@ -63,7 +63,6 @@ NOTE: The examples using graphics do not yet work in windows.
 [install2]: http://patch-tag.com/r/aruiz/hmatrix/snapshot/current/content/pretty/INSTALL
 [winpack]: http://perception.inf.um.es/hmatrix/gsl-lapack-windows.zip
 
-- - -
 
 ## Tests ###############################################
 
@@ -78,7 +77,6 @@ After installation we must verify that the library works as expected:
 
 If you get any failure please run lapack's own tests to confirm that your version is not broken. For instance, in ubuntu 9.04, **libatlas-sse2** does not work (see this [bug report](https://bugs.launchpad.net/ubuntu/+source/atlas/+bug/368478)). If your lapack library is ok but hmatrix's tests fail please send a bug report!
 
-- - -
 
 ## Optimized BLAS/LAPACK ##########################################
 
