@@ -62,7 +62,7 @@ Related Projects
 [repo3]: https://github.com/AlbertoRuiz/hmatrix
 [changes]: http://code.haskell.org/hmatrix/CHANGES
 [changes2]: http://patch-tag.com/r/aruiz/hmatrix/snapshot/current/content/pretty/CHANGES
-[changes3]: https://github.com/AlbertoRuiz/hmatrix/blob/master/CHANGES
+[changes3]: https://github.com/AlbertoRuiz/hmatrix/blob/master/CHANGES.md
 [docum]:http://perception.inf.um.es/hmatrix/doc
 
 
