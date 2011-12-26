@@ -98,7 +98,7 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - Mark Wright fixed the import of vector >= 0.8.
 
 - Bas van Dijk fixed the import of vector >= 0.8, got rid of some
-  deprecation warnings and used more explicit imports.
+  deprecation warnings, used more explicit imports, and updated to ghc-7.4.
 
 - Tom Nielsen discovered a problem in Config.hs, exposed by link problems
   in Ubuntu 11.10 beta.
