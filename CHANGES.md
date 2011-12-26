@@ -1,5 +1,10 @@
+0.13.0.0
+--------
+
+- tests moved to new package hmatrix-tests
+
 0.11.2.0
-========
+--------
 
 - geigSH' (symmetric generalized eigensystem)
 
@@ -7,14 +12,14 @@
 
 
 0.11.1.0
-========
+--------
 
 - exported Mul
 
 - mapMatrixWithIndex{,M,M_}
 
 0.11.0.0
-========
+--------
 
 - flag -fvector default = True
 
@@ -27,7 +32,7 @@
 - assoc, accum
 
 0.10.0.0
-========
+--------
 
 - Module reorganization
 
@@ -45,7 +50,7 @@
 - different signatures in some functions
 
 0.9.3.0
-=======
+--------
 
 - flag -fvector to optionally use Data.Vector.Storable.Vector
   without any conversion.
@@ -67,7 +72,7 @@
 - Removed Data.Packed.Convert, see examples/vector.hs
 
 0.8.3.0
-=======
+--------
 
 - odeSolve
 
@@ -76,7 +81,7 @@
 - latexFormat, dispcf
 
 0.8.2.0
-=======
+--------
 
 - fromRows/fromColumns now automatically expand vectors of dim 1
   to match the common dimension.
@@ -90,12 +95,12 @@
 - minimizeV, minimizeVD, using Vector instead of lists.
 
 0.8.1.0
-=======
+--------
 
 - runBenchmarks
 
 0.8.0.0
-=======
+--------
 
 - singularValues, fullSVD, thinSVD, compactSVD, leftSV, rightSV
   and complete interface to [d|z]gesdd.
@@ -107,19 +112,19 @@
 - linearSolveLS, rq
 
 0.7.2.0
-=======
+--------
 
 - ranksv
 
 0.7.1.0
-=======
+--------
 
 - buildVector/buildMatrix
 
 - removed NFData instances
 
 0.6.0.0
-=======
+--------
 
 - added randomVector, gaussianSample, uniformSample, meanCov
 
