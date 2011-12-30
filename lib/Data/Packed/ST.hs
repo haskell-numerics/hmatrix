@@ -98,7 +98,7 @@ readVector = safeIndexV unsafeReadVector
 writeVector :: Storable t => STVector s t -> Int -> t -> ST s ()
 writeVector = safeIndexV unsafeWriteVector
 
-{-# NOINLINE newUndefinedVector #-}
+{-# INLINE newUndefinedVector #-}
 newUndefinedVector :: Storable t => Int -> ST s (STVector s t)
 newUndefinedVector = unsafeIOToST . fmap STVector . createVector
 
@@ -172,7 +172,7 @@ readMatrix = safeIndexM unsafeReadMatrix
 writeMatrix :: Storable t => STMatrix s t -> Int -> Int -> t -> ST s ()
 writeMatrix = safeIndexM unsafeWriteMatrix
 
-{-# NOINLINE newUndefinedMatrix #-}
+{-# INLINE newUndefinedMatrix #-}
 newUndefinedMatrix :: Storable t => MatrixOrder -> Int -> Int -> ST s (STMatrix s t)
 newUndefinedMatrix order r c = unsafeIOToST $ fmap STMatrix $ createMatrix order r c
 

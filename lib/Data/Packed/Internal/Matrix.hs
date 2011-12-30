@@ -29,7 +29,7 @@ module Data.Packed.Internal.Matrix(
     matrixFromVector,
     subMatrix,
     liftMatrix, liftMatrix2,
-    (@@>),
+    (@@>), atM',
     saveMatrix,
     singleton,
     size, shSize, conformVs, conformMs, conformVTo, conformMTo
@@ -217,6 +217,7 @@ matrixFromVector ColumnMajor c v = MF { irows = r, icols = c, fdat = v }
             | otherwise = error "matrixFromVector"
 
 -- allocates memory for a new matrix
+{-# INLINABLE createMatrix #-}
 createMatrix :: (Storable a) => MatrixOrder -> Int -> Int -> IO (Matrix a)
 createMatrix order r c = do
     p <- createVector (r*c)

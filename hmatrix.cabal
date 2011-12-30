@@ -95,7 +95,10 @@ library
     Build-Depends:      base >= 4 && < 5,
                         array,
                         storable-complex,
-                        process
+                        process,
+                        haskell-src-exts,
+                        haskell-src-meta,
+                        template-haskell == 2.7.*
 
     Extensions:         ForeignFunctionInterface,
                         CPP
@@ -104,6 +107,7 @@ library
     Exposed-modules:    Data.Packed,
                         Data.Packed.Vector,
                         Data.Packed.Matrix,
+                        Data.Packed.Syntax,
                         Numeric.GSL.Differentiation,
                         Numeric.GSL.Integration,
                         Numeric.GSL.Fourier,

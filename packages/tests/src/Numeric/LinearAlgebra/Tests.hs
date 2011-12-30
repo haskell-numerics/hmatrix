@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, QuasiQuotes, ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports -fno-warn-incomplete-patterns #-}
 -----------------------------------------------------------------------------
 {- |
@@ -85,6 +85,31 @@ detTest2 = inv1 |~| inv2 && [det1] ~~ [det2]
     det1 = det m
     (inv2,(lda,sa)) = invlndet m
     det2 = sa * exp lda
+
+--------------------------------------------------------------------
+
+vecTest1 = vec1 == vec2
+  where
+    vec1 = [vec| sin 0 + 1, 2 * 3 + 4, 2 + 3 * 4 :: Double|]
+    vec2 = fromList [sin 0 + 1, 2 * 3 + 4, 2 + 3 * 4 :: Double]
+
+vecTest2 = case fromList [0, 1, 2] of
+  [vec| _, _ |] -> False  
+  [vec| a, b, c |] -> (a, b, c) == (0, 1, 2 :: Double)
+
+matTest1 = mat1 == mat2
+  where
+    mat1 = [mat|     1, 2, 3; 
+                 sin 4, 5, 6 :: Complex Double |]
+    mat2 = (2><3)[     1, 2, 3,
+                   sin 4, 5, 6 :: Complex Double ]
+
+matTest2 = case (2><3) [0 :: Double ..] of
+  [mat| _, _;
+        _, _;
+        _, _ |] -> False
+  [mat| a, b, c;
+        d, e, f |] -> [a,b,c,d,e,f] == take 6 [0 :: Double ..]
 
 --------------------------------------------------------------------
 
@@ -556,6 +581,10 @@ runTests n = do
         [ utest "1E5 rots" rotTest
         , utest "det1" detTest1
         , utest "invlndet" detTest2
+        , utest "vec-qq-exp" vecTest1
+        , utest "vec-qq-pat" vecTest2
+        , utest "mat-qq-exp" matTest1
+        , utest "mat-qq-pat" matTest2
         , utest "expm1" (expmTest1)
         , utest "expm2" (expmTest2)
         , utest "arith1" $ ((ones (100,100) * 5 + 2)/0.5 - 7)**2 |~| (49 :: RM)
