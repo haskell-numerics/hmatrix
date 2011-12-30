@@ -109,6 +109,7 @@ vec x f = unsafeWith x $ \p -> do
 
 
 -- allocates memory for a new vector
+{-# INLINABLE createVector #-}
 createVector :: Storable a => Int -> IO (Vector a)
 createVector n = do
     when (n <= 0) $ error ("trying to createVector of dim "++show n)

@@ -5,12 +5,16 @@ module Data.Packed.Syntax(vec, mat) where
 
 import Language.Haskell.TH as TH
 import Language.Haskell.TH.Quote as TH
+import Language.Haskell.TH.Syntax as TH
 
 import Language.Haskell.Exts as HSE
 import qualified Language.Haskell.Meta.Syntax.Translate as MT
 
 import Data.Packed.Vector
 import Data.Packed.Matrix
+import Data.Packed.ST
+import Data.Packed.Internal(at', atM')
+import Data.Packed.Development(MatrixOrder(..))
 
 import Control.Applicative
 
@@ -55,14 +59,27 @@ wrap s = "[" ++ s ++ "]"
 
 vecExp :: String -> Q TH.Exp
 vecExp s = case parseExp (wrap s) of
-  ParseOk l@List{} -> [| fromList $( return $ MT.toExp l ) |]
+  ParseOk (List es) -> buildVectorST (map MT.toExp es)
   ParseOk _ -> fail "unexpected parse"
   ParseFailed _loc msg -> fail msg
 
+buildVectorST es = 
+  [| runSTVector (do
+                     v <- newUndefinedVector $( lift (length es) )
+                     $( let buildWrites _i [] = [| return () |]
+                            buildWrites i (exp:exps) = [| unsafeWriteVector v i $(return exp) >> $(buildWrites (i+1) exps) |]
+                        in buildWrites 0 es)
+                     return v) |]
+
+buildToList n = [| \vec -> if dim vec /= n then Nothing 
+                           else Just 
+                                $(let buildList i | i == n    = [| [] |]
+                                                  | otherwise = [| at' vec i : $(buildList (i+1)) |]
+                                  in buildList 0) |]
   
 vecPat :: String -> Q TH.Pat
 vecPat s = case parsePat (wrap s) of
-  ParseOk l@PList{} -> viewP [| toList |] (return $ MT.toPat l)
+  ParseOk l@(PList ps) -> viewP (buildToList (length ps)) (conP 'Just [return $ MT.toPat l])
   ParseOk _ -> fail "unexpected parse"
   ParseFailed _loc msg -> fail msg
 
@@ -91,17 +108,36 @@ matExp s = case breakOnSemis parseExp s of
   ParseOk rows@(r:_) -> let rowLen = length (unList r)
                         in
                          if all (\r' -> length (unList r') == length (unList r)) rows 
-                         then [| fromLists $( return $ ListE (map MT.toExp rows) ) |]
+                         then buildMatST (map (map MT.toExp . unList) rows)
                          else fail "Not all rows have the same length"
   ParseFailed _loc msg -> fail msg
+
+buildMatST :: [[TH.Exp]] -> Q TH.Exp
+buildMatST es =
+  let r = length es
+      c = length (head es)
+  in
+  [| runSTMatrix 
+       (do
+          m <- newUndefinedMatrix RowMajor r c
+          $( let writes = [ [| unsafeWriteMatrix m ir ic $(return $ es !! ir !! ic) |] | ir <- [0..r-1], ic <- [0..c-1] ]
+             in foldr (\h t -> [| $h >> $t |]) [| return () |] writes)
+          return m
+       ) |]
 
 unPList (PList l) = l
 
 matPat s = case breakOnSemis parsePat s of
   ParseOk rows@(r:_) -> let rowLen = length (unPList r)
+                            colLen = length rows
                         in
                          if all (\r' -> length (unPList r') == length (unPList r)) rows 
-                         then viewP [| toLists |] (return $ ListP (map MT.toPat rows))
+                         then viewP (buildToLists colLen rowLen) (conP 'Just [return $ ListP (map MT.toPat rows)])
                          else fail "Not all rows have the same length"
   ParseFailed _loc msg -> fail msg
 
+buildToLists r c =
+  [| \m -> if (rows m, cols m) /= (r, c) then Nothing
+           else Just 
+                $( TH.listE [ TH.listE [ [| atM' m ir ic |] | ic <- [0..c-1] ] | ir <- [0..r-1] ] )
+   |]
