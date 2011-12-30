@@ -50,7 +50,7 @@ module Numeric.GSL.Fitting (
 ) where
 
 import Data.Packed.Internal
-import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra hiding(vec, mat)
 import Numeric.GSL.Internal
 
 import Foreign.Ptr(FunPtr, freeHaskellFunPtr)
