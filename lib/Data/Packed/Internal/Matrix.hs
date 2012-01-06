@@ -29,7 +29,7 @@ module Data.Packed.Internal.Matrix(
     matrixFromVector,
     subMatrix,
     liftMatrix, liftMatrix2,
-    (@@>),
+    (@@>), atM',
     saveMatrix,
     singleton,
     size, shSize, conformVs, conformMs, conformVTo, conformMTo

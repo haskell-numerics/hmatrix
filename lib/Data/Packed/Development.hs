@@ -23,7 +23,8 @@ module Data.Packed.Development (
     MatrixOrder(..), orderOf, cmat, fmat,
     unsafeFromForeignPtr,
     unsafeToForeignPtr,
-    check, (//)
+    check, (//),
+    at', atM'
 ) where
 
 import Data.Packed.Internal
