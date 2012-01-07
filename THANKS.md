@@ -41,6 +41,8 @@ module reorganization, monadic mapVectorM, and many other improvements.
   avoid the wrong NaNs produced by foreign functions.
 
 - Reiner Pope added support for luSolve, based on (d|z)getrs.
+  Made Matrix a product type and added changes to improve the code generated
+  by hmatrix-syntax.
 
 - Simon Beaumont reported the need of QuickCheck<2 and the invalid
   asm("finit") on ppc. He also contributed the configuration options
