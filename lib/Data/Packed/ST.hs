@@ -171,7 +171,7 @@ writeMatrix :: Storable t => STMatrix s t -> Int -> Int -> t -> ST s ()
 writeMatrix = safeIndexM unsafeWriteMatrix
 
 newUndefinedMatrix :: Storable t => MatrixOrder -> Int -> Int -> ST s (STMatrix s t)
-newUndefinedMatrix order r c = unsafeIOToST $ fmap STMatrix $ createMatrix order r c
+newUndefinedMatrix ord r c = unsafeIOToST $ fmap STMatrix $ createMatrix ord r c
 
 {-# NOINLINE newMatrix #-}
 newMatrix :: Storable t => t -> Int -> Int -> ST s (STMatrix s t)

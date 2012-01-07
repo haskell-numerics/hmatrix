@@ -180,11 +180,7 @@ toColumns m = toRows . trans $ m
 -- | Reads a matrix position.
 (@@>) :: Storable t => Matrix t -> (Int,Int) -> t
 infixl 9 @@>
---m@M {rows = r, cols = c} @@> (i,j)
---    | i<0 || i>=r || j<0 || j>=c = error "matrix indexing out of range"
---    | otherwise   = cdat m `at` (i*c+j)
-
-m@Matrix {irows = r, icols = c, xdat = v, order = o} @@> (i,j)
+m@Matrix {irows = r, icols = c} @@> (i,j)
     | safe      = if i<0 || i>=r || j<0 || j>=c
                     then error "matrix indexing out of range"
                     else atM' m i j
@@ -205,9 +201,9 @@ matrixFromVector o c v = Matrix { irows = r, icols = c, xdat = v, order = o }
 
 -- allocates memory for a new matrix
 createMatrix :: (Storable a) => MatrixOrder -> Int -> Int -> IO (Matrix a)
-createMatrix order r c = do
+createMatrix ord r c = do
     p <- createVector (r*c)
-    return (matrixFromVector order c p)
+    return (matrixFromVector ord c p)
 
 {- | Creates a matrix from a vector by grouping the elements in rows with the desired number of columns. (GNU-Octave groups by columns. To do it you can define @reshapeF r = trans . reshape r@
 where r is the desired number of rows.)
