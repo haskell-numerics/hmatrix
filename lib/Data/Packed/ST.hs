@@ -98,7 +98,6 @@ readVector = safeIndexV unsafeReadVector
 writeVector :: Storable t => STVector s t -> Int -> t -> ST s ()
 writeVector = safeIndexV unsafeWriteVector
 
-{-# NOINLINE newUndefinedVector #-}
 newUndefinedVector :: Storable t => Int -> ST s (STVector s t)
 newUndefinedVector = unsafeIOToST . fmap STVector . createVector
 
@@ -114,13 +113,13 @@ newVector x n = do
 
 {-# INLINE ioReadM #-}
 ioReadM :: Storable t => Matrix t -> Int -> Int -> IO t
-ioReadM (MC _ nc cv) r c = ioReadV cv (r*nc+c)
-ioReadM (MF nr _ fv) r c = ioReadV fv (c*nr+r)
+ioReadM (Matrix _ nc cv RowMajor) r c = ioReadV cv (r*nc+c)
+ioReadM (Matrix nr _ fv ColumnMajor) r c = ioReadV fv (c*nr+r)
 
 {-# INLINE ioWriteM #-}
 ioWriteM :: Storable t => Matrix t -> Int -> Int -> t -> IO ()
-ioWriteM (MC _ nc cv) r c val = ioWriteV cv (r*nc+c) val
-ioWriteM (MF nr _ fv) r c val = ioWriteV fv (c*nr+r) val
+ioWriteM (Matrix _ nc cv RowMajor) r c val = ioWriteV cv (r*nc+c) val
+ioWriteM (Matrix nr _ fv ColumnMajor) r c val = ioWriteV fv (c*nr+r) val
 
 newtype STMatrix s t = STMatrix (Matrix t)
 
@@ -154,8 +153,7 @@ unsafeFreezeMatrix (STMatrix x) = unsafeIOToST . return $ x
 freezeMatrix :: (Storable t) => STMatrix s1 t -> ST s2 (Matrix t)
 freezeMatrix m = liftSTMatrix id m
 
-cloneMatrix (MC r c d) = cloneVector d >>= return . MC r c
-cloneMatrix (MF r c d) = cloneVector d >>= return . MF r c
+cloneMatrix (Matrix r c d o) = cloneVector d >>= return . (\d' -> Matrix r c d' o)
 
 {-# INLINE safeIndexM #-}
 safeIndexM f (STMatrix m) r c
@@ -172,7 +170,6 @@ readMatrix = safeIndexM unsafeReadMatrix
 writeMatrix :: Storable t => STMatrix s t -> Int -> Int -> t -> ST s ()
 writeMatrix = safeIndexM unsafeWriteMatrix
 
-{-# NOINLINE newUndefinedMatrix #-}
 newUndefinedMatrix :: Storable t => MatrixOrder -> Int -> Int -> ST s (STMatrix s t)
 newUndefinedMatrix order r c = unsafeIOToST $ fmap STMatrix $ createMatrix order r c
 

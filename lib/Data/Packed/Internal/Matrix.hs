@@ -18,7 +18,7 @@
 -- #hide
 
 module Data.Packed.Internal.Matrix(
-    Matrix(..), rows, cols,
+    Matrix(..), rows, cols, cdat, fdat,
     MatrixOrder(..), orderOf,
     createMatrix, mat,
     cmat, fmat,
@@ -29,7 +29,7 @@ module Data.Packed.Internal.Matrix(
     matrixFromVector,
     subMatrix,
     liftMatrix, liftMatrix2,
-    (@@>),
+    (@@>), atM',
     saveMatrix,
     singleton,
     size, shSize, conformVs, conformMs, conformVTo, conformMTo
@@ -82,21 +82,23 @@ import System.IO.Unsafe(unsafePerformIO)
 
 data MatrixOrder = RowMajor | ColumnMajor deriving (Show,Eq)
 
+transOrder RowMajor = ColumnMajor
+transOrder ColumnMajor = RowMajor
 {- | Matrix representation suitable for GSL and LAPACK computations.
 
 The elements are stored in a continuous memory array.
 
 -}
-data Matrix t = MC { irows :: {-# UNPACK #-} !Int
-                   , icols :: {-# UNPACK #-} !Int
-                   , cdat :: {-# UNPACK #-} !(Vector t) }
 
-              | MF { irows :: {-# UNPACK #-} !Int
-                   , icols :: {-# UNPACK #-} !Int
-                   , fdat :: {-# UNPACK #-} !(Vector t) }
+data Matrix t = Matrix { irows :: {-# UNPACK #-} !Int
+                       , icols :: {-# UNPACK #-} !Int
+                       , xdat :: {-# UNPACK #-} !(Vector t)
+                       , order :: !MatrixOrder }
+-- RowMajor: preferred by C, fdat may require a transposition
+-- ColumnMajor: preferred by LAPACK, cdat may require a transposition
 
--- MC: preferred by C, fdat may require a transposition
--- MF: preferred by LAPACK, cdat may require a transposition
+cdat = xdat
+fdat = xdat
 
 rows :: Matrix t -> Int
 rows = irows
@@ -104,25 +106,21 @@ rows = irows
 cols :: Matrix t -> Int
 cols = icols
 
-xdat MC {cdat = d } = d
-xdat MF {fdat = d } = d
-
 orderOf :: Matrix t -> MatrixOrder
-orderOf MF{} = ColumnMajor
-orderOf MC{} = RowMajor
+orderOf = order
+
 
 -- | Matrix transpose.
 trans :: Matrix t -> Matrix t
-trans MC {irows = r, icols = c, cdat = d } = MF {irows = c, icols = r, fdat = d }
-trans MF {irows = r, icols = c, fdat = d } = MC {irows = c, icols = r, cdat = d }
+trans Matrix {irows = r, icols = c, xdat = d, order = o } = Matrix { irows = c, icols = r, xdat = d, order = transOrder o}
 
 cmat :: (Element t) => Matrix t -> Matrix t
-cmat m@MC{} = m
-cmat MF {irows = r, icols = c, fdat = d } = MC {irows = r, icols = c, cdat = transdata r d c}
+cmat m@Matrix{order = RowMajor} = m
+cmat Matrix {irows = r, icols = c, xdat = d, order = ColumnMajor } = Matrix { irows = r, icols = c, xdat = transdata r d c, order = RowMajor}
 
 fmat :: (Element t) => Matrix t -> Matrix t
-fmat m@MF{} = m
-fmat MC {irows = r, icols = c, cdat = d } = MF {irows = r, icols = c, fdat = transdata c d r}
+fmat m@Matrix{order = ColumnMajor} = m
+fmat Matrix {irows = r, icols = c, xdat = d, order = RowMajor } = Matrix { irows = r, icols = c, xdat = transdata c d r, order = ColumnMajor}
 
 -- C-Haskell matrix adapter
 -- mat :: Adapt (CInt -> CInt -> Ptr t -> r) (Matrix t) r
@@ -140,7 +138,7 @@ mat a f =
 9 |> [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]@
 -}
 flatten :: Element t => Matrix t -> Vector t
-flatten = cdat . cmat
+flatten = xdat . cmat
 
 type Mt t s = Int -> Int -> Ptr t -> s
 -- not yet admitted by my haddock version
@@ -186,33 +184,22 @@ infixl 9 @@>
 --    | i<0 || i>=r || j<0 || j>=c = error "matrix indexing out of range"
 --    | otherwise   = cdat m `at` (i*c+j)
 
-MC {irows = r, icols = c, cdat = v} @@> (i,j)
+m@Matrix {irows = r, icols = c, xdat = v, order = o} @@> (i,j)
     | safe      = if i<0 || i>=r || j<0 || j>=c
                     then error "matrix indexing out of range"
-                    else v `at` (i*c+j)
-    | otherwise = v `at` (i*c+j)
-
-MF {irows = r, icols = c, fdat = v} @@> (i,j)
-    | safe      = if i<0 || i>=r || j<0 || j>=c
-                    then error "matrix indexing out of range"
-                    else v `at` (j*r+i)
-    | otherwise = v `at` (j*r+i)
+                    else atM' m i j
+    | otherwise = atM' m i j
 {-# INLINE (@@>) #-}
 
 --  Unsafe matrix access without range checking
-atM' MC {icols = c, cdat = v} i j = v `at'` (i*c+j)
-atM' MF {irows = r, fdat = v} i j = v `at'` (j*r+i)
+atM' Matrix {icols = c, xdat = v, order = RowMajor} i j = v `at'` (i*c+j)
+atM' Matrix {irows = r, xdat = v, order = ColumnMajor} i j = v `at'` (j*r+i)
 {-# INLINE atM' #-}
 
 ------------------------------------------------------------------
 
-matrixFromVector RowMajor c v = MC { irows = r, icols = c, cdat = v }
-    where (d,m) = dim v `divMod` c
-          r | m==0 = d
-            | otherwise = error "matrixFromVector"
-
-matrixFromVector ColumnMajor c v = MF { irows = r, icols = c, fdat = v }
-    where (d,m) = dim v `divMod` c
+matrixFromVector o c v = Matrix { irows = r, icols = c, xdat = v, order = o }
+    where (d,m) = dim v `quotRem` c
           r | m==0 = d
             | otherwise = error "matrixFromVector"
 
@@ -239,16 +226,15 @@ singleton x = reshape 1 (fromList [x])
 
 -- | application of a vector function on the flattened matrix elements
 liftMatrix :: (Storable a, Storable b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
-liftMatrix f MC { icols = c, cdat = d } = matrixFromVector RowMajor    c (f d)
-liftMatrix f MF { icols = c, fdat = d } = matrixFromVector ColumnMajor c (f d)
+liftMatrix f Matrix { icols = c, xdat = d, order = o } = matrixFromVector o c (f d)
 
 -- | application of a vector function on the flattened matrices elements
 liftMatrix2 :: (Element t, Element a, Element b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
 liftMatrix2 f m1 m2
     | not (compat m1 m2) = error "nonconformant matrices in liftMatrix2"
-    | otherwise = case m1 of
-        MC {} -> matrixFromVector RowMajor    (cols m1) (f (cdat m1) (flatten m2))
-        MF {} -> matrixFromVector ColumnMajor (cols m1) (f (fdat m1) ((fdat.fmat) m2))
+    | otherwise = case orderOf m1 of
+        RowMajor    -> matrixFromVector RowMajor    (cols m1) (f (xdat m1) (flatten m2))
+        ColumnMajor -> matrixFromVector ColumnMajor (cols m1) (f (xdat m1) ((xdat.fmat) m2))
 
 
 compat :: Matrix a -> Matrix b -> Bool
@@ -427,7 +413,7 @@ subMatrix'' (r0,c0) (rt,ct) c v = unsafePerformIO $ do
             go (rt-1) (ct-1)
     return w
 
-subMatrix' (r0,c0) (rt,ct) (MC _r c v) = MC rt ct $ subMatrix'' (r0,c0) (rt,ct) c v
+subMatrix' (r0,c0) (rt,ct) (Matrix { icols = c, xdat = v, order = RowMajor}) = Matrix rt ct (subMatrix'' (r0,c0) (rt,ct) c v) RowMajor
 subMatrix' (r0,c0) (rt,ct) m = trans $ subMatrix' (c0,r0) (ct,rt) (trans m)
 
 --------------------------------------------------------------------------
