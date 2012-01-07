@@ -207,12 +207,12 @@ atM' MF {irows = r, fdat = v} i j = v `at'` (j*r+i)
 ------------------------------------------------------------------
 
 matrixFromVector RowMajor c v = MC { irows = r, icols = c, cdat = v }
-    where (d,m) = dim v `divMod` c
+    where (d,m) = dim v `quotRem` c
           r | m==0 = d
             | otherwise = error "matrixFromVector"
 
 matrixFromVector ColumnMajor c v = MF { irows = r, icols = c, fdat = v }
-    where (d,m) = dim v `divMod` c
+    where (d,m) = dim v `quotRem` c
           r | m==0 = d
             | otherwise = error "matrixFromVector"
 
