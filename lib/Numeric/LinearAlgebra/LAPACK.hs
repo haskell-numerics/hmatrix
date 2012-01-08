@@ -61,8 +61,8 @@ foreign import ccall "multiplyQ" cgemmc :: CInt -> CInt -> TQMQMQM
 isT Matrix{order = ColumnMajor} = 0
 isT Matrix{order = RowMajor} = 1
 
-tt x@Matrix{order = RowMajor} = x
-tt x@Matrix{order = ColumnMajor} = trans x
+tt x@Matrix{order = ColumnMajor} = x
+tt x@Matrix{order = RowMajor} = trans x
 
 multiplyAux f st a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $ "inconsistent dimensions in matrix product "++
