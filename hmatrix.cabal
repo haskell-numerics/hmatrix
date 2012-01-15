@@ -70,14 +70,6 @@ flag unsafe
     description:    Compile the library with bound checking disabled.
     default:        False
 
-flag vector
-    description:    Use Data.Vector.Storable type from "vector" package.
-    default:        True
-
-flag binary
-    description:    Define Binary instances
-    default:        True
-
 flag finit
     description:    Force FPU initialization in foreing calls
     default:        False
@@ -95,7 +87,9 @@ library
     Build-Depends:      base >= 4 && < 5,
                         array,
                         storable-complex,
-                        process
+                        process,
+                        vector >= 0.8,
+                        binary
 
     Extensions:         ForeignFunctionInterface,
                         CPP
@@ -138,13 +132,7 @@ library
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
 
-    if flag(vector)
-       Build-Depends:   vector >= 0.8
-       cpp-options:     -DVECTOR
-
-    if flag(binary)
-       Build-Depends:   binary
-       cpp-options:     -DBINARY
+    cpp-options:        -DVECTOR -DBINARY
 
  -- ghc-prof-options:   -auto
 
