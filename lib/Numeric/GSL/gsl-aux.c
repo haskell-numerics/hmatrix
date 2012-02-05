@@ -32,7 +32,7 @@
 #include <gsl/gsl_complex_math.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
-#include <gsl/gsl_odeiv.h>
+#include <gsl/gsl_odeiv2.h>
 #include <gsl/gsl_multifit_nlin.h>
 #include <string.h>
 #include <stdio.h>
@@ -1314,33 +1314,33 @@ int ode(int method, double h, double eps_abs, double eps_rel,
         int jac(double, int, const double*, int, int, double*),
         KRVEC(xi), KRVEC(ts), RMAT(sol)) {
 
-    const gsl_odeiv_step_type * T;
+    const gsl_odeiv2_step_type * T;
 
     switch(method) {
-        case 0 : {T = gsl_odeiv_step_rk2; break; }
-        case 1 : {T = gsl_odeiv_step_rk4; break; }
-        case 2 : {T = gsl_odeiv_step_rkf45; break; }
-        case 3 : {T = gsl_odeiv_step_rkck; break; }
-        case 4 : {T = gsl_odeiv_step_rk8pd; break; }
-        case 5 : {T = gsl_odeiv_step_rk2imp; break; }
-        case 6 : {T = gsl_odeiv_step_rk4imp; break; }
-        case 7 : {T = gsl_odeiv_step_bsimp; break; }
-        case 8 : {T = gsl_odeiv_step_gear1; break; }
-        case 9 : {T = gsl_odeiv_step_gear2; break; }
+        case 0 : {T = gsl_odeiv2_step_rk2; break; }
+        case 1 : {T = gsl_odeiv2_step_rk4; break; }
+        case 2 : {T = gsl_odeiv2_step_rkf45; break; }
+        case 3 : {T = gsl_odeiv2_step_rkck; break; }
+        case 4 : {T = gsl_odeiv2_step_rk8pd; break; }
+        case 5 : {T = gsl_odeiv2_step_rk2imp; break; }
+        case 6 : {T = gsl_odeiv2_step_rk4imp; break; }
+        case 7 : {T = gsl_odeiv2_step_bsimp; break; }
+        case 8 : {T = gsl_odeiv2_step_msadams; break; }
+        case 9 : {T = gsl_odeiv2_step_msbdf; break; }
         default: ERROR(BAD_CODE);
     }
 
 
-    gsl_odeiv_step * s = gsl_odeiv_step_alloc (T, xin);
-    gsl_odeiv_control * c = gsl_odeiv_control_y_new (eps_abs, eps_rel);
-    gsl_odeiv_evolve * e = gsl_odeiv_evolve_alloc (xin);
+    gsl_odeiv2_step * s = gsl_odeiv2_step_alloc (T, xin);
+    gsl_odeiv2_control * c = gsl_odeiv2_control_y_new (eps_abs, eps_rel);
+    gsl_odeiv2_evolve * e = gsl_odeiv2_evolve_alloc (xin);
 
     Tode P;
     P.f = f;
     P.j = jac;
     P.n = xin;
 
-    gsl_odeiv_system sys = {odefunc, odejac, xin, &P};
+    gsl_odeiv2_system sys = {odefunc, odejac, xin, &P};
 
     double t = tsp[0];
 
@@ -1356,7 +1356,7 @@ int ode(int method, double h, double eps_abs, double eps_rel,
            double ti = tsp[i];
            while (t < ti)
              {
-               gsl_odeiv_evolve_apply (e, c, s,
+               gsl_odeiv2_evolve_apply (e, c, s,
                                        &sys,
                                        &t, ti, &h,
                                        y);
@@ -1368,8 +1368,8 @@ int ode(int method, double h, double eps_abs, double eps_rel,
          }
 
     free(y);
-    gsl_odeiv_evolve_free (e);
-    gsl_odeiv_control_free (c);
-    gsl_odeiv_step_free (s);
+    gsl_odeiv2_evolve_free (e);
+    gsl_odeiv2_control_free (c);
+    gsl_odeiv2_step_free (s);
     return 0;
 }

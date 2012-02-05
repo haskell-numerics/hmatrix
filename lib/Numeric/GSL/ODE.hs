@@ -50,8 +50,8 @@ data ODEMethod = RK2 -- ^ Embedded Runge-Kutta (2, 3) method.
                | RK2imp -- ^ Implicit 2nd order Runge-Kutta at Gaussian points.
                | RK4imp -- ^ Implicit 4th order Runge-Kutta at Gaussian points.
                | BSimp -- ^ Implicit Bulirsch-Stoer method of Bader and Deuflhard. This algorithm requires the Jacobian.
-               | Gear1 -- ^ M=1 implicit Gear method.
-               | Gear2 -- ^ M=2 implicit Gear method.
+               | MSAdams -- ^ A variable-coefficient linear multistep Adams method in Nordsieck form.
+               | MSBDF -- ^ A variable-coefficient linear multistep backward differentiation formula (BDF) method in Nordsieck form.
                deriving (Enum,Eq,Show,Bounded)
 
 -- | A version of 'odeSolveV' with reasonable default parameters and system of equations defined using lists.
