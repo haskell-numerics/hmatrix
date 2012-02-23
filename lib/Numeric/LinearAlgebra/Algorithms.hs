@@ -209,7 +209,7 @@ rightSV :: Field t => Matrix t -> (Vector Double, Matrix t)
 rightSV m | vertical m = let (_,s,v) = thinSVD m in (s,v)
           | otherwise  = let (_,s,v) = svd m     in (s,v)
 
--- | Singular values and all right singular vectors.
+-- | Singular values and all left singular vectors.
 leftSV :: Field t => Matrix t -> (Matrix t, Vector Double)
 leftSV m  | vertical m = let (u,s,_) = svd m     in (u,s)
           | otherwise  = let (u,s,_) = thinSVD m in (u,s)
