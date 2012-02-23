@@ -1,6 +1,9 @@
+{-# LANGUAGE ViewPatterns #-}
 import Numeric.GSL.ODE
 import Numeric.LinearAlgebra
 import Graphics.Plot
+import Debug.Trace(trace)
+debug x = trace (show x) x
 
 vanderpol mu = do
     let xdot mu t [x,v] = [v, -x + mu * v * (1-x^2)]
@@ -32,3 +35,13 @@ main = do
     harmonic 1 0.1
     kepler 0.3 60
     kepler 0.4 70
+
+vanderpol' mu = do
+    let xdot mu t (toList->[x,v]) = fromList [v, -x + mu * v * (1-x^2)]
+        jac t (toList->[x,v]) = debug $ (2><2) [ 0          ,          1
+                                       , -1-2*x*v*mu, mu*(1-x**2) ]
+        ts = linspace 1000 (0,50)
+        hi = (ts@>1 - ts@>0)/100
+        sol = toColumns $ odeSolveV BSimp hi 1E-8 1E-8 (xdot mu) (Just jac) (fromList [1,0]) ts
+    mplot sol
+
