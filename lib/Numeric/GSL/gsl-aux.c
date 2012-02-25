@@ -1325,15 +1325,11 @@ int ode(int method, double h, double eps_abs, double eps_rel,
         case 5 : {T = gsl_odeiv2_step_rk2imp; break; }
         case 6 : {T = gsl_odeiv2_step_rk4imp; break; }
         case 7 : {T = gsl_odeiv2_step_bsimp; break; }
-        case 8 : {T = gsl_odeiv2_step_msadams; break; }
-        case 9 : {T = gsl_odeiv2_step_msbdf; break; }
+        case 8 : {T = gsl_odeiv2_step_rk1imp; break; }
+        case 9 : {T = gsl_odeiv2_step_msadams; break; }
+        case 10: {T = gsl_odeiv2_step_msbdf; break; }
         default: ERROR(BAD_CODE);
     }
-
-
-    gsl_odeiv2_step * s = gsl_odeiv2_step_alloc (T, xin);
-    gsl_odeiv2_control * c = gsl_odeiv2_control_y_new (eps_abs, eps_rel);
-    gsl_odeiv2_evolve * e = gsl_odeiv2_evolve_alloc (xin);
 
     Tode P;
     P.f = f;
@@ -1342,10 +1338,14 @@ int ode(int method, double h, double eps_abs, double eps_rel,
 
     gsl_odeiv2_system sys = {odefunc, odejac, xin, &P};
 
+    gsl_odeiv2_driver * d =
+         gsl_odeiv2_driver_alloc_y_new (&sys, T, h, eps_abs, eps_rel);
+
     double t = tsp[0];
 
     double* y = (double*)calloc(xin,sizeof(double));
     int i,j;
+    int status;
     for(i=0; i< xin; i++) {
         y[i] = xip[i];
         solp[i] = xip[i];
@@ -1354,22 +1354,24 @@ int ode(int method, double h, double eps_abs, double eps_rel,
        for (i = 1; i < tsn ; i++)
          {
            double ti = tsp[i];
-           while (t < ti)
-             {
-               gsl_odeiv2_evolve_apply (e, c, s,
-                                       &sys,
-                                       &t, ti, &h,
-                                       y);
-               // if (h < hmin) h = hmin;
-             }
+           
+           status = gsl_odeiv2_driver_apply (d, &t, ti, y);
+     
+           if (status != GSL_SUCCESS) {
+         	  printf ("error in ode, return value=%d\n", status);
+         	  break;
+        	}
+
+//           printf ("%.5e %.5e %.5e\n", t, y[0], y[1]);
+           
            for(j=0; j<xin; j++) {
                solp[i*xin + j] = y[j];
            }
          }
 
     free(y);
-    gsl_odeiv2_evolve_free (e);
-    gsl_odeiv2_control_free (c);
-    gsl_odeiv2_step_free (s);
-    return 0;
+    gsl_odeiv2_driver_free (d);
+    
+    return status;
 }
+

@@ -35,13 +35,16 @@ main = do
     harmonic 1 0.1
     kepler 0.3 60
     kepler 0.4 70
+    vanderpol' 2
 
+-- example of odeSolveV with jacobian
 vanderpol' mu = do
     let xdot mu t (toList->[x,v]) = fromList [v, -x + mu * v * (1-x^2)]
-        jac t (toList->[x,v]) = debug $ (2><2) [ 0          ,          1
+        jac t (toList->[x,v]) = (2><2) [ 0          ,          1
                                        , -1-2*x*v*mu, mu*(1-x**2) ]
         ts = linspace 1000 (0,50)
         hi = (ts@>1 - ts@>0)/100
-        sol = toColumns $ odeSolveV BSimp hi 1E-8 1E-8 (xdot mu) (Just jac) (fromList [1,0]) ts
+        sol = toColumns $ odeSolveV (MSBDF jac) hi 1E-8 1E-8 (xdot mu) (fromList [1,0]) ts
     mplot sol
+
 
