@@ -5,7 +5,7 @@ A purely functional interface to linear algebra and other numerical algorithms, 
 
 This package includes standard matrix decompositions (eigensystems, singular values, Cholesky, QR, etc.), linear systems, numeric integration, root finding, etc.
 
-- [Tutorial][tutorial2]
+- [Tutorial][tutorial]
 
 - [Source code and documentation (Hackage)][source]
 
@@ -41,19 +41,15 @@ Related Projects
 
 - [Math packages][mathHack] in Hackage.
 
-- [easyVision][easyVision2]: image processing and computer vision.
+- [easyVision][easyVision]: image processing and computer vision.
 
-- - -
-
-[Alberto Ruiz](http://dis.um.es/profesores/alberto)
 
 [lapack]: http://www.netlib.org/lapack/
 [blas]: http://www.netlib.org/blas/
 [gsl]: http://www.gnu.org/software/gsl/
 
 [source]: http://hackage.haskell.org/package/hmatrix
-[tutorial]: http://code.haskell.org/hmatrix/hmatrix.pdf
-[tutorial2]: http://perception.inf.um.es/hmatrix/hmatrix.pdf
+[tutorial]: http://dis.um.es/profesores/alberto/material/hmatrix.pdf
 [installation]: http://code.haskell.org/hmatrix/install.html
 [installation2]: http://perception.inf.um.es/hmatrix/install.html
 [installation3]: https://github.com/AlbertoRuiz/hmatrix/blob/master/INSTALL.md
@@ -67,7 +63,7 @@ Related Projects
 
 
 [hmatrix-static]: http://hackage.haskell.org/package/hmatrix-static
-[hTensor]: http://perception.inf.um.es/tensor
+[hTensor]: https://github.com/AlbertoRuiz/hTensor
 [hmatrix-gsl-stats]: http://hackage.haskell.org/package/hmatrix-gsl-stats
 [hstatistics]: http://hackage.haskell.org/package/hstatistics
 [hsignal]: http://hackage.haskell.org/package/hsignal
@@ -76,7 +72,7 @@ Related Projects
 [aGSL]: http://hackage.haskell.org/package/bindings-gsl
 [nprelude]: http://hackage.haskell.org/package/numeric-prelude
 [mathHack]: http://hackage.haskell.org/packages/archive/pkg-list.html#cat:math
-[easyVision]: http://code.haskell.org/easyVision/
-[easyVision2]: http://perception.inf.um.es/easyVision/
+[easyVision]: https://github.com/AlbertoRuiz/easyVision
+
 [repa]: http://hackage.haskell.org/package/repa
 
