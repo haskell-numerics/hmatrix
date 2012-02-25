@@ -3,6 +3,9 @@
 
 - integration over infinite intervals
 
+- msadams and msbdf methods for ode
+
+
 0.13.0.0
 --------
 
