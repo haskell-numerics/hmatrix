@@ -107,3 +107,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Daniel Fischer reported some Haddock markup errors.
 
+- Danny Chan added support for integration over infinite intervals.
+

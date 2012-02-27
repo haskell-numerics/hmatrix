@@ -761,6 +761,48 @@ int integrate_qags(double f(double,void*), double a, double b, double prec, int 
     OK
 }
 
+int integrate_qagi(double f(double,void*), double prec, int w, 
+               double *result, double* error) {
+    DEBUGMSG("integrate_qagi");
+    gsl_integration_workspace * wk = gsl_integration_workspace_alloc (w);
+    gsl_function F;
+    F.function = f;
+    F.params = NULL;
+    int res = gsl_integration_qagi (&F, 0, prec, w,wk, result, error); 
+    CHECK(res,res);
+    gsl_integration_workspace_free (wk); 
+    OK
+}
+
+
+int integrate_qagiu(double f(double,void*), double a, double prec, int w, 
+               double *result, double* error) {
+    DEBUGMSG("integrate_qagiu");
+    gsl_integration_workspace * wk = gsl_integration_workspace_alloc (w);
+    gsl_function F;
+    F.function = f;
+    F.params = NULL;
+    int res = gsl_integration_qagiu (&F, a, 0, prec, w,wk, result, error); 
+    CHECK(res,res);
+    gsl_integration_workspace_free (wk); 
+    OK
+}
+
+
+int integrate_qagil(double f(double,void*), double b, double prec, int w, 
+               double *result, double* error) {
+    DEBUGMSG("integrate_qagil");
+    gsl_integration_workspace * wk = gsl_integration_workspace_alloc (w);
+    gsl_function F;
+    F.function = f;
+    F.params = NULL;
+    int res = gsl_integration_qagil (&F, b, 0, prec, w,wk, result, error); 
+    CHECK(res,res);
+    gsl_integration_workspace_free (wk); 
+    OK
+}
+
+
 int polySolve(KRVEC(a), CVEC(z)) {
     DEBUGMSG("polySolve");
     REQUIRES(an>1,BAD_SIZE);
