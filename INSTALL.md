@@ -61,8 +61,8 @@ NOTE: The examples using graphics do not yet work in windows.
 
 [install]: http://code.haskell.org/hmatrix/INSTALL
 [install2]: http://patch-tag.com/r/aruiz/hmatrix/snapshot/current/content/pretty/INSTALL
-[winpack]: http://perception.inf.um.es/hmatrix/gsl-lapack-windows.zip
-
+[winpack2]: http://perception.inf.um.es/hmatrix/gsl-lapack-windows.zip
+[winpack]: https://github.com/downloads/AlbertoRuiz/hmatrix/gsl-lapack-windows.zip
 
 ## Tests ###############################################
 
