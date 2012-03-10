@@ -15,7 +15,7 @@ main = do
 
 -----------------------------------------------------
 
-foreign import ccall "c_scale_vector"
+foreign import ccall unsafe "c_scale_vector"
     cScaleVector :: Double                -- scale
                  -> CInt -> Ptr Double    -- argument
                  -> CInt -> Ptr Double    -- result
@@ -29,7 +29,7 @@ myScale s x = unsafePerformIO $ do
 -----------------------------------------------------
 -- forcing row order
 
-foreign import ccall "c_diag"
+foreign import ccall unsafe "c_diag"
     cDiag :: CInt -> CInt -> Ptr Double  -- argument
           -> CInt -> Ptr Double          -- result1
           -> CInt -> CInt -> Ptr Double  -- result2

@@ -91,7 +91,7 @@ rootGen m f xi epsabs maxit = unsafePerformIO $ do
     return (take n $ drop 1 sol, path)
 
 
-foreign import ccall "root"
+foreign import ccall unsafe "root"
     c_root:: CInt -> FunPtr TVV -> Double -> CInt -> TVM
 
 -------------------------------------------------------------------------
@@ -130,7 +130,7 @@ rootJGen m f jac xi epsabs maxit = unsafePerformIO $ do
     return (take n $ drop 1 sol, path)
 
 
-foreign import ccall "rootj"
+foreign import ccall unsafe "rootj"
     c_rootj:: CInt -> FunPtr TVV -> FunPtr TVM -> Double -> CInt -> TVM
 
 -------------------------------------------------------
