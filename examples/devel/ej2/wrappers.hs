@@ -15,7 +15,7 @@ main = do
 -----------------------------------------------------
 -- arbitrary data order
 
-foreign import ccall "c_diag"
+foreign import ccall unsafe "c_diag"
     cDiag :: CInt                        -- matrix order
           -> CInt -> CInt -> Ptr Double  -- argument
           -> CInt -> Ptr Double          -- result1

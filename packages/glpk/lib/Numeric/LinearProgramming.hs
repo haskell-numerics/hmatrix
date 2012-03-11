@@ -214,7 +214,7 @@ mkConstrS n objfun b1 = fromLists (ob ++ co) where
 
 -----------------------------------------------------
 
-foreign import ccall "c_simplex_sparse" c_simplex_sparse
+foreign import ccall unsafe "c_simplex_sparse" c_simplex_sparse
     :: CInt -> CInt                  -- rows and cols
     -> CInt -> CInt -> Ptr Double    -- coeffs
     -> CInt -> CInt -> Ptr Double    -- bounds

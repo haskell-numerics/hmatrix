@@ -23,8 +23,8 @@ import Numeric.GSL.Special.Internal
 
 clausen_e :: Double -> (Double,Double)
 clausen_e x = createSFR "clausen_e" $ gsl_sf_clausen_e x
-foreign import ccall SAFE_CHEAP "gsl_sf_clausen_e" gsl_sf_clausen_e :: Double -> Ptr () -> IO CInt
+foreign import ccall unsafe "gsl_sf_clausen_e" gsl_sf_clausen_e :: Double -> Ptr () -> IO CInt
 
 clausen :: Double -> Double
 clausen = gsl_sf_clausen
-foreign import ccall SAFE_CHEAP "gsl_sf_clausen" gsl_sf_clausen :: Double -> Double
+foreign import ccall unsafe "gsl_sf_clausen" gsl_sf_clausen :: Double -> Double

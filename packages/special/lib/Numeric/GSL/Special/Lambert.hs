@@ -25,16 +25,16 @@ import Numeric.GSL.Special.Internal
 
 lambert_W0_e :: Double -> (Double,Double)
 lambert_W0_e x = createSFR "lambert_W0_e" $ gsl_sf_lambert_W0_e x
-foreign import ccall SAFE_CHEAP "gsl_sf_lambert_W0_e" gsl_sf_lambert_W0_e :: Double -> Ptr () -> IO CInt
+foreign import ccall unsafe "gsl_sf_lambert_W0_e" gsl_sf_lambert_W0_e :: Double -> Ptr () -> IO CInt
 
 lambert_W0 :: Double -> Double
 lambert_W0 = gsl_sf_lambert_W0
-foreign import ccall SAFE_CHEAP "gsl_sf_lambert_W0" gsl_sf_lambert_W0 :: Double -> Double
+foreign import ccall unsafe "gsl_sf_lambert_W0" gsl_sf_lambert_W0 :: Double -> Double
 
 lambert_Wm1_e :: Double -> (Double,Double)
 lambert_Wm1_e x = createSFR "lambert_Wm1_e" $ gsl_sf_lambert_Wm1_e x
-foreign import ccall SAFE_CHEAP "gsl_sf_lambert_Wm1_e" gsl_sf_lambert_Wm1_e :: Double -> Ptr () -> IO CInt
+foreign import ccall unsafe "gsl_sf_lambert_Wm1_e" gsl_sf_lambert_Wm1_e :: Double -> Ptr () -> IO CInt
 
 lambert_Wm1 :: Double -> Double
 lambert_Wm1 = gsl_sf_lambert_Wm1
-foreign import ccall SAFE_CHEAP "gsl_sf_lambert_Wm1" gsl_sf_lambert_Wm1 :: Double -> Double
+foreign import ccall unsafe "gsl_sf_lambert_Wm1" gsl_sf_lambert_Wm1 :: Double -> Double
