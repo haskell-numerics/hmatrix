@@ -43,6 +43,8 @@ import Control.Arrow((***))
 import Debug.Trace
 import Control.Monad(when)
 
+import Data.Packed.ST
+
 import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
                       ,sized,classify,Testable,Property
                       ,quickCheckWithResult,maxSize,stdArgs,shrink)
@@ -622,6 +624,7 @@ runBenchmarks :: IO ()
 runBenchmarks = do
     solveBench
     subBench
+    mkVecBench
     multBench
     cholBench
     svdBench
@@ -638,6 +641,14 @@ time msg act = do
     printf "%6.2f s CPU\n" $ (fromIntegral (t1 - t0) / (10^12 :: Double)) :: IO ()
     return ()
 
+timeR msg act = do
+    putStr (msg++" ")
+    t0 <- getCPUTime
+    putStr (show act)
+    t1 <- getCPUTime
+    printf "%6.2f s CPU\n" $ (fromIntegral (t1 - t0) / (10^12 :: Double)) :: IO ()
+    return ()
+
 --------------------------------
 
 manymult n = foldl1' (<>) (map rot2 angles) where
@@ -650,6 +661,37 @@ manymult n = foldl1' (<>) (map rot2 angles) where
               s = sin a
 
 multb n = foldl1' (<>) (replicate (10^6) (ident n :: Matrix Double))
+
+--------------------------------
+
+manyvec0 xs = sum $ map (\x -> x + x**2 + x**3) xs
+manyvec1 xs = sumElements $ fromRows $ map (\x -> fromList [x,x**2,x**3]) xs
+manyvec5 xs = sumElements $ fromRows $ map (\x -> vec3 x (x**2) (x**3)) xs
+
+
+manyvec2 xs = sum $ map (\x -> sqrt(x^2 + (x**2)^2 +(x**3)^2)) xs
+manyvec3 xs = sum $ map (pnorm PNorm2 . (\x -> fromList [x,x**2,x**3])) xs
+
+manyvec4 xs = sum $ map (pnorm PNorm2 . (\x -> vec3 x (x**2) (x**3))) xs
+
+vec3 :: Double -> Double -> Double -> Vector Double
+vec3 a b c = runSTVector $ do
+    v <- newUndefinedVector 3
+    writeVector v 0 a
+    writeVector v 1 b
+    writeVector v 2 c
+    return v
+
+mkVecBench = do
+    let n = 1000000
+        xs = toList $ linspace n (0,1::Double)
+    putStr "\neval data... "; print (sum xs)
+    timeR "listproc        " $ manyvec0 xs
+    timeR "fromList matrix " $ manyvec1 xs
+    timeR "vec3 matrix     " $ manyvec5 xs
+    timeR "listproc norm   " $ manyvec2 xs
+    timeR "norm fromList   " $ manyvec3 xs
+    timeR "norm vec3       " $ manyvec4 xs
 
 --------------------------------
 
