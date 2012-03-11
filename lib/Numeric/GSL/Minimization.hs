@@ -122,7 +122,7 @@ minimizeV method eps maxit szv f xiv = unsafePerformIO $ do
     return (sol, path)
 
 
-foreign import ccall unsafe "gsl-aux.h minimize"
+foreign import ccall safe "gsl-aux.h minimize"
     c_minimize:: CInt -> FunPtr (CInt -> Ptr Double -> Double) -> Double -> CInt -> TVVM
 
 ----------------------------------------------------------------------------------
@@ -179,7 +179,7 @@ minimizeVD method eps maxit istep tol f df xiv = unsafePerformIO $ do
     freeHaskellFunPtr dfp
     return (sol,path)
 
-foreign import ccall unsafe "gsl-aux.h minimizeD"
+foreign import ccall safe "gsl-aux.h minimizeD"
     c_minimizeD :: CInt
                 -> FunPtr (CInt -> Ptr Double -> Double)
                 -> FunPtr TVV

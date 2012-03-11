@@ -26,14 +26,14 @@ iv f n p = f (createV (fromIntegral n) copy "iv") where
         return 0
 
 -- | conversion of Haskell functions into function pointers that can be used in the C side
-foreign import ccall unsafe "wrapper"
+foreign import ccall safe "wrapper"
     mkVecfun :: (CInt -> Ptr Double -> Double)
              -> IO( FunPtr (CInt -> Ptr Double -> Double))
 
-foreign import ccall unsafe "wrapper"
+foreign import ccall safe "wrapper"
     mkVecVecfun :: TVV -> IO (FunPtr TVV)
 
-foreign import ccall unsafe "wrapper"
+foreign import ccall safe "wrapper"
     mkDoubleVecVecfun :: (Double -> TVV) -> IO (FunPtr (Double -> TVV))
 
 aux_vTov :: (Vector Double -> Vector Double) -> TVV
@@ -46,10 +46,10 @@ aux_vTov f n p nr r = g where
     g = do unsafeWith v $ \p' -> copyArray r p' (fromIntegral nr)
            return 0
 
-foreign import ccall unsafe "wrapper"
+foreign import ccall safe "wrapper"
     mkVecMatfun :: TVM -> IO (FunPtr TVM)
 
-foreign import ccall unsafe "wrapper"
+foreign import ccall safe "wrapper"
     mkDoubleVecMatfun :: (Double -> TVM) -> IO (FunPtr (Double -> TVM))
 
 aux_vTom :: (Vector Double -> Matrix Double) -> TVM
