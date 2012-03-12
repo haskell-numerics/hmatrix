@@ -11,10 +11,10 @@ module Real(
     row,
     col,
     (#),(&), (//), blocks,
-    rand
+    rand, randn
 ) where
 
-import Numeric.LinearAlgebra hiding ((<>), (<|>), (<->), (<\>), (.*), (*/))
+import Numeric.LinearAlgebra hiding ((<>), (<\>))
 import System.Random(randomIO)
 
 infixl 7 <>
@@ -44,12 +44,21 @@ infixl 7 \>
 m \> v = flatten (m <\> reshape 1 v)
 
 -- | Pseudorandom matrix with uniform elements between 0 and 1.
-rand :: Int -- ^ rows
+randm :: RandDist
+     -> Int -- ^ rows
      -> Int -- ^ columns
      -> IO (Matrix Double)
-rand r c = do
+randm d r c = do
     seed <- randomIO
-    return (reshape c $ randomVector seed Uniform (r*c))
+    return (reshape c $ randomVector seed d (r*c))
+
+-- | Pseudorandom matrix with uniform elements between 0 and 1.
+rand :: Int -> Int -> IO (Matrix Double)
+rand = randm Uniform
+
+-- | Pseudorandom matrix with normal elements
+randn :: Int -> Int -> IO (Matrix Double)
+randn = randm Gaussian
 
 -- | Real identity matrix.
 eye :: Int -> Matrix Double
