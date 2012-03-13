@@ -308,8 +308,8 @@ double2FloatV v = unsafePerformIO $ do
     return r
 
 
-foreign import ccall "float2double" c_float2double:: TFV
-foreign import ccall "double2float" c_double2float:: TVF
+foreign import ccall unsafe "float2double" c_float2double:: TFV
+foreign import ccall unsafe "double2float" c_double2float:: TVF
 
 ---------------------------------------------------------------
 
@@ -325,8 +325,8 @@ stepD v = unsafePerformIO $ do
     app2 c_stepD vec v vec r "stepD"
     return r
 
-foreign import ccall "stepF" c_stepF :: TFF
-foreign import ccall "stepD" c_stepD :: TVV
+foreign import ccall unsafe "stepF" c_stepF :: TFF
+foreign import ccall unsafe "stepD" c_stepD :: TVV
 
 ---------------------------------------------------------------
 
@@ -342,8 +342,8 @@ condD x y l e g = unsafePerformIO $ do
     app6 c_condD vec x vec y vec l vec e vec g vec r "condD"
     return r
 
-foreign import ccall "condF" c_condF :: CInt -> PF -> CInt -> PF -> CInt -> PF -> TFFF
-foreign import ccall "condD" c_condD :: CInt -> PD -> CInt -> PD -> CInt -> PD -> TVVV
+foreign import ccall unsafe "condF" c_condF :: CInt -> PF -> CInt -> PF -> CInt -> PF -> TFFF
+foreign import ccall unsafe "condD" c_condD :: CInt -> PD -> CInt -> PD -> CInt -> PD -> TVVV
 
 --------------------------------------------------------------------------------
 
@@ -354,11 +354,11 @@ conjugateAux fun x = unsafePerformIO $ do
 
 conjugateQ :: Vector (Complex Float) -> Vector (Complex Float)
 conjugateQ = conjugateAux c_conjugateQ
-foreign import ccall "conjugateQ" c_conjugateQ :: TQVQV
+foreign import ccall unsafe "conjugateQ" c_conjugateQ :: TQVQV
 
 conjugateC :: Vector (Complex Double) -> Vector (Complex Double)
 conjugateC = conjugateAux c_conjugateC
-foreign import ccall "conjugateC" c_conjugateC :: TCVCV
+foreign import ccall unsafe "conjugateC" c_conjugateC :: TCVCV
 
 --------------------------------------------------------------------------------
 
@@ -547,7 +547,7 @@ fscanfVector filename n = do
     free charname
     return res
 
-foreign import ccall "vector_fscanf" gsl_vector_fscanf:: Ptr CChar -> TV
+foreign import ccall unsafe "vector_fscanf" gsl_vector_fscanf:: Ptr CChar -> TV
 
 -- | Saves the elements of a vector, with a given format (%f, %e, %g), to an ASCII file.
 fprintfVector :: FilePath -> String -> Vector Double -> IO ()
@@ -558,7 +558,7 @@ fprintfVector filename fmt v = do
     free charname
     free charfmt
 
-foreign import ccall "vector_fprintf" gsl_vector_fprintf :: Ptr CChar -> Ptr CChar -> TV
+foreign import ccall unsafe "vector_fprintf" gsl_vector_fprintf :: Ptr CChar -> Ptr CChar -> TV
 
 -- | Loads a vector from a binary file (the number of elements must be known in advance).
 freadVector :: FilePath -> Int -> IO (Vector Double)
@@ -569,7 +569,7 @@ freadVector filename n = do
     free charname
     return res
 
-foreign import ccall "vector_fread" gsl_vector_fread:: Ptr CChar -> TV
+foreign import ccall unsafe "vector_fread" gsl_vector_fread:: Ptr CChar -> TV
 
 -- | Saves the elements of a vector to a binary file.
 fwriteVector :: FilePath -> Vector Double -> IO ()
@@ -578,5 +578,5 @@ fwriteVector filename v = do
     app1 (gsl_vector_fwrite charname) vec v "gsl_vector_fwrite"
     free charname
 
-foreign import ccall "vector_fwrite" gsl_vector_fwrite :: Ptr CChar -> TV
+foreign import ccall unsafe "vector_fwrite" gsl_vector_fwrite :: Ptr CChar -> TV
 

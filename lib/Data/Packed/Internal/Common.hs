@@ -140,7 +140,7 @@ errorCode n    = "code "++show n
 
 
 -- | clear the fpu
-foreign import ccall "asm_finit" finit :: IO ()
+foreign import ccall unsafe "asm_finit" finit :: IO ()
 
 -- | check the error code
 check :: String -> IO CInt -> IO ()
@@ -158,7 +158,7 @@ check msg f = do
     return ()
 
 -- | description of GSL error codes
-foreign import ccall "gsl_strerror" gsl_strerror :: CInt -> IO (Ptr CChar)
+foreign import ccall unsafe "gsl_strerror" gsl_strerror :: CInt -> IO (Ptr CChar)
 
 -- | Error capture and conversion to Maybe
 mbCatch :: IO x -> IO (Maybe x)

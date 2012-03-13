@@ -331,11 +331,11 @@ transdataP c1 d c2 =
          sz = sizeOf (d @> 0)
          noneed = r1 == 1 || c1 == 1
 
-foreign import ccall "transF" ctransF :: TFMFM
-foreign import ccall "transR" ctransR :: TMM
-foreign import ccall "transQ" ctransQ :: TQMQM
-foreign import ccall "transC" ctransC :: TCMCM
-foreign import ccall "transP" ctransP :: CInt -> CInt -> Ptr () -> CInt -> CInt -> CInt -> Ptr () -> CInt -> IO CInt
+foreign import ccall unsafe "transF" ctransF :: TFMFM
+foreign import ccall unsafe "transR" ctransR :: TMM
+foreign import ccall unsafe "transQ" ctransQ :: TQMQM
+foreign import ccall unsafe "transC" ctransC :: TCMCM
+foreign import ccall unsafe "transP" ctransP :: CInt -> CInt -> Ptr () -> CInt -> CInt -> CInt -> Ptr () -> CInt -> IO CInt
 
 ----------------------------------------------------------------------
 
@@ -358,19 +358,19 @@ constantAux fun x n = unsafePerformIO $ do
 
 constantF :: Float -> Int -> Vector Float
 constantF = constantAux cconstantF
-foreign import ccall "constantF" cconstantF :: Ptr Float -> TF
+foreign import ccall unsafe "constantF" cconstantF :: Ptr Float -> TF
 
 constantR :: Double -> Int -> Vector Double
 constantR = constantAux cconstantR
-foreign import ccall "constantR" cconstantR :: Ptr Double -> TV
+foreign import ccall unsafe "constantR" cconstantR :: Ptr Double -> TV
 
 constantQ :: Complex Float -> Int -> Vector (Complex Float)
 constantQ = constantAux cconstantQ
-foreign import ccall "constantQ" cconstantQ :: Ptr (Complex Float) -> TQV
+foreign import ccall unsafe "constantQ" cconstantQ :: Ptr (Complex Float) -> TQV
 
 constantC :: Complex Double -> Int -> Vector (Complex Double)
 constantC = constantAux cconstantC
-foreign import ccall "constantC" cconstantC :: Ptr (Complex Double) -> TCV
+foreign import ccall unsafe "constantC" cconstantC :: Ptr (Complex Double) -> TCV
 
 constantP :: Storable a => a -> Int -> Vector a
 constantP a n = unsafePerformIO $ do
@@ -381,7 +381,7 @@ constantP a n = unsafePerformIO $ do
                       poke k a
                       cconstantP (castPtr k) (fi n) (castPtr p) (fi sz) // check "constantP"
     return v
-foreign import ccall "constantP" cconstantP :: Ptr () -> CInt -> Ptr () -> CInt -> IO CInt
+foreign import ccall unsafe "constantP" cconstantP :: Ptr () -> CInt -> Ptr () -> CInt -> IO CInt
 
 ----------------------------------------------------------------------
 
@@ -427,7 +427,7 @@ saveMatrix filename fmt m = do
     free charname
     free charfmt
 
-foreign import ccall "matrix_fprintf" matrix_fprintf :: Ptr CChar -> Ptr CChar -> CInt -> TM
+foreign import ccall unsafe "matrix_fprintf" matrix_fprintf :: Ptr CChar -> Ptr CChar -> CInt -> TM
 
 ----------------------------------------------------------------------
 
