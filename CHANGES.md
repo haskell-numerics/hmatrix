@@ -1,4 +1,4 @@
-0.13.2.0
+0.14.0.0
 --------
 
 - integration over infinite intervals
