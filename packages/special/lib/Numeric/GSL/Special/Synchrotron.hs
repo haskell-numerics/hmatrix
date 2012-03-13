@@ -25,16 +25,16 @@ import Numeric.GSL.Special.Internal
 
 synchrotron_1_e :: Double -> (Double,Double)
 synchrotron_1_e x = createSFR "synchrotron_1_e" $ gsl_sf_synchrotron_1_e x
-foreign import ccall SAFE_CHEAP "gsl_sf_synchrotron_1_e" gsl_sf_synchrotron_1_e :: Double -> Ptr () -> IO CInt
+foreign import ccall unsafe "gsl_sf_synchrotron_1_e" gsl_sf_synchrotron_1_e :: Double -> Ptr () -> IO CInt
 
 synchrotron_1 :: Double -> Double
 synchrotron_1 = gsl_sf_synchrotron_1
-foreign import ccall SAFE_CHEAP "gsl_sf_synchrotron_1" gsl_sf_synchrotron_1 :: Double -> Double
+foreign import ccall unsafe "gsl_sf_synchrotron_1" gsl_sf_synchrotron_1 :: Double -> Double
 
 synchrotron_2_e :: Double -> (Double,Double)
 synchrotron_2_e x = createSFR "synchrotron_2_e" $ gsl_sf_synchrotron_2_e x
-foreign import ccall SAFE_CHEAP "gsl_sf_synchrotron_2_e" gsl_sf_synchrotron_2_e :: Double -> Ptr () -> IO CInt
+foreign import ccall unsafe "gsl_sf_synchrotron_2_e" gsl_sf_synchrotron_2_e :: Double -> Ptr () -> IO CInt
 
 synchrotron_2 :: Double -> Double
 synchrotron_2 = gsl_sf_synchrotron_2
-foreign import ccall SAFE_CHEAP "gsl_sf_synchrotron_2" gsl_sf_synchrotron_2 :: Double -> Double
+foreign import ccall unsafe "gsl_sf_synchrotron_2" gsl_sf_synchrotron_2 :: Double -> Double

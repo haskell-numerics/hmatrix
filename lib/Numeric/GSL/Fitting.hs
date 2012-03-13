@@ -90,7 +90,7 @@ nlFitGen m f jac xiv epsabs epsrel maxit = unsafePerformIO $ do
     freeHaskellFunPtr jp
     return (subVector 2 p sol, path)
 
-foreign import ccall "nlfit"
+foreign import ccall safe "nlfit"
     c_nlfit:: CInt -> FunPtr TVV -> FunPtr TVM -> Double -> Double -> CInt -> CInt -> TVM
 
 -------------------------------------------------------

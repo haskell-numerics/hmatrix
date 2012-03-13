@@ -40,4 +40,4 @@ import Data.Complex
 
 -- | This action removes the GSL default error handler (which aborts the program), so that
 -- GSL errors can be handled by Haskell (using Control.Exception) and ghci doesn't abort.
-foreign import ccall "GSL/gsl-aux.h no_abort_on_error" setErrorHandlerOff :: IO ()
+foreign import ccall unsafe "GSL/gsl-aux.h no_abort_on_error" setErrorHandlerOff :: IO ()

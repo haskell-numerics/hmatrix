@@ -116,7 +116,7 @@ odeSolveV' method mbjac h epsAbs epsRel f  xiv ts = unsafePerformIO $ do
     freeHaskellFunPtr fp
     return sol
 
-foreign import ccall "ode"
+foreign import ccall safe "ode"
     ode_c :: CInt -> Double -> Double -> Double -> FunPtr (Double -> TVV) -> FunPtr (Double -> TVM) -> TVVM
 
 -------------------------------------------------------

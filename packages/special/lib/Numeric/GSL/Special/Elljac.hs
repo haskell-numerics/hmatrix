@@ -38,4 +38,4 @@ elljac_e u m = unsafePerformIO $ do
                 else error $ "error code "++show res++
                              " in elljac_e "++show u++" "++show m
 
-foreign import ccall "gsl_sf_elljac_e" gsl_sf_elljac_e :: Double -> Double -> Ptr Double -> Ptr Double -> Ptr Double -> IO CInt
+foreign import ccall unsafe "gsl_sf_elljac_e" gsl_sf_elljac_e :: Double -> Double -> Ptr Double -> Ptr Double -> Ptr Double -> IO CInt
