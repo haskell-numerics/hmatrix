@@ -186,7 +186,7 @@ showCt (Pointer s) = s ++ "*"
 
 showCa (t, a) = showCt t ++" "++ a
 
-showH hc h@(Header t n args) = "foreign import ccall unsafe \""++n++"\" "++n++" :: "++ (concat$intersperse" -> "$map showHa args) ++" -> " ++ t'
+showH hc h@(Header t n args) = "foreign import ccall SAFE_CHEAP \""++n++"\" "++n++" :: "++ (concat$intersperse" -> "$map showHa args) ++" -> " ++ t'
     where t' | pure h = showHt t
              | otherwise = "IO "++showHt t
 

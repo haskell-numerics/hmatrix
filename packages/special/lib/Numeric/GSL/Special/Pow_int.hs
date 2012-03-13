@@ -23,8 +23,8 @@ import Numeric.GSL.Special.Internal
 
 pow_int_e :: Double -> CInt -> (Double,Double)
 pow_int_e x n = createSFR "pow_int_e" $ gsl_sf_pow_int_e x n
-foreign import ccall unsafe "gsl_sf_pow_int_e" gsl_sf_pow_int_e :: Double -> CInt -> Ptr () -> IO CInt
+foreign import ccall SAFE_CHEAP "gsl_sf_pow_int_e" gsl_sf_pow_int_e :: Double -> CInt -> Ptr () -> IO CInt
 
 pow_int :: Double -> CInt -> Double
 pow_int = gsl_sf_pow_int
-foreign import ccall unsafe "gsl_sf_pow_int" gsl_sf_pow_int :: Double -> CInt -> Double
+foreign import ccall SAFE_CHEAP "gsl_sf_pow_int" gsl_sf_pow_int :: Double -> CInt -> Double
