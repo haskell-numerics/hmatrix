@@ -109,3 +109,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Danny Chan added support for integration over infinite intervals.
 
+- Clark Gaebel removed superfluous thread safety.
+
