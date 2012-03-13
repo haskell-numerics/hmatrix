@@ -1,5 +1,5 @@
 Name:               hmatrix-glpk
-Version:            0.3.0
+Version:            0.3.1
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -35,6 +35,7 @@ library
     extra-libraries:    glpk
 
     if os(OSX)
+        extra-lib-dirs: /usr/lib
         extra-lib-dirs: /opt/local/lib/
         include-dirs: /opt/local/include/
         extra-lib-dirs: /usr/local/lib/
