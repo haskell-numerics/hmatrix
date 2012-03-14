@@ -5,7 +5,7 @@ License-file:       LICENSE
 Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          experimental
-Homepage:           http://perception.inf.um.es/hmatrix
+Homepage:           https://github.com/albertoruiz/hmatrix
 Synopsis:           Interface to GSL special functions
 Description:
  Interface to GSL special functions.
@@ -75,5 +75,5 @@ library
 
 source-repository head
     type:     git
-    location: https://github.com/AlbertoRuiz/hmatrix
+    location: https://github.com/albertoruiz/hmatrix
 

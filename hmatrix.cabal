@@ -5,7 +5,7 @@ License-file:       LICENSE
 Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          provisional
-Homepage:           http://perception.inf.um.es/hmatrix
+Homepage:           https://github.com/albertoruiz/hmatrix
 Synopsis:           Linear algebra and numerical computation
 Description:        Purely functional interface to basic linear algebra
                     and other numerical computations, internally implemented using
@@ -194,7 +194,7 @@ library
 
 source-repository head
     type:     git
-    location: https://github.com/AlbertoRuiz/hmatrix
+    location: https://github.com/albertoruiz/hmatrix
 
 -- The tests are in package hmatrix-tests
 
