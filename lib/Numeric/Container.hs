@@ -36,7 +36,7 @@ module Numeric.Container (
     -- * Matrix product
     Product(..),
     optimiseMult,
-    mXm,mXv,vXm,(<.>),Mul(..),(<\>),
+    mXm,mXv,vXm,(<.>),Mul(..),LSDiv(..),
     outer, kronecker,
     -- * Random numbers
     RandDist(..),
@@ -120,9 +120,15 @@ instance Mul Vector Matrix Vector where
 
 --------------------------------------------------------
 
--- | least squares solution of a linear system, similar to the \\ operator of Matlab\/Octave (based on linearSolveSVD).
-(<\>) :: (Field a) => Matrix a -> Vector a -> Vector a
-infixl 7 <\>
-m <\> v = flatten (linearSolveSVD m (reshape 1 v))
+class LSDiv b c | b -> c, c->b where
+ infixl 7 <\>
+ -- | least squares solution of a linear system, similar to the \\ operator of Matlab\/Octave (based on linearSolveSVD)
+ (<\>)  :: Field t => Matrix t -> b t -> c t
+
+instance LSDiv Vector Vector where
+    m <\> v = flatten (linearSolveSVD m (reshape 1 v))
+
+instance LSDiv Matrix Matrix where
+    (<\>) = linearSolveSVD
 
 --------------------------------------------------------

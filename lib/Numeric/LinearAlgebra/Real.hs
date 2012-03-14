@@ -13,7 +13,7 @@ Additional functions for real arrays.
 -----------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.Real(
-    (<>), (*>), (<*), (<\>), (\>),
+    (<>), (<\>),
     vector,
     linspace,
     eye,
@@ -22,7 +22,8 @@ module Numeric.LinearAlgebra.Real(
     row,
     col,
     (#),(&), (//), blocks,
-    rand, randn
+    rand, randn,
+    module Numeric.LinearAlgebra
 ) where
 
 import Numeric.LinearAlgebra hiding ((<>), (<\>), linspace)
@@ -34,30 +35,16 @@ linspace = LA.linspace
 
 
 infixl 7 <>
--- | Matrix product ('multiply')
-(<>) :: Field t => Matrix t -> Matrix t -> Matrix t
-(<>) = multiply
-
-infixl 7 *>
--- | matrix x vector
-(*>) :: Field t => Matrix t -> Vector t -> Vector t
-m *> v = flatten $ m <> (asColumn v)
-
-infixl 7 <*
--- | vector x matrix
-(<*) :: Field t => Vector t -> Matrix t -> Vector t
-v <* m = flatten $ (asRow v) <> m
+-- | Matrix product
+(<>) ::Mul a b c => a Double -> b Double -> c Double
+(<>) = (LA.<>)
 
 
--- | Least squares solution of a linear system for several right-hand sides, similar to the \\ operator of Matlab\/Octave. (\<\\\>) = 'linearSolveSVD'.
-(<\>) :: (Field a) => Matrix a -> Matrix a -> Matrix a
 infixl 7 <\>
-(<\>) = linearSolveSVD
+-- | Least squares solution of a linear system
+(<\>) ::LSDiv b c => Matrix Double -> b Double -> c Double
+(<\>) = (LA.<\>)
 
--- | Least squares solution of a linear system for a single right-hand side. See '(\<\\\>)'.
-(\>) :: (Field a) => Matrix a -> Vector a -> Vector a
-infixl 7 \>
-m \> v = flatten (m <\> reshape 1 v)
 
 -- | Pseudorandom matrix with uniform elements between 0 and 1.
 randm :: RandDist
