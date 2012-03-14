@@ -111,3 +111,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Clark Gaebel removed superfluous thread safety.
 
+- Jeffrey Burdges reported a glpk link problem on OS/X
+
