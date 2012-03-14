@@ -1,10 +1,21 @@
+-----------------------------------------------------------------------------
+{- |
+Module      :  Numeric.LinearAlgebra.Real
+Copyright   :  (c) Alberto Ruiz 2012
+License     :  GPL
 
--- Alternative interface and utilities for creation of real arrays, useful to work in interactive mode.
+Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+Stability   :  provisional
 
-module Real(
-    module Numeric.LinearAlgebra,
+Additional functions for real arrays.
+
+-}
+-----------------------------------------------------------------------------
+
+module Numeric.LinearAlgebra.Real(
     (<>), (*>), (<*), (<\>), (\>),
     vector,
+    linspace,
     eye,
     zeros, ones,
     diagl,
@@ -14,8 +25,13 @@ module Real(
     rand, randn
 ) where
 
-import Numeric.LinearAlgebra hiding ((<>), (<\>))
+import Numeric.LinearAlgebra hiding ((<>), (<\>), linspace)
+import qualified Numeric.LinearAlgebra as LA
 import System.Random(randomIO)
+
+linspace :: Int -> (Double,Double) -> Vector Double
+linspace = LA.linspace
+
 
 infixl 7 <>
 -- | Matrix product ('multiply')
@@ -95,15 +111,16 @@ infixl 8 &
 a & b = fromBlocks [[a,b]]
 
 -- | Vertical concatenation of real matrices.
-infixl 7 //
 (//) :: Matrix Double -> Matrix Double -> Matrix Double
+infixl 7  //
 a // b = fromBlocks [[a],[b]]
+
 
 -- | Real block matrix from a rectangular list of lists.
 blocks :: [[Matrix Double]] -> Matrix Double
 blocks = fromBlocks
 
--- | A real matrix with a single row, create from a list of elements.
+-- | A real matrix with a single row, created from a list of elements.
 row :: [Double] -> Matrix Double
 row = asRow . vector
 
