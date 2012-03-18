@@ -88,19 +88,19 @@ ones :: Int -- ^ rows
 ones r c = konst 1 (r,c)
 
 -- | Concatenation of real vectors.
-infixl 9 #
+infixl 3 #
 (#) :: Vector Double -> Vector Double -> Vector Double
 a # b = join [a,b]
 
 -- | Horizontal concatenation of real matrices.
-infixl 8 &
-(&) :: Matrix Double -> Matrix Double -> Matrix Double
-a & b = fromBlocks [[a,b]]
+infixl 3 !
+(!) :: Matrix Double -> Matrix Double -> Matrix Double
+a ! b = fromBlocks [[a,b]]
 
 -- | Vertical concatenation of real matrices.
-(//) :: Matrix Double -> Matrix Double -> Matrix Double
-infixl 7  //
-a // b = fromBlocks [[a],[b]]
+(#) :: Matrix Double -> Matrix Double -> Matrix Double
+infixl 2 #
+a # b = fromBlocks [[a],[b]]
 
 
 -- | Real block matrix from a rectangular list of lists.
