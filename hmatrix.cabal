@@ -110,7 +110,7 @@ library
                         Numeric.LinearAlgebra,
                         Numeric.LinearAlgebra.LAPACK,
                         Numeric.LinearAlgebra.Algorithms,
-                        Numeric.LinearAlgebra.Real,
+                        Numeric.LinearAlgebra.Util,
                         Graphics.Plot,
                         Data.Packed.ST,
                         Data.Packed.Development
