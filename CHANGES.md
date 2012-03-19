@@ -5,6 +5,11 @@
 
 - msadams and msbdf methods for ode
 
+- Numeric.LinearAlgebra.Util
+
+- (<\>) extended to multiple right-hand sides
+
+- orth
 
 0.13.0.0
 --------

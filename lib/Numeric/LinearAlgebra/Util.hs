@@ -18,7 +18,8 @@ module Numeric.LinearAlgebra.Util(
     col,
     (&),(!), (#),
     rand, randn,
-    cross
+    cross,
+    norm
 ) where
 
 import Numeric.LinearAlgebra
@@ -95,4 +96,9 @@ cross x y | dim x == 3 && dim y == 3 = fromList [z1,z2,z3]
     z1 = x2*y3-x3*y2
     z2 = x3*y1-x1*y3
     z3 = x1*y2-x2*y1
+
+norm :: Vector Double -> Double
+-- ^ 2-norm of real vectors
+norm = pnorm PNorm2
+
 

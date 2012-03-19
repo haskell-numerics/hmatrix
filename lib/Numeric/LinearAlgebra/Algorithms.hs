@@ -64,6 +64,7 @@ module Numeric.LinearAlgebra.Algorithms (
     nullspacePrec,
     nullVector,
     nullspaceSVD,
+    orth,
 -- * Norms
     Normed(..), NormType(..),
     relativeError,
@@ -444,6 +445,13 @@ nullspacePrec t m = nullspaceSVD (Left (t*eps)) m (rightSV m)
 -- | The nullspace of a matrix, assumed to be one-dimensional, with machine precision.
 nullVector :: Field t => Matrix t -> Vector t
 nullVector = last . nullspacePrec 1
+
+orth :: Field t => Matrix t -> [Vector t]
+-- ^ Return an orthonormal basis of the range space of a matrix
+orth m = take r $ toColumns u
+  where
+    (u,s,_) = compactSVD m
+    r = ranksv eps (max (rows m) (cols m)) (toList s)
 
 ------------------------------------------------------------------------
 
