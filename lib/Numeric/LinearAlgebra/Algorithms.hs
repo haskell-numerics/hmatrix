@@ -74,8 +74,7 @@ module Numeric.LinearAlgebra.Algorithms (
     haussholder,
     unpackQR, unpackHess,
     pinvTol,
-    ranksv,
-    full, economy
+    ranksv
 ) where
 
 
@@ -214,21 +213,6 @@ rightSV m | vertical m = let (_,s,v) = thinSVD m in (s,v)
 leftSV :: Field t => Matrix t -> (Matrix t, Vector Double)
 leftSV m  | vertical m = let (u,s,_) = svd m     in (u,s)
           | otherwise  = let (u,s,_) = thinSVD m in (u,s)
-
-
-{-# DEPRECATED full "use fullSVD instead" #-}
-full svdFun m = (u, d ,v) where
-    (u,s,v) = svdFun m
-    d = diagRect 0 s r c
-    r = rows m
-    c = cols m
-
-{-# DEPRECATED economy "use compactSVD instead" #-}
-economy svdFun m = (u', subVector 0 d s, v') where
-    (u,s,v) = svdFun m
-    d = rankSVD (1*eps) m s `max` 1
-    u' = takeColumns d u
-    v' = takeColumns d v
 
 
 --------------------------------------------------------------
