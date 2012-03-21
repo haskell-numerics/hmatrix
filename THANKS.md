@@ -113,3 +113,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Jeffrey Burdges reported a glpk link problem on OS/X
 
+- Jian Zhang reported the Windows installation problem due to new ODE interface.
+

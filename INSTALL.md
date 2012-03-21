@@ -33,6 +33,7 @@ GSL must be installed via MacPorts:
 
 We use this [GSL binary](http://www.miscdebris.net/blog/2009/04/20/mingw-345-binaries-of-gnu-scientific-library-112-for-use-with-mingw-and-visual-c/), and blas/lapack dlls built with g77 (contributed by Gilberto Camara). All required files are in [gsl-lapack-windows.zip][winpack].
 
+(Due to [issue 21](https://github.com/albertoruiz/hmatrix/issues/21) we need hmatrix-0.13.1.0.)
 
 1) Install the Haskell Platform (tested on 2011.2.0.1)
 
@@ -44,11 +45,11 @@ We use this [GSL binary](http://www.miscdebris.net/blog/2009/04/20/mingw-345-bin
 
 3.a) In a msys shell the installation should be fully automatic:
 
-    $ cabal install hmatrix --extra-lib-dir=${GSL} --extra-include-dir=${GSL}
+    $ cabal install hmatrix-0.13.1.0 --extra-lib-dir=${GSL} --extra-include-dir=${GSL}
 
 3.b) Alternatively, in a normal windows cmd:
 
-     > cabal unpack hmatrix
+     > cabal unpack hmatrix-0.13.1.0
 
    Edit hmatrix.cabal, in line 28 change build-type to "Simple", and then
 
