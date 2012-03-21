@@ -79,6 +79,18 @@ gsl112 bInfo buildInfo =
            ++ (join $ map ("-L"++) $ extraLibDirs buildInfo) ++ " -lgsl -lgslcblas"
            ++ " > /dev/null 2> /dev/null"
 
+-- test for odeiv2
+gslodeiv2 bInfo buildInfo =
+    "echo \"#include <gsl/gsl_odeiv2.h>\nint main(){return 0;}\""
+           ++" > " ++ (buildDir bInfo) ++ "/dummy.c; gcc " 
+           ++ (buildDir bInfo) ++ "/dummy.c "
+           ++ (join $ ccOptions buildInfo) ++ " "
+           ++ (join $ cppOptions buildInfo) ++ " "
+           ++ (join $ map ("-I"++) $ includeDirs buildInfo)
+           ++" -o " ++ (buildDir bInfo) ++ "/dummy "
+           ++ (join $ map ("-L"++) $ extraLibDirs buildInfo) ++ " -lgsl -lgslcblas"
+           ++ " > /dev/null 2> /dev/null"
+
 
 checkCommand c = (ExitSuccess ==) `fmap` system c
 
@@ -133,9 +145,11 @@ config bInfo = do
             return (Just emptyBuildInfo { buildable = False }, [])
         Just ops -> do
             putStrLn $ " OK " ++ ops
-            g <- checkCommand $ gsl112 bInfo buildInfo
-            let hbi = if g
-                        then emptyBuildInfo { extraLibs = words ops}
-                        else emptyBuildInfo { extraLibs = words ops, ccOptions = ["-DGSL110"]}
+            g1 <- checkCommand $ gsl112 bInfo buildInfo
+            let op1 = if g1 then "" else "-DGSL110"
+            g2 <- checkCommand $ gslodeiv2 bInfo buildInfo
+            let op2 = if g2 then "" else "-DGSLODE1"
+                opts = filter (not.null) [op1,op2]
+            let hbi = emptyBuildInfo { extraLibs = words ops, ccOptions = opts }
             return (Just hbi, [])
 
