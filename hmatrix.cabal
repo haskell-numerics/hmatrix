@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.14.0.1
+Version:            0.14.1.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -112,6 +112,7 @@ library
                         Numeric.LinearAlgebra.LAPACK,
                         Numeric.LinearAlgebra.Algorithms,
                         Numeric.LinearAlgebra.Util,
+                        Numeric.LinearAlgebra.Util.Convolution,
                         Graphics.Plot,
                         Data.Packed.ST,
                         Data.Packed.Development

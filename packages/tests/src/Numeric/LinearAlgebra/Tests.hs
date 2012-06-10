@@ -42,6 +42,7 @@ import Data.Packed.Development(unsafeFromForeignPtr,unsafeToForeignPtr)
 import Control.Arrow((***))
 import Debug.Trace
 import Control.Monad(when)
+import Numeric.LinearAlgebra.Util.Convolution
 
 import Data.Packed.ST
 
@@ -421,7 +422,20 @@ accumTest = utest "accum" ok
          &&
          toList (flatten x) == [1,0,0,0,1,0,0,0,1] 
 
----------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+convolutionTest = utest "convolution" ok
+  where
+--    a = fromList [1..10]               :: Vector Double
+    b = fromList [1..3]                :: Vector Double
+    c = (5><7) [1..]                   :: Matrix Double
+--    d = (3><3) [0,-1,0,-1,4,-1,0,-1,0] :: Matrix Double
+    ok =  separable (corr b) c == corr2 (outer b b) c
+       && separable (conv b) c == conv2 (outer b b) c
+
+--------------------------------------------------------------------------------
+
+
 
 -- | All tests must pass with a maximum dimension of about 20
 --  (some tests may fail with bigger sizes due to precision loss).
@@ -596,6 +610,7 @@ runTests n = do
         , condTest
         , conformTest
         , accumTest
+        , convolutionTest
         ]
     when (errors c + failures c > 0) exitFailure
     return ()
