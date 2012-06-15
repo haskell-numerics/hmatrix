@@ -112,7 +112,6 @@ library
                         Numeric.LinearAlgebra.LAPACK,
                         Numeric.LinearAlgebra.Algorithms,
                         Numeric.LinearAlgebra.Util,
-                        Numeric.LinearAlgebra.Util.Convolution,
                         Graphics.Plot,
                         Data.Packed.ST,
                         Data.Packed.Development
@@ -129,7 +128,8 @@ library
                         Numeric.IO,
                         Numeric.Chain,
                         Numeric.Vector,
-                        Numeric.Matrix
+                        Numeric.Matrix,
+                        Numeric.LinearAlgebra.Util.Convolution
 
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c

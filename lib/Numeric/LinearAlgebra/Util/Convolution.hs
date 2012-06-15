@@ -12,12 +12,8 @@ Stability   :  provisional
 -----------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.Util.Convolution(
-   -- * 1D
-   corr, conv,
-   -- * 2D
-   corr2, conv2,
-   -- * Misc
-   separable,  corrMin
+   corr, conv, corrMin,
+   corr2, conv2, separable
 ) where
 
 import Numeric.LinearAlgebra
@@ -32,8 +28,8 @@ corr :: Product t => Vector t -- ^ kernel
                   -> Vector t
 {- ^ correlation
 
-@\> (fromList[1,2,3]) (fromList [1..10])
-fromList [14.0,20.0,26.0,32.0,38.0,44.0,50.0,56.0]@
+>>> corr (fromList[1,2,3]) (fromList [1..10])
+fromList [14.0,20.0,26.0,32.0,38.0,44.0,50.0,56.0]
 
 -}
 corr ker v | dim ker <= dim v = vectSS (dim ker) v <> ker
@@ -43,8 +39,8 @@ corr ker v | dim ker <= dim v = vectSS (dim ker) v <> ker
 conv :: (Product t, Num t) => Vector t -> Vector t -> Vector t
 {- ^ convolution ('corr' with reversed kernel and padded input, equivalent to polynomial product)
 
-@\> conv (fromList[1,1]) (fromList [-1,1])
-fromList [-1.0,0.0,1.0]@
+>>> conv (fromList[1,1]) (fromList [-1,1])
+fromList [-1.0,0.0,1.0]
 
 -}
 conv ker v = corr ker' v'
@@ -113,6 +109,6 @@ conv2 k m = corr2 (fliprl . flipud $ k) pm
 
 
 separable :: Element t => (Vector t -> Vector t) -> Matrix t -> Matrix t
--- ^ 2D process implemented as separated 1D processes by rows and columns.
+-- ^ matrix computation implemented as separated vector operations by rows and columns.
 separable f = fromColumns . map f . toColumns . fromRows . map f . toRows
 

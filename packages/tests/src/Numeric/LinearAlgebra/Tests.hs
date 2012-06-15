@@ -42,7 +42,7 @@ import Data.Packed.Development(unsafeFromForeignPtr,unsafeToForeignPtr)
 import Control.Arrow((***))
 import Debug.Trace
 import Control.Monad(when)
-import Numeric.LinearAlgebra.Util.Convolution
+import Numeric.LinearAlgebra.Util hiding (ones,row,col)
 
 import Data.Packed.ST
 
@@ -435,6 +435,23 @@ convolutionTest = utest "convolution" ok
 
 --------------------------------------------------------------------------------
 
+kroneckerTest = utest "kronecker" ok
+  where
+    a,x,b :: Matrix Double
+    a = (3><4) [1..]
+    x = (4><2) [3,5..]
+    b = (2><5) [0,5..]
+    v1 = vec (a <> x <> b)
+    v2 = (trans b `kronecker` a) <> vec x
+    s = trans b <> b
+    v3 = vec s
+    v4 = dup 5 <> vech s
+    ok = v1 == v2 && v3 == v4
+      && vtrans 1 a == trans a
+      && vtrans (rows a) a == asColumn (vec a)
+
+--------------------------------------------------------------------------------
+
 
 
 -- | All tests must pass with a maximum dimension of about 20
@@ -611,6 +628,7 @@ runTests n = do
         , conformTest
         , accumTest
         , convolutionTest
+        , kroneckerTest
         ]
     when (errors c + failures c > 0) exitFailure
     return ()

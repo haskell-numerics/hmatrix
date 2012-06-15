@@ -1,7 +1,9 @@
 0.14.1.0
 --------
 
-- convolution
+- In Numeric.LinearAlgebra.Util:
+    convolution: corr, conv, corr2, conv2, separable, corrMin
+    kronecker: vec, vech, dup, vtrans
 
 0.14.0.0
 --------
