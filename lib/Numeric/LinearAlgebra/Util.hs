@@ -29,6 +29,10 @@ module Numeric.LinearAlgebra.Util(
     corr2, conv2, separable,
     -- * Tools for the Kronecker product
     --
+    -- | (see A. Fusiello, A matter of notation: Several uses of the Kronecker product in
+    --  3d computer vision, Pattern Recognition Letters 28 (15) (2007) 2127-2132)
+
+    --
     -- | @`vec` (a \<> x \<> b) == ('trans' b ` 'kronecker' ` a) \<> 'vec' x@
     vec,
     vech,
