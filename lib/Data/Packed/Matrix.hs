@@ -46,7 +46,7 @@ import Data.Array
 
 import Data.List(transpose,intersperse)
 import Foreign.Storable(Storable)
-import Control.Arrow((***))
+import Control.Monad(liftM)
 
 -------------------------------------------------------------------
 
@@ -352,7 +352,11 @@ toBlocksEvery r c m = toBlocks rs cs m where
 
 -------------------------------------------------------------------
 
-mk c g = \k v -> g ((fromIntegral *** fromIntegral) (divMod k c)) v 
+-- Given a column number and a function taking matrix indexes, returns
+-- a function which takes vector indexes (that can be used on the
+-- flattened matrix).
+mk :: Int -> ((Int, Int) -> t) -> (Int -> t)
+mk c g = \k -> g (divMod k c)
 
 {- | 
 
@@ -365,9 +369,8 @@ m[1,1] = 5
 m[1,2] = 6@
 -}
 mapMatrixWithIndexM_
-  :: (Element a, Num a,
-      Functor f, Monad f) =>
-      ((a, a) -> a -> f ()) -> Matrix a -> f ()
+  :: (Element a, Num a, Monad m) =>
+      ((Int, Int) -> a -> m ()) -> Matrix a -> m ()
 mapMatrixWithIndexM_ g m = mapVectorWithIndexM_ (mk c g) . flatten $ m 
   where
     c = cols m
@@ -381,11 +384,9 @@ Just (3><3)
  ,  20.0,  21.0, 122.0 ]@
 -}
 mapMatrixWithIndexM
-  :: (Foreign.Storable.Storable t, 
-      Element a, Num a,
-      Functor f, Monad f) =>
-      ((a, a) -> a -> f t) -> Matrix a -> f (Matrix t)
-mapMatrixWithIndexM g m = fmap (reshape c) . mapVectorWithIndexM (mk c g) . flatten $ m 
+  :: (Element a, Storable b, Monad m) =>
+      ((Int, Int) -> a -> m b) -> Matrix a -> m (Matrix b)
+mapMatrixWithIndexM g m = liftM (reshape c) . mapVectorWithIndexM (mk c g) . flatten $ m 
     where
       c = cols m
 
@@ -396,10 +397,12 @@ mapMatrixWithIndexM g m = fmap (reshape c) . mapVectorWithIndexM (mk c g) . flat
  ,  10.0, 111.0,  12.0
  ,  20.0,  21.0, 122.0 ]@
  -}
-mapMatrixWithIndex :: (Foreign.Storable.Storable t, 
-      Element a, Num a) =>
-      ((a, a) -> a -> t) -> Matrix a -> Matrix t
-mapMatrixWithIndex g = head . mapMatrixWithIndexM (\a b -> [g a b])
+mapMatrixWithIndex
+  :: (Element a, Storable b) =>
+      ((Int, Int) -> a -> b) -> Matrix a -> Matrix b
+mapMatrixWithIndex g m = reshape c . mapVectorWithIndex (mk c g) . flatten $ m
+    where
+      c = cols m
 
 mapMatrix :: (Storable a, Storable b) => (a -> b) -> Matrix a -> Matrix b
 mapMatrix f = liftMatrix (mapVector f)
