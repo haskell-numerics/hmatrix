@@ -115,3 +115,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Jian Zhang reported the Windows installation problem due to new ODE interface.
 
+- Mihaly Barasz cleaned up matrix map functions.
+
