@@ -134,7 +134,7 @@ library
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
 
-    cpp-options:        -DVECTOR -DBINARY
+    cpp-options:        -DBINARY
 
  -- ghc-prof-options:   -auto
 

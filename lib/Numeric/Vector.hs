@@ -25,33 +25,6 @@ import Numeric.Container
 
 -------------------------------------------------------------------
 
-#ifndef VECTOR
-import Foreign(Storable)
-#endif
-
-------------------------------------------------------------------
-
-#ifndef VECTOR
-
-instance (Show a, Storable a) => (Show (Vector a)) where
-    show v = (show (dim v))++" |> " ++ show (toList v)
-
-instance Container Vector a => Eq (Vector a) where
-    (==) = equal
-
-instance (Element a, Read a) => Read (Vector a) where
-    readsPrec _ s = [((d |>) . read $ listnums, rest)]
-        where (thing,rest) = breakAt ']' s
-              (dims,listnums) = breakAt '>' thing
-              d = read . init . fst . breakAt '|' $ dims
-              breakAt c l = (a++[c],tail b) where
-                  (a,b) = break (==c) l
-
-#endif
-
-
-------------------------------------------------------------------
-
 adaptScalar f1 f2 f3 x y
     | dim x == 1 = f1   (x@>0) y
     | dim y == 1 = f3 x (y@>0)
