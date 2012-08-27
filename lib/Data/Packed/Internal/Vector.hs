@@ -55,47 +55,16 @@ import GHC.Base
 import GHC.IOBase hiding (liftIO)
 #endif
 
-#ifdef VECTOR
 import qualified Data.Vector.Storable as Vector
 import Data.Vector.Storable(Vector,
                             unsafeToForeignPtr,
                             unsafeFromForeignPtr,
                             unsafeWith)
-#else
-import Foreign.ForeignPtr(withForeignPtr)
-#endif
 
-#ifdef VECTOR
 
 -- | Number of elements
 dim :: (Storable t) => Vector t -> Int
 dim = Vector.length
-
-#else
-
--- | One-dimensional array of objects stored in a contiguous memory block.
-data Vector t =
-    V { ioff :: {-# UNPACK #-} !Int              -- ^ offset of first element
-      , idim :: {-# UNPACK #-} !Int              -- ^ number of elements
-      , fptr :: {-# UNPACK #-} !(ForeignPtr t)   -- ^ foreign pointer to the memory block
-      }
-
-unsafeToForeignPtr :: Storable a => Vector a -> (ForeignPtr a, Int, Int)
-unsafeToForeignPtr v = (fptr v, ioff v, idim v)
-
--- | Same convention as in Roman Leshchinskiy's vector package.
-unsafeFromForeignPtr :: Storable a => ForeignPtr a -> Int -> Int -> Vector a
-unsafeFromForeignPtr fp i n | n > 0 = V {ioff = i, idim = n, fptr = fp}
-                            | otherwise = error "unsafeFromForeignPtr with dim < 1"
-
-unsafeWith (V i _ fp) m = withForeignPtr fp $ \p -> m (p `advancePtr` i)
-{-# INLINE unsafeWith #-}
-
--- | Number of elements
-dim :: (Storable t) => Vector t -> Int
-dim = idim
-
-#endif
 
 
 -- C-Haskell vector adapter
@@ -204,36 +173,8 @@ subVector :: Storable t => Int       -- ^ index of the starting element
                         -> Int       -- ^ number of elements to extract
                         -> Vector t  -- ^ source
                         -> Vector t  -- ^ result
-
-#ifdef VECTOR
-
 subVector = Vector.slice
 
-{-
-subVector k l v
-    | k<0 || k >= n || k+l > n || l < 0 = error "subVector out of range"
-    | otherwise = unsafeFromForeignPtr fp (i+k) l
-  where
-    (fp, i, n) = unsafeToForeignPtr v
--}
-
-#else
-
-subVector k l v@V{idim = n, ioff = i}
-    | k<0 || k >= n || k+l > n || l < 0 = error "subVector out of range"
-    | otherwise = v {idim = l, ioff = i+k}
-
-{-
-subVectorCopy k l (v@V {idim=n})
-    | k<0 || k >= n || k+l > n || l < 0 = error "subVector out of range"
-    | otherwise = unsafePerformIO $ do
-        r <- createVector l
-        let f _ s _ d = copyArray d (advancePtr s k) l >> return 0
-        app2 f vec v vec r "subVector"
-        return r
--}
-
-#endif
 
 {- | Reads a vector position:
 
