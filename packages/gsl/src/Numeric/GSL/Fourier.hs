@@ -20,10 +20,13 @@ module Numeric.GSL.Fourier (
     ifft
 ) where
 
-import Data.Packed.Internal
+import Data.Packed
+import Data.Packed.Development
 import Data.Complex
 import Foreign.C.Types
 import System.IO.Unsafe (unsafePerformIO)
+import Numeric.GSL.Internal
+
 
 genfft code v = unsafePerformIO $ do
     r <- createVector (dim v)
@@ -45,3 +48,4 @@ fft = genfft 0
 -- | The inverse of 'fft', using /gsl_fft_complex_inverse/.
 ifft :: Vector (Complex Double) -> Vector (Complex Double)
 ifft = genfft 1
+

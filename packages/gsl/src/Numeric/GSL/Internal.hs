@@ -12,12 +12,30 @@
 
 module Numeric.GSL.Internal where
 
-import Data.Packed.Internal
+import Data.Packed
+import Data.Packed.Development
+import Data.Vector.Storable(unsafeWith)
 
 import Foreign.Marshal.Array(copyArray)
 import Foreign.Ptr(Ptr, FunPtr)
 import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
+import Foreign.Storable(Storable)
+import Data.Complex
+
+type PD = Ptr Double
+type PC = Ptr (Complex Double) 
+type TV = CInt -> PD -> IO CInt
+type TVV = CInt -> PD -> TV
+type TM = CInt -> CInt -> PD -> IO CInt
+type TVM = CInt -> PD -> TM
+type TVVM = CInt -> PD -> TVM
+type TVCV = CInt -> PD -> TCV
+type TCV = CInt -> PC -> IO CInt
+type TCVCV = CInt -> PC -> TCV
+
+fi :: Int -> CInt
+fi = fromIntegral
 
 iv :: (Vector Double -> Double) -> (CInt -> Ptr Double -> Double)
 iv f n p = f (createV (fromIntegral n) copy "iv") where
@@ -62,12 +80,20 @@ aux_vTom f n p rr cr r = g where
     g = do unsafeWith v $ \p' -> copyArray r p' (fromIntegral $ rr*cr)
            return 0
 
+createV :: Storable t
+        => Int -> (CInt -> Ptr t -> IO CInt) -> String -> Vector t
 createV n fun msg = unsafePerformIO $ do
     r <- createVector n
     app1 fun vec r msg
     return r
 
+createMIO :: Storable t
+          => Int -> Int
+          -> (CInt -> CInt -> Ptr t -> IO CInt)
+          -> String
+          -> IO (Matrix t)
 createMIO r c fun msg = do
     res <- createMatrix RowMajor r c
     app1 fun mat res msg
     return res
+

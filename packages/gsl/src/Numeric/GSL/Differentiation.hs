@@ -26,7 +26,7 @@ import Foreign.C.Types
 import Foreign.Marshal.Alloc(malloc, free)
 import Foreign.Ptr(Ptr, FunPtr, freeHaskellFunPtr)
 import Foreign.Storable(peek)
-import Data.Packed.Internal(check,(//))
+import Data.Packed.Development(check,(//))
 import System.IO.Unsafe(unsafePerformIO)
 
 derivGen ::

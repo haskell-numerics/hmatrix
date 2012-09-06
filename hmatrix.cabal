@@ -1,4 +1,4 @@
-Name:               hmatrix
+Name:               hmatrix-base
 Version:            0.15.0.0
 License:            GPL
 License-file:       LICENSE
@@ -25,37 +25,11 @@ tested-with:        GHC ==7.4
 
 cabal-version:      >=1.8
 
-build-type:         Custom
+build-type:         Simple
 
-extra-source-files: Config.hs THANKS.md INSTALL.md CHANGES.md
+extra-source-files: THANKS.md INSTALL.md CHANGES.md
 
-extra-source-files: examples/deriv.hs
-                    examples/integrate.hs
-                    examples/minimize.hs
-                    examples/root.hs
-                    examples/ode.hs
-                    examples/pca1.hs
-                    examples/pca2.hs
-                    examples/pinv.hs
-                    examples/data.txt
-                    examples/lie.hs
-                    examples/kalman.hs
-                    examples/parallel.hs
-                    examples/plot.hs
-                    examples/inplace.hs
-                    examples/error.hs
-                    examples/fitting.hs
-                    examples/devel/ej1/wrappers.hs
-                    examples/devel/ej1/functions.c
-                    examples/devel/ej2/wrappers.hs
-                    examples/devel/ej2/functions.c
-                    examples/vector.hs
-                    examples/monadic.hs
-                    examples/bool.hs
-                    examples/multiply.hs
-
-extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
-                    lib/Numeric/GSL/gsl-ode.c
+extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h
 
 flag dd
     description:    svd = zgesdd
@@ -97,21 +71,11 @@ library
     Exposed-modules:    Data.Packed,
                         Data.Packed.Vector,
                         Data.Packed.Matrix,
-                        Numeric.GSL.Differentiation,
-                        Numeric.GSL.Integration,
-                        Numeric.GSL.Fourier,
-                        Numeric.GSL.Polynomials,
-                        Numeric.GSL.Minimization,
-                        Numeric.GSL.Root,
-                        Numeric.GSL.Fitting,
-                        Numeric.GSL.ODE,
-                        Numeric.GSL,
                         Numeric.Container,
                         Numeric.LinearAlgebra,
                         Numeric.LinearAlgebra.LAPACK,
                         Numeric.LinearAlgebra.Algorithms,
                         Numeric.LinearAlgebra.Util,
-                        Graphics.Plot,
                         Data.Packed.ST,
                         Data.Packed.Development
     other-modules:      Data.Packed.Internal,
@@ -120,7 +84,6 @@ library
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix,
                         Data.Packed.Random,
-                        Numeric.GSL.Internal,
                         Numeric.GSL.Vector,
                         Numeric.Conversion,
                         Numeric.ContainerBoot,
@@ -190,7 +153,7 @@ library
 -- The extra-libraries required for GSL and LAPACK
 -- should now be automatically detected by configure(.hs)
 
-    extra-libraries:
+    extra-libraries: gsl blas lapack
     extra-lib-dirs:
 
 source-repository head

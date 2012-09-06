@@ -19,8 +19,10 @@ module Numeric.GSL.Polynomials (
     polySolve
 ) where
 
-import Data.Packed.Internal
+import Data.Packed
+import Data.Packed.Development
 import Data.Complex
+import Numeric.GSL.Internal
 import System.IO.Unsafe (unsafePerformIO)
 
 #if __GLASGOW_HASKELL__ >= 704

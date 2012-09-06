@@ -49,8 +49,8 @@ module Numeric.GSL.Root (
     rootJ, RootMethodJ(..),
 ) where
 
-import Data.Packed.Internal
-import Data.Packed.Matrix
+import Data.Packed.Development
+import Data.Packed
 import Numeric.GSL.Internal
 import Foreign.Ptr(FunPtr, freeHaskellFunPtr)
 import Foreign.C.Types

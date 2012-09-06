@@ -32,7 +32,8 @@ module Numeric.GSL.ODE (
     odeSolve, odeSolveV, ODEMethod(..), Jacobian
 ) where
 
-import Data.Packed.Internal
+import Data.Packed
+import Data.Packed.Development
 import Numeric.GSL.Internal
 
 import Foreign.Ptr(FunPtr, nullFunPtr, freeHaskellFunPtr)

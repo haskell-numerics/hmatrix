@@ -60,8 +60,8 @@ module Numeric.GSL.Minimization (
 ) where
 
 
-import Data.Packed.Internal
-import Data.Packed.Matrix
+import Data.Packed
+import Data.Packed.Development
 import Numeric.GSL.Internal
 
 import Foreign.Ptr(Ptr, FunPtr, freeHaskellFunPtr)
@@ -117,7 +117,7 @@ minimizeV method eps maxit szv f xiv = unsafePerformIO $ do
                          "minimize"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
-        sol = cdat $ dropColumns 3 $ dropRows (it-1) path
+        sol = flatten $ dropColumns 3 $ dropRows (it-1) path
     freeHaskellFunPtr fp
     return (sol, path)
 
@@ -174,7 +174,7 @@ minimizeVD method eps maxit istep tol f df xiv = unsafePerformIO $ do
                          "minimizeD"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
-        sol = cdat $ dropColumns 2 $ dropRows (it-1) path
+        sol = flatten $ dropColumns 2 $ dropRows (it-1) path
     freeHaskellFunPtr fp
     freeHaskellFunPtr dfp
     return (sol,path)

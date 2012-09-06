@@ -122,8 +122,11 @@ gnuplotX :: String -> IO ()
 gnuplotX command = do { _ <- system cmdstr; return()} where
     cmdstr = "echo \""++command++"\" | gnuplot -persist"
 
+datafollows :: String
 datafollows = "\\\"-\\\""
 
+
+prep :: [[Double]] -> String
 prep = (++"e\n\n") . unlines . map (unwords . map show)
 
 
