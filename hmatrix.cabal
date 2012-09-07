@@ -94,7 +94,8 @@ library
                         Numeric.LinearAlgebra.Util.Convolution
 
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
-                        lib/Numeric/GSL/gsl-aux.c
+                        lib/Numeric/GSL/vector-aux.c
+                        lib/Numeric/GSL/gsl-vector-aux.c
 
     cpp-options:        -DBINARY
 

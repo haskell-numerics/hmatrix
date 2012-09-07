@@ -1,5 +1,3 @@
-#include <gsl/gsl_complex.h>
-
 #define RVEC(A) int A##n, double*A##p
 #define RMAT(A) int A##r, int A##c, double* A##p
 #define KRVEC(A) int A##n, const double*A##p
@@ -20,20 +18,8 @@
 #define KQVEC(A) int A##n, const gsl_complex_float*A##p
 #define KQMAT(A) int A##r, int A##c, const gsl_complex_float* A##p
 
-#include <gsl/gsl_blas.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_fft_complex.h>
-#include <gsl/gsl_integration.h>
-#include <gsl/gsl_deriv.h>
-#include <gsl/gsl_poly.h>
-#include <gsl/gsl_multimin.h>
-#include <gsl/gsl_multiroots.h>
-#include <gsl/gsl_complex_math.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_multifit_nlin.h>
 #include <string.h>
+#include <math.h>
 #include <stdio.h>
 
 #define MACRO(B) do {B} while (0)
@@ -64,32 +50,6 @@
 #define DEBUGVEC(MSG,X)
 #endif
 
-#define DVVIEW(A) gsl_vector_view A = gsl_vector_view_array(A##p,A##n)
-#define DMVIEW(A) gsl_matrix_view A = gsl_matrix_view_array(A##p,A##r,A##c)
-#define CVVIEW(A) gsl_vector_complex_view A = gsl_vector_complex_view_array((double*)A##p,A##n)
-#define CMVIEW(A) gsl_matrix_complex_view A = gsl_matrix_complex_view_array((double*)A##p,A##r,A##c)
-#define KDVVIEW(A) gsl_vector_const_view A = gsl_vector_const_view_array(A##p,A##n)
-#define KDMVIEW(A) gsl_matrix_const_view A = gsl_matrix_const_view_array(A##p,A##r,A##c)
-#define KCVVIEW(A) gsl_vector_complex_const_view A = gsl_vector_complex_const_view_array((double*)A##p,A##n)
-#define KCMVIEW(A) gsl_matrix_complex_const_view A = gsl_matrix_complex_const_view_array((double*)A##p,A##r,A##c)
-
-#define FVVIEW(A) gsl_vector_float_view A = gsl_vector_float_view_array(A##p,A##n)
-#define FMVIEW(A) gsl_matrix_float_view A = gsl_matrix_float_view_array(A##p,A##r,A##c)
-#define QVVIEW(A) gsl_vector_complex_float_view A = gsl_vector_float_complex_view_array((float*)A##p,A##n)
-#define QMVIEW(A) gsl_matrix_complex_float_view A = gsl_matrix_float_complex_view_array((float*)A##p,A##r,A##c)
-#define KFVVIEW(A) gsl_vector_float_const_view A = gsl_vector_float_const_view_array(A##p,A##n)
-#define KFMVIEW(A) gsl_matrix_float_const_view A = gsl_matrix_float_const_view_array(A##p,A##r,A##c)
-#define KQVVIEW(A) gsl_vector_complex_float_const_view A = gsl_vector_complex_float_const_view_array((float*)A##p,A##n)
-#define KQMVIEW(A) gsl_matrix_complex_float_const_view A = gsl_matrix_complex_float_const_view_array((float*)A##p,A##r,A##c)
-
-#define V(a) (&a.vector)
-#define M(a) (&a.matrix)
-
-#define GCVEC(A) int A##n, gsl_complex*A##p
-#define KGCVEC(A) int A##n, const gsl_complex*A##p
-
-#define GQVEC(A) int A##n, gsl_complex_float*A##p
-#define KGQVEC(A) int A##n, const gsl_complex_float*A##p
 
 #define BAD_SIZE 2000
 #define BAD_CODE 2001
@@ -116,7 +76,8 @@ int sumR(KRVEC(x),RVEC(r)) {
     rp[0] = res;
     OK
 }
-    
+
+/*
 int sumQ(KQVEC(x),QVEC(r)) {
     DEBUGMSG("sumQ");
     REQUIRES(rn==1,BAD_SIZE);
@@ -146,6 +107,7 @@ int sumC(KCVEC(x),CVEC(r)) {
     rp[0] = res;
     OK
 }
+*/
 
 int prodF(KFVEC(x),FVEC(r)) {
     DEBUGMSG("prodF");
@@ -166,7 +128,8 @@ int prodR(KRVEC(x),RVEC(r)) {
     rp[0] = res;
     OK
 }
-    
+
+/*
 int prodQ(KQVEC(x),QVEC(r)) {
     DEBUGMSG("prodQ");
     REQUIRES(rn==1,BAD_SIZE);
@@ -200,7 +163,9 @@ int prodC(KCVEC(x),CVEC(r)) {
     rp[0] = res;
     OK
 }
+*/
 
+/*
 int dotF(KFVEC(x), KFVEC(y), FVEC(r)) {
     DEBUGMSG("dotF");
     REQUIRES(xn==yn,BAD_SIZE); 
@@ -309,7 +274,7 @@ int toScalarQ(int code, KQVEC(x), FVEC(r)) {
     rp[0] = res;
     OK
 }
-
+*/
 
 inline double sign(double x) {
     if(x>0) {
@@ -331,6 +296,7 @@ inline float float_sign(float x) {
     }
 }
 
+/*
 inline gsl_complex complex_abs(gsl_complex z) {
     gsl_complex r;
     r.dat[0] = gsl_complex_abs(z);
@@ -351,6 +317,7 @@ inline gsl_complex complex_signum(gsl_complex z) {
     }
     return r;
 }
+*/
 
 #define OP(C,F) case C: { for(k=0;k<xn;k++) rp[k] = F(xp[k]); OK }
 #define OPV(C,E) case C: { for(k=0;k<xn;k++) rp[k] = E; OK }
@@ -369,9 +336,9 @@ int mapR(int code, KRVEC(x), RVEC(r)) {
         OP(7,sinh)
         OP(8,cosh)
         OP(9,tanh)
-        OP(10,gsl_asinh)
-        OP(11,gsl_acosh)
-        OP(12,gsl_atanh)
+//        OP(10,gsl_asinh)
+//        OP(11,gsl_acosh)
+//        OP(12,gsl_atanh)
         OP(13,exp)
         OP(14,log)
         OP(15,sign)
@@ -395,9 +362,9 @@ int mapF(int code, KFVEC(x), FVEC(r)) {
         OP(7,sinh)
         OP(8,cosh)
         OP(9,tanh)
-        OP(10,gsl_asinh)
-        OP(11,gsl_acosh)
-        OP(12,gsl_atanh)
+//        OP(10,gsl_asinh)
+//        OP(11,gsl_acosh)
+//        OP(12,gsl_atanh)
         OP(13,exp)
         OP(14,log)
         OP(15,sign)
@@ -407,6 +374,7 @@ int mapF(int code, KFVEC(x), FVEC(r)) {
 }
 
 
+/*
 int mapCAux(int code, KGCVEC(x), GCVEC(r)) {
     int k;
     REQUIRES(xn == rn,BAD_SIZE);
@@ -516,7 +484,7 @@ int mapQAux(int code, KGQVEC(x), GQVEC(r)) {
 int mapQ(int code, KQVEC(x), QVEC(r)) {
     return mapQAux(code, xn, (gsl_complex_float*)xp, rn, (gsl_complex_float*)rp);
 }
-
+*/
 
 int mapValR(int code, double* pval, KRVEC(x), RVEC(r)) {
     int k;
@@ -550,6 +518,7 @@ int mapValF(int code, float* pval, KFVEC(x), FVEC(r)) {
     }
 }
 
+/*
 int mapValCAux(int code, gsl_complex* pval, KGCVEC(x), GCVEC(r)) {
     int k;
     gsl_complex val = *pval;
@@ -591,9 +560,12 @@ int mapValQ(int code, gsl_complex_float* val, KQVEC(x), QVEC(r)) {
     return mapValQAux(code, val, xn, (gsl_complex_float*)xp, rn, (gsl_complex_float*)rp);
 }
 
+*/
 
 #define OPZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = E(ap[k],bp[k]); OK }
 #define OPZV(C,msg,E) case C: {DEBUGMSG(msg) res = E(V(r),V(b)); CHECK(res,res); OK }
+
+/*
 int zipR(int code, KRVEC(a), KRVEC(b), RVEC(r)) {
     REQUIRES(an == bn && an == rn, BAD_SIZE);
     int k;
@@ -636,7 +608,6 @@ int zipF(int code, KFVEC(a), KFVEC(b), FVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-
 
 int zipCAux(int code, KGCVEC(a), KGCVEC(b), GCVEC(r)) {
     REQUIRES(an == bn && an == rn, BAD_SIZE);
@@ -691,8 +662,10 @@ int zipQAux(int code, KGQVEC(a), KGQVEC(b), GQVEC(r)) {
 int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
     return zipQAux(code, an, (gsl_complex_float*)ap, bn, (gsl_complex_float*)bp, rn, (gsl_complex_float*)rp);
 }
+*/
 
 
+/*
 int vector_fscanf(char*filename, RVEC(a)) {
     DEBUGMSG("gsl_vector_fscanf");
     DVVIEW(a);
@@ -736,6 +709,8 @@ int vector_fwrite(char*filename, RVEC(a)) {
     fclose (f);
     OK
 }
+*/
+
 
 int matrix_fprintf(char*filename, char*fmt, int ro, RMAT(m)) {
     DEBUGMSG("matrix_fprintf");
@@ -756,6 +731,8 @@ int matrix_fprintf(char*filename, char*fmt, int ro, RMAT(m)) {
     OK
 }
 
+
+/*
 //---------------------------------------------------------------
 
 #define RAN(C,F) case C: { for(k=0;k<rn;k++) { rp[k]= F(gen); }; OK }
@@ -773,4 +750,6 @@ int random_vector(int seed, int code, RVEC(r)) {
     }
 }
 #undef RAN
+
+*/
 
