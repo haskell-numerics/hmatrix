@@ -87,71 +87,7 @@
 #define BAD_CODE 2001
 #define MEM      2002
 #define BAD_FILE 2003
-    
-int sumQ(KQVEC(x),QVEC(r)) {
-    DEBUGMSG("sumQ");
-    REQUIRES(rn==1,BAD_SIZE);
-    int i;
-    gsl_complex_float res;
-    res.dat[0] = 0;
-    res.dat[1] = 0;
-    for (i = 0; i < xn; i++) {
-      res.dat[0] += xp[i].dat[0];
-      res.dat[1] += xp[i].dat[1];
-    }
-    rp[0] = res;
-    OK
-}
-    
-int sumC(KCVEC(x),CVEC(r)) {
-    DEBUGMSG("sumC");
-    REQUIRES(rn==1,BAD_SIZE);
-    int i;
-    gsl_complex res;
-    res.dat[0] = 0;
-    res.dat[1] = 0;
-    for (i = 0; i < xn; i++)  {
-      res.dat[0] += xp[i].dat[0];
-      res.dat[1] += xp[i].dat[1];
-    }
-    rp[0] = res;
-    OK
-}
 
-    
-int prodQ(KQVEC(x),QVEC(r)) {
-    DEBUGMSG("prodQ");
-    REQUIRES(rn==1,BAD_SIZE);
-    int i;
-    gsl_complex_float res;
-    float temp;
-    res.dat[0] = 1;
-    res.dat[1] = 0;
-    for (i = 0; i < xn; i++) {
-      temp       = res.dat[0] * xp[i].dat[0] - res.dat[1] * xp[i].dat[1];
-      res.dat[1] = res.dat[0] * xp[i].dat[1] + res.dat[1] * xp[i].dat[0];
-      res.dat[0] = temp;
-    }
-    rp[0] = res;
-    OK
-}
-    
-int prodC(KCVEC(x),CVEC(r)) {
-    DEBUGMSG("prodC");
-    REQUIRES(rn==1,BAD_SIZE);
-    int i;
-    gsl_complex res;
-    double temp;
-    res.dat[0] = 1;
-    res.dat[1] = 0;
-    for (i = 0; i < xn; i++)  {
-      temp       = res.dat[0] * xp[i].dat[0] - res.dat[1] * xp[i].dat[1];
-      res.dat[1] = res.dat[0] * xp[i].dat[1] + res.dat[1] * xp[i].dat[0];
-      res.dat[0] = temp;
-    }
-    rp[0] = res;
-    OK
-}
 
 int dotF(KFVEC(x), KFVEC(y), FVEC(r)) {
     DEBUGMSG("dotF");

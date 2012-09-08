@@ -1,22 +1,25 @@
+typedef struct { float  r, i; } complex;
+typedef struct { double r, i; } doublecomplex;
+
 #define RVEC(A) int A##n, double*A##p
 #define RMAT(A) int A##r, int A##c, double* A##p
 #define KRVEC(A) int A##n, const double*A##p
 #define KRMAT(A) int A##r, int A##c, const double* A##p
 
-#define CVEC(A) int A##n, gsl_complex*A##p
-#define CMAT(A) int A##r, int A##c, gsl_complex* A##p
-#define KCVEC(A) int A##n, const gsl_complex*A##p
-#define KCMAT(A) int A##r, int A##c, const gsl_complex* A##p
+#define CVEC(A) int A##n, doublecomplex*A##p
+#define CMAT(A) int A##r, int A##c, doublecomplex* A##p
+#define KCVEC(A) int A##n, const doublecomplex*A##p
+#define KCMAT(A) int A##r, int A##c, const doublecomplex* A##p
 
 #define FVEC(A) int A##n, float*A##p
 #define FMAT(A) int A##r, int A##c, float* A##p
 #define KFVEC(A) int A##n, const float*A##p
 #define KFMAT(A) int A##r, int A##c, const float* A##p
 
-#define QVEC(A) int A##n, gsl_complex_float*A##p
-#define QMAT(A) int A##r, int A##c, gsl_complex_float* A##p
-#define KQVEC(A) int A##n, const gsl_complex_float*A##p
-#define KQMAT(A) int A##r, int A##c, const gsl_complex_float* A##p
+#define QVEC(A) int A##n, complex*A##p
+#define QMAT(A) int A##r, int A##c, complex* A##p
+#define KQVEC(A) int A##n, const complex*A##p
+#define KQMAT(A) int A##r, int A##c, const complex* A##p
 
 #include <string.h>
 #include <math.h>
@@ -77,17 +80,17 @@ int sumR(KRVEC(x),RVEC(r)) {
     OK
 }
 
-/*
+
 int sumQ(KQVEC(x),QVEC(r)) {
     DEBUGMSG("sumQ");
     REQUIRES(rn==1,BAD_SIZE);
     int i;
-    gsl_complex_float res;
-    res.dat[0] = 0;
-    res.dat[1] = 0;
+    complex res;
+    res.r = 0;
+    res.i = 0;
     for (i = 0; i < xn; i++) {
-      res.dat[0] += xp[i].dat[0];
-      res.dat[1] += xp[i].dat[1];
+      res.r += xp[i].r;
+      res.i += xp[i].i;
     }
     rp[0] = res;
     OK
@@ -97,17 +100,17 @@ int sumC(KCVEC(x),CVEC(r)) {
     DEBUGMSG("sumC");
     REQUIRES(rn==1,BAD_SIZE);
     int i;
-    gsl_complex res;
-    res.dat[0] = 0;
-    res.dat[1] = 0;
+    doublecomplex res;
+    res.r = 0;
+    res.i = 0;
     for (i = 0; i < xn; i++)  {
-      res.dat[0] += xp[i].dat[0];
-      res.dat[1] += xp[i].dat[1];
+      res.r += xp[i].r;
+      res.i += xp[i].i;
     }
     rp[0] = res;
     OK
 }
-*/
+
 
 int prodF(KFVEC(x),FVEC(r)) {
     DEBUGMSG("prodF");
@@ -129,19 +132,19 @@ int prodR(KRVEC(x),RVEC(r)) {
     OK
 }
 
-/*
+
 int prodQ(KQVEC(x),QVEC(r)) {
     DEBUGMSG("prodQ");
     REQUIRES(rn==1,BAD_SIZE);
     int i;
-    gsl_complex_float res;
+    complex res;
     float temp;
-    res.dat[0] = 1;
-    res.dat[1] = 0;
+    res.r = 1;
+    res.i = 0;
     for (i = 0; i < xn; i++) {
-      temp       = res.dat[0] * xp[i].dat[0] - res.dat[1] * xp[i].dat[1];
-      res.dat[1] = res.dat[0] * xp[i].dat[1] + res.dat[1] * xp[i].dat[0];
-      res.dat[0] = temp;
+      temp  = res.r * xp[i].r - res.i * xp[i].i;
+      res.i = res.r * xp[i].i + res.i * xp[i].r;
+      res.r = temp;
     }
     rp[0] = res;
     OK
@@ -151,19 +154,19 @@ int prodC(KCVEC(x),CVEC(r)) {
     DEBUGMSG("prodC");
     REQUIRES(rn==1,BAD_SIZE);
     int i;
-    gsl_complex res;
+    doublecomplex res;
     double temp;
-    res.dat[0] = 1;
-    res.dat[1] = 0;
+    res.r = 1;
+    res.i = 0;
     for (i = 0; i < xn; i++)  {
-      temp       = res.dat[0] * xp[i].dat[0] - res.dat[1] * xp[i].dat[1];
-      res.dat[1] = res.dat[0] * xp[i].dat[1] + res.dat[1] * xp[i].dat[0];
-      res.dat[0] = temp;
+      temp  = res.r * xp[i].r - res.i * xp[i].i;
+      res.i = res.r * xp[i].i + res.i * xp[i].r;
+      res.r = temp;
     }
     rp[0] = res;
     OK
 }
-*/
+
 
 /*
 int dotF(KFVEC(x), KFVEC(y), FVEC(r)) {
@@ -299,21 +302,21 @@ inline float float_sign(float x) {
 /*
 inline gsl_complex complex_abs(gsl_complex z) {
     gsl_complex r;
-    r.dat[0] = gsl_complex_abs(z);
-    r.dat[1] = 0;
+    r.r = gsl_complex_abs(z);
+    r.i = 0;
     return r;
 }
 
 inline gsl_complex complex_signum(gsl_complex z) {
     gsl_complex r;
     double mag;
-    if (z.dat[0] == 0 && z.dat[1] == 0) {
-        r.dat[0] = 0;
-        r.dat[1] = 0;
+    if (z.r == 0 && z.i == 0) {
+        r.r = 0;
+        r.i = 0;
     } else {
         mag = gsl_complex_abs(z);
-        r.dat[0] = z.dat[0]/mag;
-        r.dat[1] = z.dat[1]/mag;
+        r.r = z.r/mag;
+        r.i = z.i/mag;
     }
     return r;
 }
@@ -416,13 +419,13 @@ gsl_complex_float complex_float_math_fun(gsl_complex (*cf)(gsl_complex), gsl_com
 
   gsl_complex_float float_r;
 
-  c.dat[0] = a.dat[0];
-  c.dat[1] = a.dat[1];
+  c.r = a.r;
+  c.i = a.i;
 
   r = (*cf)(c);
 
-  float_r.dat[0] = r.dat[0];
-  float_r.dat[1] = r.dat[1];
+  float_r.r = r.r;
+  float_r.i = r.i;
 
   return float_r;
 }
@@ -436,16 +439,16 @@ gsl_complex_float complex_float_math_op(gsl_complex (*cf)(gsl_complex,gsl_comple
 
   gsl_complex_float float_r;
 
-  c1.dat[0] = a.dat[0];
-  c1.dat[1] = a.dat[1];
+  c1.r = a.r;
+  c1.i = a.i;
 
-  c2.dat[0] = b.dat[0];
-  c2.dat[1] = b.dat[1];
+  c2.r = b.r;
+  c2.i = b.i;
 
   r = (*cf)(c1,c2);
 
-  float_r.dat[0] = r.dat[0];
-  float_r.dat[1] = r.dat[1];
+  float_r.r = r.r;
+  float_r.i = r.i;
 
   return float_r;
 }
