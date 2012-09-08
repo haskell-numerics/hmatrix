@@ -1,5 +1,4 @@
-typedef struct { float  r, i; } complex;
-typedef struct { double r, i; } doublecomplex;
+#include "../LinearAlgebra/LAPACK/lapack-aux.h"
 
 #define RVEC(A) int A##n, double*A##p
 #define RMAT(A) int A##r, int A##c, double* A##p
@@ -168,18 +167,20 @@ int prodC(KCVEC(x),CVEC(r)) {
 }
 
 
-/*
+float sdot_(integer*, const float*, integer*, const float*, integer*);
+
 int dotF(KFVEC(x), KFVEC(y), FVEC(r)) {
     DEBUGMSG("dotF");
     REQUIRES(xn==yn,BAD_SIZE); 
     REQUIRES(rn==1,BAD_SIZE);
     DEBUGMSG("dotF");
-    KFVVIEW(x);
-    KFVVIEW(y);
-    gsl_blas_sdot(V(x),V(y),rp);
+    integer n = xn;
+    integer one = 1;
+    rp[0] = sdot_(&n,xp,&one,yp,&one);
     OK
 }
-    
+
+/*
 int dotR(KRVEC(x), KRVEC(y), RVEC(r)) {
     DEBUGMSG("dotR");
     REQUIRES(xn==yn,BAD_SIZE); 

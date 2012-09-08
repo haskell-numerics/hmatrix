@@ -88,17 +88,6 @@
 #define MEM      2002
 #define BAD_FILE 2003
 
-
-int dotF(KFVEC(x), KFVEC(y), FVEC(r)) {
-    DEBUGMSG("dotF");
-    REQUIRES(xn==yn,BAD_SIZE); 
-    REQUIRES(rn==1,BAD_SIZE);
-    DEBUGMSG("dotF");
-    KFVVIEW(x);
-    KFVVIEW(y);
-    gsl_blas_sdot(V(x),V(y),rp);
-    OK
-}
     
 int dotR(KRVEC(x), KRVEC(y), RVEC(r)) {
     DEBUGMSG("dotR");
