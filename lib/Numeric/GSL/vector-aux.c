@@ -166,54 +166,7 @@ int prodC(KCVEC(x),CVEC(r)) {
     OK
 }
 
-
-float sdot_(integer*, const float*, integer*, const float*, integer*);
-
-int dotF(KFVEC(x), KFVEC(y), FVEC(r)) {
-    DEBUGMSG("dotF");
-    REQUIRES(xn==yn,BAD_SIZE); 
-    REQUIRES(rn==1,BAD_SIZE);
-    DEBUGMSG("dotF");
-    integer n = xn;
-    integer one = 1;
-    rp[0] = sdot_(&n,xp,&one,yp,&one);
-    OK
-}
-
-/*
-int dotR(KRVEC(x), KRVEC(y), RVEC(r)) {
-    DEBUGMSG("dotR");
-    REQUIRES(xn==yn,BAD_SIZE); 
-    REQUIRES(rn==1,BAD_SIZE);
-    DEBUGMSG("dotR");
-    KDVVIEW(x);
-    KDVVIEW(y);
-    gsl_blas_ddot(V(x),V(y),rp);
-    OK
-}
-    
-int dotQ(KQVEC(x), KQVEC(y), QVEC(r)) {
-    DEBUGMSG("dotQ");
-    REQUIRES(xn==yn,BAD_SIZE); 
-    REQUIRES(rn==1,BAD_SIZE);
-    DEBUGMSG("dotQ");
-    KQVVIEW(x);
-    KQVVIEW(y);
-    gsl_blas_cdotu(V(x),V(y),rp);
-    OK
-}
-    
-int dotC(KCVEC(x), KCVEC(y), CVEC(r)) {
-    DEBUGMSG("dotC");
-    REQUIRES(xn==yn,BAD_SIZE); 
-    REQUIRES(rn==1,BAD_SIZE);
-    DEBUGMSG("dotC");
-    KCVVIEW(x);
-    KCVVIEW(y);
-    gsl_blas_zdotu(V(x),V(y),rp);
-    OK
-}
-    
+/*    
 int toScalarR(int code, KRVEC(x), RVEC(r)) { 
     REQUIRES(rn==1,BAD_SIZE);
     DEBUGMSG("toScalarR");
