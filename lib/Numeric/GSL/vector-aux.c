@@ -625,105 +625,70 @@ int mapValQ2(int code, complex* pval, KQVEC(x), QVEC(r)) {
 
 #define OPZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = E(ap[k],bp[k]); OK }
 #define OPZV(C,msg,E) case C: {DEBUGMSG(msg) res = E(V(r),V(b)); CHECK(res,res); OK }
+#define OPZO(C,msg,O) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = ap[k] O bp[k]; OK }
 
-/*
 int zipR(int code, KRVEC(a), KRVEC(b), RVEC(r)) {
-    REQUIRES(an == bn && an == rn, BAD_SIZE);
+REQUIRES(an == bn && an == rn, BAD_SIZE);
     int k;
     switch(code) {
-        OPZE(4,"zipR Pow",pow)
+        OPZO(0,"zipR Add",+)
+        OPZO(1,"zipR Sub",-)
+        OPZO(2,"zipR Mul",*)
+        OPZO(3,"zipR Div",/)
+        OPZE(4,"zipR Pow",  pow)
         OPZE(5,"zipR ATan2",atan2)
     }
-    KDVVIEW(a);
-    KDVVIEW(b);
-    DVVIEW(r);
-    gsl_vector_memcpy(V(r),V(a));
-    int res;
-    switch(code) {
-        OPZV(0,"zipR Add",gsl_vector_add)
-        OPZV(1,"zipR Sub",gsl_vector_sub)
-        OPZV(2,"zipR Mul",gsl_vector_mul)
-        OPZV(3,"zipR Div",gsl_vector_div)
-        default: ERROR(BAD_CODE);
-    }
 }
-
 
 int zipF(int code, KFVEC(a), KFVEC(b), FVEC(r)) {
-    REQUIRES(an == bn && an == rn, BAD_SIZE);
+REQUIRES(an == bn && an == rn, BAD_SIZE);
     int k;
     switch(code) {
-        OPZE(4,"zipF Pow",pow)
-        OPZE(5,"zipF ATan2",atan2)
-    }
-    KFVVIEW(a);
-    KFVVIEW(b);
-    FVVIEW(r);
-    gsl_vector_float_memcpy(V(r),V(a));
-    int res;
-    switch(code) {
-        OPZV(0,"zipF Add",gsl_vector_float_add)
-        OPZV(1,"zipF Sub",gsl_vector_float_sub)
-        OPZV(2,"zipF Mul",gsl_vector_float_mul)
-        OPZV(3,"zipF Div",gsl_vector_float_div)
-        default: ERROR(BAD_CODE);
+        OPZO(0,"zipR Add",+)
+        OPZO(1,"zipR Sub",-)
+        OPZO(2,"zipR Mul",*)
+        OPZO(3,"zipR Div",/)
+        OPZE(4,"zipR Pow",  pow)
+        OPZE(5,"zipR ATan2",atan2)
     }
 }
 
-int zipCAux(int code, KGCVEC(a), KGCVEC(b), GCVEC(r)) {
-    REQUIRES(an == bn && an == rn, BAD_SIZE);
-    int k;
-    switch(code) {
-        OPZE(0,"zipC Add",gsl_complex_add)
-        OPZE(1,"zipC Sub",gsl_complex_sub)
-        OPZE(2,"zipC Mul",gsl_complex_mul)
-        OPZE(3,"zipC Div",gsl_complex_div)
-        OPZE(4,"zipC Pow",gsl_complex_pow)
-        //OPZE(5,"zipR ATan2",atan2)
-    }
-    //KCVVIEW(a);
-    //KCVVIEW(b);
-    //CVVIEW(r);
-    //gsl_vector_memcpy(V(r),V(a));
-    //int res;
-    switch(code) {
-        default: ERROR(BAD_CODE);
-    }
-}
+
 
 
 int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
-    return zipCAux(code, an, (gsl_complex*)ap, bn, (gsl_complex*)bp, rn, (gsl_complex*)rp);
-}
-
-
-#define OPCZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = complex_float_math_op(&E,ap[k],bp[k]); OK }
-int zipQAux(int code, KGQVEC(a), KGQVEC(b), GQVEC(r)) {
     REQUIRES(an == bn && an == rn, BAD_SIZE);
     int k;
     switch(code) {
-        OPCZE(0,"zipQ Add",gsl_complex_add)
-        OPCZE(1,"zipQ Sub",gsl_complex_sub)
-        OPCZE(2,"zipQ Mul",gsl_complex_mul)
-        OPCZE(3,"zipQ Div",gsl_complex_div)
-        OPCZE(4,"zipQ Pow",gsl_complex_pow)
-        //OPZE(5,"zipR ATan2",atan2)
-    }
-    //KCVVIEW(a);
-    //KCVVIEW(b);
-    //CVVIEW(r);
-    //gsl_vector_memcpy(V(r),V(a));
-    //int res;
-    switch(code) {
-        default: ERROR(BAD_CODE);
+        OPZE(0,"zipC Add",complex_add)
+//        OPZE(1,"zipC Sub",gsl_complex_sub)
+//        OPZE(2,"zipC Mul",gsl_complex_mul)
+//        OPZE(3,"zipC Div",gsl_complex_div)
+//        OPZE(4,"zipC Pow",gsl_complex_pow)
+//        //OPZE(5,"zipR ATan2",atan2)
     }
 }
 
+
+
+
+
+#define OPCZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = complex_f_math_op(&E,ap[k],bp[k]); OK }
 
 int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
-    return zipQAux(code, an, (gsl_complex_float*)ap, bn, (gsl_complex_float*)bp, rn, (gsl_complex_float*)rp);
+    REQUIRES(an == bn && an == rn, BAD_SIZE);
+    int k;
+    switch(code) {
+        OPCZE(0,"zipQ Add",complex_add)
+//        OPCZE(1,"zipQ Sub",gsl_complex_sub)
+//        OPCZE(2,"zipQ Mul",gsl_complex_mul)
+//        OPCZE(3,"zipQ Div",gsl_complex_div)
+//        OPCZE(4,"zipQ Pow",gsl_complex_pow)
+//        //OPZE(5,"zipR ATan2",atan2)
+    }
 }
-*/
+
+
 
 
 /*
