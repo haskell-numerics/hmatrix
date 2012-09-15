@@ -38,12 +38,12 @@ module Numeric.Container (
     optimiseMult,
     mXm,mXv,vXm,(<.>),Mul(..),LSDiv(..),
     outer, kronecker,
-    -- * Random numbers
-    RandDist(..),
-    randomVector,
-    gaussianSample,
-    uniformSample,
-    meanCov,
+--    -- * Random numbers
+--    RandDist(..),
+--    randomVector,
+--    gaussianSample,
+--    uniformSample,
+--    meanCov,
     -- * Element conversion
     Convert(..),
     Complexable(),
@@ -55,9 +55,12 @@ module Numeric.Container (
     module Data.Complex,
     -- * Input / Output
     dispf, disps, dispcf, vecdisp, latexFormat, format,
-    loadMatrix, saveMatrix, fromFile, fileDimensions,
+--    loadMatrix, 
+    saveMatrix, 
+--    fromFile, 
+    fileDimensions,
     readMatrix,
-    fscanfVector, fprintfVector, freadVector, fwriteVector,
+--    fscanfVector, fprintfVector, freadVector, fwriteVector,
     -- * Experimental
     build', konst'
 ) where
@@ -69,7 +72,6 @@ import Numeric.Chain
 import Numeric.IO
 import Data.Complex
 import Numeric.LinearAlgebra.Algorithms(Field,linearSolveSVD)
-import Data.Packed.Random
 
 ------------------------------------------------------------------
 

@@ -24,9 +24,7 @@ module Data.Packed.Internal.Common(
   table
 ) where
 
-import Foreign
 import Control.Monad(when)
-import Foreign.C.String(peekCString)
 import Foreign.C.Types
 import Foreign.Storable.Complex()
 import Data.List(transpose,intersperse)
@@ -124,8 +122,6 @@ app10 f w1 o1 w2 o2 w3 o3 w4 o4 w5 o5 w6 o6 w7 o7 w8 o8 w9 o9 w10 o10 s = ww10 w
      \a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 -> f // a1 // a2 // a3 // a4 // a5 // a6 // a7 // a8 // a9 // a10 // check s
 
 
-
--- GSL error codes are <= 1024
 -- | error codes for the auxiliary functions required by the wrappers
 errorCode :: CInt -> String
 errorCode 2000 = "bad size"
@@ -151,17 +147,13 @@ check msg f = do
     err <- f
     when (err/=0) $ if err > 1024
                       then (error (msg++": "++errorCode err)) -- our errors
-                      else do                                 -- GSL errors
-                        ps <- gsl_strerror err
-                        s <- peekCString ps
-                        error (msg++": "++s)
+                      else error (msg++": unknown error")
     return ()
 
--- | description of GSL error codes
-foreign import ccall unsafe "gsl_strerror" gsl_strerror :: CInt -> IO (Ptr CChar)
 
 -- | Error capture and conversion to Maybe
 mbCatch :: IO x -> IO (Maybe x)
 mbCatch act = E.catch (Just `fmap` act) f
     where f :: SomeException -> IO (Maybe x)
           f _ = return Nothing
+

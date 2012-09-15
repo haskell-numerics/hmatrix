@@ -1,4 +1,4 @@
-#include "../LinearAlgebra/LAPACK/lapack-aux.h"
+#include "../LAPACK/lapack-aux.h"
 
 #define RVEC(A) int A##n, double*A##p
 #define RMAT(A) int A##r, int A##c, double* A##p

@@ -22,6 +22,8 @@ import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
 import Foreign.Storable(Storable)
 import Data.Complex
+import Control.Monad(when)
+import Foreign.C.String
 
 type PD = Ptr Double
 type PC = Ptr (Complex Double) 
@@ -33,6 +35,43 @@ type TVVM = CInt -> PD -> TVM
 type TVCV = CInt -> PD -> TCV
 type TCV = CInt -> PC -> IO CInt
 type TCVCV = CInt -> PC -> TCV
+
+
+
+-- GSL error codes are <= 1024
+-- | error codes for the auxiliary functions required by the wrappers
+errorCode :: CInt -> String
+errorCode 2000 = "bad size"
+errorCode 2001 = "bad function code"
+errorCode 2002 = "memory problem"
+errorCode 2003 = "bad file"
+errorCode 2004 = "singular"
+errorCode 2005 = "didn't converge"
+errorCode 2006 = "the input matrix is not positive definite"
+errorCode 2007 = "not yet supported in this OS"
+errorCode n    = "code "++show n
+
+
+
+-- | check the error code
+check :: String -> IO CInt -> IO ()
+check msg f = do
+#if FINIT
+    finit
+#endif
+    err <- f
+    when (err/=0) $ if err > 1024
+                      then (error (msg++": "++errorCode err)) -- our errors
+                      else do                                 -- GSL errors
+                        ps <- gsl_strerror err
+                        s <- peekCString ps
+                        error (msg++": "++s)
+    return ()
+
+-- | description of GSL error codes
+foreign import ccall unsafe "gsl_strerror" gsl_strerror :: CInt -> IO (Ptr CChar)
+
+
 
 fi :: Int -> CInt
 fi = fromIntegral

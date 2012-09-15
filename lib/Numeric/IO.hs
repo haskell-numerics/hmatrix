@@ -14,9 +14,12 @@
 
 module Numeric.IO (
     dispf, disps, dispcf, vecdisp, latexFormat, format,
-    loadMatrix, saveMatrix, fromFile, fileDimensions,
+    -- loadMatrix, 
+    saveMatrix, 
+    -- fromFile,
+    fileDimensions,
     readMatrix, fromArray2D,
-    fscanfVector, fprintfVector, freadVector, fwriteVector
+--    fscanfVector, fprintfVector, freadVector, fwriteVector
 ) where
 
 import Data.Packed
@@ -150,6 +153,7 @@ fileDimensions fname = do
         then return (tot `div` c, c)
         else return (0,0)
 
+{-
 -- | Loads a matrix from an ASCII file formatted as a 2D table.
 loadMatrix :: FilePath -> IO (Matrix Double)
 loadMatrix file = fromFile file =<< fileDimensions file
@@ -157,4 +161,5 @@ loadMatrix file = fromFile file =<< fileDimensions file
 -- | Loads a matrix from an ASCII file (the number of rows and columns must be known in advance).
 fromFile :: FilePath -> (Int,Int) -> IO (Matrix Double)
 fromFile filename (r,c) = reshape c `fmap` fscanfVector filename (r*c)
+-}
 

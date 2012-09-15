@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Packed.Vector
--- Copyright   :  (c) Alberto Ruiz 2009
+-- Module      :  Numeric.LinearAlgebra.Util.Random
+-- Copyright   :  (c) Alberto Ruiz 2009-12
 -- License     :  GPL
 --
 -- Maintainer  :  Alberto Ruiz <aruiz@um.es>
@@ -11,18 +11,18 @@
 --
 -----------------------------------------------------------------------------
 
-module Data.Packed.Random (
+module Numeric.LinearAlgebra.Util.Random (
     RandDist(..),
     randomVector,
     gaussianSample,
     uniformSample,
+    rand, randn,
     meanCov,
 ) where
 
 import Numeric.GSL.Vector
-import Data.Packed
-import Numeric.ContainerBoot
-import Numeric.LinearAlgebra.Algorithms
+import Numeric.LinearAlgebra
+import System.Random(randomIO)
 
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
@@ -64,3 +64,23 @@ meanCov x = (med,cov) where
     meds = konst 1 r `outer` med
     xc   = x `sub` meds
     cov  = scale (recip (fromIntegral (r-1))) (trans xc `mXm` xc)
+
+------------------------------------------------------------
+
+-- | pseudorandom matrix with uniform elements between 0 and 1
+randm :: RandDist
+     -> Int -- ^ rows
+     -> Int -- ^ columns
+     -> IO (Matrix Double)
+randm d r c = do
+    seed <- randomIO
+    return (reshape c $ randomVector seed d (r*c))
+
+-- | pseudorandom matrix with uniform elements between 0 and 1
+rand :: Int -> Int -> IO (Matrix Double)
+rand = randm Uniform
+
+-- | pseudorandom matrix with normal elements
+randn :: Int -> Int -> IO (Matrix Double)
+randn = randm Gaussian
+

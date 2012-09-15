@@ -43,6 +43,7 @@ import Control.Arrow((***))
 import Debug.Trace
 import Control.Monad(when)
 import Numeric.LinearAlgebra.Util hiding (ones,row,col)
+import Numeric.LinearAlgebra.Util.Random
 
 import Data.Packed.ST
 

@@ -60,7 +60,7 @@ library
     Build-Depends:      base >= 4 && < 5,
                         array,
                         storable-complex,
-                        process, random,
+                        process,
                         vector >= 0.8,
                         binary
 
@@ -83,8 +83,7 @@ library
                         Data.Packed.Internal.Signatures,
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix,
-                        Data.Packed.Random,
-                        Numeric.GSL.Vector,
+                        Numeric.LinearAlgebra.Util.Vector,
                         Numeric.Conversion,
                         Numeric.ContainerBoot,
                         Numeric.IO,
@@ -94,8 +93,7 @@ library
                         Numeric.LinearAlgebra.Util.Convolution
 
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
-                        lib/Numeric/GSL/vector-aux.c
-                        lib/Numeric/GSL/gsl-vector-aux.c
+                        lib/Numeric/LinearAlgebra/Util/vector-aux.c
 
     cpp-options:        -DBINARY
 
@@ -149,12 +147,12 @@ library
         frameworks: Accelerate
 
     if os(windows)
-        extra-libraries: gsl-0 blas lapack
+        extra-libraries: blas lapack
 
 -- The extra-libraries required for GSL and LAPACK
 -- should now be automatically detected by configure(.hs)
 
-    extra-libraries: gsl blas lapack
+    extra-libraries: blas lapack
     extra-lib-dirs:
 
 source-repository head

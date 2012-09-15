@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numeric.GSL.Vector
--- Copyright   :  (c) Alberto Ruiz 2007
+-- Module      :  Numeric.LinearAlgebra.Util.Vector
+-- Copyright   :  (c) Alberto Ruiz 2007-12
 -- License     :  GPL-style
 --
 -- Maintainer  :  Alberto Ruiz <aruiz@um.es>
@@ -12,7 +12,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Numeric.GSL.Vector (
+module Numeric.LinearAlgebra.Util.Vector (
     sumF, sumR, sumQ, sumC,
     prodF, prodR, prodQ, prodC,
     FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ,
@@ -175,25 +175,25 @@ vectorZipAux fun code u v = unsafePerformIO $ do
 toScalarR :: FunCodeS -> Vector Double -> Double
 toScalarR oper =  toScalarAux c_toScalarR (fromei oper)
 
-foreign import ccall unsafe "gsl-aux.h toScalarR" c_toScalarR :: CInt -> TVV
+foreign import ccall unsafe "toScalarR" c_toScalarR :: CInt -> TVV
 
 -- | obtains different functions of a vector: norm1, norm2, max, min, posmax, posmin, etc.
 toScalarF :: FunCodeS -> Vector Float -> Float
 toScalarF oper =  toScalarAux c_toScalarF (fromei oper)
 
-foreign import ccall unsafe "gsl-aux.h toScalarF" c_toScalarF :: CInt -> TFF
+foreign import ccall unsafe "toScalarF" c_toScalarF :: CInt -> TFF
 
 -- | obtains different functions of a vector: only norm1, norm2
 toScalarC :: FunCodeS -> Vector (Complex Double) -> Double
 toScalarC oper =  toScalarAux c_toScalarC (fromei oper)
 
-foreign import ccall unsafe "gsl-aux.h toScalarC" c_toScalarC :: CInt -> TCVV
+foreign import ccall unsafe "toScalarC" c_toScalarC :: CInt -> TCVV
 
 -- | obtains different functions of a vector: only norm1, norm2
 toScalarQ :: FunCodeS -> Vector (Complex Float) -> Float
 toScalarQ oper =  toScalarAux c_toScalarQ (fromei oper)
 
-foreign import ccall unsafe "gsl-aux.h toScalarQ" c_toScalarQ :: CInt -> TQVF
+foreign import ccall unsafe "toScalarQ" c_toScalarQ :: CInt -> TQVF
 
 ------------------------------------------------------------------
 
@@ -201,25 +201,25 @@ foreign import ccall unsafe "gsl-aux.h toScalarQ" c_toScalarQ :: CInt -> TQVF
 vectorMapR :: FunCodeV -> Vector Double -> Vector Double
 vectorMapR = vectorMapAux c_vectorMapR
 
-foreign import ccall unsafe "gsl-aux.h mapR" c_vectorMapR :: CInt -> TVV
+foreign import ccall unsafe "mapR" c_vectorMapR :: CInt -> TVV
 
 -- | map of complex vectors with given function
 vectorMapC :: FunCodeV -> Vector (Complex Double) -> Vector (Complex Double)
 vectorMapC oper = vectorMapAux c_vectorMapC (fromei oper)
 
-foreign import ccall unsafe "gsl-aux.h mapC" c_vectorMapC :: CInt -> TCVCV
+foreign import ccall unsafe "mapC" c_vectorMapC :: CInt -> TCVCV
 
 -- | map of real vectors with given function
 vectorMapF :: FunCodeV -> Vector Float -> Vector Float
 vectorMapF = vectorMapAux c_vectorMapF
 
-foreign import ccall unsafe "gsl-aux.h mapF" c_vectorMapF :: CInt -> TFF
+foreign import ccall unsafe "mapF" c_vectorMapF :: CInt -> TFF
 
 -- | map of real vectors with given function
 vectorMapQ :: FunCodeV -> Vector (Complex Float) -> Vector (Complex Float)
 vectorMapQ = vectorMapAux c_vectorMapQ
 
-foreign import ccall unsafe "gsl-aux.h mapQ" c_vectorMapQ :: CInt -> TQVQV
+foreign import ccall unsafe "mapQ" c_vectorMapQ :: CInt -> TQVQV
 
 -------------------------------------------------------------------
 
@@ -227,25 +227,25 @@ foreign import ccall unsafe "gsl-aux.h mapQ" c_vectorMapQ :: CInt -> TQVQV
 vectorMapValR :: FunCodeSV -> Double -> Vector Double -> Vector Double
 vectorMapValR oper = vectorMapValAux c_vectorMapValR (fromei oper)
 
-foreign import ccall unsafe "gsl-aux.h mapValR" c_vectorMapValR :: CInt -> Ptr Double -> TVV
+foreign import ccall unsafe "mapValR" c_vectorMapValR :: CInt -> Ptr Double -> TVV
 
 -- | map of complex vectors with given function
 vectorMapValC :: FunCodeSV -> Complex Double -> Vector (Complex Double) -> Vector (Complex Double)
 vectorMapValC = vectorMapValAux c_vectorMapValC
 
-foreign import ccall unsafe "gsl-aux.h mapValC" c_vectorMapValC :: CInt -> Ptr (Complex Double) -> TCVCV
+foreign import ccall unsafe "mapValC" c_vectorMapValC :: CInt -> Ptr (Complex Double) -> TCVCV
 
 -- | map of real vectors with given function
 vectorMapValF :: FunCodeSV -> Float -> Vector Float -> Vector Float
 vectorMapValF oper = vectorMapValAux c_vectorMapValF (fromei oper)
 
-foreign import ccall unsafe "gsl-aux.h mapValF" c_vectorMapValF :: CInt -> Ptr Float -> TFF
+foreign import ccall unsafe "mapValF" c_vectorMapValF :: CInt -> Ptr Float -> TFF
 
 -- | map of complex vectors with given function
 vectorMapValQ :: FunCodeSV -> Complex Float -> Vector (Complex Float) -> Vector (Complex Float)
 vectorMapValQ oper = vectorMapValAux c_vectorMapValQ (fromei oper)
 
-foreign import ccall unsafe "gsl-aux.h mapValQ" c_vectorMapValQ :: CInt -> Ptr (Complex Float) -> TQVQV
+foreign import ccall unsafe "mapValQ" c_vectorMapValQ :: CInt -> Ptr (Complex Float) -> TQVQV
 
 -------------------------------------------------------------------
 
@@ -253,23 +253,23 @@ foreign import ccall unsafe "gsl-aux.h mapValQ" c_vectorMapValQ :: CInt -> Ptr (
 vectorZipR :: FunCodeVV -> Vector Double -> Vector Double -> Vector Double
 vectorZipR = vectorZipAux c_vectorZipR
 
-foreign import ccall unsafe "gsl-aux.h zipR" c_vectorZipR :: CInt -> TVVV
+foreign import ccall unsafe "zipR" c_vectorZipR :: CInt -> TVVV
 
 -- | elementwise operation on complex vectors
 vectorZipC :: FunCodeVV -> Vector (Complex Double) -> Vector (Complex Double) -> Vector (Complex Double)
 vectorZipC = vectorZipAux c_vectorZipC
 
-foreign import ccall unsafe "gsl-aux.h zipC" c_vectorZipC :: CInt -> TCVCVCV
+foreign import ccall unsafe "zipC" c_vectorZipC :: CInt -> TCVCVCV
 
 -- | elementwise operation on real vectors
 vectorZipF :: FunCodeVV -> Vector Float -> Vector Float -> Vector Float
 vectorZipF = vectorZipAux c_vectorZipF
 
-foreign import ccall unsafe "gsl-aux.h zipF" c_vectorZipF :: CInt -> TFFF
+foreign import ccall unsafe "zipF" c_vectorZipF :: CInt -> TFFF
 
 -- | elementwise operation on complex vectors
 vectorZipQ :: FunCodeVV -> Vector (Complex Float) -> Vector (Complex Float) -> Vector (Complex Float)
 vectorZipQ = vectorZipAux c_vectorZipQ
 
-foreign import ccall unsafe "gsl-aux.h zipQ" c_vectorZipQ :: CInt -> TQVQVQV
+foreign import ccall unsafe "zipQ" c_vectorZipQ :: CInt -> TQVQVQV
 

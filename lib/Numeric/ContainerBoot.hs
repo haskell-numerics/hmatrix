@@ -45,7 +45,7 @@ import Data.Packed
 import Data.Packed.ST as ST
 import Numeric.Conversion
 import Data.Packed.Internal
-import Numeric.GSL.Vector
+import Numeric.LinearAlgebra.Util.Vector
 import Data.Complex
 import Control.Monad(ap)
 

@@ -33,12 +33,10 @@ module Data.Packed.Internal.Vector (
 
 import Data.Packed.Internal.Common
 import Data.Packed.Internal.Signatures
-import Foreign.Marshal.Alloc(free)
 import Foreign.Marshal.Array(peekArray, pokeArray, copyArray, advancePtr)
 import Foreign.ForeignPtr(ForeignPtr, castForeignPtr)
 import Foreign.Ptr(Ptr)
 import Foreign.Storable(Storable, peekElemOff, pokeElemOff, sizeOf)
-import Foreign.C.String
 import Foreign.C.Types
 import Data.Complex
 import Control.Monad(when)

@@ -19,7 +19,7 @@ module Numeric.LinearAlgebra.Util(
     row,
     col,
     (&),(!), (#),
-    rand, randn,
+--    rand, randn,
     cross,
     norm,
     -- * Convolution
@@ -41,7 +41,6 @@ module Numeric.LinearAlgebra.Util(
 ) where
 
 import Numeric.LinearAlgebra hiding (i)
-import System.Random(randomIO)
 import Numeric.LinearAlgebra.Util.Convolution
 
 
@@ -49,22 +48,6 @@ disp :: Int -> Matrix Double -> IO ()
 -- ^ show a matrix with given number of digits after the decimal point
 disp n = putStrLn . dispf n
 
--- | pseudorandom matrix with uniform elements between 0 and 1
-randm :: RandDist
-     -> Int -- ^ rows
-     -> Int -- ^ columns
-     -> IO (Matrix Double)
-randm d r c = do
-    seed <- randomIO
-    return (reshape c $ randomVector seed d (r*c))
-
--- | pseudorandom matrix with uniform elements between 0 and 1
-rand :: Int -> Int -> IO (Matrix Double)
-rand = randm Uniform
-
--- | pseudorandom matrix with normal elements
-randn :: Int -> Int -> IO (Matrix Double)
-randn = randm Gaussian
 
 -- | create a real diagonal matrix from a list
 diagl :: [Double] -> Matrix Double

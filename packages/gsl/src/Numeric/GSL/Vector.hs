@@ -17,17 +17,17 @@ module Numeric.GSL.Vector (
     fwriteVector, freadVector, fprintfVector, fscanfVector
 ) where
 
-import Data.Packed.Internal.Common
-import Data.Packed.Internal.Signatures
-import Data.Packed.Internal.Vector
-
-import Data.Complex
+import Data.Packed
+import Data.Packed.Development
 import Foreign.Marshal.Alloc(free)
-import Foreign.Marshal.Array(newArray)
 import Foreign.Ptr(Ptr)
 import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
+import Foreign.C.String
+import Numeric.GSL.Internal(TV)
 
+
+fi x = fromIntegral x :: CInt
 
 data RandDist = Uniform  -- ^ uniform distribution in [0,1)
               | Gaussian -- ^ normal distribution with mean zero and standard deviation one

@@ -55,7 +55,7 @@ extra-source-files: lib/Numeric/GSL/gsl-ode.c
 
 library
 
-    Build-Depends:      base, hmatrix-base, process, vector
+    Build-Depends:      base, hmatrix-base, process, vector, random
 
     Extensions:         ForeignFunctionInterface,
                         CPP
@@ -69,12 +69,16 @@ library
                         Numeric.GSL.Root,
                         Numeric.GSL.Fitting,
                         Numeric.GSL.ODE,
+                        Numeric.GSL.Vector,
+                        Numeric.LinearAlgebra.Util.Random
                         Numeric.GSL,
                         Graphics.Plot
                         
     other-modules:      Numeric.GSL.Internal
 
     C-sources:          src/Numeric/GSL/gsl-aux.c
+                        src/Numeric/GSL/gsl-vector-aux.c
+
 
     cpp-options:        -DBINARY
 

@@ -20,7 +20,7 @@
 
 module Numeric.Vector () where
 
-import Numeric.GSL.Vector
+import Numeric.LinearAlgebra.Util.Vector
 import Numeric.Container
 
 -------------------------------------------------------------------

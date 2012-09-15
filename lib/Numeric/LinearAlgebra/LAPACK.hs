@@ -44,7 +44,7 @@ module Numeric.LinearAlgebra.LAPACK (
 import Data.Packed.Internal
 import Data.Packed.Matrix
 import Numeric.Conversion
-import Numeric.GSL.Vector(vectorMapValR, FunCodeSV(Scale))
+import Numeric.LinearAlgebra.Util.Vector(vectorMapValR, FunCodeSV(Scale))
 
 import Foreign.Ptr(nullPtr)
 import Foreign.C.Types
