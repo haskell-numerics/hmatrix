@@ -1,28 +1,4 @@
-#include <gsl/gsl_complex.h>
-
-#define RVEC(A) int A##n, double*A##p
-#define RMAT(A) int A##r, int A##c, double* A##p
-#define KRVEC(A) int A##n, const double*A##p
-#define KRMAT(A) int A##r, int A##c, const double* A##p
-
-#define CVEC(A) int A##n, gsl_complex*A##p
-#define CMAT(A) int A##r, int A##c, gsl_complex* A##p
-#define KCVEC(A) int A##n, const gsl_complex*A##p
-#define KCMAT(A) int A##r, int A##c, const gsl_complex* A##p
-
-#define FVEC(A) int A##n, float*A##p
-#define FMAT(A) int A##r, int A##c, float* A##p
-#define KFVEC(A) int A##n, const float*A##p
-#define KFMAT(A) int A##r, int A##c, const float* A##p
-
-#define QVEC(A) int A##n, gsl_complex_float*A##p
-#define QMAT(A) int A##r, int A##c, gsl_complex_float* A##p
-#define KQVEC(A) int A##n, const gsl_complex_float*A##p
-#define KQMAT(A) int A##r, int A##c, const gsl_complex_float* A##p
-
 #include <gsl/gsl_blas.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_complex_math.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <string.h>
@@ -32,9 +8,7 @@
 #define ERROR(CODE) MACRO(return CODE;)
 #define REQUIRES(COND, CODE) MACRO(if(!(COND)) {ERROR(CODE);})
 #define OK return 0;
-
-#define MIN(A,B) ((A)<(B)?(A):(B))
-#define MAX(A,B) ((A)>(B)?(A):(B))
+#define CHECK(RES,CODE) MACRO(if(RES) return CODE;)
 
 #ifdef DBG
 #define DEBUGMSG(M) printf("*** calling aux C function: %s\n",M);
@@ -42,236 +16,15 @@
 #define DEBUGMSG(M)
 #endif
 
-#define CHECK(RES,CODE) MACRO(if(RES) return CODE;)
-
-#ifdef DBG
-#define DEBUGMAT(MSG,X) printf(MSG" = \n"); gsl_matrix_fprintf(stdout,X,"%f"); printf("\n");
-#else
-#define DEBUGMAT(MSG,X)
-#endif
-
-#ifdef DBG
-#define DEBUGVEC(MSG,X) printf(MSG" = \n"); gsl_vector_fprintf(stdout,X,"%f"); printf("\n");
-#else
-#define DEBUGVEC(MSG,X)
-#endif
-
+#define RVEC(A) int A##n, double*A##p
 #define DVVIEW(A) gsl_vector_view A = gsl_vector_view_array(A##p,A##n)
-#define DMVIEW(A) gsl_matrix_view A = gsl_matrix_view_array(A##p,A##r,A##c)
-#define CVVIEW(A) gsl_vector_complex_view A = gsl_vector_complex_view_array((double*)A##p,A##n)
-#define CMVIEW(A) gsl_matrix_complex_view A = gsl_matrix_complex_view_array((double*)A##p,A##r,A##c)
-#define KDVVIEW(A) gsl_vector_const_view A = gsl_vector_const_view_array(A##p,A##n)
-#define KDMVIEW(A) gsl_matrix_const_view A = gsl_matrix_const_view_array(A##p,A##r,A##c)
-#define KCVVIEW(A) gsl_vector_complex_const_view A = gsl_vector_complex_const_view_array((double*)A##p,A##n)
-#define KCMVIEW(A) gsl_matrix_complex_const_view A = gsl_matrix_complex_const_view_array((double*)A##p,A##r,A##c)
-
-#define FVVIEW(A) gsl_vector_float_view A = gsl_vector_float_view_array(A##p,A##n)
-#define FMVIEW(A) gsl_matrix_float_view A = gsl_matrix_float_view_array(A##p,A##r,A##c)
-#define QVVIEW(A) gsl_vector_complex_float_view A = gsl_vector_float_complex_view_array((float*)A##p,A##n)
-#define QMVIEW(A) gsl_matrix_complex_float_view A = gsl_matrix_float_complex_view_array((float*)A##p,A##r,A##c)
-#define KFVVIEW(A) gsl_vector_float_const_view A = gsl_vector_float_const_view_array(A##p,A##n)
-#define KFMVIEW(A) gsl_matrix_float_const_view A = gsl_matrix_float_const_view_array(A##p,A##r,A##c)
-#define KQVVIEW(A) gsl_vector_complex_float_const_view A = gsl_vector_complex_float_const_view_array((float*)A##p,A##n)
-#define KQMVIEW(A) gsl_matrix_complex_float_const_view A = gsl_matrix_complex_float_const_view_array((float*)A##p,A##r,A##c)
-
 #define V(a) (&a.vector)
-#define M(a) (&a.matrix)
-
-#define GCVEC(A) int A##n, gsl_complex*A##p
-#define KGCVEC(A) int A##n, const gsl_complex*A##p
-
-#define GQVEC(A) int A##n, gsl_complex_float*A##p
-#define KGQVEC(A) int A##n, const gsl_complex_float*A##p
 
 #define BAD_SIZE 2000
 #define BAD_CODE 2001
 #define MEM      2002
 #define BAD_FILE 2003
 
-
-inline gsl_complex complex_abs(gsl_complex z) {
-    gsl_complex r;
-    r.dat[0] = gsl_complex_abs(z);
-    r.dat[1] = 0;
-    return r;
-}
-
-inline gsl_complex complex_signum(gsl_complex z) {
-    gsl_complex r;
-    double mag;
-    if (z.dat[0] == 0 && z.dat[1] == 0) {
-        r.dat[0] = 0;
-        r.dat[1] = 0;
-    } else {
-        mag = gsl_complex_abs(z);
-        r.dat[0] = z.dat[0]/mag;
-        r.dat[1] = z.dat[1]/mag;
-    }
-    return r;
-}
-
-#define OP(C,F) case C: { for(k=0;k<xn;k++) rp[k] = F(xp[k]); OK }
-#define OPV(C,E) case C: { for(k=0;k<xn;k++) rp[k] = E; OK }
-
-
-int mapCAux(int code, KGCVEC(x), GCVEC(r)) {
-    int k;
-    REQUIRES(xn == rn,BAD_SIZE);
-    DEBUGMSG("mapC");
-    switch (code) {
-        OP(0,gsl_complex_sin)
-        OP(1,gsl_complex_cos)
-        OP(2,gsl_complex_tan)
-        OP(3,complex_abs)
-        OP(4,gsl_complex_arcsin)
-        OP(5,gsl_complex_arccos)
-        OP(6,gsl_complex_arctan)
-        OP(7,gsl_complex_sinh)
-        OP(8,gsl_complex_cosh)
-        OP(9,gsl_complex_tanh)
-        OP(10,gsl_complex_arcsinh)
-        OP(11,gsl_complex_arccosh)
-        OP(12,gsl_complex_arctanh)
-        OP(13,gsl_complex_exp)
-        OP(14,gsl_complex_log)
-        OP(15,complex_signum)
-        OP(16,gsl_complex_sqrt)
-
-        // gsl_complex_arg
-        // gsl_complex_abs
-        default: ERROR(BAD_CODE);
-    }
-}
-
-int mapC(int code, KCVEC(x), CVEC(r)) {
-    return mapCAux(code, xn, (gsl_complex*)xp, rn, (gsl_complex*)rp);
-}
-
-
-gsl_complex_float complex_float_math_fun(gsl_complex (*cf)(gsl_complex), gsl_complex_float a)
-{
-  gsl_complex c;
-  gsl_complex r;
-
-  gsl_complex_float float_r;
-
-  c.dat[0] = a.dat[0];
-  c.dat[1] = a.dat[1];
-
-  r = (*cf)(c);
-
-  float_r.dat[0] = r.dat[0];
-  float_r.dat[1] = r.dat[1];
-
-  return float_r;
-}
-
-gsl_complex_float complex_float_math_op(gsl_complex (*cf)(gsl_complex,gsl_complex), 
-					gsl_complex_float a,gsl_complex_float b)
-{
-  gsl_complex c1;
-  gsl_complex c2;
-  gsl_complex r;
-
-  gsl_complex_float float_r;
-
-  c1.dat[0] = a.dat[0];
-  c1.dat[1] = a.dat[1];
-
-  c2.dat[0] = b.dat[0];
-  c2.dat[1] = b.dat[1];
-
-  r = (*cf)(c1,c2);
-
-  float_r.dat[0] = r.dat[0];
-  float_r.dat[1] = r.dat[1];
-
-  return float_r;
-}
-
-#define OPC(C,F) case C: { for(k=0;k<xn;k++) rp[k] = complex_float_math_fun(&F,xp[k]); OK }
-#define OPCA(C,F,A,B) case C: { for(k=0;k<xn;k++) rp[k] = complex_float_math_op(&F,A,B); OK }
-int mapQAux(int code, KGQVEC(x), GQVEC(r)) {
-    int k;
-    REQUIRES(xn == rn,BAD_SIZE);
-    DEBUGMSG("mapQ");
-    switch (code) {
-        OPC(0,gsl_complex_sin)
-        OPC(1,gsl_complex_cos)
-        OPC(2,gsl_complex_tan)
-        OPC(3,complex_abs)
-        OPC(4,gsl_complex_arcsin)
-        OPC(5,gsl_complex_arccos)
-        OPC(6,gsl_complex_arctan)
-        OPC(7,gsl_complex_sinh)
-        OPC(8,gsl_complex_cosh)
-        OPC(9,gsl_complex_tanh)
-        OPC(10,gsl_complex_arcsinh)
-        OPC(11,gsl_complex_arccosh)
-        OPC(12,gsl_complex_arctanh)
-        OPC(13,gsl_complex_exp)
-        OPC(14,gsl_complex_log)
-        OPC(15,complex_signum)
-        OPC(16,gsl_complex_sqrt)
-
-        // gsl_complex_arg
-        // gsl_complex_abs
-        default: ERROR(BAD_CODE);
-    }
-}
-
-int mapQ(int code, KQVEC(x), QVEC(r)) {
-    return mapQAux(code, xn, (gsl_complex_float*)xp, rn, (gsl_complex_float*)rp);
-}
-
-
-int mapValCAux(int code, gsl_complex* pval, KGCVEC(x), GCVEC(r)) {
-    int k;
-    gsl_complex val = *pval;
-    REQUIRES(xn == rn,BAD_SIZE);
-    DEBUGMSG("mapValC");
-    switch (code) {
-        OPV(0,gsl_complex_mul(val,xp[k]))
-        OPV(1,gsl_complex_div(val,xp[k]))
-        OPV(2,gsl_complex_add(val,xp[k]))
-        OPV(3,gsl_complex_sub(val,xp[k]))
-        OPV(4,gsl_complex_pow(val,xp[k]))
-        OPV(5,gsl_complex_pow(xp[k],val))
-        default: ERROR(BAD_CODE);
-    }
-}
-
-int mapValC(int code, gsl_complex* val, KCVEC(x), CVEC(r)) {
-    return mapValCAux(code, val, xn, (gsl_complex*)xp, rn, (gsl_complex*)rp);
-}
-
-
-int mapValQAux(int code, gsl_complex_float* pval, KQVEC(x), GQVEC(r)) {
-    int k;
-    gsl_complex_float val = *pval;
-    REQUIRES(xn == rn,BAD_SIZE);
-    DEBUGMSG("mapValQ");
-    switch (code) {
-        OPCA(0,gsl_complex_mul,val,xp[k])
-	OPCA(1,gsl_complex_div,val,xp[k])
-	OPCA(2,gsl_complex_add,val,xp[k])
-	OPCA(3,gsl_complex_sub,val,xp[k])
-	OPCA(4,gsl_complex_pow,val,xp[k])
-	OPCA(5,gsl_complex_pow,xp[k],val)
-        default: ERROR(BAD_CODE);
-    }
-}
-
-int mapValQ(int code, gsl_complex_float* val, KQVEC(x), QVEC(r)) {
-    return mapValQAux(code, val, xn, (gsl_complex_float*)xp, rn, (gsl_complex_float*)rp);
-}
-
-
-#define OPZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = E(ap[k],bp[k]); OK }
-#define OPZV(C,msg,E) case C: {DEBUGMSG(msg) res = E(V(r),V(b)); CHECK(res,res); OK }
-
-
-#define OPCZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = complex_float_math_op(&E,ap[k],bp[k]); OK }
 
 int vector_fscanf(char*filename, RVEC(a)) {
     DEBUGMSG("gsl_vector_fscanf");

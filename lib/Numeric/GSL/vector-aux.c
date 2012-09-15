@@ -440,7 +440,7 @@ inline doublecomplex complex_signum_complex(doublecomplex z) {
 
 
 
-int mapC2(int code, KCVEC(x), CVEC(r)) {
+int mapC(int code, KCVEC(x), CVEC(r)) {
     int k;
     REQUIRES(xn == rn,BAD_SIZE);
     DEBUGMSG("mapC");
@@ -514,7 +514,7 @@ inline complex complex_f_math_op(doublecomplex (*cf)(doublecomplex,doublecomplex
 
 #define OPC(C,F) case C: { for(k=0;k<xn;k++) rp[k] = complex_f_math_fun(&F,xp[k]); OK }
 #define OPCA(C,F,A,B) case C: { for(k=0;k<xn;k++) rp[k] = complex_f_math_op(&F,A,B); OK }
-int mapQ2(int code, KQVEC(x), QVEC(r)) {
+int mapQ(int code, KQVEC(x), QVEC(r)) {
     int k;
     REQUIRES(xn == rn,BAD_SIZE);
     DEBUGMSG("mapQ");
@@ -588,7 +588,7 @@ inline doublecomplex complex_add(doublecomplex a, doublecomplex b) {
 }
 
 
-int mapValC2(int code, doublecomplex* pval, KCVEC(x), CVEC(r)) {
+int mapValC(int code, doublecomplex* pval, KCVEC(x), CVEC(r)) {
     int k;
     doublecomplex val = *pval;
     REQUIRES(xn == rn,BAD_SIZE);
@@ -605,7 +605,7 @@ int mapValC2(int code, doublecomplex* pval, KCVEC(x), CVEC(r)) {
 }
 
 
-int mapValQ2(int code, complex* pval, KQVEC(x), QVEC(r)) {
+int mapValQ(int code, complex* pval, KQVEC(x), QVEC(r)) {
     int k;
     complex val = *pval;
     REQUIRES(xn == rn,BAD_SIZE);
@@ -637,6 +637,7 @@ REQUIRES(an == bn && an == rn, BAD_SIZE);
         OPZO(3,"zipR Div",/)
         OPZE(4,"zipR Pow",  pow)
         OPZE(5,"zipR ATan2",atan2)
+        default: ERROR(BAD_CODE);
     }
 }
 
@@ -650,6 +651,7 @@ REQUIRES(an == bn && an == rn, BAD_SIZE);
         OPZO(3,"zipR Div",/)
         OPZE(4,"zipR Pow",  pow)
         OPZE(5,"zipR ATan2",atan2)
+        default: ERROR(BAD_CODE);
     }
 }
 
@@ -666,6 +668,7 @@ int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
 //        OPZE(3,"zipC Div",gsl_complex_div)
 //        OPZE(4,"zipC Pow",gsl_complex_pow)
 //        //OPZE(5,"zipR ATan2",atan2)
+        default: ERROR(BAD_CODE);
     }
 }
 
@@ -685,6 +688,7 @@ int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
 //        OPCZE(3,"zipQ Div",gsl_complex_div)
 //        OPCZE(4,"zipQ Pow",gsl_complex_pow)
 //        //OPZE(5,"zipR ATan2",atan2)
+        default: ERROR(BAD_CODE);
     }
 }
 
