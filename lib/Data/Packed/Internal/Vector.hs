@@ -24,7 +24,7 @@ module Data.Packed.Internal.Vector (
     asComplex, asReal, float2DoubleV, double2FloatV,
     stepF, stepD, condF, condD,
     conjugateQ, conjugateC,
-    fwriteVector, freadVector, fprintfVector, fscanfVector,
+--    fwriteVector, freadVector, fprintfVector, fscanfVector,
     cloneVector,
     unsafeToForeignPtr,
     unsafeFromForeignPtr,
@@ -477,47 +477,4 @@ mapVectorWithIndex f v = unsafePerformIO $ do
 {-# INLINE mapVectorWithIndex #-}
 
 -------------------------------------------------------------------
-
-
--- | Loads a vector from an ASCII file (the number of elements must be known in advance).
-fscanfVector :: FilePath -> Int -> IO (Vector Double)
-fscanfVector filename n = do
-    charname <- newCString filename
-    res <- createVector n
-    app1 (gsl_vector_fscanf charname) vec res "gsl_vector_fscanf"
-    free charname
-    return res
-
-foreign import ccall unsafe "vector_fscanf" gsl_vector_fscanf:: Ptr CChar -> TV
-
--- | Saves the elements of a vector, with a given format (%f, %e, %g), to an ASCII file.
-fprintfVector :: FilePath -> String -> Vector Double -> IO ()
-fprintfVector filename fmt v = do
-    charname <- newCString filename
-    charfmt <- newCString fmt
-    app1 (gsl_vector_fprintf charname charfmt) vec v "gsl_vector_fprintf"
-    free charname
-    free charfmt
-
-foreign import ccall unsafe "vector_fprintf" gsl_vector_fprintf :: Ptr CChar -> Ptr CChar -> TV
-
--- | Loads a vector from a binary file (the number of elements must be known in advance).
-freadVector :: FilePath -> Int -> IO (Vector Double)
-freadVector filename n = do
-    charname <- newCString filename
-    res <- createVector n
-    app1 (gsl_vector_fread charname) vec res "gsl_vector_fread"
-    free charname
-    return res
-
-foreign import ccall unsafe "vector_fread" gsl_vector_fread:: Ptr CChar -> TV
-
--- | Saves the elements of a vector to a binary file.
-fwriteVector :: FilePath -> Vector Double -> IO ()
-fwriteVector filename v = do
-    charname <- newCString filename
-    app1 (gsl_vector_fwrite charname) vec v "gsl_vector_fwrite"
-    free charname
-
-foreign import ccall unsafe "vector_fwrite" gsl_vector_fwrite :: Ptr CChar -> TV
 

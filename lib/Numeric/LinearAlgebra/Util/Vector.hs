@@ -18,8 +18,7 @@ module Numeric.GSL.Vector (
     FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ,
     FunCodeV(..), vectorMapR, vectorMapC, vectorMapF, vectorMapQ,
     FunCodeSV(..), vectorMapValR, vectorMapValC, vectorMapValF, vectorMapValQ,
-    FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF, vectorZipQ,
-    RandDist(..), randomVector
+    FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF, vectorZipQ
 ) where
 
 import Data.Packed.Internal.Common
@@ -274,20 +273,3 @@ vectorZipQ = vectorZipAux c_vectorZipQ
 
 foreign import ccall unsafe "gsl-aux.h zipQ" c_vectorZipQ :: CInt -> TQVQVQV
 
------------------------------------------------------------------------
-
-data RandDist = Uniform  -- ^ uniform distribution in [0,1)
-              | Gaussian -- ^ normal distribution with mean zero and standard deviation one
-              deriving Enum
-
--- | Obtains a vector of pseudorandom elements from the the mt19937 generator in GSL, with a given seed. Use randomIO to get a random seed.
-randomVector :: Int      -- ^ seed
-             -> RandDist -- ^ distribution
-             -> Int      -- ^ vector size
-             -> Vector Double
-randomVector seed dist n = unsafePerformIO $ do
-    r <- createVector n
-    app1 (c_random_vector (fi seed) ((fi.fromEnum) dist)) vec r "randomVector"
-    return r
-
-foreign import ccall unsafe "random_vector" c_random_vector :: CInt -> CInt -> TV
