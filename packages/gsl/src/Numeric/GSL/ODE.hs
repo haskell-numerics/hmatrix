@@ -135,3 +135,4 @@ checkdim2 n m
 checkTimes ts | dim ts > 1 && all (>0) (zipWith subtract ts' (tail ts')) = ts
               | otherwise = error "odeSolve requires increasing times"
     where ts' = toList ts
+

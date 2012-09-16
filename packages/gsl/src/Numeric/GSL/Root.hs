@@ -144,3 +144,4 @@ checkdim2 n m
     | rows m == n && cols m == n = m
     | otherwise = error $ "Error: "++ show n ++ "x" ++ show n
                         ++ " Jacobian expected in rootJ"
+

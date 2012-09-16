@@ -49,7 +49,7 @@ derivGen c h f x = unsafePerformIO $ do
     freeHaskellFunPtr fp
     return result
 
-foreign import ccall safe "gsl-aux.h deriv" 
+foreign import ccall safe "deriv"
  c_deriv :: CInt -> FunPtr (Double -> Ptr () -> Double) -> Double -> Double 
                     -> Ptr Double -> Ptr Double -> IO CInt
 
@@ -85,4 +85,5 @@ derivBackward = derivGen 2
 
 {- | conversion of Haskell functions into function pointers that can be used in the C side
 -}
-foreign import ccall safe "wrapper" mkfun:: (Double -> Ptr() -> Double) -> IO( FunPtr (Double -> Ptr() -> Double)) 
+foreign import ccall safe "wrapper" mkfun:: (Double -> Ptr() -> Double) -> IO( FunPtr (Double -> Ptr() -> Double))
+

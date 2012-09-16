@@ -64,7 +64,7 @@ integrateQAGS prec n f a b = unsafePerformIO $ do
     freeHaskellFunPtr fp
     return result
 
-foreign import ccall safe "gsl-aux.h integrate_qags" 
+foreign import ccall safe "integrate_qags"
  c_integrate_qags :: FunPtr (Double-> Ptr() -> Double) -> Double -> Double -> Double -> CInt
                      -> Ptr Double -> Ptr Double -> IO CInt
 
@@ -95,7 +95,7 @@ integrateQNG prec f a b = unsafePerformIO $ do
     freeHaskellFunPtr fp
     return result
 
-foreign import ccall safe "gsl-aux.h integrate_qng" 
+foreign import ccall safe "integrate_qng"
  c_integrate_qng :: FunPtr (Double-> Ptr() -> Double) -> Double -> Double -> Double 
                     -> Ptr Double -> Ptr Double -> IO CInt
 
@@ -127,7 +127,7 @@ integrateQAGI prec n f = unsafePerformIO $ do
     freeHaskellFunPtr fp
     return result
 
-foreign import ccall safe "gsl-aux.h integrate_qagi" 
+foreign import ccall safe "integrate_qagi"
  c_integrate_qagi :: FunPtr (Double-> Ptr() -> Double) -> Double -> CInt
                      -> Ptr Double -> Ptr Double -> IO CInt
 
@@ -160,7 +160,7 @@ integrateQAGIU prec n f a = unsafePerformIO $ do
     freeHaskellFunPtr fp
     return result
 
-foreign import ccall safe "gsl-aux.h integrate_qagiu" 
+foreign import ccall safe "integrate_qagiu"
  c_integrate_qagiu :: FunPtr (Double-> Ptr() -> Double) -> Double -> Double -> CInt
                      -> Ptr Double -> Ptr Double -> IO CInt
 
@@ -193,7 +193,7 @@ integrateQAGIL prec n f b = unsafePerformIO $ do
     freeHaskellFunPtr fp
     return result
 
-foreign import ccall safe "gsl-aux.h integrate_qagil" 
+foreign import ccall safe "integrate_qagil"
  c_integrate_qagil :: FunPtr (Double-> Ptr() -> Double) -> Double -> Double -> CInt
                      -> Ptr Double -> Ptr Double -> IO CInt
 

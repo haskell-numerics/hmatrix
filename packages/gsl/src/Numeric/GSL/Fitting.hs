@@ -175,3 +175,4 @@ resM m v = \(x,ys) -> zipWith g (m v x) ys where g a b = a-b
 -- | Associated derivative for 'resM'.
 resD :: ([Double] -> x -> [[Double]]) -> [Double] -> (x, [Double]) -> [[Double]]
 resD m v = \(x,_) -> m v x
+
