@@ -29,7 +29,7 @@ build-type:         Simple
 
 extra-source-files: THANKS.md INSTALL.md CHANGES.md
 
-extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h
+extra-source-files: src/Numeric/LinearAlgebra/LAPACK/lapack-aux.h
 
 flag dd
     description:    svd = zgesdd
@@ -67,7 +67,7 @@ library
     Extensions:         ForeignFunctionInterface,
                         CPP
 
-    hs-source-dirs:     lib
+    hs-source-dirs:     src
     Exposed-modules:    Data.Packed,
                         Data.Packed.Vector,
                         Data.Packed.Matrix,
@@ -92,8 +92,8 @@ library
                         Numeric.Matrix,
                         Numeric.LinearAlgebra.Util.Convolution
 
-    C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
-                        lib/Numeric/LinearAlgebra/Util/vector-aux.c
+    C-sources:          src/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
+                        src/Numeric/LinearAlgebra/Util/vector-aux.c
 
     cpp-options:        -DBINARY
 
