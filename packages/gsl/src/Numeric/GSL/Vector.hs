@@ -18,16 +18,13 @@ module Numeric.GSL.Vector (
 ) where
 
 import Data.Packed
-import Data.Packed.Development
+import Data.Packed.Development(vec,createVector)
+import Numeric.GSL.Internal
 import Foreign.Marshal.Alloc(free)
 import Foreign.Ptr(Ptr)
 import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
 import Foreign.C.String
-import Numeric.GSL.Internal(TV)
-
-
-fi x = fromIntegral x :: CInt
 
 data RandDist = Uniform  -- ^ uniform distribution in [0,1)
               | Gaussian -- ^ normal distribution with mean zero and standard deviation one

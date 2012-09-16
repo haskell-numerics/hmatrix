@@ -20,7 +20,7 @@ module Numeric.GSL.Polynomials (
 ) where
 
 import Data.Packed
-import Data.Packed.Development
+import Data.Packed.Development(createVector,vec)
 import Data.Complex
 import Numeric.GSL.Internal
 import System.IO.Unsafe (unsafePerformIO)

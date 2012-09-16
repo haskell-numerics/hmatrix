@@ -21,7 +21,7 @@ module Numeric.GSL.Fourier (
 ) where
 
 import Data.Packed
-import Data.Packed.Development
+import Data.Packed.Development(createVector,vec)
 import Data.Complex
 import Foreign.C.Types
 import System.IO.Unsafe (unsafePerformIO)

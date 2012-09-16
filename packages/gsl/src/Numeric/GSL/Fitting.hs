@@ -49,7 +49,7 @@ module Numeric.GSL.Fitting (
     fitModelScaled, fitModel
 ) where
 
-import Data.Packed.Development
+import Data.Packed.Development(createMatrix,mat,vec,MatrixOrder(..))
 import Numeric.LinearAlgebra
 import Numeric.GSL.Internal
 

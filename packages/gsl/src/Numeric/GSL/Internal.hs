@@ -13,7 +13,7 @@
 module Numeric.GSL.Internal where
 
 import Data.Packed
-import Data.Packed.Development
+import Data.Packed.Development(createVector,createMatrix,vec,mat,MatrixOrder(..),(//))
 import Data.Vector.Storable(unsafeWith)
 
 import Foreign.Marshal.Array(copyArray)
@@ -37,6 +37,18 @@ type TCV = CInt -> PC -> IO CInt
 type TCVCV = CInt -> PC -> TCV
 
 
+type Adapt f t r = t -> ((f -> r) -> IO()) -> IO()
+
+type Adapt1 f t1 = Adapt f t1 (IO CInt) -> t1 -> String -> IO()
+type Adapt2 f t1 r1 t2 = Adapt f t1 r1 -> t1 -> Adapt1 r1 t2
+
+app1 :: f -> Adapt1 f t1
+app2 :: f -> Adapt2 f t1 r1 t2
+
+app1 f w1 o1 s = w1 o1 $ \a1 -> f // a1 // check s
+app2 f w1 o1 w2 o2 s = ww2 w1 o1 w2 o2 $ \a1 a2 -> f // a1 // a2 // check s
+  
+ww2 w1 o1 w2 o2 f = w1 o1 $ w2 o2 . f
 
 -- GSL error codes are <= 1024
 -- | error codes for the auxiliary functions required by the wrappers
