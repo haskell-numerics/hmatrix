@@ -21,7 +21,7 @@ extra-source-files: CHANGES
 library
 
     Build-Depends:      base >= 4 && < 5,
-                        hmatrix-base, hmatrix >= 0.15,
+                        hmatrix-base>= 0.15, hmatrix-gsl >= 0.15,
                         QuickCheck >= 2, HUnit, random
 
     hs-source-dirs:     src

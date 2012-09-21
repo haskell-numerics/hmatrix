@@ -33,8 +33,8 @@ import Foreign.Storable
 import Foreign.Ptr
 import Foreign.Marshal
 import System.IO.Unsafe(unsafePerformIO)
-import Data.Packed.Development(check,(//))
 import Foreign.C.Types
+import Foreign.C.String
 
 data Precision = PrecDouble | PrecSingle | PrecApprox
 
@@ -80,6 +80,25 @@ instance Storable Gsl_sf_result_e10 where
     (#poke gsl_sf_result_e10, err) ptr err
     (#poke gsl_sf_result_e10, e10) ptr e10
 
+----------------------------------------------------------------
+
+(//) :: x -> (x -> y) -> y
+infixl 0 //
+(//) = flip ($)
+
+-- | check the error code
+check :: String -> IO CInt -> IO ()
+check msg f = do
+    err <- f
+    if err == 0
+      then return ()
+      else do
+        ps <- gsl_strerror err
+        s <- peekCString ps
+        error (msg++": "++s)
+
+-- | description of GSL error codes
+foreign import ccall unsafe "gsl_strerror" gsl_strerror :: CInt -> IO (Ptr CChar)
 
 ----------------------------------------------------------------
 -- | access to one sf_result

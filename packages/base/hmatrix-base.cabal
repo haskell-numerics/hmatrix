@@ -6,12 +6,11 @@ Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          provisional
 Homepage:           https://github.com/albertoruiz/hmatrix
-Synopsis:           Linear algebra and numerical computation
+Synopsis:           Numerical Linear Algebra
 Description:        Purely functional interface to basic linear algebra
-                    and other numerical computations, internally implemented using
-                    GSL, BLAS and LAPACK.
+                    internally implemented using BLAS and LAPACK.
                     .
-                    The Linear Algebra API is organized as follows:
+                    The API is organized as follows:
                     .
                     - "Data.Packed": structure manipulation
                     .

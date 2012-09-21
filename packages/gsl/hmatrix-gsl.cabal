@@ -1,4 +1,4 @@
-Name:               hmatrix
+Name:               hmatrix-gsl
 Version:            0.15.0.0
 License:            GPL
 License-file:       LICENSE
@@ -6,20 +6,9 @@ Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          provisional
 Homepage:           https://github.com/albertoruiz/hmatrix
-Synopsis:           Linear algebra and numerical computation
-Description:        Purely functional interface to basic linear algebra
-                    and other numerical computations, internally implemented using
-                    GSL, BLAS and LAPACK.
-                    .
-                    The Linear Algebra API is organized as follows:
-                    .
-                    - "Data.Packed": structure manipulation
-                    .
-                    - "Numeric.Container": simple numeric functions
-                    .
-                    - "Numeric.LinearAlgebra.Algorithms": matrix computations
-                    .
-                    - "Numeric.LinearAlgebra": everything + instances of standard Haskell numeric classes
+Synopsis:           Numerical computation
+Description:        Purely functional interface to standard numerical computations internally implemented using
+                    GSL.
 Category:           Math
 tested-with:        GHC ==7.4
 
