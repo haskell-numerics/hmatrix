@@ -16,7 +16,7 @@ module Numeric.LinearAlgebra.Util.Convolution(
    corr2, conv2, separable
 ) where
 
-import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra.Base
 
 
 vectSS :: Element t => Int -> Vector t -> Matrix t

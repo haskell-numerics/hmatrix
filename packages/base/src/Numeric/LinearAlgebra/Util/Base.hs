@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 {- |
-Module      :  Numeric.LinearAlgebra.Util
+Module      :  Numeric.LinearAlgebra.Util.Base
 Copyright   :  (c) Alberto Ruiz 2012
 License     :  GPL
 
@@ -11,7 +11,7 @@ Stability   :  provisional
 -}
 -----------------------------------------------------------------------------
 
-module Numeric.LinearAlgebra.Util(
+module Numeric.LinearAlgebra.Util.Base(
     -- * Convenience functions for real elements
     disp,
     zeros, ones,
@@ -40,7 +40,7 @@ module Numeric.LinearAlgebra.Util(
     vtrans
 ) where
 
-import Numeric.LinearAlgebra hiding (i)
+import Numeric.LinearAlgebra.Base hiding (i)
 import Numeric.LinearAlgebra.Util.Convolution
 
 

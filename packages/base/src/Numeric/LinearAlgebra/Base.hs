@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 {- |
-Module      :  Numeric.LinearAlgebra
-Copyright   :  (c) Alberto Ruiz 2006-10
+Module      :  Numeric.LinearAlgebra.Base
+Copyright   :  (c) Alberto Ruiz 2006-12
 License     :  GPL-style
 
 Maintainer  :  Alberto Ruiz (aruiz at um dot es)
@@ -17,7 +17,7 @@ expand to match the dimensions of the other operand.
 
 -}
 -----------------------------------------------------------------------------
-module Numeric.LinearAlgebra (
+module Numeric.LinearAlgebra.Base (
     module Numeric.Container,
     module Numeric.LinearAlgebra.Algorithms
 ) where

@@ -71,10 +71,10 @@ library
                         Data.Packed.Vector,
                         Data.Packed.Matrix,
                         Numeric.Container,
-                        Numeric.LinearAlgebra,
+                        Numeric.LinearAlgebra.Base,
                         Numeric.LinearAlgebra.LAPACK,
                         Numeric.LinearAlgebra.Algorithms,
-                        Numeric.LinearAlgebra.Util,
+                        Numeric.LinearAlgebra.Util.Base,
                         Data.Packed.ST,
                         Data.Packed.Development
     other-modules:      Data.Packed.Internal,
