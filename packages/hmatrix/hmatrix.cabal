@@ -1,0 +1,22 @@
+Name:               hmatrix
+Version:            0.15.0.0
+License:            GPL
+License-file:       LICENSE
+Author:             Alberto Ruiz
+Maintainer:         Alberto Ruiz <aruiz@um.es>
+Stability:          provisional
+Homepage:           https://github.com/albertoruiz/hmatrix
+Synopsis:           Numerical computation
+Description:        Purely functional interface to standard numerical computations internally implemented using
+                    BLAS, LAPACK, and GSL. This is a convenience package to automatically install all components.
+Category:           Math
+tested-with:        GHC ==7.4
+
+cabal-version:      >=1.8
+
+build-type:         Simple
+
+library
+
+    Build-Depends:      hmatrix-tests >= 0.4, hmatrix-special, hmatrix-glpk
+
