@@ -16,30 +16,6 @@ cabal-version:      >=1.8
 
 build-type:         Simple
 
-extra-source-files: examples/deriv.hs
-                    examples/integrate.hs
-                    examples/minimize.hs
-                    examples/root.hs
-                    examples/ode.hs
-                    examples/pca1.hs
-                    examples/pca2.hs
-                    examples/pinv.hs
-                    examples/data.txt
-                    examples/lie.hs
-                    examples/kalman.hs
-                    examples/parallel.hs
-                    examples/plot.hs
-                    examples/inplace.hs
-                    examples/error.hs
-                    examples/fitting.hs
-                    examples/devel/ej1/wrappers.hs
-                    examples/devel/ej1/functions.c
-                    examples/devel/ej2/wrappers.hs
-                    examples/devel/ej2/functions.c
-                    examples/monadic.hs
-                    examples/bool.hs
-                    examples/multiply.hs
-
 extra-source-files: lib/Numeric/GSL/gsl-ode.c
 
 library
