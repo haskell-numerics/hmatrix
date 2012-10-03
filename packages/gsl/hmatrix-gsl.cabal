@@ -35,9 +35,11 @@ library
                         Numeric.GSL.Fitting,
                         Numeric.GSL.ODE,
                         Numeric.GSL.Vector,
-                        Numeric.LinearAlgebra.Util.Random
+                        Numeric.GSL.Random,
                         Numeric.GSL,
                         Graphics.Plot
+                        Numeric.LinearAlgebra
+                        Numeric.LinearAlgebra.Util
                         
     other-modules:      Numeric.GSL.Internal
 

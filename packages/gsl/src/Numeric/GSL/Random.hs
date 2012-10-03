@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numeric.LinearAlgebra.Util.Random
+-- Module      :  Numeric.GSL.Random
 -- Copyright   :  (c) Alberto Ruiz 2009-12
 -- License     :  GPL
 --
@@ -11,7 +11,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Numeric.LinearAlgebra.Util.Random (
+module Numeric.GSL.Random (
     RandDist(..),
     randomVector,
     gaussianSample,
@@ -20,8 +20,8 @@ module Numeric.LinearAlgebra.Util.Random (
     meanCov,
 ) where
 
-import Numeric.GSL.Vector
-import Numeric.LinearAlgebra
+import Numeric.GSL.Vector(RandDist(..),randomVector)
+import Numeric.LinearAlgebra.Base
 import System.Random(randomIO)
 
 
