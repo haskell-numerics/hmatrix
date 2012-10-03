@@ -67,7 +67,7 @@ module Numeric.LinearProgramming(
     Solution(..)
 ) where
 
-import Numeric.LinearAlgebra hiding (i)
+import Numeric.LinearAlgebra.Base hiding (i)
 import Data.Packed.Development
 import Foreign(Ptr)
 import System.IO.Unsafe(unsafePerformIO)
