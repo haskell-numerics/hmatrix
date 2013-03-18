@@ -395,11 +395,12 @@ mapMatrixWithIndexM g m = fmap (reshape c) . mapVectorWithIndexM (mk c g) . flat
  ,  10.0, 111.0,  12.0
  ,  20.0,  21.0, 122.0 ]@
  -}
-mapMatrixWithIndex :: (Foreign.Storable.Storable t, 
+mapMatrixWithIndex :: (Foreign.Storable.Storable t,
       Element a, Num a) =>
       ((Int, Int) -> a -> t) -> Matrix a -> Matrix t
-mapMatrixWithIndex g = head . mapMatrixWithIndexM (\a b -> [g a b])
+mapMatrixWithIndex g m = reshape c $ mapVectorWithIndex (mk c g) $ flatten m
+    where
+      c = cols m
 
 mapMatrix :: (Storable a, Storable b) => (a -> b) -> Matrix a -> Matrix b
 mapMatrix f = liftMatrix (mapVector f)
-
