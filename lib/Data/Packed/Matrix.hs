@@ -157,7 +157,7 @@ adaptBlocks ms = ms' where
 
 -----------------------------------------------------------
 
--- | Reverse rows 
+-- | Reverse rows
 flipud :: Element t => Matrix t -> Matrix t
 flipud m = fromRows . reverse . toRows $ m
 
@@ -272,7 +272,7 @@ Hilbert matrix of order N:
 buildMatrix :: Element a => Int -> Int -> ((Int, Int) -> a) -> Matrix a
 buildMatrix rc cc f =
     fromLists $ map (map f)
-    	$ map (\ ri -> map (\ ci -> (ri, ci)) [0 .. (cc - 1)]) [0 .. (rc - 1)]
+        $ map (\ ri -> map (\ ci -> (ri, ci)) [0 .. (cc - 1)]) [0 .. (rc - 1)]
 
 -----------------------------------------------------
 
@@ -283,7 +283,7 @@ fromArray2D m = (r><c) (elems m)
           c = c1-c0+1
 
 
--- | rearranges the rows of a matrix according to the order given in a list of integers. 
+-- | rearranges the rows of a matrix according to the order given in a list of integers.
 extractRows :: Element t => [Int] -> Matrix t -> Matrix t
 extractRows l m = fromRows $ extract (toRows m) l
     where extract l' is = [l'!!i |i<-is]
@@ -351,9 +351,9 @@ toBlocksEvery r c m = toBlocks rs cs m where
 
 -------------------------------------------------------------------
 
-mk c g = \k v -> g (divMod k c) v 
+mk c g = \k v -> g (divMod k c) v
 
-{- | 
+{- |
 
 @ghci> mapMatrixWithIndexM_ (\\(i,j) v -> printf \"m[%.0f,%.0f] = %.f\\n\" i j v :: IO()) ((2><3)[1 :: Double ..])
 m[0,0] = 1
@@ -367,7 +367,7 @@ mapMatrixWithIndexM_
   :: (Element a, Num a,
       Functor f, Monad f) =>
       ((Int, Int) -> a -> f ()) -> Matrix a -> f ()
-mapMatrixWithIndexM_ g m = mapVectorWithIndexM_ (mk c g) . flatten $ m 
+mapMatrixWithIndexM_ g m = mapVectorWithIndexM_ (mk c g) . flatten $ m
   where
     c = cols m
 
@@ -380,11 +380,11 @@ Just (3><3)
  ,  20.0,  21.0, 122.0 ]@
 -}
 mapMatrixWithIndexM
-  :: (Foreign.Storable.Storable t, 
+  :: (Foreign.Storable.Storable t,
       Element a, Num a,
       Functor f, Monad f) =>
       ((Int, Int) -> a -> f t) -> Matrix a -> f (Matrix t)
-mapMatrixWithIndexM g m = fmap (reshape c) . mapVectorWithIndexM (mk c g) . flatten $ m 
+mapMatrixWithIndexM g m = fmap (reshape c) . mapVectorWithIndexM (mk c g) . flatten $ m
     where
       c = cols m
 
