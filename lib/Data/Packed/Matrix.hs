@@ -46,7 +46,6 @@ import Data.Array
 
 import Data.List(transpose,intersperse)
 import Foreign.Storable(Storable)
-import Control.Arrow((***))
 
 -------------------------------------------------------------------
 
@@ -352,7 +351,7 @@ toBlocksEvery r c m = toBlocks rs cs m where
 
 -------------------------------------------------------------------
 
-mk c g = \k v -> g ((fromIntegral *** fromIntegral) (divMod k c)) v 
+mk c g = \k v -> g (divMod k c) v 
 
 {- | 
 
@@ -367,7 +366,7 @@ m[1,2] = 6@
 mapMatrixWithIndexM_
   :: (Element a, Num a,
       Functor f, Monad f) =>
-      ((a, a) -> a -> f ()) -> Matrix a -> f ()
+      ((Int, Int) -> a -> f ()) -> Matrix a -> f ()
 mapMatrixWithIndexM_ g m = mapVectorWithIndexM_ (mk c g) . flatten $ m 
   where
     c = cols m
@@ -384,7 +383,7 @@ mapMatrixWithIndexM
   :: (Foreign.Storable.Storable t, 
       Element a, Num a,
       Functor f, Monad f) =>
-      ((a, a) -> a -> f t) -> Matrix a -> f (Matrix t)
+      ((Int, Int) -> a -> f t) -> Matrix a -> f (Matrix t)
 mapMatrixWithIndexM g m = fmap (reshape c) . mapVectorWithIndexM (mk c g) . flatten $ m 
     where
       c = cols m
@@ -398,7 +397,7 @@ mapMatrixWithIndexM g m = fmap (reshape c) . mapVectorWithIndexM (mk c g) . flat
  -}
 mapMatrixWithIndex :: (Foreign.Storable.Storable t, 
       Element a, Num a) =>
-      ((a, a) -> a -> t) -> Matrix a -> Matrix t
+      ((Int, Int) -> a -> t) -> Matrix a -> Matrix t
 mapMatrixWithIndex g = head . mapMatrixWithIndexM (\a b -> [g a b])
 
 mapMatrix :: (Storable a, Storable b) => (a -> b) -> Matrix a -> Matrix b
