@@ -1,6 +1,6 @@
 Name:               hmatrix-base
 Version:            0.15.0.0
-License:            GPL
+License:            BSD
 License-file:       LICENSE
 Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
