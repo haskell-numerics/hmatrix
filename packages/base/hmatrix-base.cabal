@@ -1,6 +1,6 @@
 Name:               hmatrix-base
 Version:            0.15.0.0
-License:            GPL
+License:            BSD
 License-file:       LICENSE
 Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
@@ -131,16 +131,16 @@ library
 
     if flag(mkl)
       if arch(x86_64)
-        extra-libraries:   gsl mkl_lapack mkl_intel_lp64 mkl_sequential mkl_core
+        extra-libraries:   mkl_lapack mkl_intel_lp64 mkl_sequential mkl_core
       else
-        extra-libraries:   gsl mkl_lapack mkl_intel mkl_sequential mkl_core
+        extra-libraries:   mkl_lapack mkl_intel mkl_sequential mkl_core
 
     if os(OSX)
         extra-lib-dirs: /opt/local/lib/
         include-dirs: /opt/local/include/
         extra-lib-dirs: /usr/local/lib/
         include-dirs: /usr/local/include/
-        extra-libraries: gsl
+        extra-libraries: 
         if arch(i386)
             cc-options: -arch i386
         frameworks: Accelerate
