@@ -937,7 +937,7 @@ int minimize(int method, double f(int, double*), double tolsize, int maxit,
         iter++;
         if (status) break;
         status = gsl_multimin_test_size (size, tolsize);
-    } while (status == GSL_CONTINUE && iter <= maxit);
+    } while (status == GSL_CONTINUE && iter < maxit);
     int i,j;
     for (i=iter; i<solr; i++) {
         solp[i*solc+0] = iter;
@@ -1033,7 +1033,7 @@ int minimizeD(int method, double f(int, double*), int df(int, double*, int, doub
         iter++;
         if (status) break;
         status = gsl_multimin_test_gradient (s->gradient, tolgrad);
-    } while (status == GSL_CONTINUE && iter <= maxit);
+    } while (status == GSL_CONTINUE && iter < maxit);
     int i,j;
     for (i=iter; i<solr; i++) {
         solp[i*solc+0] = iter;
@@ -1112,7 +1112,7 @@ int root(int method, void f(int, double*, int, double*),
            status =
              gsl_multiroot_test_residual (s->f, epsabs);
         }
-        while (status == GSL_CONTINUE && iter <= maxit);
+        while (status == GSL_CONTINUE && iter < maxit);
 
     int i,j;
     for (i=iter; i<solr; i++) {
@@ -1228,7 +1228,7 @@ int rootj(int method, int f(int, double*, int, double*),
            status =
              gsl_multiroot_test_residual (s->f, epsabs);
         }
-        while (status == GSL_CONTINUE && iter <= maxit);
+        while (status == GSL_CONTINUE && iter < maxit);
 
     int i,j;
     for (i=iter; i<solr; i++) {
@@ -1293,7 +1293,7 @@ int nlfit(int method, int f(int, double*, int, double*),
 
            status = gsl_multifit_test_delta (s->dx, s->x, epsabs, epsrel);
         }
-        while (status == GSL_CONTINUE && iter <= maxit);
+        while (status == GSL_CONTINUE && iter < maxit);
 
     int i,j;
     for (i=iter; i<solr; i++) {
