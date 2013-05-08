@@ -36,6 +36,9 @@ foreign import ccall safe "wrapper"
 foreign import ccall safe "wrapper"
     mkDoubleVecVecfun :: (Double -> TVV) -> IO (FunPtr (Double -> TVV))
 
+foreign import ccall safe "wrapper"
+    mkDoublefun :: (Double -> Double) -> IO (FunPtr (Double -> Double))
+
 aux_vTov :: (Vector Double -> Vector Double) -> TVV
 aux_vTov f n p nr r = g where
     v = f x

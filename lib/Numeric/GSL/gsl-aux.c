@@ -32,6 +32,7 @@
 #include <gsl/gsl_complex_math.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_roots.h>
 #include <gsl/gsl_multifit_nlin.h>
 #include <string.h>
 #include <stdio.h>
@@ -1047,9 +1048,144 @@ int minimizeD(int method, double f(int, double*), int df(int, double*, int, doub
 
 //---------------------------------------------------------------
 
+double only_f_aux_root(double x, void *pars) {
+    double (*f)(double) = (double (*)(double)) pars;
+    return f(x);
+}
+
+int root(int method, double f(double),
+         double epsrel, int maxit,
+         double xl, double xu, RMAT(sol)) {
+    REQUIRES(solr == maxit && solc == 4,BAD_SIZE);
+    DEBUGMSG("root_only_f");
+    gsl_function my_func;
+    // extract function from pars
+    my_func.function = only_f_aux_root;
+    my_func.params = f;
+    size_t iter = 0;
+    int status;
+    const gsl_root_fsolver_type *T;
+    gsl_root_fsolver *s;
+    // Starting point
+    switch(method) {
+        case 0 : {T = gsl_root_fsolver_bisection; printf("7\n"); break; }
+        case 1 : {T = gsl_root_fsolver_falsepos; break; }
+        case 2 : {T = gsl_root_fsolver_brent; break; }
+        default: ERROR(BAD_CODE);
+    }
+    s = gsl_root_fsolver_alloc (T);
+    gsl_root_fsolver_set (s, &my_func, xl, xu);
+    do {
+           double best, current_lo, current_hi;
+           status = gsl_root_fsolver_iterate (s);
+           best = gsl_root_fsolver_root (s);
+           current_lo = gsl_root_fsolver_x_lower (s);
+           current_hi = gsl_root_fsolver_x_upper (s);
+           solp[iter*solc] = iter + 1;
+           solp[iter*solc+1] = best;
+           solp[iter*solc+2] = current_lo;
+           solp[iter*solc+3] = current_hi;
+           iter++;
+           if (status)   /* check if solver is stuck */
+             break;
+
+           status =
+               gsl_root_test_interval (current_lo, current_hi, 0, epsrel);
+        }
+        while (status == GSL_CONTINUE && iter < maxit);
+    int i;
+    for (i=iter; i<solr; i++) {
+        solp[i*solc+0] = iter;
+        solp[i*solc+1]=0.;
+        solp[i*solc+2]=0.;
+        solp[i*solc+3]=0.;
+    }
+    gsl_root_fsolver_free(s);
+    OK
+}
+
+typedef struct {
+    double (*f)(double);
+    double (*jf)(double);
+} uniTfjf;
+
+double f_aux_uni(double x, void *pars) {
+    uniTfjf * fjf = ((uniTfjf*) pars);
+    return (fjf->f)(x);
+}
+
+double jf_aux_uni(double x, void * pars) {
+    uniTfjf * fjf = ((uniTfjf*) pars);
+    return (fjf->jf)(x);
+}
+
+void fjf_aux_uni(double x, void * pars, double * f, double * g) {
+    *f = f_aux_uni(x,pars);
+    *g = jf_aux_uni(x,pars);
+}
+
+int rootj(int method, double f(double),
+          double df(double),
+         double epsrel, int maxit,
+         double x, RMAT(sol)) {
+    REQUIRES(solr == maxit && solc == 2,BAD_SIZE);
+    DEBUGMSG("root_fjf");
+    gsl_function_fdf my_func;
+    // extract function from pars
+    my_func.f = f_aux_uni;
+    my_func.df = jf_aux_uni;
+    my_func.fdf = fjf_aux_uni;
+    uniTfjf stfjf;
+    stfjf.f = f;
+    stfjf.jf = df;
+    my_func.params = &stfjf;
+    size_t iter = 0;
+    int status;
+    const gsl_root_fdfsolver_type *T;
+    gsl_root_fdfsolver *s;
+    // Starting point
+    switch(method) {
+        case 0 : {T = gsl_root_fdfsolver_newton;; break; }
+        case 1 : {T = gsl_root_fdfsolver_secant; break; }
+        case 2 : {T = gsl_root_fdfsolver_steffenson; break; }
+        default: ERROR(BAD_CODE);
+    }
+    s = gsl_root_fdfsolver_alloc (T);
+
+    gsl_root_fdfsolver_set (s, &my_func, x);
+
+    do {
+           double x0;
+           status = gsl_root_fdfsolver_iterate (s);
+           x0 = x;
+           x = gsl_root_fdfsolver_root(s);
+           solp[iter*solc+0] = iter+1;
+           solp[iter*solc+1] = x;
+
+           iter++;
+           if (status)   /* check if solver is stuck */
+             break;
+
+           status =
+               gsl_root_test_delta (x, x0, 0, epsrel);
+        }
+        while (status == GSL_CONTINUE && iter < maxit);
+
+    int i;
+    for (i=iter; i<solr; i++) {
+        solp[i*solc+0] = iter;
+        solp[i*solc+1]=0.;
+    }
+    gsl_root_fdfsolver_free(s);
+    OK
+}
+
+
+//---------------------------------------------------------------
+
 typedef void TrawfunV(int, double*, int, double*);
 
-int only_f_aux_root(const gsl_vector*x, void *pars, gsl_vector*y) {
+int only_f_aux_multiroot(const gsl_vector*x, void *pars, gsl_vector*y) {
     TrawfunV * f = (TrawfunV*) pars;
     double* p = (double*)calloc(x->size,sizeof(double));
     double* q = (double*)calloc(y->size,sizeof(double));
@@ -1066,14 +1202,14 @@ int only_f_aux_root(const gsl_vector*x, void *pars, gsl_vector*y) {
     return 0; //hmmm
 }
 
-int root(int method, void f(int, double*, int, double*),
+int multiroot(int method, void f(int, double*, int, double*),
          double epsabs, int maxit,
          KRVEC(xi), RMAT(sol)) {
     REQUIRES(solr == maxit && solc == 1+2*xin,BAD_SIZE);
     DEBUGMSG("root_only_f");
     gsl_multiroot_function my_func;
     // extract function from pars
-    my_func.f = only_f_aux_root;
+    my_func.f = only_f_aux_multiroot;
     my_func.n = xin;
     my_func.params = f;
     size_t iter = 0;
@@ -1175,7 +1311,7 @@ int fjf_aux(const gsl_vector * x, void * pars, gsl_vector * f, gsl_matrix * g) {
     return 0;
 }
 
-int rootj(int method, int f(int, double*, int, double*),
+int multirootj(int method, int f(int, double*, int, double*),
                       int jac(int, double*, int, int, double*),
          double epsabs, int maxit,
          KRVEC(xi), RMAT(sol)) {
