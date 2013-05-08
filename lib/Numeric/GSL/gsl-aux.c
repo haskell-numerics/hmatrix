@@ -1104,6 +1104,85 @@ int root(int method, double f(double),
     OK
 }
 
+typedef struct {
+    double (*f)(double);
+    double (*jf)(double);
+} uniTfjf;
+
+double f_aux_uni(double x, void *pars) {
+    uniTfjf * fjf = ((uniTfjf*) pars);
+    return (fjf->f)(x);
+}
+
+double jf_aux_uni(double x, void * pars) {
+    uniTfjf * fjf = ((uniTfjf*) pars);
+    return (fjf->jf)(x);
+}
+
+void fjf_aux_uni(double x, void * pars, double * f, double * g) {
+    *f = f_aux_uni(x,pars);
+    *g = jf_aux_uni(x,pars);
+}
+
+int rootj(int method, double f(double),
+          double df(double),
+         double epsrel, int maxit,
+         double x, RMAT(sol)) {
+    REQUIRES(solr == maxit && solc == 2,BAD_SIZE);
+    DEBUGMSG("root_fjf");
+    gsl_function_fdf my_func;
+    // extract function from pars
+    my_func.f = f_aux_uni;
+    my_func.df = jf_aux_uni;
+    my_func.fdf = fjf_aux_uni;
+    uniTfjf stfjf;
+    stfjf.f = f;
+    stfjf.jf = df;
+    my_func.params = &stfjf;
+    size_t iter = 0;
+    int status;
+    const gsl_root_fdfsolver_type *T;
+    gsl_root_fdfsolver *s;
+    // Starting point
+    switch(method) {
+        case 0 : {T = gsl_root_fdfsolver_newton;; break; }
+        case 1 : {T = gsl_root_fdfsolver_secant; break; }
+        case 2 : {T = gsl_root_fdfsolver_steffenson; break; }
+        default: ERROR(BAD_CODE);
+    }
+    s = gsl_root_fdfsolver_alloc (T);
+
+    gsl_root_fdfsolver_set (s, &my_func, x);
+
+    do {
+           double x0;
+           status = gsl_root_fdfsolver_iterate (s);
+           x0 = x;
+           x = gsl_root_fdfsolver_root(s);
+           solp[iter*solc+0] = iter+1;
+           solp[iter*solc+1] = x;
+
+           iter++;
+           if (status)   /* check if solver is stuck */
+             break;
+
+           status =
+               gsl_root_test_delta (x, x0, 0, epsrel);
+        }
+        while (status == GSL_CONTINUE && iter < maxit);
+
+    int i;
+    for (i=iter; i<solr; i++) {
+        solp[i*solc+0] = iter;
+        solp[i*solc+1]=0.;
+    }
+    gsl_root_fdfsolver_free(s);
+    OK
+}
+
+
+//---------------------------------------------------------------
+
 typedef void TrawfunV(int, double*, int, double*);
 
 int only_f_aux_multiroot(const gsl_vector*x, void *pars, gsl_vector*y) {
