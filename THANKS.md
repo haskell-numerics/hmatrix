@@ -115,3 +115,9 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Jian Zhang reported the Windows installation problem due to new ODE interface.
 
+- Mihaly Barasz and Ben Gamari fixed mapMatrix* and mapMatrixWithIndex
+
+- Takano Akio fixed off-by-one errors in gsl-aux.c producing segfaults.
+
+- Alex Lang implemented uniRoot and uniRootJ for one-dimensional root-finding.
+
