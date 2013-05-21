@@ -132,3 +132,14 @@ instance LSDiv Matrix Matrix where
     (<\>) = linearSolveSVD
 
 --------------------------------------------------------
+
+-- | Compute mean vector and covariance matrix of the rows of a matrix.
+meanCov :: Matrix Double -> (Vector Double, Matrix Double)
+meanCov x = (med,cov) where
+    r    = rows x
+    k    = 1 / fromIntegral r
+    med  = konst k r `vXm` x
+    meds = konst 1 r `outer` med
+    xc   = x `sub` meds
+    cov  = scale (recip (fromIntegral (r-1))) (trans xc `mXm` xc)
+
