@@ -12,8 +12,9 @@ Stability   :  provisional
 -----------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.Util(
-    -- * Convenience functions for real elements
-    disp,
+    
+    -- * Convenience functions
+    size, disp,
     zeros, ones,
     diagl,
     row,
@@ -22,6 +23,8 @@ module Numeric.LinearAlgebra.Util(
     rand, randn,
     cross,
     norm,
+    unitary,
+    mt,
     -- * Convolution
     -- ** 1D
     corr, conv, corrMin,
@@ -119,6 +122,22 @@ cross x y | dim x == 3 && dim y == 3 = fromList [z1,z2,z3]
 norm :: Vector Double -> Double
 -- ^ 2-norm of real vector
 norm = pnorm PNorm2
+
+
+-- | Obtains a vector in the same direction with 2-norm=1
+unitary :: Vector Double -> Vector Double
+unitary v = v / scalar (norm v)
+
+-- | (rows &&& cols)
+size :: Matrix t -> (Int, Int)
+size m = (rows m, cols m)
+
+-- | trans . inv
+mt :: Matrix Double -> Matrix Double
+mt = trans . inv
+
+----------------------------------------------------------------------
+
 
 --------------------------------------------------------------------------------
 
