@@ -1,3 +1,15 @@
+0.15.0.0
+--------
+
+- diagBlock
+
+- NFData instance of Matrix
+
+- Unidimensional root finding
+
+- In Numeric.LinearAlgebra.Util:
+    pairwise2D, rowOuters, null1, null1sym, size, unitary, mt
+
 0.14.1.0
 --------
 

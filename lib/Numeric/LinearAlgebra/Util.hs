@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Util
-Copyright   :  (c) Alberto Ruiz 2012
+Copyright   :  (c) Alberto Ruiz 2013
 License     :  GPL
 
 Maintainer  :  Alberto Ruiz (aruiz at um dot es)
@@ -25,6 +25,10 @@ module Numeric.LinearAlgebra.Util(
     norm,
     unitary,
     mt,
+    pairwiseD2,
+    rowOuters,
+    null1,
+    null1sym,
     -- * Convolution
     -- ** 1D
     corr, conv, corrMin,
@@ -138,6 +142,39 @@ mt = trans . inv
 
 ----------------------------------------------------------------------
 
+-- | Matrix of pairwise squared distances of row vectors
+-- (using the matrix product trick in blog.smola.org)
+pairwiseD2 :: Matrix Double -> Matrix Double -> Matrix Double
+pairwiseD2 x y | ok = x2 `outer` oy + ox `outer` y2 - 2* x <> trans y
+               | otherwise = error $ "pairwiseD2 with different number of columns: "
+                                   ++ show (size x) ++ ", " ++ show (size y)
+  where
+    ox = one (rows x)
+    oy = one (rows y)
+    oc = one (cols x)
+    one k = constant 1 k
+    x2 = x * x <> oc
+    y2 = y * y <> oc
+    ok = cols x == cols y
+
+--------------------------------------------------------------------------------
+
+-- | outer products of rows
+rowOuters :: Matrix Double -> Matrix Double -> Matrix Double
+rowOuters a b = a' * b'
+  where
+    a' = kronecker a (ones 1 (cols b))
+    b' = kronecker (ones 1 (cols a)) b
+
+--------------------------------------------------------------------------------
+
+-- | solution of overconstrained homogeneous linear system
+null1 :: Matrix Double -> Vector Double
+null1 = last . toColumns . snd . rightSV
+
+-- | solution of overconstrained homogeneous symmetric linear system
+null1sym :: Matrix Double -> Vector Double
+null1sym = last . toColumns . snd . eigSH'
 
 --------------------------------------------------------------------------------
 
