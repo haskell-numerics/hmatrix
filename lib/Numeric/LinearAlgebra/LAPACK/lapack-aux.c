@@ -101,6 +101,11 @@ for(k=0; k<(M##r * M##c); k++) {             \
 
 //////////////////// real svd ////////////////////////////////////
 
+/* Subroutine */ int dgesvd_(char *jobu, char *jobvt, integer *m, integer *n,
+	doublereal *a, integer *lda, doublereal *s, doublereal *u, integer *
+	ldu, doublereal *vt, integer *ldvt, doublereal *work, integer *lwork,
+	integer *info);
+
 int svd_l_R(KDMAT(a),DMAT(u), DVEC(s),DMAT(v)) {
     integer m = ar;
     integer n = ac;
@@ -158,6 +163,11 @@ int svd_l_R(KDMAT(a),DMAT(u), DVEC(s),DMAT(v)) {
 }
 
 // (alternative version)
+
+/* Subroutine */ int dgesdd_(char *jobz, integer *m, integer *n, doublereal *
+	a, integer *lda, doublereal *s, doublereal *u, integer *ldu,
+	doublereal *vt, integer *ldvt, doublereal *work, integer *lwork,
+	integer *iwork, integer *info);
 
 int svd_l_Rdd(KDMAT(a),DMAT(u), DVEC(s),DMAT(v)) {
     integer m = ar;
@@ -331,6 +341,11 @@ int svd_l_Cdd(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
 
 //////////////////// general complex eigensystem ////////////
 
+/* Subroutine */ int zgeev_(char *jobvl, char *jobvr, integer *n,
+	doublecomplex *a, integer *lda, doublecomplex *w, doublecomplex *vl,
+	integer *ldvl, doublecomplex *vr, integer *ldvr, doublecomplex *work,
+	integer *lwork, doublereal *rwork, integer *info);
+
 int eig_l_C(KCMAT(a), CMAT(u), CVEC(s),CMAT(v)) {
     integer n = ar;
     REQUIRES(ac==n && sn==n, BAD_SIZE);
@@ -381,6 +396,11 @@ int eig_l_C(KCMAT(a), CMAT(u), CVEC(s),CMAT(v)) {
 
 //////////////////// general real eigensystem ////////////
 
+/* Subroutine */ int dgeev_(char *jobvl, char *jobvr, integer *n, doublereal *
+	a, integer *lda, doublereal *wr, doublereal *wi, doublereal *vl,
+	integer *ldvl, doublereal *vr, integer *ldvr, doublereal *work,
+	integer *lwork, integer *info);
+
 int eig_l_R(KDMAT(a),DMAT(u), CVEC(s),DMAT(v)) {
     integer n = ar;
     REQUIRES(ac==n && sn==n, BAD_SIZE);
@@ -425,6 +445,9 @@ int eig_l_R(KDMAT(a),DMAT(u), CVEC(s),DMAT(v)) {
 
 //////////////////// symmetric real eigensystem ////////////
 
+/* Subroutine */ int dsyev_(char *jobz, char *uplo, integer *n, doublereal *a,
+	 integer *lda, doublereal *w, doublereal *work, integer *lwork,
+	integer *info);
 
 int eig_l_S(int wantV,KDMAT(a),DVEC(s),DMAT(v)) {
     integer n = ar;
@@ -459,6 +482,10 @@ int eig_l_S(int wantV,KDMAT(a),DVEC(s),DMAT(v)) {
 }
 
 //////////////////// hermitian complex eigensystem ////////////
+
+/* Subroutine */ int zheev_(char *jobz, char *uplo, integer *n, doublecomplex
+	*a, integer *lda, doublereal *w, doublecomplex *work, integer *lwork,
+	doublereal *rwork, integer *info);
 
 int eig_l_H(int wantV,KCMAT(a),DVEC(s),CMAT(v)) {
     integer n = ar;
@@ -499,6 +526,9 @@ int eig_l_H(int wantV,KCMAT(a),DVEC(s),CMAT(v)) {
 
 //////////////////// general real linear system ////////////
 
+/* Subroutine */ int dgesv_(integer *n, integer *nrhs, doublereal *a, integer
+	*lda, integer *ipiv, doublereal *b, integer *ldb, integer *info);
+
 int linearSolveR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
     integer n = ar;
     integer nhrs = bc;
@@ -524,6 +554,10 @@ int linearSolveR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
 }
 
 //////////////////// general complex linear system ////////////
+
+/* Subroutine */ int zgesv_(integer *n, integer *nrhs, doublecomplex *a,
+	integer *lda, integer *ipiv, doublecomplex *b, integer *ldb, integer *
+	info);
 
 int linearSolveC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
     integer n = ar;
@@ -551,6 +585,10 @@ int linearSolveC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
 
 //////// symmetric positive definite real linear system using Cholesky ////////////
 
+/* Subroutine */ int dpotrs_(char *uplo, integer *n, integer *nrhs,
+	doublereal *a, integer *lda, doublereal *b, integer *ldb, integer *
+	info);
+
 int cholSolveR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
     integer n = ar;
     integer nhrs = bc;
@@ -569,6 +607,10 @@ int cholSolveR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
 
 //////// Hermitian positive definite real linear system using Cholesky ////////////
 
+/* Subroutine */ int zpotrs_(char *uplo, integer *n, integer *nrhs,
+	doublecomplex *a, integer *lda, doublecomplex *b, integer *ldb,
+	integer *info);
+
 int cholSolveC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
     integer n = ar;
     integer nhrs = bc;
@@ -586,6 +628,10 @@ int cholSolveC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
 }
 
 //////////////////// least squares real linear system ////////////
+
+/* Subroutine */ int dgels_(char *trans, integer *m, integer *n, integer *
+	nrhs, doublereal *a, integer *lda, doublereal *b, integer *ldb,
+	doublereal *work, integer *lwork, integer *info);
 
 int linearSolveLSR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
     integer m = ar;
@@ -631,6 +677,10 @@ int linearSolveLSR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
 
 //////////////////// least squares complex linear system ////////////
 
+/* Subroutine */ int zgels_(char *trans, integer *m, integer *n, integer *
+	nrhs, doublecomplex *a, integer *lda, doublecomplex *b, integer *ldb,
+	doublecomplex *work, integer *lwork, integer *info);
+
 int linearSolveLSC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
     integer m = ar;
     integer n = ac;
@@ -674,6 +724,11 @@ int linearSolveLSC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
 }
 
 //////////////////// least squares real linear system using SVD ////////////
+
+/* Subroutine */ int dgelss_(integer *m, integer *n, integer *nrhs,
+	doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *
+	s, doublereal *rcond, integer *rank, doublereal *work, integer *lwork,
+	 integer *info);
 
 int linearSolveSVDR_l(double rcond,KDMAT(a),KDMAT(b),DMAT(x)) {
     integer m = ar;
@@ -789,6 +844,9 @@ int linearSolveSVDC_l(double rcond, KCMAT(a),KCMAT(b),CMAT(x)) {
 
 //////////////////// Cholesky factorization /////////////////////////
 
+/* Subroutine */ int zpotrf_(char *uplo, integer *n, doublecomplex *a,
+	integer *lda, integer *info);
+
 int chol_l_H(KCMAT(a),CMAT(l)) {
     integer n = ar;
     REQUIRES(n>=1 && ac == n && lr==n && lc==n,BAD_SIZE);
@@ -808,6 +866,10 @@ int chol_l_H(KCMAT(a),CMAT(l)) {
     }
     OK
 }
+
+
+/* Subroutine */ int dpotrf_(char *uplo, integer *n, doublereal *a, integer *
+	lda, integer *info);
 
 int chol_l_S(KDMAT(a),DMAT(l)) {
     integer n = ar;
@@ -830,6 +892,9 @@ int chol_l_S(KDMAT(a),DMAT(l)) {
 
 //////////////////// QR factorization /////////////////////////
 
+/* Subroutine */ int dgeqr2_(integer *m, integer *n, doublereal *a, integer *
+	lda, doublereal *tau, doublereal *work, integer *info);
+
 int qr_l_R(KDMAT(a), DVEC(tau), DMAT(r)) {
     integer m = ar;
     integer n = ac;
@@ -845,6 +910,9 @@ int qr_l_R(KDMAT(a), DVEC(tau), DMAT(r)) {
     free(WORK);
     OK
 }
+
+/* Subroutine */ int zgeqr2_(integer *m, integer *n, doublecomplex *a,
+	integer *lda, doublecomplex *tau, doublecomplex *work, integer *info);
 
 int qr_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
     integer m = ar;
@@ -864,6 +932,10 @@ int qr_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
 
 //////////////////// Hessenberg factorization /////////////////////////
 
+/* Subroutine */ int dgehrd_(integer *n, integer *ilo, integer *ihi,
+	doublereal *a, integer *lda, doublereal *tau, doublereal *work,
+	integer *lwork, integer *info);
+
 int hess_l_R(KDMAT(a), DVEC(tau), DMAT(r)) {
     integer m = ar;
     integer n = ac;
@@ -881,6 +953,11 @@ int hess_l_R(KDMAT(a), DVEC(tau), DMAT(r)) {
     free(WORK);
     OK
 }
+
+
+/* Subroutine */ int zgehrd_(integer *n, integer *ilo, integer *ihi,
+	doublecomplex *a, integer *lda, doublecomplex *tau, doublecomplex *
+	work, integer *lwork, integer *info);
 
 int hess_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
     integer m = ar;
@@ -901,6 +978,11 @@ int hess_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
 }
 
 //////////////////// Schur factorization /////////////////////////
+
+/* Subroutine */ int dgees_(char *jobvs, char *sort, L_fp select, integer *n,
+	doublereal *a, integer *lda, integer *sdim, doublereal *wr,
+	doublereal *wi, doublereal *vs, integer *ldvs, doublereal *work,
+	integer *lwork, logical *bwork, integer *info);
 
 int schur_l_R(KDMAT(a), DMAT(u), DMAT(s)) {
     integer m = ar;
@@ -936,6 +1018,12 @@ int schur_l_R(KDMAT(a), DMAT(u), DMAT(s)) {
     OK
 }
 
+
+/* Subroutine */ int zgees_(char *jobvs, char *sort, L_fp select, integer *n,
+	doublecomplex *a, integer *lda, integer *sdim, doublecomplex *w,
+	doublecomplex *vs, integer *ldvs, doublecomplex *work, integer *lwork,
+	 doublereal *rwork, logical *bwork, integer *info);
+
 int schur_l_C(KCMAT(a), CMAT(u), CMAT(s)) {
     integer m = ar;
     integer n = ac;
@@ -965,6 +1053,9 @@ int schur_l_C(KCMAT(a), CMAT(u), CMAT(s)) {
 
 //////////////////// LU factorization /////////////////////////
 
+/* Subroutine */ int dgetrf_(integer *m, integer *n, doublereal *a, integer *
+	lda, integer *ipiv, integer *info);
+
 int lu_l_R(KDMAT(a), DVEC(ipiv), DMAT(r)) {
     integer m = ar;
     integer n = ac;
@@ -986,6 +1077,10 @@ int lu_l_R(KDMAT(a), DVEC(ipiv), DMAT(r)) {
     free(auxipiv);
     OK
 }
+
+
+/* Subroutine */ int zgetrf_(integer *m, integer *n, doublecomplex *a,
+	integer *lda, integer *ipiv, integer *info);
 
 int lu_l_C(KCMAT(a), DVEC(ipiv), CMAT(r)) {
     integer m = ar;
@@ -1012,6 +1107,10 @@ int lu_l_C(KCMAT(a), DVEC(ipiv), CMAT(r)) {
 
 //////////////////// LU substitution /////////////////////////
 
+/* Subroutine */ int dgetrs_(char *trans, integer *n, integer *nrhs,
+	doublereal *a, integer *lda, integer *ipiv, doublereal *b, integer *
+	ldb, integer *info);
+
 int luS_l_R(KDMAT(a), KDVEC(ipiv), KDMAT(b), DMAT(x)) {
   integer m = ar;
   integer n = ac;
@@ -1031,6 +1130,11 @@ int luS_l_R(KDMAT(a), KDVEC(ipiv), KDMAT(b), DMAT(x)) {
   free(auxipiv);
   OK
 }
+
+
+/* Subroutine */ int zgetrs_(char *trans, integer *n, integer *nrhs,
+	doublecomplex *a, integer *lda, integer *ipiv, doublecomplex *b,
+	integer *ldb, integer *info);
 
 int luS_l_C(KCMAT(a), KDVEC(ipiv), KCMAT(b), CMAT(x)) {
     integer m = ar;

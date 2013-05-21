@@ -55,7 +55,6 @@ extra-source-files: examples/deriv.hs
                     examples/multiply.hs
 
 extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
-                    lib/Numeric/LinearAlgebra/LAPACK/clapack.h
                     lib/Numeric/GSL/gsl-ode.c
 
 flag dd
@@ -134,7 +133,7 @@ library
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
 
-    cpp-options:        -DVECTOR -DBINARY
+    cpp-options:        -DBINARY
 
  -- ghc-prof-options:   -auto
 
