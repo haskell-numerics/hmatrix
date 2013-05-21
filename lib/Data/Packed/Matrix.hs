@@ -30,7 +30,7 @@ module Data.Packed.Matrix (
     (@@>),
     asRow, asColumn,
     fromRows, toRows, fromColumns, toColumns,
-    fromBlocks, toBlocks, toBlocksEvery,
+    fromBlocks, diagBlock, toBlocks, toBlocksEvery,
     repmat,
     flipud, fliprl,
     subMatrix, takeRows, dropRows, takeColumns, dropColumns,
@@ -156,7 +156,19 @@ adaptBlocks ms = ms' where
         x = m@@>(0,0)
     g _ _ = error "inconsistent dimensions in fromBlocks"
 
------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+-- | create a block diagonal matrix
+diagBlock :: (Element t, Num t) => [Matrix t] -> Matrix t
+diagBlock ms = fromBlocks $ zipWith f ms [0..]
+  where
+    f m k = take n $ replicate k z ++ m : repeat z
+    n = length ms
+    z = (1><1) [0]
+
+--------------------------------------------------------------------------------
+
 
 -- | Reverse rows
 flipud :: Element t => Matrix t -> Matrix t
