@@ -88,7 +88,8 @@ library
                         storable-complex,
                         process, random,
                         vector >= 0.8,
-                        binary
+                        binary,
+                        deepseq
 
     Extensions:         ForeignFunctionInterface,
                         CPP

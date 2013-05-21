@@ -47,6 +47,7 @@ import Data.Complex(Complex)
 import Foreign.C.Types
 import Foreign.C.String(newCString)
 import System.IO.Unsafe(unsafePerformIO)
+import Control.DeepSeq
 
 -----------------------------------------------------------------
 
@@ -458,4 +459,14 @@ repCols n x = fromColumns (replicate n (flatten x))
 size m = (rows m, cols m)
 
 shSize m = "(" ++ show (rows m) ++"><"++ show (cols m)++")"
+
+----------------------------------------------------------------------
+
+instance (Storable t, NFData t) => NFData (Matrix t)
+  where
+    rnf m | d > 0     = rnf (v @> 0)
+          | otherwise = ()
+      where
+        d = dim v
+        v = xdat m
 
