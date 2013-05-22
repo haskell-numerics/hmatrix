@@ -19,7 +19,8 @@ module Numeric.LinearAlgebra.Util(
     diagl,
     row,
     col,
-    (&),(!), (#),
+    (&),(!), (¦), (#),
+    (?),(¿),
     rand, randn,
     cross,
     norm,
@@ -99,6 +100,11 @@ infixl 3 !
 (!) :: Matrix Double -> Matrix Double -> Matrix Double
 a ! b = fromBlocks [[a,b]]
 
+-- | (00A6) horizontal concatenation of real matrices
+infixl 3 ¦
+(¦) :: Matrix Double -> Matrix Double -> Matrix Double
+a ¦ b = fromBlocks [[a,b]]
+
 -- | vertical concatenation of real matrices
 (#) :: Matrix Double -> Matrix Double -> Matrix Double
 infixl 2 #
@@ -111,6 +117,17 @@ row = asRow . fromList
 -- | create a single column real matrix from a list
 col :: [Double] -> Matrix Double
 col = asColumn . fromList
+
+-- | extract selected rows
+infixl 9 ?
+(?) :: Element t => Matrix t -> [Int] -> Matrix t
+(?) = flip extractRows
+
+-- | (00BF) extract selected columns
+infixl 9 ¿
+(¿) :: Element t => Matrix t -> [Int] -> Matrix t
+m ¿ ks = trans . extractRows ks . trans $ m
+
 
 cross :: Vector Double -> Vector Double -> Vector Double
 -- ^ cross product (for three-element real vectors)
