@@ -8,7 +8,7 @@
 - Unidimensional root finding
 
 - In Numeric.LinearAlgebra.Util:
-    pairwise2D, rowOuters, null1, null1sym, size, unitary, mt
+    pairwise2D, rowOuters, null1, null1sym, size, unitary, mt, (¦), (?), (¿)
 
 0.14.1.0
 --------
