@@ -6,7 +6,12 @@
 -- @ glUniformMatrix4fv 0 1 (fromIntegral gl_TRUE) \`appMatrix\` perspective 0.01 100 (pi\/2) (4\/3) 
 -- @
 --
-module Data.Packed.Foreign where
+module Data.Packed.Foreign 
+    ( app
+    , appVector, appVectorLen
+    , appMatrix, appMatrixLen, appMatrixRaw, appMatrixRawLen
+    , unsafeMatrixToVector, unsafeMatrixToForeignPtr
+    ) where
 import Data.Packed.Internal
 import qualified Data.Vector.Storable as S
 import Foreign (Ptr, ForeignPtr, Storable)
@@ -14,6 +19,8 @@ import Foreign.C.Types (CInt)
 import GHC.Base (IO(..), realWorld#)
 
 {-# INLINE unsafeInlinePerformIO #-}
+-- | If we use unsafePerformIO, it may not get inlined, so in a function that returns IO (which are all safe uses of app* in this module), there would be
+-- unecessary calls to unsafePerformIO or its internals.
 unsafeInlinePerformIO :: IO a -> a
 unsafeInlinePerformIO (IO f) = case f realWorld# of
     (# _, x #) -> x
@@ -65,8 +72,8 @@ appMatrixLen f x = unsafeInlinePerformIO (S.unsafeWith (flatten x) (return . f r
     c = fromIntegral (cols x)
 
 {-# INLINE appMatrixRaw #-}
-appMatrixRaw :: Storable a => Matrix a -> (Ptr a -> b) -> b
-appMatrixRaw x f = unsafeInlinePerformIO (S.unsafeWith (xdat x) (return . f))
+appMatrixRaw :: Storable a => (Ptr a -> b) -> Matrix a -> b
+appMatrixRaw f x = unsafeInlinePerformIO (S.unsafeWith (xdat x) (return . f))
 
 {-# INLINE appMatrixRawLen #-}
 appMatrixRawLen :: Element a => (CInt -> CInt -> Ptr a -> b) -> Matrix a -> b
