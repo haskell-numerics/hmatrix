@@ -262,17 +262,33 @@ instance Element Float where
     transdata  = transdataAux ctransF
     constantD  = constantAux cconstantF
 
+instance Element CFloat where
+    transdata  = transdataAux ctransCF
+    constantD  = constantAux cconstantCF
+
 instance Element Double where
     transdata  = transdataAux ctransR
     constantD  = constantAux cconstantR
+
+instance Element CDouble where
+    transdata  = transdataAux ctransCR
+    constantD  = constantAux cconstantCR
 
 instance Element (Complex Float) where
     transdata  = transdataAux ctransQ
     constantD  = constantAux cconstantQ
 
+instance Element (Complex CFloat) where
+    transdata  = transdataAux ctransCQ
+    constantD  = constantAux cconstantCQ
+
 instance Element (Complex Double) where
     transdata  = transdataAux ctransC
     constantD  = constantAux cconstantC
+
+instance Element (Complex CDouble) where
+    transdata  = transdataAux ctransCC
+    constantD  = constantAux cconstantCC
 
 -------------------------------------------------------------------
 
@@ -333,9 +349,17 @@ transdataP c1 d c2 =
          noneed = r1 == 1 || c1 == 1
 
 foreign import ccall unsafe "transF" ctransF :: TFMFM
+foreign import ccall unsafe "transF" ctransCF :: CInt -> CInt -> Ptr CFloat -> CInt -> CInt -> Ptr CFloat -> IO CInt
+
 foreign import ccall unsafe "transR" ctransR :: TMM
+foreign import ccall unsafe "transR" ctransCR :: CInt -> CInt -> Ptr CDouble -> CInt -> CInt -> Ptr CDouble -> IO CInt
+
 foreign import ccall unsafe "transQ" ctransQ :: TQMQM
+foreign import ccall unsafe "transQ" ctransCQ :: CInt -> CInt -> Ptr (Complex CFloat) -> CInt -> CInt -> Ptr (Complex CFloat) -> IO CInt
+
 foreign import ccall unsafe "transC" ctransC :: TCMCM
+foreign import ccall unsafe "transC" ctransCC :: CInt -> CInt -> Ptr (Complex CDouble) -> CInt -> CInt -> Ptr (Complex CDouble) -> IO CInt
+
 foreign import ccall unsafe "transP" ctransP :: CInt -> CInt -> Ptr () -> CInt -> CInt -> CInt -> Ptr () -> CInt -> IO CInt
 
 ----------------------------------------------------------------------
@@ -360,18 +384,22 @@ constantAux fun x n = unsafePerformIO $ do
 constantF :: Float -> Int -> Vector Float
 constantF = constantAux cconstantF
 foreign import ccall unsafe "constantF" cconstantF :: Ptr Float -> TF
+foreign import ccall unsafe "constantF" cconstantCF :: Ptr CFloat -> CInt -> Ptr CFloat -> IO CInt
 
 constantR :: Double -> Int -> Vector Double
 constantR = constantAux cconstantR
 foreign import ccall unsafe "constantR" cconstantR :: Ptr Double -> TV
+foreign import ccall unsafe "constantR" cconstantCR :: Ptr CDouble -> CInt -> Ptr CDouble -> IO CInt
 
 constantQ :: Complex Float -> Int -> Vector (Complex Float)
 constantQ = constantAux cconstantQ
 foreign import ccall unsafe "constantQ" cconstantQ :: Ptr (Complex Float) -> TQV
+foreign import ccall unsafe "constantQ" cconstantCQ :: Ptr (Complex CFloat) -> CInt -> Ptr (Complex CFloat) -> IO CInt
 
 constantC :: Complex Double -> Int -> Vector (Complex Double)
 constantC = constantAux cconstantC
 foreign import ccall unsafe "constantC" cconstantC :: Ptr (Complex Double) -> TCV
+foreign import ccall unsafe "constantC" cconstantCC :: Ptr (Complex CDouble) -> CInt -> Ptr (Complex CDouble) -> IO CInt
 
 constantP :: Storable a => a -> Int -> Vector a
 constantP a n = unsafePerformIO $ do
