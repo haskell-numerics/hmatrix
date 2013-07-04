@@ -1,6 +1,8 @@
 0.15.0.0
 --------
 
+- Data.Packed.Foreign (additional FFI helpers)
+
 - diagBlock
 
 - NFData instance of Matrix

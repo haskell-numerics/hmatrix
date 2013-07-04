@@ -122,3 +122,7 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Alex Lang implemented uniRoot and uniRootJ for one-dimensional root-finding.
 
+- Mike Ledger contributed alternative FFI helpers for matrix interoperation with C
+
+- Stephen J. Barr suggested flipping argument order in the double integral example
+
