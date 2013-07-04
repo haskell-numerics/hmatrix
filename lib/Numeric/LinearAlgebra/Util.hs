@@ -48,7 +48,11 @@ module Numeric.LinearAlgebra.Util(
     vtrans
 ) where
 
-import Numeric.LinearAlgebra hiding (i)
+import Numeric.Container
+import Numeric.LinearAlgebra.Algorithms hiding (i)
+import Numeric.Matrix()
+import Numeric.Vector()
+
 import System.Random(randomIO)
 import Numeric.LinearAlgebra.Util.Convolution
 
