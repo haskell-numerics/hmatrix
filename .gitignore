@@ -15,5 +15,5 @@ doc.sh
 push.sh
 index.html
 title.md
-reinstall.sh
 
+/base-reinstall.sh

@@ -3,14 +3,16 @@
 
 - Data.Packed.Foreign (additional FFI helpers)
 
-- diagBlock
-
 - NFData instance of Matrix
 
 - Unidimensional root finding
 
 - In Numeric.LinearAlgebra.Util:
     pairwise2D, rowOuters, null1, null1sym, size, unitary, mt, (¦), (?), (¿)
+
+- diagBlock
+
+- meanCov moved to Container
 
 0.14.1.0
 --------
