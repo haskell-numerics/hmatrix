@@ -107,11 +107,24 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Daniel Fischer reported some Haddock markup errors.
 
-- Danny Chan added support for integration over infinite intervals.
+- Danny Chan added support for integration over infinite intervals, and fixed
+  Configure.hs using platform independent functions.
 
 - Clark Gaebel removed superfluous thread safety.
 
 - Jeffrey Burdges reported a glpk link problem on OS/X
 
 - Jian Zhang reported the Windows installation problem due to new ODE interface.
+
+- Mihaly Barasz and Ben Gamari fixed mapMatrix* and mapMatrixWithIndex
+
+- Takano Akio fixed off-by-one errors in gsl-aux.c producing segfaults.
+
+- Alex Lang implemented uniRoot and uniRootJ for one-dimensional root-finding.
+
+- Mike Ledger contributed alternative FFI helpers for matrix interoperation with C
+
+- Stephen J. Barr suggested flipping argument order in the double integral example
+
+- Greg Horn fixed the bus error on ghci 64-bit.
 

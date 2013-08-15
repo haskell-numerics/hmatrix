@@ -12,11 +12,11 @@
 -----------------------------------------------------------------------------
 
 module Data.Packed.Random (
+    Seed,
     RandDist(..),
     randomVector,
     gaussianSample,
-    uniformSample,
-    meanCov,
+    uniformSample
 ) where
 
 import Numeric.GSL.Vector
@@ -25,9 +25,11 @@ import Numeric.ContainerBoot
 import Numeric.LinearAlgebra.Algorithms
 
 
+type Seed = Int
+
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
 -- Gaussian distribution.
-gaussianSample :: Int -- ^ seed
+gaussianSample :: Seed
                -> Int -- ^ number of rows
                -> Vector Double -- ^ mean vector
                -> Matrix Double -- ^ covariance matrix
@@ -40,7 +42,7 @@ gaussianSample seed n med cov = m where
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
 -- uniform distribution.
-uniformSample :: Int -- ^ seed
+uniformSample :: Seed
                -> Int -- ^ number of rows
                -> [(Double,Double)] -- ^ ranges for each column
                -> Matrix Double -- ^ result
@@ -53,14 +55,3 @@ uniformSample seed n rgs = m where
     am = konst 1 n `outer` a
     m = fromColumns (zipWith scale cs dat) `add` am
 
------------- utilities -------------------------------
-
--- | Compute mean vector and covariance matrix of the rows of a matrix.
-meanCov :: Matrix Double -> (Vector Double, Matrix Double)
-meanCov x = (med,cov) where
-    r    = rows x
-    k    = 1 / fromIntegral r
-    med  = konst k r `vXm` x
-    meds = konst 1 r `outer` med
-    xc   = x `sub` meds
-    cov  = scale (recip (fromIntegral (r-1))) (trans xc `mXm` xc)

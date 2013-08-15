@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.14.1.0
+Version:            0.15.0.1
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -21,7 +21,7 @@ Description:        Purely functional interface to basic linear algebra
                     .
                     - "Numeric.LinearAlgebra": everything + instances of standard Haskell numeric classes
 Category:           Math
-tested-with:        GHC ==7.4
+tested-with:        GHC ==7.6
 
 cabal-version:      >=1.8
 
@@ -55,7 +55,6 @@ extra-source-files: examples/deriv.hs
                     examples/multiply.hs
 
 extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
-                    lib/Numeric/LinearAlgebra/LAPACK/clapack.h
                     lib/Numeric/GSL/gsl-ode.c
 
 flag dd
@@ -89,7 +88,8 @@ library
                         storable-complex,
                         process, random,
                         vector >= 0.8,
-                        binary
+                        binary,
+                        deepseq
 
     Extensions:         ForeignFunctionInterface,
                         CPP
@@ -98,6 +98,7 @@ library
     Exposed-modules:    Data.Packed,
                         Data.Packed.Vector,
                         Data.Packed.Matrix,
+                        Data.Packed.Foreign,
                         Numeric.GSL.Differentiation,
                         Numeric.GSL.Integration,
                         Numeric.GSL.Fourier,
@@ -134,7 +135,7 @@ library
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
 
-    cpp-options:        -DVECTOR -DBINARY
+    cpp-options:        -DBINARY
 
  -- ghc-prof-options:   -auto
 
@@ -187,6 +188,10 @@ library
 
     if os(windows)
         extra-libraries: gsl-0 blas lapack
+
+    if os(linux)
+        if arch(x86_64)
+            cc-options: -fPIC
 
 -- The extra-libraries required for GSL and LAPACK
 -- should now be automatically detected by configure(.hs)

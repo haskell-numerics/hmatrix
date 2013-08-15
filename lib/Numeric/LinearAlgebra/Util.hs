@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Util
-Copyright   :  (c) Alberto Ruiz 2012
+Copyright   :  (c) Alberto Ruiz 2013
 License     :  GPL
 
 Maintainer  :  Alberto Ruiz (aruiz at um dot es)
@@ -12,16 +12,24 @@ Stability   :  provisional
 -----------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.Util(
-    -- * Convenience functions for real elements
-    disp,
+    
+    -- * Convenience functions
+    size, disp,
     zeros, ones,
     diagl,
     row,
     col,
-    (&),(!), (#),
+    (&),(!), (¦), (#),
+    (?),(¿),
     rand, randn,
     cross,
     norm,
+    unitary,
+    mt,
+    pairwiseD2,
+    rowOuters,
+    null1,
+    null1sym,
     -- * Convolution
     -- ** 1D
     corr, conv, corrMin,
@@ -40,7 +48,11 @@ module Numeric.LinearAlgebra.Util(
     vtrans
 ) where
 
-import Numeric.LinearAlgebra hiding (i)
+import Numeric.Container
+import Numeric.LinearAlgebra.Algorithms hiding (i)
+import Numeric.Matrix()
+import Numeric.Vector()
+
 import System.Random(randomIO)
 import Numeric.LinearAlgebra.Util.Convolution
 
@@ -92,6 +104,11 @@ infixl 3 !
 (!) :: Matrix Double -> Matrix Double -> Matrix Double
 a ! b = fromBlocks [[a,b]]
 
+-- | (00A6) horizontal concatenation of real matrices
+infixl 3 ¦
+(¦) :: Matrix Double -> Matrix Double -> Matrix Double
+a ¦ b = fromBlocks [[a,b]]
+
 -- | vertical concatenation of real matrices
 (#) :: Matrix Double -> Matrix Double -> Matrix Double
 infixl 2 #
@@ -104,6 +121,17 @@ row = asRow . fromList
 -- | create a single column real matrix from a list
 col :: [Double] -> Matrix Double
 col = asColumn . fromList
+
+-- | extract selected rows
+infixl 9 ?
+(?) :: Element t => Matrix t -> [Int] -> Matrix t
+(?) = flip extractRows
+
+-- | (00BF) extract selected columns
+infixl 9 ¿
+(¿) :: Element t => Matrix t -> [Int] -> Matrix t
+m ¿ ks = trans . extractRows ks . trans $ m
+
 
 cross :: Vector Double -> Vector Double -> Vector Double
 -- ^ cross product (for three-element real vectors)
@@ -119,6 +147,55 @@ cross x y | dim x == 3 && dim y == 3 = fromList [z1,z2,z3]
 norm :: Vector Double -> Double
 -- ^ 2-norm of real vector
 norm = pnorm PNorm2
+
+
+-- | Obtains a vector in the same direction with 2-norm=1
+unitary :: Vector Double -> Vector Double
+unitary v = v / scalar (norm v)
+
+-- | (rows &&& cols)
+size :: Matrix t -> (Int, Int)
+size m = (rows m, cols m)
+
+-- | trans . inv
+mt :: Matrix Double -> Matrix Double
+mt = trans . inv
+
+----------------------------------------------------------------------
+
+-- | Matrix of pairwise squared distances of row vectors
+-- (using the matrix product trick in blog.smola.org)
+pairwiseD2 :: Matrix Double -> Matrix Double -> Matrix Double
+pairwiseD2 x y | ok = x2 `outer` oy + ox `outer` y2 - 2* x <> trans y
+               | otherwise = error $ "pairwiseD2 with different number of columns: "
+                                   ++ show (size x) ++ ", " ++ show (size y)
+  where
+    ox = one (rows x)
+    oy = one (rows y)
+    oc = one (cols x)
+    one k = constant 1 k
+    x2 = x * x <> oc
+    y2 = y * y <> oc
+    ok = cols x == cols y
+
+--------------------------------------------------------------------------------
+
+-- | outer products of rows
+rowOuters :: Matrix Double -> Matrix Double -> Matrix Double
+rowOuters a b = a' * b'
+  where
+    a' = kronecker a (ones 1 (cols b))
+    b' = kronecker (ones 1 (cols a)) b
+
+--------------------------------------------------------------------------------
+
+-- | solution of overconstrained homogeneous linear system
+null1 :: Matrix Double -> Vector Double
+null1 = last . toColumns . snd . rightSV
+
+-- | solution of overconstrained homogeneous symmetric linear system
+null1sym :: Matrix Double -> Vector Double
+null1sym = last . toColumns . snd . eigSH'
 
 --------------------------------------------------------------------------------
 

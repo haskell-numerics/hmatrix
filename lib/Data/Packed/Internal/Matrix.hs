@@ -47,6 +47,7 @@ import Data.Complex(Complex)
 import Foreign.C.Types
 import Foreign.C.String(newCString)
 import System.IO.Unsafe(unsafePerformIO)
+import Control.DeepSeq
 
 -----------------------------------------------------------------
 
@@ -131,12 +132,10 @@ mat a f =
         let m g = do
             g (fi (rows a)) (fi (cols a)) p
         f m
-
-{- | Creates a vector by concatenation of rows
-
-@\> flatten ('ident' 3)
-9 |> [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]@
--}
+-- | Creates a vector by concatenation of rows. If the matrix is ColumnMajor, this operation requires a transpose.
+--
+-- @\> flatten ('ident' 3)
+-- 9 |> [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]@
 flatten :: Element t => Matrix t -> Vector t
 flatten = xdat . cmat
 
@@ -458,4 +457,14 @@ repCols n x = fromColumns (replicate n (flatten x))
 size m = (rows m, cols m)
 
 shSize m = "(" ++ show (rows m) ++"><"++ show (cols m)++")"
+
+----------------------------------------------------------------------
+
+instance (Storable t, NFData t) => NFData (Matrix t)
+  where
+    rnf m | d > 0     = rnf (v @> 0)
+          | otherwise = ()
+      where
+        d = dim v
+        v = xdat m
 

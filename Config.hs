@@ -20,6 +20,7 @@ import System.Process
 import System.Exit
 import System.Environment
 import System.Directory(createDirectoryIfMissing)
+import System.FilePath((</>))
 import Data.List(isPrefixOf, intercalate)
 import Distribution.Simple.LocalBuildInfo
 import Distribution.Simple.Configure
@@ -38,61 +39,60 @@ opts = [ ""                              -- Ubuntu/Debian
        , "blas gslcblas gfortran"        -- Arch Linux with normal blas and lapack
        ]
 
+-- location of test program
+testProgLoc bInfo = buildDir bInfo </> "dummy.c"
+testOutLoc bInfo = buildDir bInfo </> "dummy"
+
+-- write test program
+writeTestProg bInfo contents = writeFile (testProgLoc bInfo) contents
+
+-- compile, discarding error messages
+compile cmd = do
+    let processRecord = (shell $ join cmd) { std_out = CreatePipe
+                                           , std_err = CreatePipe }
+    ( _, _, _, h) <- createProcess processRecord
+    waitForProcess h
+
+-- command to compile the test program
+compileCmd bInfo buildInfo = [ "gcc "
+                             , (join $ ccOptions buildInfo)  
+                             , (join $ cppOptions buildInfo) 
+                             , (join $ map ("-I"++) $ includeDirs buildInfo) 
+                             , testProgLoc bInfo
+                             , "-o"
+                             , testOutLoc bInfo 
+                             , (join $ map ("-L"++) $ extraLibDirs buildInfo) 
+                             ]
+ 
 -- compile a simple program with symbols from GSL and LAPACK with the given libs
-testprog bInfo buildInfo libs fmks =
-    "echo \"#include <gsl/gsl_sf_gamma.h>\nint main(){dgemm_(); zgesvd_(); gsl_sf_gamma(5);}\""
-                     ++" > " ++ (buildDir bInfo) ++ "/dummy.c; gcc "
-                     ++ (join $ ccOptions buildInfo) ++ " "
-                     ++ (join $ cppOptions buildInfo) ++ " "
-                     ++ (join $ map ("-I"++) $ includeDirs buildInfo) ++ " " 
-                     ++ (buildDir bInfo) ++ "/dummy.c -o "
-                     ++ (buildDir bInfo) ++ "/dummy "
-                     ++ (join $ map ("-L"++) $ extraLibDirs buildInfo) ++ " "
-                     ++ (prepend "-l" $ libs) ++ " "
-                     ++ (prepend "-framework " fmks) ++ " > /dev/null 2> /dev/null"
+testprog bInfo buildInfo libs fmks = do
+    writeTestProg bInfo "#include <gsl/gsl_sf_gamma.h>\nint main(){dgemm_(); zgesvd_(); gsl_sf_gamma(5);}"
+    compile $ compileCmd bInfo 
+                         buildInfo 
+                            ++ [ (prepend "-l" $ libs)
+                               , (prepend "-framework " fmks) ] 
 
 join = intercalate " "
 prepend x = unwords . map (x++) . words
 
-check bInfo buildInfo libs fmks = (ExitSuccess ==) `fmap` system (testprog bInfo buildInfo libs fmks)
+check bInfo buildInfo libs fmks = (ExitSuccess ==) `fmap` testprog bInfo buildInfo libs fmks
 
 -- simple test for GSL
-gsl bInfo buildInfo = "echo \"#include <gsl/gsl_sf_gamma.h>\nint main(){gsl_sf_gamma(5);}\""
-           ++" > " ++ (buildDir bInfo) ++ "/dummy.c; gcc "
-           ++ (join $ ccOptions buildInfo) ++ " "
-           ++ (join $ cppOptions buildInfo) ++ " "
-           ++ (join $ map ("-I"++) $ includeDirs buildInfo) ++ " " 
-           ++ (buildDir bInfo) ++ "/dummy.c -o "
-           ++ (buildDir bInfo) ++ "/dummy "
-           ++ (join $ map ("-L"++) $ extraLibDirs buildInfo) ++ " -lgsl -lgslcblas"
-           ++ " > /dev/null 2> /dev/null"
+gsl bInfo buildInfo = do
+    writeTestProg bInfo "#include <gsl/gsl_sf_gamma.h>\nint main(){gsl_sf_gamma(5);}"
+    compile $ compileCmd bInfo buildInfo ++ ["-lgsl", "-lgslcblas"]
 
 -- test for gsl >= 1.12
-gsl112 bInfo buildInfo =
-    "echo \"#include <gsl/gsl_sf_exp.h>\nint main(){gsl_sf_exprel_n_CF_e(1,1,0);}\""
-           ++" > " ++ (buildDir bInfo) ++ "/dummy.c; gcc " 
-           ++ (buildDir bInfo) ++ "/dummy.c "
-           ++ (join $ ccOptions buildInfo) ++ " "
-           ++ (join $ cppOptions buildInfo) ++ " "
-           ++ (join $ map ("-I"++) $ includeDirs buildInfo)
-           ++" -o " ++ (buildDir bInfo) ++ "/dummy "
-           ++ (join $ map ("-L"++) $ extraLibDirs buildInfo) ++ " -lgsl -lgslcblas"
-           ++ " > /dev/null 2> /dev/null"
+gsl112 bInfo buildInfo = do
+    writeTestProg bInfo "#include <gsl/gsl_sf_exp.h>\nint main(){gsl_sf_exprel_n_CF_e(1,1,0);}"
+    compile $ compileCmd bInfo buildInfo ++ ["-lgsl", "-lgslcblas"]
 
 -- test for odeiv2
-gslodeiv2 bInfo buildInfo =
-    "echo \"#include <gsl/gsl_odeiv2.h>\nint main(){return 0;}\""
-           ++" > " ++ (buildDir bInfo) ++ "/dummy.c; gcc " 
-           ++ (buildDir bInfo) ++ "/dummy.c "
-           ++ (join $ ccOptions buildInfo) ++ " "
-           ++ (join $ cppOptions buildInfo) ++ " "
-           ++ (join $ map ("-I"++) $ includeDirs buildInfo)
-           ++" -o " ++ (buildDir bInfo) ++ "/dummy "
-           ++ (join $ map ("-L"++) $ extraLibDirs buildInfo) ++ " -lgsl -lgslcblas"
-           ++ " > /dev/null 2> /dev/null"
+gslodeiv2 bInfo buildInfo = do
+    writeTestProg bInfo "#include <gsl/gsl_odeiv2.h>\nint main(){return 0;}"
+    compile $ compileCmd bInfo buildInfo ++ ["-lgsl", "-lgslcblas"]
 
-
-checkCommand c = (ExitSuccess ==) `fmap` system c
+checkCommand c = (ExitSuccess ==) `fmap` c
 
 -- test different configurations until the first one works
 try _ _ _ _ [] = return Nothing

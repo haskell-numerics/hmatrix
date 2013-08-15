@@ -45,6 +45,8 @@ main = do
 -----------------------------------------------------------------------------
 
 module Numeric.GSL.Root (
+    uniRoot, UniRootMethod(..),
+    uniRootJ, UniRootMethodJ(..),
     root, RootMethod(..),
     rootJ, RootMethodJ(..),
 ) where
@@ -55,6 +57,68 @@ import Numeric.GSL.Internal
 import Foreign.Ptr(FunPtr, freeHaskellFunPtr)
 import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
+
+-------------------------------------------------------------------------
+
+data UniRootMethod = Bisection
+                   | FalsePos
+                   | Brent
+                   deriving (Enum, Eq, Show, Bounded)
+
+uniRoot :: UniRootMethod
+        -> Double
+        -> Int
+        -> (Double -> Double)
+        -> Double
+        -> Double
+        -> (Double, Matrix Double)
+uniRoot method epsrel maxit fun xl xu = uniRootGen (fi (fromEnum method)) fun xl xu epsrel maxit
+
+uniRootGen m f xl xu epsrel maxit = unsafePerformIO $ do
+    fp <- mkDoublefun f
+    rawpath <- createMIO maxit 4
+                         (c_root m fp epsrel (fi maxit) xl xu)
+                         "root"
+    let it = round (rawpath @@> (maxit-1,0))
+        path = takeRows it rawpath
+        [sol] = toLists $ dropRows (it-1) path
+    freeHaskellFunPtr fp
+    return (sol !! 1, path)
+
+foreign import ccall safe "root"
+    c_root:: CInt -> FunPtr (Double -> Double) -> Double -> CInt -> Double -> Double -> TM
+
+-------------------------------------------------------------------------
+data UniRootMethodJ = UNewton
+                    | Secant
+                    | Steffenson
+                    deriving (Enum, Eq, Show, Bounded)
+
+uniRootJ :: UniRootMethodJ
+        -> Double
+        -> Int
+        -> (Double -> Double)
+        -> (Double -> Double)
+        -> Double
+        -> (Double, Matrix Double)
+uniRootJ method epsrel maxit fun dfun x = uniRootJGen (fi (fromEnum method)) fun
+    dfun x epsrel maxit
+
+uniRootJGen m f df x epsrel maxit = unsafePerformIO $ do
+    fp <- mkDoublefun f
+    dfp <- mkDoublefun df
+    rawpath <- createMIO maxit 2
+                         (c_rootj m fp dfp epsrel (fi maxit) x)
+                         "rootj"
+    let it = round (rawpath @@> (maxit-1,0))
+        path = takeRows it rawpath
+        [sol] = toLists $ dropRows (it-1) path
+    freeHaskellFunPtr fp
+    return (sol !! 1, path)
+
+foreign import ccall safe "rootj"
+    c_rootj :: CInt -> FunPtr (Double -> Double) -> FunPtr (Double -> Double)
+            -> Double -> CInt -> Double -> TM
 
 -------------------------------------------------------------------------
 
@@ -82,8 +146,8 @@ rootGen m f xi epsabs maxit = unsafePerformIO $ do
     fp <- mkVecVecfun (aux_vTov (checkdim1 n . fromList . f . toList))
     rawpath <- vec xiv $ \xiv' ->
                    createMIO maxit (2*n+1)
-                         (c_root m fp epsabs (fi maxit) // xiv')
-                         "root"
+                         (c_multiroot m fp epsabs (fi maxit) // xiv')
+                         "multiroot"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
         [sol] = toLists $ dropRows (it-1) path
@@ -91,8 +155,8 @@ rootGen m f xi epsabs maxit = unsafePerformIO $ do
     return (take n $ drop 1 sol, path)
 
 
-foreign import ccall safe "root"
-    c_root:: CInt -> FunPtr TVV -> Double -> CInt -> TVM
+foreign import ccall safe "multiroot"
+    c_multiroot:: CInt -> FunPtr TVV -> Double -> CInt -> TVM
 
 -------------------------------------------------------------------------
 
@@ -120,8 +184,8 @@ rootJGen m f jac xi epsabs maxit = unsafePerformIO $ do
     jp <- mkVecMatfun (aux_vTom (checkdim2 n . fromLists . jac . toList))
     rawpath <- vec xiv $ \xiv' ->
                    createMIO maxit (2*n+1)
-                         (c_rootj m fp jp epsabs (fi maxit) // xiv')
-                         "root"
+                         (c_multirootj m fp jp epsabs (fi maxit) // xiv')
+                         "multiroot"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
         [sol] = toLists $ dropRows (it-1) path
@@ -129,9 +193,8 @@ rootJGen m f jac xi epsabs maxit = unsafePerformIO $ do
     freeHaskellFunPtr jp
     return (take n $ drop 1 sol, path)
 
-
-foreign import ccall safe "rootj"
-    c_rootj:: CInt -> FunPtr TVV -> FunPtr TVM -> Double -> CInt -> TVM
+foreign import ccall safe "multirootj"
+    c_multirootj:: CInt -> FunPtr TVV -> FunPtr TVM -> Double -> CInt -> TVM
 
 -------------------------------------------------------
 
