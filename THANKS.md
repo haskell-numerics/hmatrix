@@ -126,3 +126,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Stephen J. Barr suggested flipping argument order in the double integral example
 
+- Greg Horn fixed the bus error on ghci 64-bit.
+

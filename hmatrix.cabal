@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.15.0.0
+Version:            0.15.0.1
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -188,6 +188,10 @@ library
 
     if os(windows)
         extra-libraries: gsl-0 blas lapack
+
+    if os(linux)
+        if arch(x86_64)
+            cc-options: -fPIC
 
 -- The extra-libraries required for GSL and LAPACK
 -- should now be automatically detected by configure(.hs)
