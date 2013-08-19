@@ -20,7 +20,8 @@ module Numeric.GSL.Integration (
     integrateQAGS,
     integrateQAGI,
     integrateQAGIU,
-    integrateQAGIL
+    integrateQAGIL,
+    integrateCQUAD
 ) where
 
 import Foreign.C.Types
@@ -196,3 +197,51 @@ foreign import ccall safe "gsl-aux.h integrate_qagil"
  c_integrate_qagil :: FunPtr (Double-> Ptr() -> Double) -> Double -> Double -> CInt
                      -> Ptr Double -> Ptr Double -> IO CInt
 
+
+--------------------------------------------------------------------
+{- | Numerical integration using /gsl_integration_cquad/ (quadrature
+for general integrands).  From the GSL manual:
+
+@CQUAD is a new doubly-adaptive general-purpose quadrature routine
+which can handle most types of singularities, non-numerical function
+values such as Inf or NaN, as well as some divergent integrals. It
+generally requires more function evaluations than the integration
+routines in QUADPACK, yet fails less often for difficult integrands.@
+
+For example:
+
+@\> let quad = integrateCQUAD 1E-12 1000 
+\> let f a x = exp(-a * x^2)
+\> quad (f 0.5) 2 5
+(5.7025405463957006e-2,9.678874441303705e-16,95)@
+
+Unlike other quadrature methods, integrateCQUAD also returns the
+number of function evaluations required.
+
+-}
+
+integrateCQUAD :: Double               -- ^ precision (e.g. 1E-9)
+                 -> Int               -- ^ size of auxiliary workspace (e.g. 1000)
+                 -> (Double -> Double) -- ^ function to be integrated on the interval (a, b)
+                 -> Double             -- ^ a
+                 -> Double             -- ^ b
+                 -> (Double, Double, Int) -- ^ result of the integration, error and number of function evaluations performed
+integrateCQUAD prec n f a b = unsafePerformIO $ do
+    r <- malloc
+    e <- malloc
+    neval <- malloc
+    fp <- mkfun (\x _ -> f x)
+    c_integrate_cquad fp a b prec (fromIntegral n) r e neval // check "integrate_cquad"
+    vr <- peek r
+    ve <- peek e
+    vneval <- peek neval
+    let result = (vr,ve,vneval)
+    free r
+    free e
+    free neval
+    freeHaskellFunPtr fp
+    return result
+
+foreign import ccall safe "gsl-aux.h integrate_cquad" 
+ c_integrate_cquad :: FunPtr (Double-> Ptr() -> Double) -> Double -> Double -> Double -> CInt
+                     -> Ptr Double -> Ptr Double -> Ptr Int -> IO CInt

@@ -802,6 +802,19 @@ int integrate_qagil(double f(double,void*), double b, double prec, int w,
     OK
 }
 
+int integrate_cquad(double f(double,void*), double a, double b, double prec,
+                    int w, double *result, double* error, int *neval) {
+    DEBUGMSG("integrate_cquad");
+    gsl_integration_cquad_workspace * wk = gsl_integration_cquad_workspace_alloc (w);
+    gsl_function F;
+    F.function = f;
+    F.params = NULL;
+    int res = gsl_integration_cquad (&F, a, b, 0, prec, wk, result, error, neval); 
+    CHECK(res,res);
+    gsl_integration_cquad_workspace_free (wk); 
+    OK
+}
+
 
 int polySolve(KRVEC(a), CVEC(z)) {
     DEBUGMSG("polySolve");
