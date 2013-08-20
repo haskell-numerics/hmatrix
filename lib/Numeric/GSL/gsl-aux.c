@@ -29,6 +29,7 @@
 #include <gsl/gsl_poly.h>
 #include <gsl/gsl_multimin.h>
 #include <gsl/gsl_multiroots.h>
+#include <gsl/gsl_min.h>
 #include <gsl/gsl_complex_math.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
@@ -891,6 +892,59 @@ double only_f_aux_min(const gsl_vector*x, void *pars) {
     free(p);
     return res;
 }
+
+double only_f_aux_root(double x, void *pars);
+int uniMinimize(int method, double f(double),
+		double epsrel, int maxit, double min,
+		double xl, double xu, RMAT(sol)) {
+   REQUIRES(solr == maxit && solc == 4,BAD_SIZE);
+   DEBUGMSG("minimize_only_f");
+   gsl_function my_func;
+   my_func.function = only_f_aux_root;
+   my_func.params = f;
+   size_t iter = 0;
+   int status;
+   const gsl_min_fminimizer_type *T;
+   gsl_min_fminimizer *s;
+   // Starting point
+   switch(method) {
+     case 0 : {T = gsl_min_fminimizer_goldensection; break; }
+     case 1 : {T = gsl_min_fminimizer_brent; break; }
+     case 2 : {T = gsl_min_fminimizer_quad_golden; break; }
+     default: ERROR(BAD_CODE);
+   }
+   s = gsl_min_fminimizer_alloc (T);
+   gsl_min_fminimizer_set (s, &my_func, min, xl, xu);
+   do {
+       double current_min, current_lo, current_hi;
+       status = gsl_min_fminimizer_iterate (s);
+       current_min = gsl_min_fminimizer_x_minimum (s);
+       current_lo = gsl_min_fminimizer_x_lower (s);
+       current_hi = gsl_min_fminimizer_x_upper (s);
+       solp[iter*solc] = iter + 1;
+       solp[iter*solc+1] = current_min;
+       solp[iter*solc+2] = current_lo;
+       solp[iter*solc+3] = current_hi;
+       iter++;
+       if (status)   /* check if solver is stuck */
+	  break;
+       
+       status =
+	 gsl_min_test_interval (current_lo, current_hi, 0, epsrel);
+   }
+   while (status == GSL_CONTINUE && iter < maxit);
+   int i;
+   for (i=iter; i<solr; i++) {
+       solp[i*solc+0] = iter;
+       solp[i*solc+1]=0.;
+       solp[i*solc+2]=0.;
+       solp[i*solc+3]=0.;
+   }
+   gsl_min_fminimizer_free(s);
+   OK
+}
+
+   
 
 // this version returns info about intermediate steps
 int minimize(int method, double f(int, double*), double tolsize, int maxit, 

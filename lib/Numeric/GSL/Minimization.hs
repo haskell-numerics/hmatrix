@@ -53,6 +53,7 @@ The nmsimplex2 version is a new O(N) implementation of the earlier O(N^2) nmsimp
 module Numeric.GSL.Minimization (
     minimize, minimizeV, MinimizeMethod(..),
     minimizeD, minimizeVD, MinimizeMethodD(..),
+    uniMinimize, UniMinimizeMethod(..),
 
     minimizeNMSimplex,
     minimizeConjugateGradient,
@@ -80,6 +81,39 @@ minimizeConjugateGradient step tol eps maxit f g xi = minimizeD ConjugateFR eps 
 minimizeVectorBFGS2 step tol eps maxit f g xi = minimizeD VectorBFGS2 eps maxit step tol f g xi
 
 -------------------------------------------------------------------------
+
+data UniMinimizeMethod = GoldenSection
+                       | BrentMini
+                       | QuadGolden
+                       deriving (Enum, Eq, Show, Bounded)
+
+-- | Onedimensional minimization.
+
+uniMinimize :: UniMinimizeMethod -- ^ The method used.
+        -> Double               -- ^ desired precision of the solution
+        -> Int                  -- ^ maximum number of iterations allowed
+        -> (Double -> Double)   -- ^ function to minimize
+        -> Double               -- ^ guess for the location of the minimum
+        -> Double               -- ^ lower bound of search interval
+        -> Double               -- ^ upper bound of search interval
+        -> (Double, Matrix Double) -- ^ solution and optimization path
+
+uniMinimize method epsrel maxit fun xmin xl xu = uniMinimizeGen (fi (fromEnum method)) fun xmin xl xu epsrel maxit
+
+uniMinimizeGen m f xmin xl xu epsrel maxit = unsafePerformIO $ do
+    fp <- mkDoublefun f
+    rawpath <- createMIO maxit 4
+                         (c_uniMinize m fp epsrel (fi maxit) xmin xl xu)
+                         "uniMinimize"
+    let it = round (rawpath @@> (maxit-1,0))
+        path = takeRows it rawpath
+        [sol] = toLists $ dropRows (it-1) path
+    freeHaskellFunPtr fp
+    return (sol !! 1, path)
+
+
+foreign import ccall safe "uniMinimize"
+    c_uniMinize:: CInt -> FunPtr (Double -> Double) -> Double -> CInt -> Double -> Double -> Double -> TM
 
 data MinimizeMethod = NMSimplex
                     | NMSimplex2
