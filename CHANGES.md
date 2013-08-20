@@ -1,3 +1,10 @@
+0.15.1.0
+--------
+
+- One-dimensional minimization
+
+- Doubly-adaptive quadrature for difficult integrands
+
 0.15.0.0
 --------
 

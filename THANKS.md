@@ -128,3 +128,8 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Greg Horn fixed the bus error on ghci 64-bit.
 
+- Kristof Bastiaensen added bindings for one-dimensional minimization.
+
+- Matthew Peddie added bindings for gsl_integrate_cquad doubly-adaptive quadrature
+  for difficult integrands.
+
