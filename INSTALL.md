@@ -1,4 +1,3 @@
-
 # [hmatrix][hmatrix2] installation
 
 This package requires the [Glasgow Haskell Compiler](http://www.haskell.org/ghc/index.html) ghc >= 6.10, and [cabal-install](http://www.haskell.org/haskellwiki/Cabal-Install), conveniently available in the [Haskell Platform](http://hackage.haskell.org/platform), and the development packages for [GSL](http://www.gnu.org/software/gsl) and BLAS/[LAPACK](http://www.netlib.org/lapack). (The graphical functions also require **gnuplot** and **imagemagick**.)
@@ -24,7 +23,7 @@ Other distributions may require additional libraries. They can be given in a **-
 
 GSL must be installed via MacPorts:
 
-    $ sudo port install gsl-devel +universal
+    $ sudo port install gsl +universal
     $ cabal install hmatrix
 
 (Contributed by Heinrich Apfelmus and Torsten Kemps-Benedix).
