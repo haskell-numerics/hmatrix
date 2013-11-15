@@ -31,7 +31,7 @@ module Numeric.LinearAlgebra.Algorithms (
     cholSolve,
     linearSolveLS,
     linearSolveSVD,
-    inv, pinv,
+    inv, pinv, pinvTol,
     det, invlndet,
     rank, rcond,
 -- * Matrix factorizations
@@ -73,7 +73,6 @@ module Numeric.LinearAlgebra.Algorithms (
 -- * Util
     haussholder,
     unpackQR, unpackHess,
-    pinvTol,
     ranksv
 ) where
 
@@ -95,7 +94,9 @@ class (Product t,
        Container Vector t,
        Container Matrix t,
        Normed Matrix t,
-       Normed Vector t) => Field t where
+       Normed Vector t,
+       Floating t,
+       RealOf t ~ Double) => Field t where
     svd'         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     thinSVD'     :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     sv'          :: Matrix t -> Vector Double
@@ -330,9 +331,9 @@ chol m | exactHermitian m = cholSH m
 
 
 -- | Joint computation of inverse and logarithm of determinant of a square matrix.
-invlndet :: (Floating t, Field t)
+invlndet :: Field t
          => Matrix t
-         -> (Matrix t, (t, t)) -- ^ (inverse, (log abs det, sign or phase of det)) 
+         -> (Matrix t, (t, t)) -- ^ (inverse, (log abs det, sign or phase of det))
 invlndet m | square m = (im,(ladm,sdm))
            | otherwise = error $ "invlndet of nonsquare "++ shSize m ++ " matrix"
   where
@@ -363,9 +364,42 @@ inv :: Field t => Matrix t -> Matrix t
 inv m | square m = m `linearSolve` ident (rows m)
       | otherwise = error $ "inv of nonsquare "++ shSize m ++ " matrix"
 
--- | Pseudoinverse of a general matrix.
+
+-- | Pseudoinverse of a general matrix with default tolerance ('pinvTol' 1, similar to GNU-Octave).
 pinv :: Field t => Matrix t -> Matrix t
-pinv m = linearSolveSVD m (ident (rows m))
+pinv = pinvTol 1
+
+{- | @pinvTol r@ computes the pseudoinverse of a matrix with tolerance @tol=r*g*eps*(max rows cols)@, where g is the greatest singular value.
+
+@\> let m = 'fromLists' [[1,0,    0]
+                    ,[0,1,    0]
+                    ,[0,0,1e-10]]
+\  --
+\> 'pinv' m
+1. 0.           0.
+0. 1.           0.
+0. 0. 10000000000.
+\  --
+\> pinvTol 1E8 m
+1. 0. 0.
+0. 1. 0.
+0. 0. 1.@
+
+-}
+
+pinvTol :: Field t => Double -> Matrix t -> Matrix t
+pinvTol t m = conj v' `mXm` diag s' `mXm` ctrans u' where
+    (u,s,v) = thinSVD m
+    sl@(g:_) = toList s
+    s' = real . fromList . map rec $ sl
+    rec x = if x <= g*tol then x else 1/x
+    tol = (fromIntegral (max r c) * g * t * eps)
+    r = rows m
+    c = cols m
+    d = dim s
+    u' = takeColumns d u
+    v' = takeColumns d v
+
 
 -- | Numeric rank of a matrix from the SVD decomposition.
 rankSVD :: Element t
@@ -438,39 +472,6 @@ orth m = take r $ toColumns u
     r = ranksv eps (max (rows m) (cols m)) (toList s)
 
 ------------------------------------------------------------------------
-
-{-  Pseudoinverse of a real matrix with the desired tolerance, expressed as a
-multiplicative factor of the default tolerance used by GNU-Octave (see 'pinv').
-
-@\> let m = 'fromLists' [[1,0,    0]
-                    ,[0,1,    0]
-                    ,[0,0,1e-10]]
-\  --
-\> 'pinv' m 
-1. 0.           0.
-0. 1.           0.
-0. 0. 10000000000.
-\  --
-\> pinvTol 1E8 m
-1. 0. 0.
-0. 1. 0.
-0. 0. 1.@
-
--}
---pinvTol :: Double -> Matrix Double -> Matrix Double
-pinvTol t m = v' `mXm` diag s' `mXm` trans u' where
-    (u,s,v) = thinSVDRd m
-    sl@(g:_) = toList s
-    s' = fromList . map rec $ sl
-    rec x = if x < g*tol then 1 else 1/x
-    tol = (fromIntegral (max r c) * g * t * eps)
-    r = rows m
-    c = cols m
-    d = dim s
-    u' = takeColumns d u
-    v' = takeColumns d v
-
----------------------------------------------------------------------
 
 -- many thanks, quickcheck!
 
@@ -545,7 +546,7 @@ diagonalize m = if rank v == n
 matFunc :: (Complex Double -> Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
 matFunc f m = case diagonalize m of
     Just (l,v) -> v `mXm` diag (mapVector f l) `mXm` inv v
-    Nothing -> error "Sorry, matFunc requires a diagonalizable matrix" 
+    Nothing -> error "Sorry, matFunc requires a diagonalizable matrix"
 
 --------------------------------------------------------------
 
@@ -556,6 +557,7 @@ golubeps p q = a * fromIntegral b / fromIntegral c where
     c = fact (p+q) * fact (p+q+1)
     fact n = product [1..n]
 
+epslist :: [(Int,Double)]
 epslist = [ (fromIntegral k, golubeps k k) | k <- [1..]]
 
 geps delta = head [ k | (k,g) <- epslist, g<delta]
@@ -567,11 +569,7 @@ geps delta = head [ k | (k,g) <- epslist, g<delta]
 expm :: Field t => Matrix t -> Matrix t
 expm = expGolub
 
-expGolub :: ( Fractional t, Element t, Field t
-            , Normed Matrix t
-            , RealFrac (RealOf t)
-            , Floating (RealOf t)
-            ) => Matrix t -> Matrix t
+expGolub :: Field t => Matrix t -> Matrix t
 expGolub m = iterate msq f !! j
     where j = max 0 $ floor $ logBase 2 $ pnorm Infinity m
           a = m */ fromIntegral ((2::Int)^j)
