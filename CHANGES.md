@@ -1,3 +1,8 @@
+0.15.2.0
+--------
+
+- general pinvTol and improved pinv
+
 0.15.1.0
 --------
 

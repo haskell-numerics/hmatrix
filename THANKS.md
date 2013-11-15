@@ -133,3 +133,11 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - Matthew Peddie added bindings for gsl_integrate_cquad doubly-adaptive quadrature
   for difficult integrands.
 
+- Ben Gamari exposed matrixFromVector for Development.
+
+- greg94301 reported tolerance issues in the tests.
+
+- Clemens Lang updated the MacPort installation instructions.
+
+- Henning Thielemann reported the pinv inefficient implementation.
+
