@@ -34,7 +34,7 @@ module Data.Packed.Internal.Vector (
 import Data.Packed.Internal.Common
 import Data.Packed.Internal.Signatures
 import Foreign.Marshal.Alloc(free)
-import Foreign.Marshal.Array(peekArray, pokeArray, copyArray, advancePtr)
+import Foreign.Marshal.Array(peekArray, copyArray, advancePtr)
 import Foreign.ForeignPtr(ForeignPtr, castForeignPtr)
 import Foreign.Ptr(Ptr)
 import Foreign.Storable(Storable, peekElemOff, pokeElemOff, sizeOf)
@@ -57,6 +57,7 @@ import GHC.IOBase hiding (liftIO)
 
 import qualified Data.Vector.Storable as Vector
 import Data.Vector.Storable(Vector,
+                            fromList,
                             unsafeToForeignPtr,
                             unsafeFromForeignPtr,
                             unsafeWith)
@@ -102,11 +103,6 @@ createVector n = do
 4 |> [2.0,3.0,5.0,7.0]@
 
 -}
-fromList :: Storable a => [a] -> Vector a
-fromList l = unsafePerformIO $ do
-    v <- createVector (length l)
-    unsafeWith v $ \ p -> pokeArray p l
-    return v
 
 safeRead v = inlinePerformIO . unsafeWith v
 {-# INLINE safeRead #-}
