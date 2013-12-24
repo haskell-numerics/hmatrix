@@ -17,3 +17,5 @@ index.html
 title.md
 
 /base-reinstall.sh
+.cabal-sandbox
+cabal.sandbox.config
