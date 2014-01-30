@@ -16,7 +16,7 @@
 module Data.Packed.Internal.Vector (
     Vector, dim,
     fromList, toList, (|>),
-    join, (@>), safe, at, at', subVector, takesV,
+    Data.Packed.Internal.Vector.join, (@>), safe, at, at', subVector, takesV,
     mapVector, mapVectorWithIndex, zipVectorWith, unzipVectorWith,
     mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
     foldVector, foldVectorG, foldLoop, foldVectorWithIndex,

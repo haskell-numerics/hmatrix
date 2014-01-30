@@ -510,20 +510,40 @@ type instance ElementOf (Matrix a) = a
 class Build f where
     build' :: BoundsOf f -> f -> ContainerOf f
 
-type family BoundsOf x
 
+#if MIN_VERSION_base(4,7,0)
+-- ghc >= 7.7 considers:
+--
+-- > a -> a
+-- > b -> b -> b
+--
+-- to overlap
+type family BoundsOf x where
+    BoundsOf (a -> a) = Int
+    BoundsOf (a->a->a) = (Int,Int)
+type family ContainerOf x where
+    ContainerOf (a->a) = Vector a
+    ContainerOf (a->a->a) = Matrix a
+#else
+type family BoundsOf x
+type family ContainerOf x
 type instance BoundsOf (a->a) = Int
 type instance BoundsOf (a->a->a) = (Int,Int)
-
-type family ContainerOf x
-
 type instance ContainerOf (a->a) = Vector a
 type instance ContainerOf (a->a->a) = Matrix a
+#endif
+
 
 instance (Element a, Num a) => Build (a->a) where
     build' = buildV
 
-instance (Element a, Num a) => Build (a->a->a) where
+instance (Element a,
+#if MIN_VERSION_base(4,7,0)
+        BoundsOf (a -> a -> a) ~ (Int,Int),
+        ContainerOf (a -> a -> a) ~ Matrix a,
+#endif
+        Num a)
+        => Build (a->a->a) where
     build' = buildM
 
 buildM (rc,cc) f = fromLists [ [f r c | c <- cs] | r <- rs ]

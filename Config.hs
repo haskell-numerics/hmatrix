@@ -48,20 +48,20 @@ writeTestProg bInfo contents = writeFile (testProgLoc bInfo) contents
 
 -- compile, discarding error messages
 compile cmd = do
-    let processRecord = (shell $ join cmd) { std_out = CreatePipe
+    let processRecord = (shell $ unwords cmd) { std_out = CreatePipe
                                            , std_err = CreatePipe }
     ( _, _, _, h) <- createProcess processRecord
     waitForProcess h
 
 -- command to compile the test program
 compileCmd bInfo buildInfo = [ "gcc "
-                             , (join $ ccOptions buildInfo)  
-                             , (join $ cppOptions buildInfo) 
-                             , (join $ map ("-I"++) $ includeDirs buildInfo) 
+                             , (unwords $ ccOptions buildInfo)  
+                             , (unwords $ cppOptions buildInfo) 
+                             , (unwords $ map ("-I"++) $ includeDirs buildInfo) 
                              , testProgLoc bInfo
                              , "-o"
                              , testOutLoc bInfo 
-                             , (join $ map ("-L"++) $ extraLibDirs buildInfo) 
+                             , (unwords $ map ("-L"++) $ extraLibDirs buildInfo) 
                              ]
  
 -- compile a simple program with symbols from GSL and LAPACK with the given libs
@@ -72,7 +72,6 @@ testprog bInfo buildInfo libs fmks = do
                             ++ [ (prepend "-l" $ libs)
                                , (prepend "-framework " fmks) ] 
 
-join = intercalate " "
 prepend x = unwords . map (x++) . words
 
 check bInfo buildInfo libs fmks = (ExitSuccess ==) `fmap` testprog bInfo buildInfo libs fmks

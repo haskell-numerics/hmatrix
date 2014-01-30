@@ -97,7 +97,7 @@ ones r c = konst 1 (r,c)
 -- | concatenation of real vectors
 infixl 3 &
 (&) :: Vector Double -> Vector Double -> Vector Double
-a & b = join [a,b]
+a & b = Numeric.Container.join [a,b]
 
 -- | horizontal concatenation of real matrices
 infixl 3 !
@@ -206,7 +206,7 @@ vec = flatten . trans
 
 vech :: Element t => Matrix t -> Vector t
 -- ^ half-vectorization (of the lower triangular part)
-vech m = join . zipWith f [0..] . toColumns $ m
+vech m = Numeric.Container.join . zipWith f [0..] . toColumns $ m
   where
     f k v = subVector k (dim v - k) v
 
