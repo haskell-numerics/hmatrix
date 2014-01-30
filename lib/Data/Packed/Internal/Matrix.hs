@@ -154,7 +154,7 @@ toLists m = splitEvery (cols m) . toList . flatten $ m
 fromRows :: Element t => [Vector t] -> Matrix t
 fromRows vs = case compatdim (map dim vs) of
     Nothing -> error "fromRows applied to [] or to vectors with different sizes"
-    Just c  -> reshape c . join . map (adapt c) $ vs
+    Just c  -> reshape c . Data.Packed.Internal.Vector.join . map (adapt c) $ vs
   where
     adapt c v | dim v == c = v
               | otherwise = constantD (v@>0) c
