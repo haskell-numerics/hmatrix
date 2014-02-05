@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.15.2.0
+Version:            0.15.2.1
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -27,7 +27,7 @@ cabal-version:      >=1.8
 
 build-type:         Custom
 
-extra-source-files: Config.hs THANKS.md INSTALL.md CHANGES.md
+extra-source-files: Config.hs THANKS.md INSTALL.md CHANGELOG
 
 extra-source-files: examples/deriv.hs
                     examples/integrate.hs

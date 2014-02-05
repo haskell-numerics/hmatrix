@@ -141,3 +141,9 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Henning Thielemann reported the pinv inefficient implementation.
 
+- bdoering reported the problem of zero absolute tolerance in the integration functions.
+
+- Alexei Uimanov replaced fromList by Vector.fromList.
+
+- Adam Vogt updated the code for ghc-7.7
+
