@@ -737,80 +737,80 @@ int deriv(int code, double f(double, void*), double x, double h, double * result
 }
 
 
-int integrate_qng(double f(double, void*), double a, double b, double prec,
+int integrate_qng(double f(double, void*), double a, double b, double aprec, double prec,
                    double *result, double*error) {
     DEBUGMSG("integrate_qng");
     gsl_function F;
     F.function = f;
     F.params = NULL;
     size_t neval;
-    int res = gsl_integration_qng (&F, a,b, 0, prec, result, error, &neval); 
+    int res = gsl_integration_qng (&F, a,b, aprec, prec, result, error, &neval);
     CHECK(res,res);
     OK
 }
 
-int integrate_qags(double f(double,void*), double a, double b, double prec, int w, 
+int integrate_qags(double f(double,void*), double a, double b, double aprec, double prec, int w,
                double *result, double* error) {
     DEBUGMSG("integrate_qags");
     gsl_integration_workspace * wk = gsl_integration_workspace_alloc (w);
     gsl_function F;
     F.function = f;
     F.params = NULL;
-    int res = gsl_integration_qags (&F, a,b, 0, prec, w,wk, result, error); 
+    int res = gsl_integration_qags (&F, a,b, aprec, prec, w,wk, result, error);
     CHECK(res,res);
     gsl_integration_workspace_free (wk); 
     OK
 }
 
-int integrate_qagi(double f(double,void*), double prec, int w, 
+int integrate_qagi(double f(double,void*), double aprec, double prec, int w,
                double *result, double* error) {
     DEBUGMSG("integrate_qagi");
     gsl_integration_workspace * wk = gsl_integration_workspace_alloc (w);
     gsl_function F;
     F.function = f;
     F.params = NULL;
-    int res = gsl_integration_qagi (&F, 0, prec, w,wk, result, error); 
+    int res = gsl_integration_qagi (&F, aprec, prec, w,wk, result, error);
     CHECK(res,res);
     gsl_integration_workspace_free (wk); 
     OK
 }
 
 
-int integrate_qagiu(double f(double,void*), double a, double prec, int w, 
+int integrate_qagiu(double f(double,void*), double a, double aprec, double prec, int w,
                double *result, double* error) {
     DEBUGMSG("integrate_qagiu");
     gsl_integration_workspace * wk = gsl_integration_workspace_alloc (w);
     gsl_function F;
     F.function = f;
     F.params = NULL;
-    int res = gsl_integration_qagiu (&F, a, 0, prec, w,wk, result, error); 
+    int res = gsl_integration_qagiu (&F, a, aprec, prec, w,wk, result, error);
     CHECK(res,res);
     gsl_integration_workspace_free (wk); 
     OK
 }
 
 
-int integrate_qagil(double f(double,void*), double b, double prec, int w, 
+int integrate_qagil(double f(double,void*), double b, double aprec, double prec, int w,
                double *result, double* error) {
     DEBUGMSG("integrate_qagil");
     gsl_integration_workspace * wk = gsl_integration_workspace_alloc (w);
     gsl_function F;
     F.function = f;
     F.params = NULL;
-    int res = gsl_integration_qagil (&F, b, 0, prec, w,wk, result, error); 
+    int res = gsl_integration_qagil (&F, b, aprec, prec, w,wk, result, error);
     CHECK(res,res);
     gsl_integration_workspace_free (wk); 
     OK
 }
 
-int integrate_cquad(double f(double,void*), double a, double b, double prec,
+int integrate_cquad(double f(double,void*), double a, double b, double aprec, double prec,
                     int w, double *result, double* error, int *neval) {
     DEBUGMSG("integrate_cquad");
     gsl_integration_cquad_workspace * wk = gsl_integration_cquad_workspace_alloc (w);
     gsl_function F;
     F.function = f;
     F.params = NULL;
-    int res = gsl_integration_cquad (&F, a, b, 0, prec, wk, result, error, neval); 
+    int res = gsl_integration_cquad (&F, a, b, aprec, prec, wk, result, error, neval);
     CHECK(res,res);
     gsl_integration_cquad_workspace_free (wk); 
     OK
