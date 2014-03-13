@@ -186,6 +186,11 @@ library
             cc-options: -arch i386
         frameworks: Accelerate
 
+    if os(freebsd)
+       extra-lib-dirs: /usr/local/lib
+       include-dirs: /usr/local/include
+       extra-libraries: gsl blas lapack
+
     if os(windows)
         extra-libraries: gsl-0 blas lapack
 
