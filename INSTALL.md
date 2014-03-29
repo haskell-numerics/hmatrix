@@ -33,7 +33,7 @@ Via MacPorts:
     $ sudo port install gsl +universal
     $ cabal install hmatrix
 
-(Contributed by Heinrich Apfelmus and Torsten Kemps-Benedix).
+(Contributed by Heinrich Apfelmus, Torsten Kemps-Benedix and Ted Fujimoto).
 
 ## Windows ###############################################
 
