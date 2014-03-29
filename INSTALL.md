@@ -21,7 +21,14 @@ Other distributions may require additional libraries. They can be given in a **-
 ## Mac OS/X ###############################################
 
 
-GSL must be installed via MacPorts:
+GSL must be installed via Homebrew or MacPorts.
+
+Via Homebrew:
+
+    $ brew install gsl
+    $ cabal install hmatrix
+
+Via MacPorts:
 
     $ sudo port install gsl +universal
     $ cabal install hmatrix
