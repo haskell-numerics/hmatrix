@@ -147,3 +147,9 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Adam Vogt updated the code for ghc-7.7
 
+- Mike Meyer (mwm) added freeBSD library configuration information.
+
+- tfgit updated the OSX installation instructions via Homebrew
+
+
+

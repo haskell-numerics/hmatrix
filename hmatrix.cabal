@@ -21,7 +21,7 @@ Description:        Purely functional interface to basic linear algebra
                     .
                     - "Numeric.LinearAlgebra": everything + instances of standard Haskell numeric classes
 Category:           Math
-tested-with:        GHC ==7.6
+tested-with:        GHC ==7.8
 
 cabal-version:      >=1.8
 
