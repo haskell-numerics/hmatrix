@@ -103,7 +103,7 @@ breakAt c l = (a++[c],tail b) where
 joinVert :: Element t => [Matrix t] -> Matrix t
 joinVert ms = case common cols ms of
     Nothing -> error "(impossible) joinVert on matrices with different number of columns"
-    Just c  -> reshape c $ join (map flatten ms)
+    Just c  -> reshape c $ vjoin (map flatten ms)
 
 -- | creates a matrix from a horizontal list of matrices
 joinHoriz :: Element t => [Matrix t] -> Matrix t

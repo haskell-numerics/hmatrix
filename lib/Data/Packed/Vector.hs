@@ -19,7 +19,7 @@ module Data.Packed.Vector (
     Vector,
     fromList, (|>), toList, buildVector,
     dim, (@>),
-    subVector, takesV, join,
+    subVector, takesV, vjoin,
     mapVector, mapVectorWithIndex, zipVector, zipVectorWith, unzipVector, unzipVectorWith,
     mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
     foldLoop, foldVector, foldVectorG, foldVectorWithIndex
@@ -61,7 +61,7 @@ instance (Binary a, Storable a) => Binary (Vector a) where
     get = do
           d <- get
           vs <- mapM getVector $ chunks d
-          return $! join vs
+          return $! vjoin vs
 
 #endif
 

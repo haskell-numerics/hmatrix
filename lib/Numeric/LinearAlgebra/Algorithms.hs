@@ -484,7 +484,7 @@ zh k v = fromList $ replicate (k-1) 0 ++ (1:drop k xs)
               where xs = toList v
 
 zt 0 v = v
-zt k v = join [subVector 0 (dim v - k) v, konst 0 k]
+zt k v = vjoin [subVector 0 (dim v - k) v, konst 0 k]
 
 
 unpackQR :: (Field t) => (Matrix t, Vector t) -> (Matrix t, Matrix t)

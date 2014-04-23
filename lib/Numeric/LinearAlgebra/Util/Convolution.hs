@@ -46,7 +46,7 @@ fromList [-1.0,0.0,1.0]
 conv ker v = corr ker' v'
   where
     ker' = (flatten.fliprl.asRow) ker
-    v' | dim ker > 1 = join [z,v,z]
+    v' | dim ker > 1 = vjoin [z,v,z]
        | otherwise   = v
     z = constant 0 (dim ker -1)
 

@@ -16,7 +16,7 @@
 module Data.Packed.Internal.Vector (
     Vector, dim,
     fromList, toList, (|>),
-    Data.Packed.Internal.Vector.join, (@>), safe, at, at', subVector, takesV,
+    vjoin, (@>), safe, at, at', subVector, takesV,
     mapVector, mapVectorWithIndex, zipVectorWith, unzipVectorWith,
     mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
     foldVector, foldVectorG, foldLoop, foldVectorWithIndex,
@@ -183,16 +183,16 @@ infixl 9 @>
 (@>) = at
 
 
-{- | creates a new Vector by joining a list of Vectors
+{- | concatenate a list of vectors
 
-@> join [fromList [1..5], constant 1 3]
+@> vjoin [fromList [1..5], constant 1 3]
 8 |> [1.0,2.0,3.0,4.0,5.0,1.0,1.0,1.0]@
 
 -}
-join :: Storable t => [Vector t] -> Vector t
-join [] = error "joining zero vectors"
-join [v] = v
-join as = unsafePerformIO $ do
+vjoin :: Storable t => [Vector t] -> Vector t
+vjoin [] = error "vjoin zero vectors"
+vjoin [v] = v
+vjoin as = unsafePerformIO $ do
     let tot = sum (map dim as)
     r <- createVector tot
     unsafeWith r $ \ptr ->
