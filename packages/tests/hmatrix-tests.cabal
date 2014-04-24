@@ -1,5 +1,5 @@
 Name:               hmatrix-tests
-Version:            0.3
+Version:            0.4
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -9,7 +9,7 @@ Homepage:           https://github.com/albertoruiz/hmatrix
 Synopsis:           Tests for hmatrix
 Description:        Tests for hmatrix
 Category:           Math
-tested-with:        GHC==7.4
+tested-with:        GHC==7.8
 
 cabal-version:      >=1.8
 
@@ -21,7 +21,7 @@ extra-source-files: CHANGES
 library
 
     Build-Depends:      base >= 4 && < 5,
-                        hmatrix >= 0.14.1,
+                        hmatrix >= 0.16,
                         QuickCheck >= 2, HUnit, random
 
     hs-source-dirs:     src

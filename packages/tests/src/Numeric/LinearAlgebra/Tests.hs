@@ -270,7 +270,7 @@ normsVTest = TestList [
 #ifndef NONORMVTEST
          norm2PropR a = norm2 a =~= sqrt (udot a a)
 #endif
-         norm2PropC a = norm2 a =~= realPart (sqrt (udot a (conj a)))
+         norm2PropC a = norm2 a =~= realPart (sqrt (cdot a a))
          a =~= b = fromList [a] |~| fromList [b]
 
 normsMTest = TestList [
@@ -660,7 +660,7 @@ a |~~| b = a :~6~: b
 
 makeUnitary v | realPart n > 1    = v / scalar n
               | otherwise = v
-    where n = sqrt (conj v `udot` v)
+    where n = sqrt (v `cdot` v)
 
 -- -- | Some additional tests on big matrices. They take a few minutes.
 -- runBigTests :: IO ()
