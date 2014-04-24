@@ -19,7 +19,7 @@ module Data.Packed.Vector (
     Vector,
     fromList, (|>), toList, buildVector,
     dim, (@>),
-    subVector, takesV, vjoin,
+    subVector, takesV, vjoin, join,
     mapVector, mapVectorWithIndex, zipVector, zipVectorWith, unzipVector, unzipVectorWith,
     mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
     foldLoop, foldVector, foldVectorG, foldVectorWithIndex
@@ -88,3 +88,8 @@ unzipVector :: (Storable a, Storable b, Storable (a,b)) => Vector (a,b) -> (Vect
 unzipVector = unzipVectorWith id
 
 -------------------------------------------------------------------
+
+{-# DEPRECATED join "use vjoin or Data.Vector.concat" #-}
+join ::  Storable t => [Vector t] -> Vector t
+join = vjoin
+

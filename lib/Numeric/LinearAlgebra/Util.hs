@@ -23,7 +23,6 @@ module Numeric.LinearAlgebra.Util(
     (?), (¿),
     rand, randn,
     cross,
-    (⋅),
     norm,
     unitary,
     mt,
@@ -86,7 +85,15 @@ rand = randm Uniform
 randn :: Int -> Int -> IO (Matrix Double)
 randn = randm Gaussian
 
--- | create a real diagonal matrix from a list
+{- | create a real diagonal matrix from a list
+
+>>> diagl [1,2,3]
+(3><3)
+ [ 1.0, 0.0, 0.0
+ , 0.0, 2.0, 0.0
+ , 0.0, 0.0, 3.0 ]
+
+-}
 diagl :: [Double] -> Matrix Double
 diagl = diag . fromList
 
@@ -163,11 +170,6 @@ size m = (rows m, cols m)
 -- | trans . inv
 mt :: Matrix Double -> Matrix Double
 mt = trans . inv
-
--- | dot product (0x22C5): @u ⋅ v = 'cdot' u v@
-(⋅) :: (Container Vector t, Product t) => Vector t -> Vector t -> t
-infixl 7 ⋅
-u ⋅ v = cdot u v
 
 ----------------------------------------------------------------------
 

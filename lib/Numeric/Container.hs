@@ -38,7 +38,7 @@ module Numeric.Container (
     Product(..),
     Contraction(..),
     optimiseMult,
-    mXm,mXv,vXm,Mul(..),LSDiv(..), cdot,
+    mXm,mXv,vXm,Mul(..),LSDiv(..), cdot, (⋅), dot, (<.>),
     outer, kronecker,
     -- * Random numbers
     RandDist(..),
@@ -175,6 +175,13 @@ instance Container Matrix t => Contraction (Matrix t) t (Matrix t) where
 
 --------------------------------------------------------------------------------
 
+-- | dot product (0x22C5): @u ⋅ v = 'cdot' u v@
+(⋅) :: (Container Vector t, Product t) => Vector t -> Vector t -> t
+infixl 7 ⋅
+u ⋅ v = cdot u v
+
+--------------------------------------------------------------------------------
+
 -- bidirectional type inference
 class Konst e d c | d -> c, c -> d
   where
@@ -199,4 +206,15 @@ instance Container Vector e => Build Int (e -> e) Vector e
 instance Container Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
   where
     build = build'
+
+--------------------------------------------------------------------------------
+
+{-# DEPRECATED dot "use udot" #-}
+dot :: Product e => Vector e -> Vector e -> e
+dot = udot
+
+{-# DEPRECATED (<.>) "use udot or (×)" #-}
+infixl 7 <.>
+(<.>) :: Product e => Vector e -> Vector e -> e
+(<.>) = udot
 

@@ -1,32 +1,18 @@
 0.16.0.0
 --------
 
-    * join renamed to vjoin
-    
-    * dot renamed to udot (unconjugated dot product)
-    * Removed (<.>)
-    
-    * added cdot, which conjugates the first input vector
-    * the operator (⋅) = cdot is available from Numeric.LinearAlgebra.Util
+    * join deprecated, use vjoin
+    * dot and (<.>) deprecated, use udot or (×)
+
+    * added udot (unconjugated dot product)
+    * added (⋅) = cdot, which conjugates the first input vector
     
     * added a general multiplication operator (×)
     
     * improved build and konst
     
     * Plot functions moved to Numeric.LinearAlgebra.Util
-    * removed (!) (use (¦) instead)
-    
-This version introduces a few backward incompatible changes but the code can be
-updated very easily:
-
-join ->  vjoin
-dot  ->  udot
-<.>  ->  ×
-import Graphics.Plot -> import Numeric.LinearAlgebra.Util
-
-The new contraction operator (×) performs matrix products, matrix-vector products,
-unconjugated vector dot products, and scaling of vectors and matrices.
-
+    * removed (!) (use (¦))
 
 0.15.2.0
 --------
