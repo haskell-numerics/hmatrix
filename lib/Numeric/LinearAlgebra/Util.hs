@@ -23,7 +23,7 @@ module Numeric.LinearAlgebra.Util(
     (?), (¿),
     rand, randn,
     cross,
-    (<.>),
+    (⋅),
     norm,
     unitary,
     mt,
@@ -164,10 +164,10 @@ size m = (rows m, cols m)
 mt :: Matrix Double -> Matrix Double
 mt = trans . inv
 
--- | dot product: @u \<.\> v = 'cdot' u v@
-(<.>) :: (Container Vector t, Product t) => Vector t -> Vector t -> t
-infixl 7 <.>
-u <.> v = cdot u v
+-- | dot product (0x22C5): @u ⋅ v = 'cdot' u v@
+(⋅) :: (Container Vector t, Product t) => Vector t -> Vector t -> t
+infixl 7 ⋅
+u ⋅ v = cdot u v
 
 ----------------------------------------------------------------------
 
