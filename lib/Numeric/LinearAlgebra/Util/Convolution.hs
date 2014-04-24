@@ -59,7 +59,7 @@ corrMin ker v = minEvery ss (asRow ker) <> ones
   where
     minEvery a b = cond a b a a b
     ss = vectSS (dim ker) v
-    ones = konst' 1 (dim ker)
+    ones = konst 1 (dim ker)
 
 
 
@@ -87,7 +87,7 @@ corr2 ker mat = dims
          | otherwise = error $ "corr2: dim kernel ("++sz ker++") > dim matrix ("++sz mat++")"
     sz m = show (rows m)++"x"++show (cols m)
 
-conv2 :: (Num a, Product a) => Matrix a -> Matrix a -> Matrix a
+conv2 :: (Num a, Product a, Container Vector a) => Matrix a -> Matrix a -> Matrix a
 -- ^ 2D convolution
 conv2 k m = corr2 (fliprl . flipud $ k) pm
   where
@@ -101,9 +101,9 @@ conv2 k m = corr2 (fliprl . flipud $ k) pm
     c = cols k - 1
     h = rows m
     w = cols m
-    z1 = konst' 0 (r,c)
-    z2 = konst' 0 (r,w)
-    z3 = konst' 0 (h,c)
+    z1 = konst 0 (r,c)
+    z2 = konst 0 (r,w)
+    z3 = konst 0 (h,c)
 
 -- TODO: could be simplified using future empty arrays
 

@@ -484,7 +484,7 @@ zh k v = fromList $ replicate (k-1) 0 ++ (1:drop k xs)
               where xs = toList v
 
 zt 0 v = v
-zt k v = vjoin [subVector 0 (dim v - k) v, konst 0 k]
+zt k v = vjoin [subVector 0 (dim v - k) v, konst' 0 k]
 
 
 unpackQR :: (Field t) => (Matrix t, Vector t) -> (Matrix t, Matrix t)
@@ -640,10 +640,10 @@ luFact (l_u,perm) | r <= c    = (l ,u ,p, s)
     c = cols l_u
     tu = triang r c 0 1
     tl = triang r c 0 0
-    l = takeColumns r (l_u |*| tl) |+| diagRect 0 (konst 1 r) r r
+    l = takeColumns r (l_u |*| tl) |+| diagRect 0 (konst' 1 r) r r
     u = l_u |*| tu
     (p,s) = fixPerm r perm
-    l' = (l_u |*| tl) |+| diagRect 0 (konst 1 c) r c
+    l' = (l_u |*| tl) |+| diagRect 0 (konst' 1 c) r c
     u' = takeRows c (l_u |*| tu)
     (|+|) = add
     (|*|) = mul

@@ -28,6 +28,7 @@
 module Numeric.Container (
     -- * Basic functions
     module Data.Packed,
+    konst, -- build,
     constant, linspace,
     diag, ident,
     ctrans,
@@ -59,8 +60,6 @@ module Numeric.Container (
     loadMatrix, saveMatrix, fromFile, fileDimensions,
     readMatrix,
     fscanfVector, fprintfVector, freadVector, fwriteVector,
-    -- * Experimental
-    build', konst'
 ) where
 
 import Data.Packed
@@ -173,4 +172,19 @@ instance Container Matrix t => Contraction t (Matrix t) (Matrix t) where
 
 instance Container Matrix t => Contraction (Matrix t) t (Matrix t) where
     (×) = flip scale
+
+--------------------------------------------------------------------------------
+
+-- bidirectional type inference
+class Konst e d c | d -> c, c -> d
+  where
+    konst :: e -> d -> c e
+
+instance Container Vector e => Konst e Int Vector
+  where
+    konst = konst'
+
+instance Container Vector e => Konst e (Int,Int) Matrix
+  where
+    konst = konst'
 

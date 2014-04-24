@@ -36,9 +36,7 @@ module Numeric.ContainerBoot (
     RealOf, ComplexOf, SingleOf, DoubleOf,
 
     IndexOf,
-    module Data.Complex,
-    -- * Experimental
-    build', konst'
+    module Data.Complex
 ) where
 
 import Data.Packed
@@ -91,15 +89,13 @@ class (Complexable c, Fractional e, Element e) => Container c e where
     -- | cannot implement instance Functor because of Element class constraint
     cmap        :: (Element b) => (e -> b) -> c e -> c b
     -- | constant structure of given size
-    konst       :: e -> IndexOf c -> c e
+    konst'      :: e -> IndexOf c -> c e
     -- | create a structure using a function
     --
     -- Hilbert matrix of order N:
     --
-    -- @hilb n = build (n,n) (\\i j -> 1/(i+j+1))@
-    build       :: IndexOf c -> (ArgOf c e) -> c e
-    --build       :: BoundsOf f -> f -> (ContainerOf f) e
-    --
+    -- @hilb n = build' (n,n) (\\i j -> 1/(i+j+1))@
+    build'       :: IndexOf c -> (ArgOf c e) -> c e
     -- | indexing function
     atIndex     :: c e -> IndexOf c -> e
     -- | index of min element
@@ -186,8 +182,8 @@ instance Container Vector Float where
     equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
     arctan2 = vectorZipF ATan2
     scalar x = fromList [x]
-    konst = constantD
-    build = buildV
+    konst' = constantD
+    build' = buildV
     conj = id
     cmap = mapVector
     atIndex = (@>)
@@ -214,8 +210,8 @@ instance Container Vector Double where
     equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
     arctan2 = vectorZipR ATan2
     scalar x = fromList [x]
-    konst = constantD
-    build = buildV
+    konst' = constantD
+    build' = buildV
     conj = id
     cmap = mapVector
     atIndex = (@>)
@@ -242,8 +238,8 @@ instance Container Vector (Complex Double) where
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     arctan2 = vectorZipC ATan2
     scalar x = fromList [x]
-    konst = constantD
-    build = buildV
+    konst' = constantD
+    build' = buildV
     conj = conjugateC
     cmap = mapVector
     atIndex = (@>)
@@ -270,8 +266,8 @@ instance Container Vector (Complex Float) where
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     arctan2 = vectorZipQ ATan2
     scalar x = fromList [x]
-    konst = constantD
-    build = buildV
+    konst' = constantD
+    build' = buildV
     conj = conjugateQ
     cmap = mapVector
     atIndex = (@>)
@@ -300,8 +296,8 @@ instance (Container Vector a) => Container Matrix a where
     equal a b = cols a == cols b && flatten a `equal` flatten b
     arctan2 = liftMatrix2 arctan2
     scalar x = (1><1) [x]
-    konst v (r,c) = reshape c (konst v (r*c))
-    build = buildM
+    konst' v (r,c) = reshape c (konst' v (r*c))
+    build' = buildM
     conj = liftMatrix conj
     cmap f = liftMatrix (mapVector f)
     atIndex = (@@>)
@@ -506,7 +502,7 @@ type instance ElementOf (Vector a) = a
 type instance ElementOf (Matrix a) = a
 
 ------------------------------------------------------------
-
+{-
 class Build f where
     build' :: BoundsOf f -> f -> ContainerOf f
 
@@ -546,12 +542,16 @@ instance (Element a,
         => Build (a->a->a) where
     build' = buildM
 
+-}
+
 buildM (rc,cc) f = fromLists [ [f r c | c <- cs] | r <- rs ]
     where rs = map fromIntegral [0 .. (rc-1)]
           cs = map fromIntegral [0 .. (cc-1)]
 
 buildV n f = fromList [f k | k <- ks]
     where ks = map fromIntegral [0 .. (n-1)]
+
+{-
 
 ----------------------------------------------------
 -- experimental
@@ -569,6 +569,8 @@ instance Konst Int where
 
 instance Konst (Int,Int) where
     konst' k (r,c) = reshape c $ konst' k (r*c)
+
+-}
 
 --------------------------------------------------------
 -- | conjugate transpose
