@@ -19,10 +19,11 @@ module Numeric.LinearAlgebra.Util(
     diagl,
     row,
     col,
-    (&),(!), (¦), (#),
-    (?),(¿),
+    (&), (¦), (#),
+    (?), (¿),
     rand, randn,
     cross,
+    (<.>),
     norm,
     unitary,
     mt,
@@ -45,7 +46,13 @@ module Numeric.LinearAlgebra.Util(
     vec,
     vech,
     dup,
-    vtrans
+    vtrans,
+    -- * Plot
+    mplot,
+    plot, parametricPlot,
+    splot, mesh, meshdom,
+    matrixToPGM, imshow,
+    gnuplotX, gnuplotpdf, gnuplotWin
 ) where
 
 import Numeric.Container
@@ -55,6 +62,7 @@ import Numeric.Vector()
 
 import System.Random(randomIO)
 import Numeric.LinearAlgebra.Util.Convolution
+import Graphics.Plot
 
 
 disp :: Int -> Matrix Double -> IO ()
@@ -98,11 +106,6 @@ ones r c = konst 1 (r,c)
 infixl 3 &
 (&) :: Vector Double -> Vector Double -> Vector Double
 a & b = vjoin [a,b]
-
--- | horizontal concatenation of real matrices
-infixl 3 !
-(!) :: Matrix Double -> Matrix Double -> Matrix Double
-a ! b = fromBlocks [[a,b]]
 
 -- | (00A6) horizontal concatenation of real matrices
 infixl 3 ¦
@@ -160,6 +163,11 @@ size m = (rows m, cols m)
 -- | trans . inv
 mt :: Matrix Double -> Matrix Double
 mt = trans . inv
+
+-- | dot product: @u \<.\> v = 'cdot' u v@
+(<.>) :: (Container Vector t, Product t) => Vector t -> Vector t -> t
+infixl 7 <.>
+u <.> v = cdot u v
 
 ----------------------------------------------------------------------
 

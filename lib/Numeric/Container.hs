@@ -8,8 +8,8 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Container
--- Copyright   :  (c) Alberto Ruiz 2010
--- License     :  GPL-style
+-- Copyright   :  (c) Alberto Ruiz 2010-14
+-- License     :  GPL
 --
 -- Maintainer  :  Alberto Ruiz <aruiz@um.es>
 -- Stability   :  provisional
@@ -35,8 +35,9 @@ module Numeric.Container (
     Container(..),
     -- * Matrix product
     Product(..),
+    Contraction(..),
     optimiseMult,
-    mXm,mXv,vXm,(<.>),Mul(..),LSDiv(..),
+    mXm,mXv,vXm,Mul(..),LSDiv(..), cdot,
     outer, kronecker,
     -- * Random numbers
     RandDist(..),
@@ -95,12 +96,9 @@ linspace :: (Enum e, Container Vector e) => Int -> (e, e) -> Vector e
 linspace n (a,b) = addConstant a $ scale s $ fromList [0 .. fromIntegral n-1]
     where s = (b-a)/fromIntegral (n-1)
 
--- | Dot product: @u \<.\> v = dot u v@
-(<.>) :: Product t => Vector t -> Vector t -> t
-infixl 7 <.>
-(<.>) = dot
-
-
+-- | dot product: @cdot u v = 'udot' ('conj' u) v@
+cdot :: (Container Vector t, Product t) => Vector t -> Vector t -> t
+cdot u v = udot (conj u) v
 
 --------------------------------------------------------
 
@@ -142,4 +140,37 @@ meanCov x = (med,cov) where
     meds = konst 1 r `outer` med
     xc   = x `sub` meds
     cov  = scale (recip (fromIntegral (r-1))) (trans xc `mXm` xc)
+
+--------------------------------------------------------------------------------
+
+-- | matrix-matrix product, matrix-vector product, unconjugated dot product, and scaling
+class Contraction a b c | a b -> c
+  where
+    -- ^ 0x00d7 multiplication sign
+    infixl 7 ×
+    (×) :: a -> b -> c
+
+instance Product t => Contraction (Vector t) (Vector t) t where
+    (×) = udot
+
+instance Product t => Contraction (Matrix t) (Vector t) (Vector t) where
+    (×) = mXv
+
+instance Product t => Contraction (Vector t) (Matrix t) (Vector t) where
+    (×) = vXm
+
+instance Product t => Contraction (Matrix t) (Matrix t) (Matrix t) where
+    (×) = mXm
+
+instance Container Vector t => Contraction t (Vector t) (Vector t) where
+    (×) = scale
+
+instance Container Vector t => Contraction (Vector t) t (Vector t) where
+    (×) = flip scale
+
+instance Container Matrix t => Contraction t (Matrix t) (Matrix t) where
+    (×) = scale
+
+instance Container Matrix t => Contraction (Matrix t) t (Matrix t) where
+    (×) = flip scale
 

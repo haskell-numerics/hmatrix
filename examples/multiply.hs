@@ -6,7 +6,7 @@
 --           , OverlappingInstances
            , UndecidableInstances #-}
 
-import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra hiding (Contraction(..))
 
 class Scaling a b c | a b -> c where
  -- ^ 0x22C5	8901	DOT OPERATOR, scaling
@@ -43,7 +43,7 @@ instance Container Vector t => Scaling (Matrix t) t (Matrix t) where
 
 
 instance Product t => Contraction (Vector t) (Vector t) t where
-    (×) = dot
+    (×) = udot
 
 instance Product t => Contraction (Matrix t) (Vector t) (Vector t) where
     (×) = mXv
@@ -90,9 +90,9 @@ c = v ⊗ m ⊗ v ⊗ m
 d = s ⋅ (3 |> [10,20..] :: Vector Double)
 
 main = do
-    print $ scale s v <> m <.> v 
-    print $ scale s v <.> (m <> v)
-    print $ s * (v <> m <.> v)
+    print $ (scale s v <> m) `udot` v
+    print $ scale s v `udot` (m <> v)
+    print $ s * ((v <> m) `udot` v)
     print $ s ⋅ v × m × v
     print a
     print (b == c)

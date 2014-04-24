@@ -327,8 +327,8 @@ instance (Container Vector a) => Container Matrix a where
 class Element e => Product e where
     -- | matrix product
     multiply :: Matrix e -> Matrix e -> Matrix e
-    -- | dot (inner) product
-    dot        :: Vector e -> Vector e -> e
+    -- | (unconjugated) dot product
+    udot     :: Vector e -> Vector e -> e
     -- | sum of absolute value of elements (differs in complex case from @norm1@)
     absSum     :: Vector e -> RealOf e
     -- | sum of absolute value of elements
@@ -341,7 +341,7 @@ class Element e => Product e where
 instance Product Float where
     norm2      = toScalarF Norm2
     absSum     = toScalarF AbsSum
-    dot        = dotF
+    udot       = dotF
     norm1      = toScalarF AbsSum
     normInf    = maxElement . vectorMapF Abs
     multiply = multiplyF
@@ -349,7 +349,7 @@ instance Product Float where
 instance Product Double where
     norm2      = toScalarR Norm2
     absSum     = toScalarR AbsSum
-    dot        = dotR
+    udot       = dotR
     norm1      = toScalarR AbsSum
     normInf    = maxElement . vectorMapR Abs
     multiply = multiplyR
@@ -357,7 +357,7 @@ instance Product Double where
 instance Product (Complex Float) where
     norm2      = toScalarQ Norm2
     absSum     = toScalarQ AbsSum
-    dot        = dotQ
+    udot       = dotQ
     norm1      = sumElements . fst . fromComplex . vectorMapQ Abs
     normInf    = maxElement . fst . fromComplex . vectorMapQ Abs
     multiply = multiplyQ
@@ -365,7 +365,7 @@ instance Product (Complex Float) where
 instance Product (Complex Double) where
     norm2      = toScalarC Norm2
     absSum     = toScalarC AbsSum
-    dot        = dotC
+    udot       = dotC
     norm1      = sumElements . fst . fromComplex . vectorMapC Abs
     normInf    = maxElement . fst . fromComplex . vectorMapC Abs
     multiply = multiplyC

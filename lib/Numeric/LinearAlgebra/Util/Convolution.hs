@@ -75,7 +75,7 @@ matSS dr m = map (reshape c) [ subVector (k*c) n v | k <- [0 .. r - dr] ]
 corr2 :: Product a => Matrix a -> Matrix a -> Matrix a
 -- ^ 2D correlation
 corr2 ker mat = dims
-              . concatMap (map ((<.> ker') . flatten) . matSS c . trans)
+              . concatMap (map (udot ker' . flatten) . matSS c . trans)
               . matSS r $ mat
   where
     r = rows ker

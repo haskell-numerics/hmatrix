@@ -43,6 +43,8 @@ import Control.Arrow((***))
 import Debug.Trace
 import Control.Monad(when)
 import Numeric.LinearAlgebra.Util hiding (ones,row,col)
+import Control.Applicative
+import Control.Monad(ap)
 
 import Data.Packed.ST
 
@@ -266,9 +268,9 @@ normsVTest = TestList [
  ] where v = fromList [1,-2,3:+4] :: Vector (Complex Double)
          x = fromList [1,2,-3] :: Vector Double
 #ifndef NONORMVTEST
-         norm2PropR a = norm2 a =~= sqrt (dot a a)
+         norm2PropR a = norm2 a =~= sqrt (udot a a)
 #endif
-         norm2PropC a = norm2 a =~= realPart (sqrt (dot a (conj a)))
+         norm2PropC a = norm2 a =~= realPart (sqrt (udot a (conj a)))
          a =~= b = fromList [a] |~| fromList [b]
 
 normsMTest = TestList [
@@ -330,6 +332,15 @@ conjuTest m = mapVector conjugate (flatten (trans m)) == flatten (ctrans m)
 
 newtype State s a = State { runState :: s -> (a,s) }
 
+instance Functor (State s)
+  where
+    fmap f x = pure f <*> x
+
+instance Applicative (State s)
+  where
+    pure = return
+    (<*>) = ap
+
 instance Monad (State s) where
     return a = State $ \s -> (a,s)
     m >>= f = State $ \s -> let (a,s') = runState m s
@@ -346,6 +357,15 @@ evalState m s = let (a,s') = runState m s
                 in seq s' a
 
 newtype MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
+
+instance Monad m => Functor (MaybeT m)
+  where
+    fmap f x = pure f <*> x
+
+instance Monad m => Applicative (MaybeT m)
+  where
+    pure = return
+    (<*>) = ap
 
 instance Monad m => Monad (MaybeT m) where
     return a = MaybeT $ return $ Just a
@@ -640,7 +660,7 @@ a |~~| b = a :~6~: b
 
 makeUnitary v | realPart n > 1    = v / scalar n
               | otherwise = v
-    where n = sqrt (conj v <.> v)
+    where n = sqrt (conj v `udot` v)
 
 -- -- | Some additional tests on big matrices. They take a few minutes.
 -- runBigTests :: IO ()
