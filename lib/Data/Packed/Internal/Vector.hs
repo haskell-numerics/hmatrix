@@ -123,8 +123,6 @@ toList v = safeRead v $ peekArray (dim v)
 {- | An alternative to 'fromList' with explicit dimension. The input
      list is explicitly truncated if it is too long, so it may safely
      be used, for instance, with infinite lists.
-
-     This is the format used in the instances for Show (Vector a).
 -}
 (|>) :: (Storable a) => Int -> [a] -> Vector a
 infixl 9 |>

@@ -11,6 +11,8 @@
     
     * added a general multiplication operator (×)
     
+    * improved build and konst
+    
     * Plot functions moved to Numeric.LinearAlgebra.Util
     * removed (!) (use (¦) instead)
     

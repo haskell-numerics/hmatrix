@@ -109,17 +109,18 @@ joinVert ms = case common cols ms of
 joinHoriz :: Element t => [Matrix t] -> Matrix t
 joinHoriz ms = trans. joinVert . map trans $ ms
 
-{- | Creates a matrix from blocks given as a list of lists of matrices.
+{- | Create a matrix from blocks given as a list of lists of matrices.
 
-Single row/column components are automatically expanded to match the
+Single row-column components are automatically expanded to match the
 corresponding common row and column:
 
-@\> let disp = putStr . dispf 2
-\> let vector xs = fromList xs :: Vector Double
-\> let diagl = diag . vector
-\> let rowm = asRow . vector
+@
+> let disp = putStr . dispf 2
+> let vector xs = fromList xs :: Vector Double
+> let diagl = diag . vector
+> let rowm = asRow . vector
 
-\> disp $ fromBlocks [[ident 5, 7, rowm[10,20]], [3, diagl[1,2,3], 0]]
+> disp $ fromBlocks [[ident 5, 7, rowm[10,20]], [3, diagl[1,2,3], 0]]
 
 8x10
 1  0  0  0  0  7  7  7  10  20
@@ -129,7 +130,9 @@ corresponding common row and column:
 0  0  0  0  1  7  7  7  10  20
 3  3  3  3  3  1  0  0   0   0
 3  3  3  3  3  0  2  0   0   0
-3  3  3  3  3  0  0  3   0   0@
+3  3  3  3  3  0  0  3   0   0
+@
+
 -}
 fromBlocks :: Element t => [[Matrix t]] -> Matrix t
 fromBlocks = fromBlocksRaw . adaptBlocks
