@@ -151,5 +151,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - tfgit updated the OSX installation instructions via Homebrew
 
-
+- "yokto" and "ttylec" reported the problem with the dot product of complex vectors.
 
