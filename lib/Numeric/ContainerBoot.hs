@@ -502,47 +502,6 @@ type instance ElementOf (Vector a) = a
 type instance ElementOf (Matrix a) = a
 
 ------------------------------------------------------------
-{-
-class Build f where
-    build' :: BoundsOf f -> f -> ContainerOf f
-
-
-#if MIN_VERSION_base(4,7,0)
--- ghc >= 7.7 considers:
---
--- > a -> a
--- > b -> b -> b
---
--- to overlap
-type family BoundsOf x where
-    BoundsOf (a -> a) = Int
-    BoundsOf (a->a->a) = (Int,Int)
-type family ContainerOf x where
-    ContainerOf (a->a) = Vector a
-    ContainerOf (a->a->a) = Matrix a
-#else
-type family BoundsOf x
-type family ContainerOf x
-type instance BoundsOf (a->a) = Int
-type instance BoundsOf (a->a->a) = (Int,Int)
-type instance ContainerOf (a->a) = Vector a
-type instance ContainerOf (a->a->a) = Matrix a
-#endif
-
-
-instance (Element a, Num a) => Build (a->a) where
-    build' = buildV
-
-instance (Element a,
-#if MIN_VERSION_base(4,7,0)
-        BoundsOf (a -> a -> a) ~ (Int,Int),
-        ContainerOf (a -> a -> a) ~ Matrix a,
-#endif
-        Num a)
-        => Build (a->a->a) where
-    build' = buildM
-
--}
 
 buildM (rc,cc) f = fromLists [ [f r c | c <- cs] | r <- rs ]
     where rs = map fromIntegral [0 .. (rc-1)]
@@ -550,27 +509,6 @@ buildM (rc,cc) f = fromLists [ [f r c | c <- cs] | r <- rs ]
 
 buildV n f = fromList [f k | k <- ks]
     where ks = map fromIntegral [0 .. (n-1)]
-
-{-
-
-----------------------------------------------------
--- experimental
-
-class Konst s where
-    konst' :: Element e => e -> s -> ContainerOf' s e
-
-type family ContainerOf' x y
-
-type instance ContainerOf' Int a = Vector a
-type instance ContainerOf' (Int,Int) a = Matrix a
-
-instance Konst Int where
-    konst' = constantD
-
-instance Konst (Int,Int) where
-    konst' k (r,c) = reshape c $ konst' k (r*c)
-
--}
 
 --------------------------------------------------------
 -- | conjugate transpose

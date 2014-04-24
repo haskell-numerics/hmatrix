@@ -28,7 +28,7 @@
 module Numeric.Container (
     -- * Basic functions
     module Data.Packed,
-    konst, -- build,
+    konst, build,
     constant, linspace,
     diag, ident,
     ctrans,
@@ -187,4 +187,16 @@ instance Container Vector e => Konst e Int Vector
 instance Container Vector e => Konst e (Int,Int) Matrix
   where
     konst = konst'
+
+class Build d f c e | d -> c, c -> d, f -> e, f -> d, f -> c, c e -> f, d e -> f
+  where
+    build :: d -> f -> c e
+
+instance Container Vector e => Build Int (e -> e) Vector e
+  where
+    build = build'
+
+instance Container Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
+  where
+    build = build'
 
