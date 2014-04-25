@@ -38,7 +38,7 @@ module Numeric.Container (
     Product(..),
     Contraction(..),
     optimiseMult,
-    mXm,mXv,vXm,Mul(..),LSDiv(..), cdot, (⋅), dot, (<.>),
+    mXm,mXv,vXm,LSDiv(..), cdot, (·), dot, (<.>),
     outer, kronecker,
     -- * Random numbers
     RandDist(..),
@@ -55,7 +55,7 @@ module Numeric.Container (
 
     IndexOf,
     module Data.Complex,
-    -- * Input / Output
+    -- * IO
     dispf, disps, dispcf, vecdisp, latexFormat, format,
     loadMatrix, saveMatrix, fromFile, fileDimensions,
     readMatrix,
@@ -101,19 +101,23 @@ cdot u v = udot (conj u) v
 
 --------------------------------------------------------
 
-class Mul a b c | a b -> c where
- infixl 7 <>
- -- | Matrix-matrix, matrix-vector, and vector-matrix products.
- (<>)  :: Product t => a t -> b t -> c t
+class Contraction a b c | a b -> c, a c -> b, b c -> a
+  where
+    infixl 7 <>
+    -- | matrix-matrix product, matrix-vector product, unconjugated dot product
+    (<>) :: a -> b -> c
 
-instance Mul Matrix Matrix Matrix where
+instance Product t => Contraction (Vector t) (Vector t) t where
+    (<>) = udot
+
+instance Product t => Contraction (Matrix t) (Vector t) (Vector t) where
+    (<>) = mXv
+
+instance Product t => Contraction (Vector t) (Matrix t) (Vector t) where
+    (<>) = vXm
+
+instance Product t => Contraction (Matrix t) (Matrix t) (Matrix t) where
     (<>) = mXm
-
-instance Mul Matrix Vector Vector where
-    (<>) m v = flatten $ m <> asColumn v
-
-instance Mul Vector Matrix Vector where
-    (<>) v m = flatten $ asRow v <> m
 
 --------------------------------------------------------
 
@@ -130,55 +134,12 @@ instance LSDiv Matrix Matrix where
 
 --------------------------------------------------------
 
--- | Compute mean vector and covariance matrix of the rows of a matrix.
-meanCov :: Matrix Double -> (Vector Double, Matrix Double)
-meanCov x = (med,cov) where
-    r    = rows x
-    k    = 1 / fromIntegral r
-    med  = konst k r `vXm` x
-    meds = konst 1 r `outer` med
-    xc   = x `sub` meds
-    cov  = scale (recip (fromIntegral (r-1))) (trans xc `mXm` xc)
-
---------------------------------------------------------------------------------
-
--- | matrix-matrix product, matrix-vector product, unconjugated dot product, and scaling
-class Contraction a b c | a b -> c
-  where
-    -- ^ 0x00d7 multiplication sign
-    infixl 7 ×
-    (×) :: a -> b -> c
-
-instance Product t => Contraction (Vector t) (Vector t) t where
-    (×) = udot
-
-instance Product t => Contraction (Matrix t) (Vector t) (Vector t) where
-    (×) = mXv
-
-instance Product t => Contraction (Vector t) (Matrix t) (Vector t) where
-    (×) = vXm
-
-instance Product t => Contraction (Matrix t) (Matrix t) (Matrix t) where
-    (×) = mXm
-
-instance Container Vector t => Contraction t (Vector t) (Vector t) where
-    (×) = scale
-
-instance Container Vector t => Contraction (Vector t) t (Vector t) where
-    (×) = flip scale
-
-instance Container Matrix t => Contraction t (Matrix t) (Matrix t) where
-    (×) = scale
-
-instance Container Matrix t => Contraction (Matrix t) t (Matrix t) where
-    (×) = flip scale
-
---------------------------------------------------------------------------------
-
--- | dot product (0x22C5): @u ⋅ v = 'cdot' u v@
-(⋅) :: (Container Vector t, Product t) => Vector t -> Vector t -> t
-infixl 7 ⋅
-u ⋅ v = cdot u v
+-- | dot product : @u · v = 'cdot' u v@
+--
+-- unicode 0x00b7, Alt-Gr .
+(·) :: (Container Vector t, Product t) => Vector t -> Vector t -> t
+infixl 7 ·
+u · v = cdot u v
 
 --------------------------------------------------------------------------------
 
@@ -195,6 +156,8 @@ instance Container Vector e => Konst e (Int,Int) Matrix
   where
     konst = konst'
 
+--------------------------------------------------------------------------------
+
 class Build d f c e | d -> c, c -> d, f -> e, f -> d, f -> c, c e -> f, d e -> f
   where
     build :: d -> f -> c e
@@ -209,11 +172,23 @@ instance Container Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
 
 --------------------------------------------------------------------------------
 
+-- | Compute mean vector and covariance matrix of the rows of a matrix.
+meanCov :: Matrix Double -> (Vector Double, Matrix Double)
+meanCov x = (med,cov) where
+    r    = rows x
+    k    = 1 / fromIntegral r
+    med  = konst k r `vXm` x
+    meds = konst 1 r `outer` med
+    xc   = x `sub` meds
+    cov  = scale (recip (fromIntegral (r-1))) (trans xc `mXm` xc)
+
+--------------------------------------------------------------------------------
+
 {-# DEPRECATED dot "use udot" #-}
 dot :: Product e => Vector e -> Vector e -> e
 dot = udot
 
-{-# DEPRECATED (<.>) "use udot or (×)" #-}
+{-# DEPRECATED (<.>) "use udot or (<>)" #-}
 infixl 7 <.>
 (<.>) :: Product e => Vector e -> Vector e -> e
 (<.>) = udot

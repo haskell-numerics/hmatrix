@@ -6,25 +6,12 @@
 --           , OverlappingInstances
            , UndecidableInstances #-}
 
-import Numeric.LinearAlgebra hiding (Contraction(..))
+import Numeric.LinearAlgebra
 
 class Scaling a b c | a b -> c where
  -- ^ 0x22C5	8901	DOT OPERATOR, scaling
  infixl 7 ⋅
  (⋅) :: a -> b -> c
-
-class Contraction a b c | a b -> c where
- -- ^ 0x00D7	215	MULTIPLICATION SIGN	×, contraction
- infixl 7 ×
- (×) :: a -> b -> c
-
-class Outer a b c | a b -> c where
- -- ^ 0x2297	8855	CIRCLED TIMES	⊗, outer product (not associative)
- infixl 7 ⊗
- (⊗) :: a -> b -> c
-
-
--------
 
 instance (Num t) => Scaling t t t where
     (⋅) = (*)
@@ -42,37 +29,49 @@ instance Container Vector t => Scaling (Matrix t) t (Matrix t) where
     (⋅) = flip scale
 
 
-instance Product t => Contraction (Vector t) (Vector t) t where
+class Mul a b c | a b -> c, a c -> b, b c -> a where
+ -- ^ 0x00D7	215	MULTIPLICATION SIGN	×, contraction
+ infixl 7 ×
+ (×) :: a -> b -> c
+
+
+-------
+
+
+
+instance Product t => Mul (Vector t) (Vector t) t where
     (×) = udot
 
-instance Product t => Contraction (Matrix t) (Vector t) (Vector t) where
+instance Product t => Mul (Matrix t) (Vector t) (Vector t) where
     (×) = mXv
 
-instance Product t => Contraction (Vector t) (Matrix t) (Vector t) where
+instance Product t => Mul (Vector t) (Matrix t) (Vector t) where
     (×) = vXm
 
-instance Product t => Contraction (Matrix t) (Matrix t) (Matrix t) where
+instance Product t => Mul (Matrix t) (Matrix t) (Matrix t) where
     (×) = mXm
 
 
 --instance Scaling a b c => Contraction a b c where
 --    (×) = (⋅)
 
------
+--------------------------------------------------------------------------------
 
-instance Product t => Outer (Vector t) (Vector t) (Matrix t) where
+class Outer a
+  where
+    infixl 7 ⊗
+    -- | unicode 0x2297 8855 CIRCLED TIMES	⊗
+    --
+    -- vector outer product and matrix Kronecker product
+    (⊗) :: Product t => a t -> a t -> Matrix t
+
+instance Outer Vector where
     (⊗) = outer
 
-instance Product t => Outer (Vector t) (Matrix t) (Matrix t) where
-    v ⊗ m = kronecker (asColumn v) m
-
-instance Product t => Outer (Matrix t) (Vector t) (Matrix t) where
-    m ⊗ v = kronecker m (asRow v)
-
-instance Product t => Outer (Matrix t) (Matrix t) (Matrix t) where
+instance Outer Matrix where
     (⊗) = kronecker
 
------
+--------------------------------------------------------------------------------
 
 
 v = 3 |> [1..] :: Vector Double
@@ -83,11 +82,14 @@ s = 3 :: Double
 
 a = s ⋅ v × m × m × v ⋅ s
 
-b = (v ⊗ m) ⊗ (v ⊗ m)
+--b = (v ⊗ m) ⊗ (v ⊗ m)
 
-c = v ⊗ m ⊗ v ⊗ m
+--c = v ⊗ m ⊗ v ⊗ m
 
 d = s ⋅ (3 |> [10,20..] :: Vector Double)
+
+u = fromList [3,0,5]
+w = konst 1 (2,3) :: Matrix Double
 
 main = do
     print $ (scale s v <> m) `udot` v
@@ -95,6 +97,8 @@ main = do
     print $ s * ((v <> m) `udot` v)
     print $ s ⋅ v × m × v
     print a
-    print (b == c)
+--    print (b == c)
     print d
+    print $ asColumn u ⊗ w
+    print $ w ⊗ asColumn u
 

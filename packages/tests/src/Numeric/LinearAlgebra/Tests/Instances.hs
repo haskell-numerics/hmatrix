@@ -153,7 +153,7 @@ instance (ArbitraryField a) => Arbitrary (WC a) where
             n = min r c
         sv' <- replicateM n (choose (1,100))
         let s = diagRect 0 (fromList sv') r c
-        return $ WC (u <> real s <> trans v)
+        return $ WC (u `mXm` real s `mXm` trans v)
 
 #if MIN_VERSION_QuickCheck(2,0,0)
 #else
@@ -170,7 +170,7 @@ instance (ArbitraryField a) => Arbitrary (SqWC a) where
             n = rows m
         sv' <- replicateM n (choose (1,100))
         let s = diag (fromList sv')
-        return $ SqWC (u <> real s <> trans v)
+        return $ SqWC (u `mXm` real s `mXm` trans v)
 
 #if MIN_VERSION_QuickCheck(2,0,0)
 #else
@@ -188,7 +188,7 @@ instance (ArbitraryField a, Num (Vector a))
             n = rows m
         l <- replicateM n (choose (0,100))
         let s = diag (fromList l)
-            p = v <> real s <> ctrans v
+            p = v `mXm` real s `mXm` ctrans v
         return $ PosDef (0.5 * p + 0.5 * ctrans p)
 
 #if MIN_VERSION_QuickCheck(2,0,0)

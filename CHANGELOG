@@ -2,12 +2,12 @@
 --------
 
     * join deprecated, use vjoin
-    * dot and (<.>) deprecated, use udot or (×)
+    * dot and (<.>) deprecated, use udot or (<>)
 
     * added udot (unconjugated dot product)
-    * added (⋅) = cdot, which conjugates the first input vector
+    * added (·) = cdot, which conjugates the first input vector
     
-    * added a general multiplication operator (×)
+    * more general multiplication operator (<>)
     
     * improved build and konst
     
