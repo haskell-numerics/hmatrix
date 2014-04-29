@@ -18,6 +18,7 @@
 -- This module provides basic functions for manipulation of structure.
 
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
 
 module Data.Packed.Matrix (
     Matrix,

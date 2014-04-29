@@ -17,6 +17,8 @@ expand to match the dimensions of the other operand.
 
 -}
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
+
 module Numeric.LinearAlgebra (
     module Numeric.Container,
     module Numeric.LinearAlgebra.Algorithms

@@ -24,6 +24,7 @@
 -- numeric Haskell classes provided by "Numeric.LinearAlgebra".
 --
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
 
 module Numeric.Container (
     -- * Basic functions

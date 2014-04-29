@@ -16,6 +16,7 @@
 -- See examples/inplace.hs in the distribution.
 --
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
 
 module Data.Packed.ST (
     -- * Mutable Vectors

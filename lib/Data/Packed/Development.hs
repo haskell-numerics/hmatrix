@@ -14,6 +14,7 @@
 -- in the @examples\/devel@ folder included in the package.
 --
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
 
 module Data.Packed.Development (
     createVector, createMatrix,

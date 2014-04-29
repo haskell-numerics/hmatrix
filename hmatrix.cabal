@@ -10,18 +10,6 @@ Synopsis:           Linear algebra and numerical computation
 Description:        Purely functional interface to basic linear algebra
                     and other numerical computations, internally implemented using
                     GSL, BLAS and LAPACK.
-                    .
-                    The Linear Algebra API is organized as follows:
-                    .
-                    - "Data.Packed": structure manipulation
-                    .
-                    - "Numeric.Container": simple numeric functions
-                    .
-                    - "Numeric.LinearAlgebra.Algorithms": matrix computations
-                    .
-                    - "Numeric.LinearAlgebra": everything + instances of standard Haskell numeric classes
-                    .
-                    - "Numeric.LinearAlgebra.Util": additional functions
                     
 Category:           Math
 tested-with:        GHC ==7.8
@@ -118,6 +106,8 @@ library
                         Numeric.LinearAlgebra.Util,
                         Data.Packed.ST,
                         Data.Packed.Development
+                        Graphics.Plot,
+                        Numeric.LinearAlgebra.Data
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Signatures,
@@ -132,8 +122,8 @@ library
                         Numeric.Chain,
                         Numeric.Vector,
                         Numeric.Matrix,
-                        Numeric.LinearAlgebra.Util.Convolution,
-                        Graphics.Plot
+                        Numeric.LinearAlgebra.Util.Convolution
+                        
 
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c

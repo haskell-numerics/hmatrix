@@ -11,6 +11,7 @@
 -- This module is deprecated. It can be replaced by improved drawing tools
 -- available in the plot\\plot-gtk packages by Vivian McPhail or Gnuplot by Henning Thielemann.
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
 
 module Graphics.Plot(
 
