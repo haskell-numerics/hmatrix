@@ -10,6 +10,7 @@ Stability   :  provisional
 
 -}
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
 
 module Numeric.LinearAlgebra.Util(
     
@@ -19,7 +20,7 @@ module Numeric.LinearAlgebra.Util(
     diagl,
     row,
     col,
-    (&), (¦), (#),
+    (&), (¦), (——), (#),
     (?), (¿),
     rand, randn,
     cross,
@@ -114,12 +115,20 @@ infixl 3 &
 (&) :: Vector Double -> Vector Double -> Vector Double
 a & b = vjoin [a,b]
 
--- | (00A6) horizontal concatenation of real matrices
+-- | horizontal concatenation of real matrices
+--
+-- (0x00a6 broken bar)
 infixl 3 ¦
 (¦) :: Matrix Double -> Matrix Double -> Matrix Double
 a ¦ b = fromBlocks [[a,b]]
 
 -- | vertical concatenation of real matrices
+--
+-- (0x2014, em dash)
+(——) :: Matrix Double -> Matrix Double -> Matrix Double
+infixl 2 ——
+a —— b = fromBlocks [[a],[b]]
+
 (#) :: Matrix Double -> Matrix Double -> Matrix Double
 infixl 2 #
 a # b = fromBlocks [[a],[b]]
