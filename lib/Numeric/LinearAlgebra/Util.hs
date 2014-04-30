@@ -13,7 +13,7 @@ Stability   :  provisional
 {-# OPTIONS_HADDOCK hide #-}
 
 module Numeric.LinearAlgebra.Util(
-    
+
     -- * Convenience functions
     size, disp,
     zeros, ones,
@@ -65,8 +65,16 @@ import Numeric.LinearAlgebra.Util.Convolution
 import Graphics.Plot
 
 
+{- | print a real matrix with given number of digits after the decimal point
+
+>>> disp 5 $ ident 2 / 3
+2x2
+0.33333  0.00000
+0.00000  0.33333
+
+-}
 disp :: Int -> Matrix Double -> IO ()
--- ^ show a matrix with given number of digits after the decimal point
+
 disp n = putStrLn . dispf n
 
 -- | pseudorandom matrix with uniform elements between 0 and 1
@@ -82,7 +90,16 @@ randm d r c = do
 rand :: Int -> Int -> IO (Matrix Double)
 rand = randm Uniform
 
--- | pseudorandom matrix with normal elements
+{- | pseudorandom matrix with normal elements
+
+>>> x <- randn 3 5
+>>> disp 3 x
+3x5
+0.386  -1.141   0.491  -0.510   1.512
+0.069  -0.919   1.022  -0.181   0.745
+0.313  -0.670  -0.097  -1.575  -0.583
+
+-}
 randn :: Int -> Int -> IO (Matrix Double)
 randn = randm Gaussian
 
@@ -115,9 +132,17 @@ infixl 3 &
 (&) :: Vector Double -> Vector Double -> Vector Double
 a & b = vjoin [a,b]
 
--- | horizontal concatenation of real matrices
---
--- (0x00a6 broken bar)
+{- | horizontal concatenation of real matrices
+
+ (0x00a6 broken bar)
+
+>>> ident 3 ¦ konst 7 (3,4)
+(3><7)
+ [ 1.0, 0.0, 0.0, 7.0, 7.0, 7.0, 7.0
+ , 0.0, 1.0, 0.0, 7.0, 7.0, 7.0, 7.0
+ , 0.0, 0.0, 1.0, 7.0, 7.0, 7.0, 7.0 ]
+
+-}
 infixl 3 ¦
 (¦) :: Matrix Double -> Matrix Double -> Matrix Double
 a ¦ b = fromBlocks [[a,b]]
@@ -141,7 +166,15 @@ row = asRow . fromList
 col :: [Double] -> Matrix Double
 col = asColumn . fromList
 
--- | extract selected rows
+{- | extract selected rows
+
+>>> (20><4) [1..] ? [2,1,1]
+(3><4)
+ [ 9.0, 10.0, 11.0, 12.0
+ , 5.0,  6.0,  7.0,  8.0
+ , 5.0,  6.0,  7.0,  8.0 ]
+
+-}
 infixl 9 ?
 (?) :: Element t => Matrix t -> [Int] -> Matrix t
 (?) = flip extractRows
@@ -172,7 +205,7 @@ norm = pnorm PNorm2
 unitary :: Vector Double -> Vector Double
 unitary v = v / scalar (norm v)
 
--- | (rows &&& cols)
+-- | ('rows' &&& 'cols')
 size :: Matrix t -> (Int, Int)
 size m = (rows m, cols m)
 

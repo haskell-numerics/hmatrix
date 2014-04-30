@@ -132,17 +132,22 @@ mat a f =
         let m g = do
             g (fi (rows a)) (fi (cols a)) p
         f m
--- | Creates a vector by concatenation of rows. If the matrix is ColumnMajor, this operation requires a transpose.
---
--- @\> flatten ('ident' 3)
--- 9 |> [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]@
+
+{- | Creates a vector by concatenation of rows. If the matrix is ColumnMajor, this operation requires a transpose.
+
+>>> flatten (ident 3)
+fromList [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]
+
+-}
 flatten :: Element t => Matrix t -> Vector t
 flatten = xdat . cmat
 
+{-
 type Mt t s = Int -> Int -> Ptr t -> s
--- not yet admitted by my haddock version
--- infixr 6 ::>
--- type t ::> s = Mt t s
+
+infixr 6 ::>
+type t ::> s = Mt t s
+-}
 
 -- | the inverse of 'Data.Packed.Matrix.fromLists'
 toLists :: (Element t) => Matrix t -> [[t]]
@@ -207,11 +212,11 @@ createMatrix ord r c = do
 {- | Creates a matrix from a vector by grouping the elements in rows with the desired number of columns. (GNU-Octave groups by columns. To do it you can define @reshapeF r = trans . reshape r@
 where r is the desired number of rows.)
 
-@\> reshape 4 ('fromList' [1..12])
+>>> reshape 4 (fromList [1..12])
 (3><4)
  [ 1.0,  2.0,  3.0,  4.0
  , 5.0,  6.0,  7.0,  8.0
- , 9.0, 10.0, 11.0, 12.0 ]@
+ , 9.0, 10.0, 11.0, 12.0 ]
 
 -}
 reshape :: Storable t => Int -> Vector t -> Matrix t

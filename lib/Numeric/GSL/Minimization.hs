@@ -16,15 +16,15 @@ Minimization of a multidimensional function using some of the algorithms describ
 The example in the GSL manual:
 
 @
-
 f [x,y] = 10*(x-1)^2 + 20*(y-2)^2 + 30
 
 main = do
     let (s,p) = minimize NMSimplex2 1E-2 30 [1,1] f [5,7]
     print s
     print p
+@
 
-\> main
+>>> main
 [0.9920430849306288,1.9969168063253182]
  0.000  512.500  1.130  6.500  5.000
  1.000  290.625  1.409  5.250  4.000
@@ -33,7 +33,6 @@ main = do
  ...
 22.000   30.001  0.013  0.992  1.997
 23.000   30.001  0.008  0.992  1.997
-@
 
 The path to the solution can be graphically shown by means of:
 

@@ -371,19 +371,21 @@ pinv = pinvTol 1
 
 {- | @pinvTol r@ computes the pseudoinverse of a matrix with tolerance @tol=r*g*eps*(max rows cols)@, where g is the greatest singular value.
 
-@\> let m = 'fromLists' [[1,0,    0]
-                    ,[0,1,    0]
-                    ,[0,0,1e-10]]
-\  --
-\> 'pinv' m
+@
+m = (3><3) [ 1, 0,    0
+           , 0, 1,    0
+           , 0, 0, 1e-10] :: Matrix Double
+@
+
+>>> pinv m
 1. 0.           0.
 0. 1.           0.
 0. 0. 10000000000.
-\  --
-\> pinvTol 1E8 m
+
+>>> pinvTol 1E8 m
 1. 0. 0.
 0. 1. 0.
-0. 0. 1.@
+0. 0. 1.
 
 -}
 
@@ -598,10 +600,11 @@ It only works with invertible matrices that have a real solution. For diagonaliz
 @m = (2><2) [4,9
            ,0,4] :: Matrix Double@
 
-@\>sqrtm m
+>>> sqrtm m
 (2><2)
  [ 2.0, 2.25
- , 0.0,  2.0 ]@
+ , 0.0,  2.0 ]
+
 -}
 sqrtm ::  Field t => Matrix t -> Matrix t
 sqrtm = sqrtmInv

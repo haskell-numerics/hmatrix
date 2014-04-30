@@ -55,11 +55,11 @@ foreign import ccall safe "gsl-aux.h deriv"
 
 {- | Adaptive central difference algorithm, /gsl_deriv_central/. For example:
 
-> > let deriv = derivCentral 0.01 
-> > deriv sin (pi/4)
->(0.7071067812000676,1.0600063101654055e-10)
-> > cos (pi/4)
->0.7071067811865476 
+>>> let deriv = derivCentral 0.01
+>>> deriv sin (pi/4)
+(0.7071067812000676,1.0600063101654055e-10)
+>>> cos (pi/4)
+0.7071067811865476
 
 -}
 derivCentral :: Double                  -- ^ initial step size

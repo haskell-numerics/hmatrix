@@ -66,6 +66,11 @@ type instance ArgOf Matrix a = a -> a -> a
 -- | Basic element-by-element functions for numeric containers
 class (Complexable c, Fractional e, Element e) => Container c e where
     -- | create a structure with a single element
+    --
+    -- >>> let v = fromList [1..3::Double]
+    -- >>> v / scalar (norm2 v)
+    -- fromList [0.2672612419124244,0.5345224838248488,0.8017837257372732]
+    --
     scalar      :: e -> c e
     -- | complex conjugate
     conj        :: c e -> c e
@@ -114,8 +119,9 @@ class (Complexable c, Fractional e, Element e) => Container c e where
 
     -- | A more efficient implementation of @cmap (\\x -> if x>0 then 1 else 0)@
     --
-    -- @> step $ linspace 5 (-1,1::Double)
-    -- 5 |> [0.0,0.0,0.0,1.0,1.0]@
+    -- >>> step $ linspace 5 (-1,1::Double)
+    -- 5 |> [0.0,0.0,0.0,1.0,1.0]
+    --
     
     step :: RealElement e => c e -> c e
 
@@ -123,11 +129,12 @@ class (Complexable c, Fractional e, Element e) => Container c e where
     --
     -- Arguments with any dimension = 1 are automatically expanded: 
     --
-    -- @> cond ((1>\<4)[1..]) ((3>\<1)[1..]) 0 100 ((3>\<4)[1..]) :: Matrix Double
+    -- >>> cond ((1><4)[1..]) ((3><1)[1..]) 0 100 ((3><4)[1..]) :: Matrix Double
     -- (3><4)
     -- [ 100.0,   2.0,   3.0,  4.0
     -- ,   0.0, 100.0,   7.0,  8.0
-    -- ,   0.0,   0.0, 100.0, 12.0 ]@
+    -- ,   0.0,   0.0, 100.0, 12.0 ]
+    --
     
     cond :: RealElement e 
          => c e -- ^ a
@@ -139,16 +146,22 @@ class (Complexable c, Fractional e, Element e) => Container c e where
 
     -- | Find index of elements which satisfy a predicate
     --
-    -- @> find (>0) (ident 3 :: Matrix Double)
-    -- [(0,0),(1,1),(2,2)]@
+    -- >>> find (>0) (ident 3 :: Matrix Double)
+    -- [(0,0),(1,1),(2,2)]
+    --
 
     find :: (e -> Bool) -> c e -> [IndexOf c]
 
     -- | Create a structure from an association list
     --
-    -- @> assoc 5 0 [(2,7),(1,3)] :: Vector Double
-    -- 5 |> [0.0,3.0,7.0,0.0,0.0]@
-    
+    -- >>> assoc 5 0 [(3,7),(1,4)] :: Vector Double
+    -- fromList [0.0,4.0,0.0,7.0,0.0]
+    --
+    -- >>> assoc (2,3) 0 [((0,2),7),((1,0),2*i-3)] :: Matrix (Complex Double)
+    -- (2><3)
+    --  [    0.0 :+ 0.0, 0.0 :+ 0.0, 7.0 :+ 0.0
+    --  , (-3.0) :+ 2.0, 0.0 :+ 0.0, 0.0 :+ 0.0 ]
+    --
     assoc :: IndexOf c        -- ^ size
           -> e                -- ^ default value
           -> [(IndexOf c, e)] -- ^ association list
@@ -156,13 +169,19 @@ class (Complexable c, Fractional e, Element e) => Container c e where
 
     -- | Modify a structure using an update function
     --
-    -- @> accum (ident 5) (+) [((1,1),5),((0,3),3)] :: Matrix Double
+    -- >>> accum (ident 5) (+) [((1,1),5),((0,3),3)] :: Matrix Double
     -- (5><5)
     --  [ 1.0, 0.0, 0.0, 3.0, 0.0
     --  , 0.0, 6.0, 0.0, 0.0, 0.0
     --  , 0.0, 0.0, 1.0, 0.0, 0.0
     --  , 0.0, 0.0, 0.0, 1.0, 0.0
-    --  , 0.0, 0.0, 0.0, 0.0, 1.0 ]@
+    --  , 0.0, 0.0, 0.0, 0.0, 1.0 ]
+    --
+    -- computation of histogram:
+    --
+    -- >>> accum (konst 0 7) (+) (map (flip (,) 1) [4,5,4,1,5,2,5]) :: Vector Double
+    -- fromList [0.0,1.0,1.0,0.0,2.0,3.0,0.0]
+    --
     
     accum :: c e              -- ^ initial structure
           -> (e -> e -> e)    -- ^ update function
@@ -382,11 +401,12 @@ vXm v m = flatten $ (asRow v) `mXm` m
 
 {- | Outer product of two vectors.
 
-@\> 'fromList' [1,2,3] \`outer\` 'fromList' [5,2,3]
+>>> fromList [1,2,3] `outer` fromList [5,2,3]
 (3><3)
  [  5.0, 2.0, 3.0
  , 10.0, 4.0, 6.0
- , 15.0, 6.0, 9.0 ]@
+ , 15.0, 6.0, 9.0 ]
+
 -}
 outer :: (Product t) => Vector t -> Vector t -> Matrix t
 outer u v = asColumn u `multiply` asRow v
@@ -402,7 +422,7 @@ m2=(4><3)
  ,  7.0,  8.0,  9.0
  , 10.0, 11.0, 12.0 ]@
 
-@\> kronecker m1 m2
+>>> kronecker m1 m2
 (8><9)
  [  1.0,  2.0,  3.0,   2.0,   4.0,   6.0,  0.0,  0.0,  0.0
  ,  4.0,  5.0,  6.0,   8.0,  10.0,  12.0,  0.0,  0.0,  0.0
@@ -411,7 +431,8 @@ m2=(4><3)
  ,  0.0,  0.0,  0.0,  -1.0,  -2.0,  -3.0,  3.0,  6.0,  9.0
  ,  0.0,  0.0,  0.0,  -4.0,  -5.0,  -6.0, 12.0, 15.0, 18.0
  ,  0.0,  0.0,  0.0,  -7.0,  -8.0,  -9.0, 21.0, 24.0, 27.0
- ,  0.0,  0.0,  0.0, -10.0, -11.0, -12.0, 30.0, 33.0, 36.0 ]@
+ ,  0.0,  0.0,  0.0, -10.0, -11.0, -12.0, 30.0, 33.0, 36.0 ]
+
 -}
 kronecker :: (Product t) => Matrix t -> Matrix t -> Matrix t
 kronecker a b = fromBlocks

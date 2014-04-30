@@ -85,8 +85,8 @@ constant = constantD-- about 2x faster
 
 {- | Creates a real vector containing a range of values:
 
-@\> linspace 5 (-3,7)
-5 |> [-3.0,-0.5,2.0,4.5,7.0]@
+>>> linspace 5 (-3,7)
+fromList [-3.0,-0.5,2.0,4.5,7.0]@
 
 Logarithmic spacing can be defined as follows:
 
@@ -105,7 +105,32 @@ cdot u v = udot (conj u) v
 class Contraction a b c | a b -> c, a c -> b, b c -> a
   where
     infixl 7 <>
-    -- | matrix-matrix product, matrix-vector product, unconjugated dot product
+    {- | matrix-matrix product, matrix-vector product, unconjugated dot product
+
+>>> let a = (3><4) [1..] :: Matrix Double
+
+>>> a
+(3><4)
+ [ 1.0,  2.0,  3.0,  4.0
+ , 5.0,  6.0,  7.0,  8.0
+ , 9.0, 10.0, 11.0, 12.0 ]
+
+>>> disp 2 (a <> trans a)
+3x3
+ 30   70  110
+ 70  174  278
+110  278  446
+
+>>> a <> fromList [1,0,2,-1::Double]
+fromList [3.0,11.0,19.0]
+
+>>> fromList [1,2,3::Double] <> a
+fromList [38.0,44.0,50.0,56.0]
+
+>>> fromList [1,i] <> fromList[2*i+1,3]
+1.0 :+ 5.0
+
+-}
     (<>) :: a -> b -> c
 
 instance Product t => Contraction (Vector t) (Vector t) t where
@@ -135,9 +160,14 @@ instance LSDiv Matrix Matrix where
 
 --------------------------------------------------------
 
--- | dot product : @u · v = 'cdot' u v@
---
--- unicode 0x00b7, Alt-Gr .
+{- | dot product : @u · v = 'cdot' u v@
+
+ unicode 0x00b7, Alt-Gr .
+
+>>> fromList [1,i] · fromList[2*i+1,3]
+1.0 :+ (-1.0)
+
+-}
 (·) :: (Container Vector t, Product t) => Vector t -> Vector t -> t
 infixl 7 ·
 u · v = cdot u v
@@ -147,6 +177,16 @@ u · v = cdot u v
 -- bidirectional type inference
 class Konst e d c | d -> c, c -> d
   where
+    -- |
+    -- >>> konst 7 3 :: Vector Float
+    -- fromList [7.0,7.0,7.0]
+    --
+    -- >>> konst i (3::Int,4::Int)
+    -- (3><4)
+    --  [ 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0
+    --  , 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0
+    --  , 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0 ]
+    --
     konst :: e -> d -> c e
 
 instance Container Vector e => Konst e Int Vector
@@ -161,6 +201,19 @@ instance Container Vector e => Konst e (Int,Int) Matrix
 
 class Build d f c e | d -> c, c -> d, f -> e, f -> d, f -> c, c e -> f, d e -> f
   where
+    -- |
+    -- >>> build 5 (**2) :: Vector Double
+    -- fromList [0.0,1.0,4.0,9.0,16.0]
+    --
+    -- Hilbert matrix of order N:
+    --
+    -- >>> let hilb n = build (n,n) (\i j -> 1/(i+j+1)) :: Matrix Double
+    -- >>> putStr . dispf 2 $ hilb 3
+    -- 3x3
+    -- 1.00  0.50  0.33
+    -- 0.50  0.33  0.25
+    -- 0.33  0.25  0.20
+    --
     build :: d -> f -> c e
 
 instance Container Vector e => Build Int (e -> e) Vector e

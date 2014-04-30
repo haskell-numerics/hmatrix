@@ -27,22 +27,22 @@ import System.IO.Unsafe (unsafePerformIO)
 import Foreign.C.Types (CInt(..))
 #endif
 
-{- | Solution of general polynomial equations, using /gsl_poly_complex_solve/. For example,
-     the three solutions of x^3 + 8 = 0
+{- | Solution of general polynomial equations, using /gsl_poly_complex_solve/. 
 
-@\> polySolve [8,0,0,1]
-[(-1.9999999999999998) :+ 0.0,
- 1.0 :+ 1.732050807568877,
- 1.0 :+ (-1.732050807568877)]@
+For example, the three solutions of x^3 + 8 = 0
+
+>>> polySolve [8,0,0,1]
+[(-2.0) :+ 0.0,1.0 :+ 1.7320508075688776,1.0 :+ (-1.7320508075688776)]
+
 
 The example in the GSL manual: To find the roots of x^5 -1 = 0:
 
-@\> polySolve [-1, 0, 0, 0, 0, 1]
-[(-0.8090169943749475) :+ 0.5877852522924731,
-(-0.8090169943749475) :+ (-0.5877852522924731),
-0.30901699437494734 :+ 0.9510565162951536,
-0.30901699437494734 :+ (-0.9510565162951536),
-1.0 :+ 0.0]@
+>>> polySolve [-1, 0, 0, 0, 0, 1]
+[(-0.8090169943749472) :+ 0.5877852522924731,
+(-0.8090169943749472) :+ (-0.5877852522924731),
+0.30901699437494756 :+ 0.9510565162951535,
+0.30901699437494756 :+ (-0.9510565162951535),
+1.0000000000000002 :+ 0.0]
 
 -}  
 polySolve :: [Double] -> [Complex Double]

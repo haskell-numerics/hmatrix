@@ -12,6 +12,8 @@ Stability   :  provisional
 
 module Numeric.LinearAlgebra.Data(
     -- * Vector
+    -- | 1D arrays are storable vectors from the vector package.
+    
     Vector, (|>), dim, (@>),
     
     -- * Matrix
@@ -49,13 +51,13 @@ module Numeric.LinearAlgebra.Data(
 
     -- * Products
     
-    (<>), (·), scale, outer, kronecker, cross,
+    (<>), (·), outer, kronecker, cross,
     sumElements, prodElements, absSum,
     optimiseMult,
     
     corr, conv, corrMin, corr2, conv2,
     
-    LSDiv(..),
+    (<\>),
     
     -- * Random arrays
 
@@ -80,7 +82,8 @@ module Numeric.LinearAlgebra.Data(
     module Data.Complex,
 
     -- * Misc
-    meanCov, arctan2,
+    scale, meanCov, arctan2,
+    rows, cols,
     separable,
     fromArray2D
 

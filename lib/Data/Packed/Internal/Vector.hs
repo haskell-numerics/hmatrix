@@ -113,16 +113,20 @@ inlinePerformIO (IO m) = case m realWorld# of (# _, r #) -> r
 
 {- | extracts the Vector elements to a list
 
-@> toList (linspace 5 (1,10))
-[1.0,3.25,5.5,7.75,10.0]@
+>>> toList (linspace 5 (1,10))
+[1.0,3.25,5.5,7.75,10.0]
 
 -}
 toList :: Storable a => Vector a -> [a]
 toList v = safeRead v $ peekArray (dim v)
 
-{- | An alternative to 'fromList' with explicit dimension. The input
+{- | Create a vector from a list of elements and explicit dimension. The input
      list is explicitly truncated if it is too long, so it may safely
      be used, for instance, with infinite lists.
+
+>>> 5 |> [1..]
+fromList [1.0,2.0,3.0,4.0,5.0]
+
 -}
 (|>) :: (Storable a) => Int -> [a] -> Vector a
 infixl 9 |>
@@ -159,8 +163,8 @@ at v n
 
 {- | takes a number of consecutive elements from a Vector
 
-@> subVector 2 3 (fromList [1..10])
-3 |> [3.0,4.0,5.0]@
+>>> subVector 2 3 (fromList [1..10])
+fromList [3.0,4.0,5.0]
 
 -}
 subVector :: Storable t => Int       -- ^ index of the starting element
@@ -172,8 +176,8 @@ subVector = Vector.slice
 
 {- | Reads a vector position:
 
-@> fromList [0..9] \@\> 7
-7.0@
+>>> fromList [0..9] @> 7
+7.0
 
 -}
 (@>) :: Storable t => Vector t -> Int -> t
@@ -183,8 +187,8 @@ infixl 9 @>
 
 {- | concatenate a list of vectors
 
-@> vjoin [fromList [1..5], constant 1 3]
-8 |> [1.0,2.0,3.0,4.0,5.0,1.0,1.0,1.0]@
+>>> vjoin [fromList [1..5::Double], konst 1 3]
+fromList [1.0,2.0,3.0,4.0,5.0,1.0,1.0,1.0]
 
 -}
 vjoin :: Storable t => [Vector t] -> Vector t
@@ -205,8 +209,8 @@ vjoin as = unsafePerformIO $ do
 
 {- | Extract consecutive subvectors of the given sizes.
 
-@> takesV [3,4] (linspace 10 (1,10))
-[3 |> [1.0,2.0,3.0],4 |> [4.0,5.0,6.0,7.0]]@
+>>> takesV [3,4] (linspace 10 (1,10::Double))
+[fromList [1.0,2.0,3.0],fromList [4.0,5.0,6.0,7.0]]
 
 -}
 takesV :: Storable t => [Int] -> Vector t -> [Vector t]

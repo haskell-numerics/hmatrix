@@ -39,29 +39,27 @@ format sep f m = table sep . map (map f) . toLists $ m
 
 {- | Show a matrix with \"autoscaling\" and a given number of decimal places.
 
-@disp = putStr . disps 2
-
-\> disp $ 120 * (3><4) [1..]
+>>> putStr . disps 2 $ 120 * (3><4) [1..]
 3x4  E3
  0.12  0.24  0.36  0.48
  0.60  0.72  0.84  0.96
  1.08  1.20  1.32  1.44
-@
+
 -}
 disps :: Int -> Matrix Double -> String
 disps d x = sdims x ++ "  " ++ formatScaled d x
 
 {- | Show a matrix with a given number of decimal places.
 
-@disp = putStr . dispf 3
+>>> dispf 2 (1/3 + ident 3)
+"3x3\n1.33  0.33  0.33\n0.33  1.33  0.33\n0.33  0.33  1.33\n"
 
-\> disp (1/3 + ident 4)
-4x4
-1.333  0.333  0.333  0.333
-0.333  1.333  0.333  0.333
-0.333  0.333  1.333  0.333
-0.333  0.333  0.333  1.333
-@
+>>> putStr . dispf 2 $ (3><4)[1,1.5..]
+3x4
+1.00  1.50  2.00  2.50
+3.00  3.50  4.00  4.50
+5.00  5.50  6.00  6.50
+
 -}
 dispf :: Int -> Matrix Double -> String
 dispf d x = sdims x ++ "\n" ++ formatFixed (if isInt x then 0 else d) x
@@ -81,11 +79,9 @@ formatScaled dec t = "E"++show o++"\n" ++ ss
 
 {- | Show a vector using a function for showing matrices.
 
-@disp = putStr . vecdisp ('dispf' 2)
-
-\> disp ('linspace' 10 (0,1))
+>>> putStr . vecdisp (dispf 2) $ linspace 10 (0,1)
 10 |> 0.00  0.11  0.22  0.33  0.44  0.56  0.67  0.78  0.89  1.00
-@
+
 -}
 vecdisp :: (Element t) => (Matrix t -> String) -> Vector t -> String
 vecdisp f v
@@ -94,7 +90,12 @@ vecdisp f v
     . f . trans . reshape 1
     $ v
 
--- | Tool to display matrices with latex syntax.
+{- | Tool to display matrices with latex syntax.
+
+>>>  latexFormat "bmatrix" (dispf 2 $ ident 2)
+"\\begin{bmatrix}\n1  &  0\n\\\\\n0  &  1\n\\end{bmatrix}"
+
+-}
 latexFormat :: String -- ^ type of braces: \"matrix\", \"bmatrix\", \"pmatrix\", etc.
             -> String -- ^ Formatted matrix, with elements separated by spaces and newlines
             -> String

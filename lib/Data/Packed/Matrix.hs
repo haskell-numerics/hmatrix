@@ -116,13 +116,10 @@ Single row-column components are automatically expanded to match the
 corresponding common row and column:
 
 @
-> let disp = putStr . dispf 2
-> let vector xs = fromList xs :: Vector Double
-> let diagl = diag . vector
-> let rowm = asRow . vector
+disp = putStr . dispf 2
+@
 
-> disp $ fromBlocks [[ident 5, 7, rowm[10,20]], [3, diagl[1,2,3], 0]]
-
+>>> disp $ fromBlocks [[ident 5, 7, row[10,20]], [3, diagl[1,2,3], 0]]
 8x10
 1  0  0  0  0  7  7  7  10  20
 0  1  0  0  0  7  7  7  10  20
@@ -132,7 +129,6 @@ corresponding common row and column:
 3  3  3  3  3  1  0  0   0   0
 3  3  3  3  3  0  2  0   0   0
 3  3  3  3  3  0  0  3   0   0
-@
 
 -}
 fromBlocks :: Element t => [[Matrix t]] -> Matrix t
@@ -163,7 +159,19 @@ adaptBlocks ms = ms' where
 
 --------------------------------------------------------------------------------
 
--- | create a block diagonal matrix
+{- | create a block diagonal matrix
+
+>>>  disp 2 $ diagBlock [konst 1 (2,2), konst 2 (3,5), col [5,7]]
+7x8
+1  1  0  0  0  0  0  0
+1  1  0  0  0  0  0  0
+0  0  2  2  2  2  2  0
+0  0  2  2  2  2  2  0
+0  0  2  2  2  2  2  0
+0  0  0  0  0  0  0  5
+0  0  0  0  0  0  0  7
+
+-}
 diagBlock :: (Element t, Num t) => [Matrix t] -> Matrix t
 diagBlock ms = fromBlocks $ zipWith f ms [0..]
   where
@@ -186,12 +194,13 @@ fliprl m = fromColumns . reverse . toColumns $ m
 
 {- | creates a rectangular diagonal matrix:
 
-@> diagRect 7 (fromList [10,20,30]) 4 5 :: Matrix Double
+>>> diagRect 7 (fromList [10,20,30]) 4 5 :: Matrix Double
 (4><5)
  [ 10.0,  7.0,  7.0, 7.0, 7.0
  ,  7.0, 20.0,  7.0, 7.0, 7.0
  ,  7.0,  7.0, 30.0, 7.0, 7.0
- ,  7.0,  7.0,  7.0, 7.0, 7.0 ]@
+ ,  7.0,  7.0,  7.0, 7.0, 7.0 ]
+
 -}
 diagRect :: (Storable t) => t -> Vector t -> Int -> Int -> Matrix t
 diagRect z v r c = ST.runSTMatrix $ do
@@ -208,10 +217,10 @@ takeDiag m = fromList [flatten m `at` (k*cols m+k) | k <- [0 .. min (rows m) (co
 
 {- | An easy way to create a matrix:
 
-@\> (2><3)[1..6]
+>>> (2><3)[2,4,7,-3,11,0]
 (2><3)
- [ 1.0, 2.0, 3.0
- , 4.0, 5.0, 6.0 ]@
+ [  2.0,  4.0, 7.0
+ , -3.0, 11.0, 0.0 ]
 
 This is the format produced by the instances of Show (Matrix a), which
 can also be used for input.
@@ -219,12 +228,11 @@ can also be used for input.
 The input list is explicitly truncated, so that it can
 safely be used with lists that are too long (like infinite lists).
 
-Example:
-
-@\> (2><3)[1..]
+>>> (2><3)[1..]
 (2><3)
  [ 1.0, 2.0, 3.0
- , 4.0, 5.0, 6.0 ]@
+ , 4.0, 5.0, 6.0 ]
+
 
 -}
 (><) :: (Storable a) => Int -> Int -> [a] -> Matrix a
@@ -253,20 +261,35 @@ dropColumns n mt = subMatrix (0,n) (rows mt, cols mt - n) mt
 
 {- | Creates a 'Matrix' from a list of lists (considered as rows).
 
-@\> fromLists [[1,2],[3,4],[5,6]]
+>>> fromLists [[1,2],[3,4],[5,6]]
 (3><2)
  [ 1.0, 2.0
  , 3.0, 4.0
- , 5.0, 6.0 ]@
+ , 5.0, 6.0 ]
+
 -}
 fromLists :: Element t => [[t]] -> Matrix t
 fromLists = fromRows . map fromList
 
 -- | creates a 1-row matrix from a vector
+--
+-- >>> asRow (fromList [1..5])
+--  (1><5)
+--   [ 1.0, 2.0, 3.0, 4.0, 5.0 ]
+--
 asRow :: Storable a => Vector a -> Matrix a
 asRow v = reshape (dim v) v
 
 -- | creates a 1-column matrix from a vector
+--
+-- >>> asColumn (fromList [1..5])
+-- (5><1)
+--  [ 1.0
+--  , 2.0
+--  , 3.0
+--  , 4.0
+--  , 5.0 ]
+--
 asColumn :: Storable a => Vector a -> Matrix a
 asColumn v = reshape 1 v
 
@@ -307,12 +330,12 @@ extractRows l m = fromRows $ extract (toRows m) l
 
 {- | creates matrix by repetition of a matrix a given number of rows and columns
 
-@> repmat (ident 2) 2 3 :: Matrix Double
+>>> repmat (ident 2) 2 3
 (4><6)
  [ 1.0, 0.0, 1.0, 0.0, 1.0, 0.0
  , 0.0, 1.0, 0.0, 1.0, 0.0, 1.0
  , 1.0, 0.0, 1.0, 0.0, 1.0, 0.0
- , 0.0, 1.0, 0.0, 1.0, 0.0, 1.0 ]@
+ , 0.0, 1.0, 0.0, 1.0, 0.0, 1.0 ]
 
 -}
 repmat :: (Element t) => Matrix t -> Int -> Int -> Matrix t
@@ -376,13 +399,14 @@ mk c g = \k -> g (divMod k c)
 
 {- |
 
-@ghci> mapMatrixWithIndexM_ (\\(i,j) v -> printf \"m[%.0f,%.0f] = %.f\\n\" i j v :: IO()) ((2><3)[1 :: Double ..])
+>>> mapMatrixWithIndexM_ (\(i,j) v -> printf "m[%d,%d] = %.f\n" i j v :: IO()) ((2><3)[1 :: Double ..])
 m[0,0] = 1
 m[0,1] = 2
 m[0,2] = 3
 m[1,0] = 4
 m[1,1] = 5
-m[1,2] = 6@
+m[1,2] = 6
+
 -}
 mapMatrixWithIndexM_
   :: (Element a, Num a, Monad m) =>
@@ -393,11 +417,12 @@ mapMatrixWithIndexM_ g m = mapVectorWithIndexM_ (mk c g) . flatten $ m
 
 {- |
 
-@ghci> mapMatrixWithIndexM (\\(i,j) v -> Just $ 100*v + 10*i + j) (ident 3:: Matrix Double)
+>>> mapMatrixWithIndexM (\(i,j) v -> Just $ 100*v + 10*fromIntegral i + fromIntegral j) (ident 3:: Matrix Double)
 Just (3><3)
  [ 100.0,   1.0,   2.0
  ,  10.0, 111.0,  12.0
- ,  20.0,  21.0, 122.0 ]@
+ ,  20.0,  21.0, 122.0 ]
+
 -}
 mapMatrixWithIndexM
   :: (Element a, Storable b, Monad m) =>
@@ -407,11 +432,13 @@ mapMatrixWithIndexM g m = liftM (reshape c) . mapVectorWithIndexM (mk c g) . fla
       c = cols m
 
 {- |
-@ghci> mapMatrixWithIndex (\\(i,j) v -> 100*v + 10*i + j) (ident 3:: Matrix Double)
+
+>>> mapMatrixWithIndex (\\(i,j) v -> 100*v + 10*fromIntegral i + fromIntegral j) (ident 3:: Matrix Double)
 (3><3)
  [ 100.0,   1.0,   2.0
  ,  10.0, 111.0,  12.0
- ,  20.0,  21.0, 122.0 ]@
+ ,  20.0,  21.0, 122.0 ]
+
  -}
 mapMatrixWithIndex
   :: (Element a, Storable b) =>

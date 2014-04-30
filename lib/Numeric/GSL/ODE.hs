@@ -13,9 +13,10 @@ Solution of ordinary differential equation (ODE) initial value problems.
 
 A simple example:
 
-@import Numeric.GSL
+@
+import Numeric.GSL.ODE
 import Numeric.LinearAlgebra
-import Graphics.Plot
+import Numeric.LinearAlgebra.Util(mplot)
 
 xdot t [x,v] = [v, -0.95*x - 0.1*v]
 
@@ -23,7 +24,8 @@ ts = linspace 100 (0,20 :: Double)
 
 sol = odeSolve xdot [10,0] ts
 
-main = mplot (ts : toColumns sol)@
+main = mplot (ts : toColumns sol)
+@
 
 -}
 -----------------------------------------------------------------------------

@@ -35,16 +35,16 @@ eps = 1e-12
 
 {- | conversion of Haskell functions into function pointers that can be used in the C side
 -}
-foreign import ccall safe "wrapper" mkfun:: (Double -> Ptr() -> Double) -> IO( FunPtr (Double -> Ptr() -> Double)) 
+foreign import ccall safe "wrapper" mkfun:: (Double -> Ptr() -> Double) -> IO( FunPtr (Double -> Ptr() -> Double))
 
 --------------------------------------------------------------------
 {- | Numerical integration using /gsl_integration_qags/ (adaptive integration with singularities). For example:
 
-@\> let quad = integrateQAGS 1E-9 1000 
-\> let f a x = x**(-0.5) * log (a*x)
-\> quad (f 1) 0 1
-(-3.999999999999974,4.871658632055187e-13)@
- 
+>>> let quad = integrateQAGS 1E-9 1000
+>>> let f a x = x**(-0.5) * log (a*x)
+>>> quad (f 1) 0 1
+(-3.999999999999974,4.871658632055187e-13)
+
 -}
 
 integrateQAGS :: Double               -- ^ precision (e.g. 1E-9)
@@ -56,7 +56,7 @@ integrateQAGS :: Double               -- ^ precision (e.g. 1E-9)
 integrateQAGS prec n f a b = unsafePerformIO $ do
     r <- malloc
     e <- malloc
-    fp <- mkfun (\x _ -> f x) 
+    fp <- mkfun (\x _ -> f x)
     c_integrate_qags fp a b eps prec (fromIntegral n) r e // check "integrate_qags"
     vr <- peek r
     ve <- peek e
@@ -73,10 +73,10 @@ foreign import ccall safe "integrate_qags" c_integrate_qags
 -----------------------------------------------------------------
 {- | Numerical integration using /gsl_integration_qng/ (useful for fast integration of smooth functions). For example:
 
-@\> let quad = integrateQNG 1E-6 
-\> quad (\\x -> 4\/(1+x*x)) 0 1 
-(3.141592653589793,3.487868498008632e-14)@
- 
+>>> let quad = integrateQNG 1E-6
+>>> quad (\x -> 4/(1+x*x)) 0 1
+(3.141592653589793,3.487868498008632e-14)
+
 -}
 
 integrateQNG :: Double               -- ^ precision (e.g. 1E-9)
@@ -87,7 +87,7 @@ integrateQNG :: Double               -- ^ precision (e.g. 1E-9)
 integrateQNG prec f a b = unsafePerformIO $ do
     r <- malloc
     e <- malloc
-    fp <- mkfun (\x _ -> f x) 
+    fp <- mkfun (\x _ -> f x)
     c_integrate_qng fp a b eps prec r e  // check "integrate_qng"
     vr <- peek r
     ve <- peek e
@@ -102,14 +102,14 @@ foreign import ccall safe "integrate_qng" c_integrate_qng
     -> Double -> Double -> Ptr Double -> Ptr Double -> IO CInt
 
 --------------------------------------------------------------------
-{- | Numerical integration using /gsl_integration_qagi/ (integration over the infinite integral -Inf..Inf using QAGS). 
+{- | Numerical integration using /gsl_integration_qagi/ (integration over the infinite integral -Inf..Inf using QAGS).
 For example:
 
-@\> let quad = integrateQAGI 1E-9 1000 
-\> let f a x = exp(-a * x^2)
-\> quad (f 0.5) 
-(2.5066282746310002,6.229215880648858e-11)@
- 
+>>> let quad = integrateQAGI 1E-9 1000
+>>> let f a x = exp(-a * x^2)
+>>> quad (f 0.5)
+(2.5066282746310002,6.229215880648858e-11)
+
 -}
 
 integrateQAGI :: Double               -- ^ precision (e.g. 1E-9)
@@ -119,7 +119,7 @@ integrateQAGI :: Double               -- ^ precision (e.g. 1E-9)
 integrateQAGI prec n f = unsafePerformIO $ do
     r <- malloc
     e <- malloc
-    fp <- mkfun (\x _ -> f x) 
+    fp <- mkfun (\x _ -> f x)
     c_integrate_qagi fp eps prec (fromIntegral n) r e // check "integrate_qagi"
     vr <- peek r
     ve <- peek e
@@ -134,14 +134,14 @@ foreign import ccall safe "integrate_qagi" c_integrate_qagi
     -> CInt -> Ptr Double -> Ptr Double -> IO CInt
 
 --------------------------------------------------------------------
-{- | Numerical integration using /gsl_integration_qagiu/ (integration over the semi-infinite integral a..Inf). 
+{- | Numerical integration using /gsl_integration_qagiu/ (integration over the semi-infinite integral a..Inf).
 For example:
 
-@\> let quad = integrateQAGIU 1E-9 1000 
-\> let f a x = exp(-a * x^2)
-\> quad (f 0.5) 0
-(1.2533141373155001,3.114607940324429e-11)@
- 
+>>> let quad = integrateQAGIU 1E-9 1000
+>>> let f a x = exp(-a * x^2)
+>>> quad (f 0.5) 0
+(1.2533141373155001,3.114607940324429e-11)
+
 -}
 
 integrateQAGIU :: Double               -- ^ precision (e.g. 1E-9)
@@ -152,7 +152,7 @@ integrateQAGIU :: Double               -- ^ precision (e.g. 1E-9)
 integrateQAGIU prec n f a = unsafePerformIO $ do
     r <- malloc
     e <- malloc
-    fp <- mkfun (\x _ -> f x) 
+    fp <- mkfun (\x _ -> f x)
     c_integrate_qagiu fp a eps prec (fromIntegral n) r e // check "integrate_qagiu"
     vr <- peek r
     ve <- peek e
@@ -167,14 +167,14 @@ foreign import ccall safe "integrate_qagiu" c_integrate_qagiu
     -> Double -> CInt -> Ptr Double -> Ptr Double -> IO CInt
 
 --------------------------------------------------------------------
-{- | Numerical integration using /gsl_integration_qagil/ (integration over the semi-infinite integral -Inf..b). 
+{- | Numerical integration using /gsl_integration_qagil/ (integration over the semi-infinite integral -Inf..b).
 For example:
 
-@\> let quad = integrateQAGIL 1E-9 1000 
-\> let f a x = exp(-a * x^2)
-\> quad (f 0.5) 0 
-(1.2533141373155001,3.114607940324429e-11)@
- 
+>>> let quad = integrateQAGIL 1E-9 1000
+>>> let f a x = exp(-a * x^2)
+>>> quad (f 0.5) 0
+(1.2533141373155001,3.114607940324429e-11)
+
 -}
 
 integrateQAGIL :: Double               -- ^ precision (e.g. 1E-9)
@@ -185,7 +185,7 @@ integrateQAGIL :: Double               -- ^ precision (e.g. 1E-9)
 integrateQAGIL prec n f b = unsafePerformIO $ do
     r <- malloc
     e <- malloc
-    fp <- mkfun (\x _ -> f x) 
+    fp <- mkfun (\x _ -> f x)
     c_integrate_qagil fp b eps prec (fromIntegral n) r e // check "integrate_qagil"
     vr <- peek r
     ve <- peek e
@@ -212,10 +212,10 @@ routines in QUADPACK, yet fails less often for difficult integrands.@
 
 For example:
 
-@\> let quad = integrateCQUAD 1E-12 1000 
-\> let f a x = exp(-a * x^2)
-\> quad (f 0.5) 2 5
-(5.7025405463957006e-2,9.678874441303705e-16,95)@
+>>> let quad = integrateCQUAD 1E-12 1000
+>>> let f a x = exp(-a * x^2)
+>>> quad (f 0.5) 2 5
+(5.7025405463957006e-2,9.678874441303705e-16,95)
 
 Unlike other quadrature methods, integrateCQUAD also returns the
 number of function evaluations required.

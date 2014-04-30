@@ -51,13 +51,13 @@ module Numeric.LinearAlgebra.Data.Devel(
     liftMatrix, liftMatrix2, liftMatrix2Auto,
 
     -- * Misc
-    Element, Container
+    Element, Container, Product, Contraction, LSDiv
 ) where
 
 import Data.Packed.Foreign
 import Data.Packed.Development
 import Data.Packed.ST
-import Numeric.Container(Container)
+import Numeric.Container(Container,Contraction,LSDiv,Product)
 import Data.Packed
 
 
