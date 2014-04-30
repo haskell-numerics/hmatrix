@@ -108,6 +108,7 @@ library
                         Data.Packed.Development
                         Graphics.Plot,
                         Numeric.LinearAlgebra.Data
+                        Numeric.LinearAlgebra.Data.Devel
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Signatures,
