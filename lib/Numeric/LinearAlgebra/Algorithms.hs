@@ -21,6 +21,8 @@ imported from "Numeric.LinearAlgebra.LAPACK".
 
 -}
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
+
 
 module Numeric.LinearAlgebra.Algorithms (
 -- * Supported types
@@ -85,8 +87,9 @@ import Data.Array
 import Numeric.ContainerBoot
 
 
-{- | Class used to define generic linear algebra computations for both real and complex matrices. Only double precision is supported in this version (we can
-transform single precision objects using 'single' and 'double').
+{- | Generic linear algebra functions for double precision real and complex matrices.
+
+(Single precision data can be converted using 'single' and 'double').
 
 -}
 class (Product t,
@@ -438,7 +441,7 @@ i = 0:+1
 
 -----------------------------------------------------------------------
 
--- | The nullspace of a matrix from its SVD decomposition.
+-- | The nullspace of a matrix from its precomputed SVD decomposition.
 nullspaceSVD :: Field t
              => Either Double Int -- ^ Left \"numeric\" zero (eg. 1*'eps'),
                                   --   or Right \"theoretical\" matrix rank.

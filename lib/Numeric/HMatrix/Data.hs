@@ -1,16 +1,19 @@
 --------------------------------------------------------------------------------
 {- |
-Module      :  Numeric.LinearAlgebra.Data
+Module      :  Numeric.HMatrix.Data
 Copyright   :  (c) Alberto Ruiz 2014
 License     :  GPL
 
 Maintainer  :  Alberto Ruiz
 Stability   :  provisional
 
+Basic data processing.
+
 -}
 --------------------------------------------------------------------------------
 
-module Numeric.LinearAlgebra.Data(
+module Numeric.HMatrix.Data(
+
     -- * Vector
     -- | 1D arrays are storable vectors from the vector package.
     
@@ -19,58 +22,34 @@ module Numeric.LinearAlgebra.Data(
     -- * Matrix
     Matrix, (><), size, (@@>), trans, ctrans,
     
-    -- * Construction functions
-   
+    -- * Construction
     scalar, konst, build, assoc, accum, linspace, -- ones, zeros,
 
-    -- * Data manipulation
-    
-    fromList, toList, subVector, takesV, vjoin,
-         
-    flatten, reshape, asRow, asColumn, row, col,
-
-    fromRows, toRows, fromColumns, toColumns, fromLists, toLists,
-    
-    takeRows, dropRows, takeColumns, dropColumns, subMatrix, (?), (¿), fliprl, flipud,
-    
-    -- * Diagonal matrices
-    
+    -- * Diagonal
     ident, diag, diagl, diagRect, takeDiag,
-   
-    -- * Block matrices
 
+    -- * Data manipulation
+    fromList, toList, subVector, takesV, vjoin,
+    flatten, reshape, asRow, asColumn, row, col,
+    fromRows, toRows, fromColumns, toColumns, fromLists, toLists, fromArray2D,
+    takeRows, dropRows, takeColumns, dropColumns, subMatrix, (?), (¿), fliprl, flipud,
+  
+    -- * Block matrix
     fromBlocks, (¦), (——), diagBlock, repmat, toBlocks, toBlocksEvery,
 
     -- * Mapping functions
-   
     conj, cmap, step, cond,
     
     -- * Find elements
-    
     find, maxIndex, minIndex, maxElement, minElement, atIndex,
 
-    -- * Products
-    
-    (<>), (·), outer, kronecker, cross,
-    sumElements, prodElements, absSum,
-    optimiseMult,
-    
-    corr, conv, corrMin, corr2, conv2,
-    
-    (<\>),
-    
-    -- * Random arrays
-
-    rand, randn, RandDist(..), randomVector, gaussianSample, uniformSample,
-    
     -- * IO
-    
     disp, dispf, disps, dispcf, vecdisp, latexFormat, format,
     loadMatrix, saveMatrix, fromFile, fileDimensions,
     readMatrix,
     fscanfVector, fprintfVector, freadVector, fwriteVector,
 
--- * Element conversion
+-- * Conversion
     Convert(..),
     Complexable(),
     RealElement(),
@@ -79,13 +58,12 @@ module Numeric.LinearAlgebra.Data(
 
     IndexOf,
     
-    module Data.Complex,
-
     -- * Misc
-    scale, meanCov, arctan2,
+    arctan2,
     rows, cols,
     separable,
-    fromArray2D
+
+    module Data.Complex
 
 ) where
 

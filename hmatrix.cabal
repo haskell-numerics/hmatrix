@@ -107,8 +107,9 @@ library
                         Data.Packed.ST,
                         Data.Packed.Development
                         Graphics.Plot,
-                        Numeric.LinearAlgebra.Data
-                        Numeric.LinearAlgebra.Data.Devel
+                        Numeric.HMatrix,
+                        Numeric.HMatrix.Data,
+                        Numeric.HMatrix.Devel
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Signatures,

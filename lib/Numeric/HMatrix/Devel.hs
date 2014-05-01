@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 {- |
-Module      :  Numeric.LinearAlgebra.Data.Devel
+Module      :  Numeric.HMatrix.Devel
 Copyright   :  (c) Alberto Ruiz 2014
 License     :  GPL
 
@@ -12,7 +12,7 @@ The library can be easily extended using the tools in this module.
 -}
 --------------------------------------------------------------------------------
 
-module Numeric.LinearAlgebra.Data.Devel(
+module Numeric.HMatrix.Devel(
     -- * FFI helpers
     -- | Sample usage, to upload a perspective matrix to a shader.
     --
@@ -51,7 +51,7 @@ module Numeric.LinearAlgebra.Data.Devel(
     liftMatrix, liftMatrix2, liftMatrix2Auto,
 
     -- * Misc
-    Element, Container, Product, Contraction, LSDiv
+    Element, Container, Product, Contraction, LSDiv, Field
 ) where
 
 import Data.Packed.Foreign
@@ -59,5 +59,6 @@ import Data.Packed.Development
 import Data.Packed.ST
 import Numeric.Container(Container,Contraction,LSDiv,Product)
 import Data.Packed
+import Numeric.LinearAlgebra.Algorithms(Field)
 
 

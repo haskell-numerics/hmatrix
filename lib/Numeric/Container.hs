@@ -105,15 +105,16 @@ cdot u v = udot (conj u) v
 class Contraction a b c | a b -> c, a c -> b, b c -> a
   where
     infixl 7 <>
-    {- | matrix-matrix product, matrix-vector product, unconjugated dot product
+    {- | Matrix-matrix product, matrix-vector product, and unconjugated dot product
 
 >>> let a = (3><4) [1..] :: Matrix Double
-
 >>> a
 (3><4)
  [ 1.0,  2.0,  3.0,  4.0
  , 5.0,  6.0,  7.0,  8.0
  , 9.0, 10.0, 11.0, 12.0 ]
+
+matrix × matrix:
 
 >>> disp 2 (a <> trans a)
 3x3
@@ -121,11 +122,17 @@ class Contraction a b c | a b -> c, a c -> b, b c -> a
  70  174  278
 110  278  446
 
+matrix × vector:
+
 >>> a <> fromList [1,0,2,-1::Double]
 fromList [3.0,11.0,19.0]
 
+vector × matrix:
+
 >>> fromList [1,2,3::Double] <> a
 fromList [38.0,44.0,50.0,56.0]
+
+unconjugated dot product:
 
 >>> fromList [1,i] <> fromList[2*i+1,3]
 1.0 :+ 5.0
@@ -160,9 +167,9 @@ instance LSDiv Matrix Matrix where
 
 --------------------------------------------------------
 
-{- | dot product : @u · v = 'cdot' u v@
+{- | Dot product : @u · v = 'cdot' u v@
 
- unicode 0x00b7, Alt-Gr .
+ (unicode 0x00b7, Alt-Gr .)
 
 >>> fromList [1,i] · fromList[2*i+1,3]
 1.0 :+ (-1.0)
