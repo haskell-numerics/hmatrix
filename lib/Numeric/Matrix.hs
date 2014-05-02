@@ -28,6 +28,8 @@ module Numeric.Matrix (
 -------------------------------------------------------------------
 
 import Numeric.Container
+import qualified Data.Monoid as M
+import Data.List(partition)
 
 -------------------------------------------------------------------
 
@@ -69,3 +71,28 @@ instance (Floating a, Container Vector a, Floating (Vector a), Fractional (Matri
     (**)  = liftMatrix2Auto (**)
     sqrt  = liftMatrix sqrt
     pi    = (1><1) [pi]
+
+--------------------------------------------------------------------------------
+
+isScalar m = rows m == 1 && cols m == 1
+
+adaptScalarM f1 f2 f3 x y
+    | isScalar x = f1   (x @@>(0,0) ) y
+    | isScalar y = f3 x (y @@>(0,0) )
+    | otherwise = f2 x y
+
+instance (Container Vector t, Eq t, Num (Vector t), Product t) => M.Monoid (Matrix t)
+  where
+    mempty = 1
+    mappend = adaptScalarM scale mXm (flip scale)
+    
+    mconcat xs = work (partition isScalar xs)
+      where
+        work (ss,[]) = product ss
+        work (ss,ms) = scale' (product ss) (optimiseMult ms)
+        scale' x m
+            | isScalar x && x00 == 1 = m
+            | otherwise              = scale x00 m
+          where
+            x00 = x @@> (0,0)
+

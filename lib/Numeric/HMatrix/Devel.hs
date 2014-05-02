@@ -50,15 +50,20 @@ module Numeric.HMatrix.Devel(
     mapMatrixWithIndex, mapMatrixWithIndexM, mapMatrixWithIndexM_,
     liftMatrix, liftMatrix2, liftMatrix2Auto,
 
-    -- * Misc
-    Element, Container, Product, Contraction, LSDiv, Field
+    -- * Auxiliary classes
+    Element, Container, Product, Contraction, LSDiv,
+    Complexable(), RealElement(),
+    RealOf, ComplexOf, SingleOf, DoubleOf,
+    IndexOf,
+    Field,
 ) where
 
 import Data.Packed.Foreign
 import Data.Packed.Development
 import Data.Packed.ST
-import Numeric.Container(Container,Contraction,LSDiv,Product)
+import Numeric.Container(Container,Contraction,LSDiv,Product,
+                         Complexable(),RealElement(),
+                         RealOf, ComplexOf, SingleOf, DoubleOf, IndexOf)
 import Data.Packed
 import Numeric.LinearAlgebra.Algorithms(Field)
-
 

@@ -37,7 +37,8 @@ module Numeric.Container (
     Container(..),
     -- * Matrix product
     Product(..),
-    Contraction(..),
+    Mul(..),
+    Contraction(..), mmul,
     optimiseMult,
     mXm,mXv,vXm,LSDiv(..), cdot, (·), dot, (<.>),
     outer, kronecker,
@@ -102,12 +103,19 @@ cdot u v = udot (conj u) v
 
 --------------------------------------------------------
 
-class Contraction a b c | a b -> c, a c -> b, b c -> a
+class Contraction a b c | a b -> c, c -> a b
   where
-    infixl 7 <>
+    infixr 7 ×
     {- | Matrix-matrix product, matrix-vector product, and unconjugated dot product
 
->>> let a = (3><4) [1..] :: Matrix Double
+(unicode 0x00d7, multiplication sign)
+
+Examples:
+
+>>> let a = (3><4)   [1..]      :: Matrix Double
+>>> let v = fromList [1,0,2,-1] :: Vector Double
+>>> let u = fromList [1,2,3]    :: Vector Double
+
 >>> a
 (3><4)
  [ 1.0,  2.0,  3.0,  4.0
@@ -116,7 +124,7 @@ class Contraction a b c | a b -> c, a c -> b, b c -> a
 
 matrix × matrix:
 
->>> disp 2 (a <> trans a)
+>>> disp 2 (a × trans a)
 3x3
  30   70  110
  70  174  278
@@ -124,52 +132,79 @@ matrix × matrix:
 
 matrix × vector:
 
->>> a <> fromList [1,0,2,-1::Double]
+>>> a × v
 fromList [3.0,11.0,19.0]
-
-vector × matrix:
-
->>> fromList [1,2,3::Double] <> a
-fromList [38.0,44.0,50.0,56.0]
 
 unconjugated dot product:
 
->>> fromList [1,i] <> fromList[2*i+1,3]
+>>> fromList [1,i] × fromList[2*i+1,3]
 1.0 :+ 5.0
 
--}
-    (<>) :: a -> b -> c
+(×) is right associative, so we can write:
 
-instance Product t => Contraction (Vector t) (Vector t) t where
-    (<>) = udot
+>>> u × a × v
+82.0 :: Double
+
+-}
+    (×) :: a -> b -> c
 
 instance Product t => Contraction (Matrix t) (Vector t) (Vector t) where
-    (<>) = mXv
-
-instance Product t => Contraction (Vector t) (Matrix t) (Vector t) where
-    (<>) = vXm
+    (×) = mXv
 
 instance Product t => Contraction (Matrix t) (Matrix t) (Matrix t) where
+    (×) = mXm
+
+instance Contraction (Vector Double) (Vector Double) Double where
+    (×) = udot
+
+instance Contraction (Vector Float) (Vector Float) Float where
+    (×) = udot
+
+instance Contraction (Vector (Complex Double)) (Vector (Complex Double)) (Complex Double) where
+    (×) = udot
+
+instance Contraction (Vector (Complex Float)) (Vector (Complex Float)) (Complex Float) where
+    (×) = udot
+
+
+-- | alternative function for the matrix product (×)
+mmul :: Contraction a b c => a -> b -> c
+mmul = (×)
+
+--------------------------------------------------------------------------------
+
+class Mul a b c | a b -> c where
+ infixl 7 <>
+ -- | Matrix-matrix, matrix-vector, and vector-matrix products.
+ (<>)  :: Product t => a t -> b t -> c t
+
+instance Mul Matrix Matrix Matrix where
     (<>) = mXm
 
---------------------------------------------------------
+instance Mul Matrix Vector Vector where
+    (<>) m v = flatten $ m <> asColumn v
 
-class LSDiv b c | b -> c, c->b where
+instance Mul Vector Matrix Vector where
+    (<>) v m = flatten $ asRow v <> m
+
+--------------------------------------------------------------------------------
+
+class LSDiv c where
  infixl 7 <\>
  -- | least squares solution of a linear system, similar to the \\ operator of Matlab\/Octave (based on linearSolveSVD)
- (<\>)  :: Field t => Matrix t -> b t -> c t
+ (<\>)  :: Field t => Matrix t -> c t -> c t
 
-instance LSDiv Vector Vector where
+instance LSDiv Vector where
     m <\> v = flatten (linearSolveSVD m (reshape 1 v))
 
-instance LSDiv Matrix Matrix where
+instance LSDiv Matrix where
     (<\>) = linearSolveSVD
 
 --------------------------------------------------------
 
 {- | Dot product : @u · v = 'cdot' u v@
 
- (unicode 0x00b7, Alt-Gr .)
+ (unicode 0x00b7, middle dot, Alt-Gr .)
 
 >>> fromList [1,i] · fromList[2*i+1,3]
 1.0 :+ (-1.0)
@@ -233,7 +268,15 @@ instance Container Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
 
 --------------------------------------------------------------------------------
 
--- | Compute mean vector and covariance matrix of the rows of a matrix.
+{- | Compute mean vector and covariance matrix of the rows of a matrix.
+
+>>> meanCov $ gaussianSample 666 1000 (fromList[4,5]) (diagl[2,3])
+(fromList [4.010341078059521,5.0197204699640405],
+(2><2)
+ [     1.9862461923890056, -1.0127225830525157e-2
+ , -1.0127225830525157e-2,     3.0373954915729318 ])
+
+-}
 meanCov :: Matrix Double -> (Vector Double, Matrix Double)
 meanCov x = (med,cov) where
     r    = rows x
@@ -249,7 +292,7 @@ meanCov x = (med,cov) where
 dot :: Product e => Vector e -> Vector e -> e
 dot = udot
 
-{-# DEPRECATED (<.>) "use udot or (<>)" #-}
+{-# DEPRECATED (<.>) "use udot or (×)" #-}
 infixl 7 <.>
 (<.>) :: Product e => Vector e -> Vector e -> e
 (<.>) = udot

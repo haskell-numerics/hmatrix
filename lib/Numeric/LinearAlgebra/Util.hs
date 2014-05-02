@@ -134,7 +134,7 @@ a & b = vjoin [a,b]
 
 {- | horizontal concatenation of real matrices
 
- (0x00a6 broken bar)
+ (unicode 0x00a6, broken bar)
 
 >>> ident 3 ¦ konst 7 (3,4)
 (3><7)
@@ -149,7 +149,7 @@ a ¦ b = fromBlocks [[a,b]]
 
 -- | vertical concatenation of real matrices
 --
--- (0x2014, em dash)
+-- (unicode 0x2014, em dash)
 (——) :: Matrix Double -> Matrix Double -> Matrix Double
 infixl 2 ——
 a —— b = fromBlocks [[a],[b]]
@@ -179,7 +179,9 @@ infixl 9 ?
 (?) :: Element t => Matrix t -> [Int] -> Matrix t
 (?) = flip extractRows
 
--- | (00BF) extract selected columns
+-- | extract selected columns
+--
+-- (unicode 0x00bf, inverted question mark)
 infixl 9 ¿
 (¿) :: Element t => Matrix t -> [Int] -> Matrix t
 m ¿ ks = trans . extractRows ks . trans $ m

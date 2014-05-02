@@ -51,12 +51,6 @@ module Numeric.HMatrix.Data(
 
 -- * Conversion
     Convert(..),
-    Complexable(),
-    RealElement(),
-
-    RealOf, ComplexOf, SingleOf, DoubleOf,
-
-    IndexOf,
     
     -- * Misc
     arctan2,
