@@ -248,7 +248,7 @@ int dotC(KCVEC(x), KCVEC(y), CVEC(r)) {
     DEBUGMSG("dotC");
     KCVVIEW(x);
     KCVVIEW(y);
-    gsl_blas_zdotu(V(x),V(y),rp);
+    gsl_blas_zdotc(V(x),V(y),rp);
     OK
 }
     
