@@ -74,8 +74,10 @@ instance (Binary a, Element a, Storable a) => Binary (Matrix a) where
 -------------------------------------------------------------------
 
 instance (Show a, Element a) => (Show (Matrix a)) where
-    show m = (sizes++) . dsp . map (map show) . toLists $ m
-        where sizes = "("++show (rows m)++"><"++show (cols m)++")\n"
+    show m | rows m == 0 || cols m == 0 = sizes m ++" []"
+    show m = (sizes m++) . dsp . map (map show) . toLists $ m
+
+sizes m = "("++show (rows m)++"><"++show (cols m)++")\n"
 
 dsp as = (++" ]") . (" ["++) . init . drop 2 . unlines . map (" , "++) . map unwords' $ transpose mtp
     where
@@ -104,7 +106,7 @@ breakAt c l = (a++[c],tail b) where
 joinVert :: Element t => [Matrix t] -> Matrix t
 joinVert ms = case common cols ms of
     Nothing -> error "(impossible) joinVert on matrices with different number of columns"
-    Just c  -> reshape c $ vjoin (map flatten ms)
+    Just c  -> matrixFromVector RowMajor (sum (map rows ms)) c $ vjoin (map flatten ms)
 
 -- | creates a matrix from a horizontal list of matrices
 joinHoriz :: Element t => [Matrix t] -> Matrix t
@@ -147,7 +149,7 @@ adaptBlocks ms = ms' where
 
     g [Just nr,Just nc] m
                 | nr == r && nc == c = m
-                | r == 1 && c == 1 = reshape nc (constantD x (nr*nc))
+                | r == 1 && c == 1 = matrixFromVector RowMajor nr nc (constantD x (nr*nc))
                 | r == 1 = fromRows (replicate nr (flatten m))
                 | otherwise = fromColumns (replicate nc (flatten m))
       where
@@ -237,7 +239,7 @@ safely be used with lists that are too long (like infinite lists).
 -}
 (><) :: (Storable a) => Int -> Int -> [a] -> Matrix a
 r >< c = f where
-    f l | dim v == r*c = matrixFromVector RowMajor c v
+    f l | dim v == r*c = matrixFromVector RowMajor r c v
         | otherwise    = error $ "inconsistent list size = "
                                  ++show (dim v) ++" in ("++show r++"><"++show c++")"
         where v = fromList $ take (r*c) l
@@ -291,7 +293,7 @@ asRow v = reshape (dim v) v
 --  , 5.0 ]
 --
 asColumn :: Storable a => Vector a -> Matrix a
-asColumn v = reshape 1 v
+asColumn = trans . asRow
 
 
 
@@ -358,7 +360,12 @@ liftMatrix2Auto f m1 m2
     m1' = conformMTo (r,c) m1
     m2' = conformMTo (r,c) m2
 
-lM f m1 m2 = reshape (max (cols m1) (cols m2)) (f (flatten m1) (flatten m2))
+-- FIXME do not flatten if equal order
+lM f m1 m2 = matrixFromVector
+                RowMajor
+                (max (rows m1) (rows m2))
+                (max (cols m1) (cols m2))
+                (f (flatten m1) (flatten m2))
 
 compat' :: Matrix a -> Matrix b -> Bool
 compat' m1 m2 = s1 == (1,1) || s2 == (1,1) || s1 == s2

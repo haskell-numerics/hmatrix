@@ -33,6 +33,7 @@ import Foreign.Marshal.Array(newArray)
 import Foreign.Ptr(Ptr)
 import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
+import Control.Monad(when)
 
 fromei x = fromIntegral (fromEnum x) :: CInt
 
@@ -201,7 +202,7 @@ vectorMapValAux fun code val v = unsafePerformIO $ do
 
 vectorZipAux fun code u v = unsafePerformIO $ do
     r <- createVector (dim u)
-    app3 (fun (fromei code)) vec u vec v vec r "vectorZipAux"
+    when (dim u > 0) $ app3 (fun (fromei code)) vec u vec v vec r "vectorZipAux"
     return r
 
 ---------------------------------------------------------------------

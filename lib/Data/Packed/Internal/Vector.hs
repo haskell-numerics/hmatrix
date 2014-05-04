@@ -81,7 +81,7 @@ vec x f = unsafeWith x $ \p -> do
 -- allocates memory for a new vector
 createVector :: Storable a => Int -> IO (Vector a)
 createVector n = do
-    when (n <= 0) $ error ("trying to createVector of dim "++show n)
+    when (n < 0) $ error ("trying to createVector of negative dim: "++show n)
     fp <- doMalloc undefined
     return $ unsafeFromForeignPtr fp 0 n
   where
@@ -192,7 +192,7 @@ fromList [1.0,2.0,3.0,4.0,5.0,1.0,1.0,1.0]
 
 -}
 vjoin :: Storable t => [Vector t] -> Vector t
-vjoin [] = error "vjoin zero vectors"
+vjoin [] = fromList []
 vjoin [v] = v
 vjoin as = unsafePerformIO $ do
     let tot = sum (map dim as)

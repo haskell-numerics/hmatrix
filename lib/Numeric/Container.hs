@@ -36,7 +36,7 @@ module Numeric.Container (
     -- * Generic operations
     Container(..),
     -- * Matrix product
-    Product(..),
+    Product(..), udot,
     Mul(..),
     Contraction(..), mmul,
     optimiseMult,

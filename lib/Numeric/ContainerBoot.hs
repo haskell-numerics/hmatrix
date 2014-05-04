@@ -25,7 +25,7 @@ module Numeric.ContainerBoot (
     -- * Generic operations
     Container(..),
     -- * Matrix product and related functions
-    Product(..),
+    Product(..), udot,
     mXm,mXv,vXm,
     outer, kronecker,
     -- * Element conversion
@@ -315,7 +315,7 @@ instance (Container Vector a) => Container Matrix a where
     equal a b = cols a == cols b && flatten a `equal` flatten b
     arctan2 = liftMatrix2 arctan2
     scalar x = (1><1) [x]
-    konst' v (r,c) = reshape c (konst' v (r*c))
+    konst' v (r,c) = matrixFromVector RowMajor r c (konst' v (r*c))
     build' = buildM
     conj = liftMatrix conj
     cmap f = liftMatrix (mapVector f)
@@ -339,11 +339,9 @@ instance (Container Vector a) => Container Matrix a where
 ----------------------------------------------------
 
 -- | Matrix product and related functions
-class Element e => Product e where
+class (Num e, Element e) => Product e where
     -- | matrix product
     multiply :: Matrix e -> Matrix e -> Matrix e
-    -- | (unconjugated) dot product
-    udot     :: Vector e -> Vector e -> e
     -- | sum of absolute value of elements (differs in complex case from @norm1@)
     absSum     :: Vector e -> RealOf e
     -- | sum of absolute value of elements
@@ -354,36 +352,57 @@ class Element e => Product e where
     normInf    :: Vector e -> RealOf e
 
 instance Product Float where
-    norm2      = toScalarF Norm2
-    absSum     = toScalarF AbsSum
-    udot       = dotF
-    norm1      = toScalarF AbsSum
-    normInf    = maxElement . vectorMapF Abs
-    multiply = multiplyF
+    norm2      = emptyVal (toScalarF Norm2)
+    absSum     = emptyVal (toScalarF AbsSum)
+    norm1      = emptyVal (toScalarF AbsSum)
+    normInf    = emptyVal (maxElement . vectorMapF Abs)
+    multiply   = emptyMul multiplyF
 
 instance Product Double where
-    norm2      = toScalarR Norm2
-    absSum     = toScalarR AbsSum
-    udot       = dotR
-    norm1      = toScalarR AbsSum
-    normInf    = maxElement . vectorMapR Abs
-    multiply = multiplyR
+    norm2      = emptyVal (toScalarR Norm2)
+    absSum     = emptyVal (toScalarR AbsSum)
+    norm1      = emptyVal (toScalarR AbsSum)
+    normInf    = emptyVal (maxElement . vectorMapR Abs)
+    multiply   = emptyMul multiplyR
 
 instance Product (Complex Float) where
-    norm2      = toScalarQ Norm2
-    absSum     = toScalarQ AbsSum
-    udot       = dotQ
-    norm1      = sumElements . fst . fromComplex . vectorMapQ Abs
-    normInf    = maxElement . fst . fromComplex . vectorMapQ Abs
-    multiply = multiplyQ
+    norm2      = emptyVal (toScalarQ Norm2)
+    absSum     = emptyVal (toScalarQ AbsSum)
+    norm1      = emptyVal (sumElements . fst . fromComplex . vectorMapQ Abs)
+    normInf    = emptyVal (maxElement . fst . fromComplex . vectorMapQ Abs)
+    multiply   = emptyMul multiplyQ
 
 instance Product (Complex Double) where
-    norm2      = toScalarC Norm2
-    absSum     = toScalarC AbsSum
-    udot       = dotC
-    norm1      = sumElements . fst . fromComplex . vectorMapC Abs
-    normInf    = maxElement . fst . fromComplex . vectorMapC Abs
-    multiply = multiplyC
+    norm2      = emptyVal (toScalarC Norm2)
+    absSum     = emptyVal (toScalarC AbsSum)
+    norm1      = emptyVal (sumElements . fst . fromComplex . vectorMapC Abs)
+    normInf    = emptyVal (maxElement . fst . fromComplex . vectorMapC Abs)
+    multiply   = emptyMul multiplyC
+
+emptyMul m a b
+    | x1 == 0 && x2 == 0 || r == 0 || c == 0 = konst' 0 (r,c)
+    | otherwise = m a b
+  where
+    r  = rows a
+    x1 = cols a
+    x2 = rows b
+    c  = cols b
+
+emptyVal f v =
+    if dim v > 0
+        then f v
+        else 0
+
+
+-- FIXME remove unused C wrappers
+-- | (unconjugated) dot product
+udot :: Product e => Vector e -> Vector e -> e
+udot u v
+    | dim u == dim v = val (asRow u `multiply` asColumn v)
+    | otherwise = error $ "different dimensions "++show (dim u)++" and "++show (dim v)++" in dot product"
+  where
+    val m | dim u > 0 = m@@>(0,0)
+          | otherwise = 0
 
 ----------------------------------------------------------
 

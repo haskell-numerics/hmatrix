@@ -198,16 +198,17 @@ atM' Matrix {irows = r, xdat = v, order = ColumnMajor} i j = v `at'` (j*r+i)
 
 ------------------------------------------------------------------
 
-matrixFromVector o c v = Matrix { irows = r, icols = c, xdat = v, order = o }
-    where (d,m) = dim v `quotRem` c
-          r | m==0 = d
-            | otherwise = error "matrixFromVector"
+matrixFromVector o r c v
+    | r * c == dim v = m
+    | otherwise = error $ "matrixFromVector " ++ shSize m ++ " <- " ++ show (dim v)
+  where
+    m = Matrix { irows = r, icols = c, xdat = v, order = o }
 
 -- allocates memory for a new matrix
 createMatrix :: (Storable a) => MatrixOrder -> Int -> Int -> IO (Matrix a)
 createMatrix ord r c = do
     p <- createVector (r*c)
-    return (matrixFromVector ord c p)
+    return (matrixFromVector ord r c p)
 
 {- | Creates a matrix from a vector by grouping the elements in rows with the desired number of columns. (GNU-Octave groups by columns. To do it you can define @reshapeF r = trans . reshape r@
 where r is the desired number of rows.)
@@ -220,21 +221,22 @@ where r is the desired number of rows.)
 
 -}
 reshape :: Storable t => Int -> Vector t -> Matrix t
-reshape c v = matrixFromVector RowMajor c v
+reshape 0 v = matrixFromVector RowMajor 0 0 v
+reshape c v = matrixFromVector RowMajor (dim v `div` c) c v
 
 singleton x = reshape 1 (fromList [x])
 
 -- | application of a vector function on the flattened matrix elements
 liftMatrix :: (Storable a, Storable b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
-liftMatrix f Matrix { icols = c, xdat = d, order = o } = matrixFromVector o c (f d)
+liftMatrix f Matrix { irows = r, icols = c, xdat = d, order = o } = matrixFromVector o r c (f d)
 
 -- | application of a vector function on the flattened matrices elements
 liftMatrix2 :: (Element t, Element a, Element b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
 liftMatrix2 f m1 m2
     | not (compat m1 m2) = error "nonconformant matrices in liftMatrix2"
     | otherwise = case orderOf m1 of
-        RowMajor    -> matrixFromVector RowMajor    (cols m1) (f (xdat m1) (flatten m2))
-        ColumnMajor -> matrixFromVector ColumnMajor (cols m1) (f (xdat m1) ((xdat.fmat) m2))
+        RowMajor    -> matrixFromVector RowMajor    (rows m1) (cols m1) (f (xdat m1) (flatten m2))
+        ColumnMajor -> matrixFromVector ColumnMajor (rows m1) (cols m1) (f (xdat m1) ((xdat.fmat) m2))
 
 
 compat :: Matrix a -> Matrix b -> Bool
@@ -296,7 +298,7 @@ transdata' c1 v c2 =
                 return w
   where r1 = dim v `div` c1
         r2 = dim v `div` c2
-        noneed = r1 == 1 || c1 == 1
+        noneed = dim v == 0 || r1 == 1 || c1 == 1
 
 -- {-# SPECIALIZE transdata' :: Int -> Vector Double -> Int ->  Vector Double #-}
 -- {-# SPECIALIZE transdata' :: Int -> Vector (Complex Double) -> Int -> Vector (Complex Double) #-}
@@ -318,7 +320,7 @@ transdataAux fun c1 d c2 =
             return v
   where r1 = dim d `div` c1
         r2 = dim d `div` c2
-        noneed = r1 == 1 || c1 == 1
+        noneed = dim d == 0 || r1 == 1 || c1 == 1
 
 transdataP :: Storable a => Int -> Vector a -> Int -> Vector a
 transdataP c1 d c2 =
@@ -333,7 +335,7 @@ transdataP c1 d c2 =
    where r1 = dim d `div` c1
          r2 = dim d `div` c2
          sz = sizeOf (d @> 0)
-         noneed = r1 == 1 || c1 == 1
+         noneed = dim d == 0 || r1 == 1 || c1 == 1
 
 foreign import ccall unsafe "transF" ctransF :: TFMFM
 foreign import ccall unsafe "transR" ctransR :: TMM
