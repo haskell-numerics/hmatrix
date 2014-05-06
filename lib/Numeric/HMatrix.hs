@@ -114,7 +114,7 @@ module Numeric.HMatrix (
     orth,
 
     -- * Norms
-    norm1, norm2, normInf,
+    norm1, norm2, normInf, pnorm, NormType(..),
 
     -- * Correlation and Convolution
     corr, conv, corrMin, corr2, conv2,

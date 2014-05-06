@@ -6,20 +6,27 @@
       (The documentation is hidden for the other modules,
        but they continue to be exposed and are not deprecated)
 
+    * added support for empty arrays
+
     * join deprecated, use vjoin
 
-    * dot and (<.>) deprecated, use udot or (×)
     * added udot (unconjugated dot product)
     * added (·) = cdot, which conjugates the first input vector
+    * dot and (<.>) deprecated, use udot or (×)
     
-    * added alternative matrix multiplication operator (×)
+    * added alternative overloaded multiplication operator (×)
     * added Monoid instance for Matrix using matrix product
     
     * improved build and konst
 
+    * improved linspace
+    
+    * improved error messages
+    * more usage examples
+
     * simplified LSDiv
     * Plot functions moved to Numeric.LinearAlgebra.Util
-    * removed (!) (use (¦))
+    * removed (!) (use (¦)), added (——)
 
 0.15.2.0
 --------

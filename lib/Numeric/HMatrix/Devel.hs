@@ -55,7 +55,7 @@ module Numeric.HMatrix.Devel(
     Complexable(), RealElement(),
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
-    Field,
+    Field, Normed
 ) where
 
 import Data.Packed.Foreign
@@ -65,5 +65,5 @@ import Numeric.Container(Container,Contraction,LSDiv,Product,
                          Complexable(),RealElement(),
                          RealOf, ComplexOf, SingleOf, DoubleOf, IndexOf)
 import Data.Packed
-import Numeric.LinearAlgebra.Algorithms(Field)
+import Numeric.LinearAlgebra.Algorithms(Field,Normed)
 

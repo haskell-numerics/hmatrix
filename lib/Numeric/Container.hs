@@ -86,15 +86,19 @@ constant = constantD-- about 2x faster
 
 {- | Creates a real vector containing a range of values:
 
->>> linspace 5 (-3,7)
+>>> linspace 5 (-3,7::Double)
 fromList [-3.0,-0.5,2.0,4.5,7.0]@
+
+>>> linspace 5 (8,2+i) :: Vector (Complex Double)
+fromList [8.0 :+ 0.0,6.5 :+ 0.25,5.0 :+ 0.5,3.5 :+ 0.75,2.0 :+ 1.0]
 
 Logarithmic spacing can be defined as follows:
 
 @logspace n (a,b) = 10 ** linspace n (a,b)@
 -}
-linspace :: (Enum e, Container Vector e) => Int -> (e, e) -> Vector e
-linspace n (a,b) = addConstant a $ scale s $ fromList [0 .. fromIntegral n-1]
+linspace :: (Container Vector e) => Int -> (e, e) -> Vector e
+linspace 0 (a,b) = fromList[(a+b)/2]
+linspace n (a,b) = addConstant a $ scale s $ fromList $ map fromIntegral [0 .. n-1]
     where s = (b-a)/fromIntegral (n-1)
 
 -- | dot product: @cdot u v = 'udot' ('conj' u) v@

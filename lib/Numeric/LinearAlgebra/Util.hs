@@ -166,7 +166,7 @@ row = asRow . fromList
 col :: [Double] -> Matrix Double
 col = asColumn . fromList
 
-{- | extract selected rows
+{- | extract rows
 
 >>> (20><4) [1..] ? [2,1,1]
 (3><4)
@@ -179,12 +179,20 @@ infixl 9 ?
 (?) :: Element t => Matrix t -> [Int] -> Matrix t
 (?) = flip extractRows
 
--- | extract selected columns
---
--- (unicode 0x00bf, inverted question mark)
+{- | extract columns
+
+(unicode 0x00bf, inverted question mark, Alt-Gr ?)
+
+>>> (3><4) [1..] ¿ [3,0]
+(3><2)
+ [  4.0, 1.0
+ ,  8.0, 5.0
+ , 12.0, 9.0 ]
+
+-}
 infixl 9 ¿
 (¿) :: Element t => Matrix t -> [Int] -> Matrix t
-m ¿ ks = trans . extractRows ks . trans $ m
+(¿)= flip extractColumns
 
 
 cross :: Vector Double -> Vector Double -> Vector Double

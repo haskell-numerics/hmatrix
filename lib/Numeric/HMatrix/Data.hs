@@ -44,7 +44,7 @@ module Numeric.HMatrix.Data(
     find, maxIndex, minIndex, maxElement, minElement, atIndex,
 
     -- * IO
-    disp, dispf, disps, dispcf, vecdisp, latexFormat, format,
+    disp, dispf, disps, dispcf, latexFormat, format,
     loadMatrix, saveMatrix, fromFile, fileDimensions,
     readMatrix,
     fscanfVector, fprintfVector, freadVector, fwriteVector,

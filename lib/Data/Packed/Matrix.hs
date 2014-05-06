@@ -35,7 +35,7 @@ module Data.Packed.Matrix (
     repmat,
     flipud, fliprl,
     subMatrix, takeRows, dropRows, takeColumns, dropColumns,
-    extractRows,
+    extractRows, extractColumns,
     diagRect, takeDiag,
     mapMatrix, mapMatrixWithIndex, mapMatrixWithIndexM, mapMatrixWithIndexM_,
     liftMatrix, liftMatrix2, liftMatrix2Auto,fromArray2D
@@ -104,6 +104,7 @@ breakAt c l = (a++[c],tail b) where
 
 -- | creates a matrix from a vertical list of matrices
 joinVert :: Element t => [Matrix t] -> Matrix t
+joinVert [] = emptyM 0 0
 joinVert ms = case common cols ms of
     Nothing -> error "(impossible) joinVert on matrices with different number of columns"
     Just c  -> matrixFromVector RowMajor (sum (map rows ms)) c $ vjoin (map flatten ms)
@@ -173,6 +174,11 @@ adaptBlocks ms = ms' where
 0  0  0  0  0  0  0  5
 0  0  0  0  0  0  0  7
 
+>>> diagBlock [(0><4)[], konst 2 (2,3)]  :: Matrix Double
+(2><7)
+ [ 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 2.0
+ , 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 2.0 ]
+
 -}
 diagBlock :: (Element t, Num t) => [Matrix t] -> Matrix t
 diagBlock ms = fromBlocks $ zipWith f ms [0..]
@@ -186,11 +192,15 @@ diagBlock ms = fromBlocks $ zipWith f ms [0..]
 
 -- | Reverse rows
 flipud :: Element t => Matrix t -> Matrix t
-flipud m = fromRows . reverse . toRows $ m
+flipud m = extractRows [r-1,r-2 .. 0] $ m
+  where
+    r = rows m
 
 -- | Reverse columns
 fliprl :: Element t => Matrix t -> Matrix t
-fliprl m = fromColumns . reverse . toColumns $ m
+fliprl m = extractColumns [c-1,c-2 .. 0] $ m
+  where
+    c = cols m
 
 ------------------------------------------------------------
 
@@ -327,8 +337,25 @@ fromArray2D m = (r><c) (elems m)
 
 -- | rearranges the rows of a matrix according to the order given in a list of integers.
 extractRows :: Element t => [Int] -> Matrix t -> Matrix t
+extractRows [] m = emptyM 0 (cols m)
 extractRows l m = fromRows $ extract (toRows m) l
-    where extract l' is = [l'!!i |i<-is]
+  where
+    extract l' is = [l'!!i | i<- map verify is]
+    verify k
+        | k >= 0 && k < rows m = k
+        | otherwise = error $ "can't extract row "
+                           ++show k++" in list " ++ show l ++ " from matrix " ++ shSize m
+
+-- | rearranges the rows of a matrix according to the order given in a list of integers.
+extractColumns :: Element t => [Int] -> Matrix t -> Matrix t
+extractColumns l m = trans . extractRows (map verify l) . trans $ m
+  where
+    verify k
+        | k >= 0 && k < cols m = k
+        | otherwise = error $ "can't extract column "
+                           ++show k++" in list " ++ show l ++ " from matrix " ++ shSize m
+
+
 
 {- | creates matrix by repetition of a matrix a given number of rows and columns
 
@@ -341,7 +368,9 @@ extractRows l m = fromRows $ extract (toRows m) l
 
 -}
 repmat :: (Element t) => Matrix t -> Int -> Int -> Matrix t
-repmat m r c = fromBlocks $ splitEvery c $ replicate (r*c) m
+repmat m r c
+    | r == 0 || c == 0 = emptyM (r*rows m) (c*cols m)
+    | otherwise = fromBlocks $ replicate r $ replicate c $ m
 
 -- | A version of 'liftMatrix2' which automatically adapt matrices with a single row or column to match the dimensions of the other matrix.
 liftMatrix2Auto :: (Element t, Element a, Element b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t
@@ -390,7 +419,10 @@ toBlocks rs cs m = map (toBlockCols cs) . toBlockRows rs $ m
 -- | Fully partition a matrix into blocks of the same size. If the dimensions are not
 -- a multiple of the given size the last blocks will be smaller.
 toBlocksEvery :: (Element t) => Int -> Int -> Matrix t -> [[Matrix t]]
-toBlocksEvery r c m = toBlocks rs cs m where
+toBlocksEvery r c m
+    | r < 1 || c < 1 = error $ "toBlocksEvery expects block sizes > 0, given "++show r++" and "++ show c
+    | otherwise = toBlocks rs cs m
+  where
     (qr,rr) = rows m `divMod` r
     (qc,rc) = cols m `divMod` c
     rs = replicate qr r ++ if rr > 0 then [rr] else []

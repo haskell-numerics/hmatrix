@@ -60,6 +60,9 @@ disps d x = sdims x ++ "  " ++ formatScaled d x
 3.00  3.50  4.00  4.50
 5.00  5.50  6.00  6.50
 
+>>> putStr . unlines . tail . lines . dispf 2 . asRow $ linspace 10 (0,1)
+0.00  0.11  0.22  0.33  0.44  0.56  0.67  0.78  0.89  1.00
+
 -}
 dispf :: Int -> Matrix Double -> String
 dispf d x = sdims x ++ "\n" ++ formatFixed (if isInt x then 0 else d) x
@@ -74,7 +77,8 @@ formatScaled dec t = "E"++show o++"\n" ++ ss
     where ss = format " " (printf fmt. g) t
           g x | o >= 0    = x/10^(o::Int)
               | otherwise = x*10^(-o)
-          o = floor $ maximum $ map (logBase 10 . abs) $ toList $ flatten t
+          o | rows t == 0 || cols t == 0 = 0
+            | otherwise = floor $ maximum $ map (logBase 10 . abs) $ toList $ flatten t
           fmt = '%':show (dec+3) ++ '.':show dec ++"f"
 
 {- | Show a vector using a function for showing matrices.

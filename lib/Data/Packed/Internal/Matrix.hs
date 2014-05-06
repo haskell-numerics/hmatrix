@@ -32,6 +32,7 @@ module Data.Packed.Internal.Matrix(
     (@@>), atM',
     saveMatrix,
     singleton,
+    emptyM,
     size, shSize, conformVs, conformMs, conformVTo, conformMTo
 ) where
 
@@ -157,16 +158,24 @@ toLists m = splitEvery (cols m) . toList . flatten $ m
 -- All vectors must have the same dimension,
 -- or dimension 1, which is are automatically expanded.
 fromRows :: Element t => [Vector t] -> Matrix t
+fromRows [] = emptyM 0 0
 fromRows vs = case compatdim (map dim vs) of
-    Nothing -> error "fromRows applied to [] or to vectors with different sizes"
-    Just c  -> reshape c . vjoin . map (adapt c) $ vs
+    Nothing -> error $ "fromRows expects vectors with equal sizes (or singletons), given: " ++ show (map dim vs)
+    Just 0  -> emptyM r 0
+    Just c  -> matrixFromVector RowMajor r c . vjoin . map (adapt c) $ vs
   where
-    adapt c v | dim v == c = v
-              | otherwise = constantD (v@>0) c
+    r = length vs
+    adapt c v
+        | c == 0 = fromList[]
+        | dim v == c = v
+        | otherwise = constantD (v@>0) c
 
 -- | extracts the rows of a matrix as a list of vectors
 toRows :: Element t => Matrix t -> [Vector t]
-toRows m = toRows' 0 where
+toRows m
+    | c == 0    = replicate r (fromList[])
+    | otherwise = toRows' 0
+  where
     v = flatten m
     r = rows m
     c = cols m
@@ -200,7 +209,7 @@ atM' Matrix {irows = r, xdat = v, order = ColumnMajor} i j = v `at'` (j*r+i)
 
 matrixFromVector o r c v
     | r * c == dim v = m
-    | otherwise = error $ "matrixFromVector " ++ shSize m ++ " <- " ++ show (dim v)
+    | otherwise = error $ "can't reshape vector dim = "++ show (dim v)++" to matrix " ++ shSize m
   where
     m = Matrix { irows = r, icols = c, xdat = v, order = o }
 
@@ -398,8 +407,8 @@ subMatrix :: Element a
           -> Matrix a -- ^ input matrix
           -> Matrix a -- ^ result
 subMatrix (r0,c0) (rt,ct) m
-    | 0 <= r0 && 0 < rt && r0+rt <= (rows m) &&
-      0 <= c0 && 0 < ct && c0+ct <= (cols m) = subMatrixD (r0,c0) (rt,ct) m
+    | 0 <= r0 && 0 <= rt && r0+rt <= (rows m) &&
+      0 <= c0 && 0 <= ct && c0+ct <= (cols m) = subMatrixD (r0,c0) (rt,ct) m
     | otherwise = error $ "wrong subMatrix "++
                           show ((r0,c0),(rt,ct))++" of "++show(rows m)++"x"++ show (cols m)
 
@@ -437,18 +446,21 @@ foreign import ccall unsafe "matrix_fprintf" matrix_fprintf :: Ptr CChar -> Ptr 
 
 ----------------------------------------------------------------------
 
+maxZ xs = if minimum xs == 0 then 0 else maximum xs
+
 conformMs ms = map (conformMTo (r,c)) ms
   where
-    r = maximum (map rows ms)
-    c = maximum (map cols ms)
+    r = maxZ (map rows ms)
+    c = maxZ (map cols ms)
+    
 
 conformVs vs = map (conformVTo n) vs
   where
-    n = maximum (map dim vs)
+    n = maxZ (map dim vs)
 
 conformMTo (r,c) m
     | size m == (r,c) = m
-    | size m == (1,1) = reshape c (constantD (m@@>(0,0)) (r*c))
+    | size m == (1,1) = matrixFromVector RowMajor r c (constantD (m@@>(0,0)) (r*c))
     | size m == (r,1) = repCols c m
     | size m == (1,c) = repRows r m
     | otherwise = error $ "matrix " ++ shSize m ++ " cannot be expanded to (" ++ show r ++ "><"++ show c ++")"
@@ -464,6 +476,8 @@ repCols n x = fromColumns (replicate n (flatten x))
 size m = (rows m, cols m)
 
 shSize m = "(" ++ show (rows m) ++"><"++ show (cols m)++")"
+
+emptyM r c = matrixFromVector RowMajor r c (fromList[])
 
 ----------------------------------------------------------------------
 

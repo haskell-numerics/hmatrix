@@ -45,7 +45,7 @@ import Numeric.Conversion
 import Data.Packed.Internal
 import Numeric.GSL.Vector
 import Data.Complex
-import Control.Monad(ap)
+import Control.Applicative((<*>))
 
 import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ)
 
@@ -206,10 +206,10 @@ instance Container Vector Float where
     conj = id
     cmap = mapVector
     atIndex = (@>)
-    minIndex     = round . toScalarF MinIdx
-    maxIndex     = round . toScalarF MaxIdx
-    minElement  = toScalarF Min
-    maxElement  = toScalarF Max
+    minIndex     = emptyErrorV "minIndex"   (round . toScalarF MinIdx)
+    maxIndex     = emptyErrorV "maxIndex"   (round . toScalarF MaxIdx)
+    minElement   = emptyErrorV "minElement" (toScalarF Min)
+    maxElement   = emptyErrorV "maxElement" (toScalarF Max)
     sumElements  = sumF
     prodElements = prodF
     step = stepF
@@ -234,10 +234,10 @@ instance Container Vector Double where
     conj = id
     cmap = mapVector
     atIndex = (@>)
-    minIndex     = round . toScalarR MinIdx
-    maxIndex     = round . toScalarR MaxIdx
-    minElement  = toScalarR Min
-    maxElement  = toScalarR Max
+    minIndex     = emptyErrorV "minIndex"   (round . toScalarR MinIdx)
+    maxIndex     = emptyErrorV "maxIndex"   (round . toScalarR MaxIdx)
+    minElement   = emptyErrorV "minElement" (toScalarR Min)
+    maxElement   = emptyErrorV "maxElement" (toScalarR Max)
     sumElements  = sumR
     prodElements = prodR
     step = stepD
@@ -262,10 +262,10 @@ instance Container Vector (Complex Double) where
     conj = conjugateC
     cmap = mapVector
     atIndex = (@>)
-    minIndex     = minIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
-    maxIndex     = maxIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
-    minElement  = ap (@>) minIndex
-    maxElement  = ap (@>) maxIndex
+    minIndex     = emptyErrorV "minIndex" (minIndex . fst . fromComplex . (mul <*> conj))
+    maxIndex     = emptyErrorV "maxIndex" (maxIndex . fst . fromComplex . (mul <*> conj))
+    minElement   = emptyErrorV "minElement" (atIndex <*> minIndex)
+    maxElement   = emptyErrorV "maxElement" (atIndex <*> maxIndex)
     sumElements  = sumC
     prodElements = prodC
     step = undefined -- cannot match
@@ -290,10 +290,10 @@ instance Container Vector (Complex Float) where
     conj = conjugateQ
     cmap = mapVector
     atIndex = (@>)
-    minIndex     = minIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
-    maxIndex     = maxIndex . fst . fromComplex . (zipVectorWith (*) `ap` mapVector conjugate)
-    minElement  = ap (@>) minIndex
-    maxElement  = ap (@>) maxIndex
+    minIndex     = emptyErrorV "minIndex" (minIndex . fst . fromComplex . (mul <*> conj))
+    maxIndex     = emptyErrorV "maxIndex" (maxIndex . fst . fromComplex . (mul <*> conj))
+    minElement   = emptyErrorV "minElement" (atIndex <*> minIndex)
+    maxElement   = emptyErrorV "maxElement" (atIndex <*> maxIndex)
     sumElements  = sumQ
     prodElements = prodQ
     step = undefined -- cannot match
@@ -320,14 +320,12 @@ instance (Container Vector a) => Container Matrix a where
     conj = liftMatrix conj
     cmap f = liftMatrix (mapVector f)
     atIndex = (@@>)
-    minIndex m = let (r,c) = (rows m,cols m)
-                     i = (minIndex $ flatten m)
-                 in (i `div` c,i `mod` c)
-    maxIndex m = let (r,c) = (rows m,cols m)
-                     i = (maxIndex $ flatten m)
-                 in (i `div` c,i `mod` c)
-    minElement = ap (@@>) minIndex
-    maxElement = ap (@@>) maxIndex
+    minIndex = emptyErrorM "minIndex of Matrix" $
+                \m -> divMod (minIndex $ flatten m) (cols m)
+    maxIndex = emptyErrorM "maxIndex of Matrix" $
+                \m -> divMod (maxIndex $ flatten m) (cols m)
+    minElement = emptyErrorM "minElement of Matrix" (atIndex <*> minIndex)
+    maxElement = emptyErrorM "maxElement of Matrix" (atIndex <*> maxIndex)
     sumElements = sumElements . flatten
     prodElements = prodElements . flatten
     step = liftMatrix step
@@ -335,6 +333,17 @@ instance (Container Vector a) => Container Matrix a where
     assoc = assocM
     accum = accumM
     cond = condM
+
+
+emptyErrorV msg f v =
+    if dim v > 0
+        then f v
+        else error $ msg ++ " of Vector with dim = 0"
+
+emptyErrorM msg f m =
+    if rows m > 0 && cols m > 0
+        then f m
+        else error $ msg++" "++shSize m
 
 ----------------------------------------------------
 
@@ -392,7 +401,6 @@ emptyVal f v =
     if dim v > 0
         then f v
         else 0
-
 
 -- FIXME remove unused C wrappers
 -- | (unconjugated) dot product
@@ -592,7 +600,7 @@ accumM m0 f xs = ST.runSTMatrix $ do
 
 ----------------------------------------------------------------------
 
-condM a b l e t = reshape (cols a'') $ cond a' b' l' e' t'
+condM a b l e t = matrixFromVector RowMajor (rows a'') (cols a'') $ cond a' b' l' e' t'
   where
     args@(a'':_) = conformMs [a,b,l,e,t]
     [a', b', l', e', t'] = map flatten args

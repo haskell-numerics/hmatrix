@@ -49,7 +49,11 @@ common f = commonval . map f where
 compatdim :: [Int] -> Maybe Int
 compatdim [] = Nothing
 compatdim [a] = Just a
-compatdim (a:b:xs) = if a==b || a==1 || b==1 then compatdim (max a b:xs) else Nothing
+compatdim (a:b:xs)
+    | a==b = compatdim (b:xs)
+    | a==1 = compatdim (b:xs)
+    | b==1 = compatdim (a:xs)
+    | otherwise = Nothing
 
 -- | Formatting tool
 table :: String -> [[String]] -> String
