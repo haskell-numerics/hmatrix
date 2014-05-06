@@ -153,3 +153,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - "yokto" and "ttylec" reported the problem with the dot product of complex vectors.
 
+- Samium Gromoff reported a build failure caused by a size_t - int mismatch.
+

@@ -130,6 +130,8 @@ library
     C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
                         lib/Numeric/GSL/gsl-aux.c
 
+    cc-options:         -O4 -msse2 -Wall
+
     cpp-options:        -DBINARY
 
  -- ghc-prof-options:   -auto

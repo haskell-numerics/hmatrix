@@ -111,7 +111,7 @@ int svd_l_R(KDMAT(a),DMAT(u), DVEC(s),DMAT(v)) {
     integer n = ac;
     integer q = MIN(m,n);
     REQUIRES(sn==q,BAD_SIZE);
-    REQUIRES(up==NULL || ur==m && (uc==m || uc==q),BAD_SIZE);
+    REQUIRES(up==NULL || (ur==m && (uc==m || uc==q)),BAD_SIZE);
     char* jobu  = "A";
     if (up==NULL) {
         jobu = "N";
@@ -120,7 +120,7 @@ int svd_l_R(KDMAT(a),DMAT(u), DVEC(s),DMAT(v)) {
             jobu = "S";
         }
     }
-    REQUIRES(vp==NULL || vc==n && (vr==n || vr==q),BAD_SIZE);
+    REQUIRES(vp==NULL || (vc==n && (vr==n || vr==q)),BAD_SIZE);
     char* jobvt  = "A";
     integer ldvt = n;
     if (vp==NULL) {
@@ -174,10 +174,10 @@ int svd_l_Rdd(KDMAT(a),DMAT(u), DVEC(s),DMAT(v)) {
     integer n = ac;
     integer q = MIN(m,n);
     REQUIRES(sn==q,BAD_SIZE);
-    REQUIRES(up == NULL && vp == NULL
-             || ur==m && vc==n
-                &&   (uc == q && vr == q
-                   || uc == m && vc==n),BAD_SIZE);
+    REQUIRES((up == NULL && vp == NULL)
+             || (ur==m && vc==n
+                &&   ((uc == q && vr == q)
+                   || (uc == m && vc==n))),BAD_SIZE);
     char* jobz  = "A";
     integer ldvt = n;
     if (up==NULL) {
@@ -224,7 +224,7 @@ int svd_l_C(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
     integer n = ac;
     integer q = MIN(m,n);
     REQUIRES(sn==q,BAD_SIZE);
-    REQUIRES(up==NULL || ur==m && (uc==m || uc==q),BAD_SIZE);
+    REQUIRES(up==NULL || (ur==m && (uc==m || uc==q)),BAD_SIZE);
     char* jobu  = "A";
     if (up==NULL) {
         jobu = "N";
@@ -233,7 +233,7 @@ int svd_l_C(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
             jobu = "S";
         }
     }
-    REQUIRES(vp==NULL || vc==n && (vr==n || vr==q),BAD_SIZE);
+    REQUIRES(vp==NULL || (vc==n && (vr==n || vr==q)),BAD_SIZE);
     char* jobvt  = "A";
     integer ldvt = n;
     if (vp==NULL) {
@@ -291,10 +291,10 @@ int svd_l_Cdd(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
     integer n = ac;
     integer q = MIN(m,n);
     REQUIRES(sn==q,BAD_SIZE);
-    REQUIRES(up == NULL && vp == NULL
-             || ur==m && vc==n
-                &&   (uc == q && vr == q
-                   || uc == m && vc==n),BAD_SIZE);
+    REQUIRES((up == NULL && vp == NULL)
+             || (ur==m && vc==n
+                &&   ((uc == q && vr == q)
+                   || (uc == m && vc==n))),BAD_SIZE);
     char* jobz  = "A";
     integer ldvt = n;
     if (up==NULL) {
@@ -349,9 +349,9 @@ int svd_l_Cdd(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
 int eig_l_C(KCMAT(a), CMAT(u), CVEC(s),CMAT(v)) {
     integer n = ar;
     REQUIRES(ac==n && sn==n, BAD_SIZE);
-    REQUIRES(up==NULL || ur==n && uc==n, BAD_SIZE);
+    REQUIRES(up==NULL || (ur==n && uc==n), BAD_SIZE);
     char jobvl = up==NULL?'N':'V';
-    REQUIRES(vp==NULL || vr==n && vc==n, BAD_SIZE);
+    REQUIRES(vp==NULL || (vr==n && vc==n), BAD_SIZE);
     char jobvr = vp==NULL?'N':'V';
     DEBUGMSG("eig_l_C");
     doublecomplex *B = (doublecomplex*)malloc(n*n*sizeof(doublecomplex));
@@ -404,9 +404,9 @@ int eig_l_C(KCMAT(a), CMAT(u), CVEC(s),CMAT(v)) {
 int eig_l_R(KDMAT(a),DMAT(u), CVEC(s),DMAT(v)) {
     integer n = ar;
     REQUIRES(ac==n && sn==n, BAD_SIZE);
-    REQUIRES(up==NULL || ur==n && uc==n, BAD_SIZE);
+    REQUIRES(up==NULL || (ur==n && uc==n), BAD_SIZE);
     char jobvl = up==NULL?'N':'V';
-    REQUIRES(vp==NULL || vr==n && vc==n, BAD_SIZE);
+    REQUIRES(vp==NULL || (vr==n && vc==n), BAD_SIZE);
     char jobvr = vp==NULL?'N':'V';
     DEBUGMSG("eig_l_R");
     double *B = (double*)malloc(n*n*sizeof(double));
@@ -989,7 +989,7 @@ int schur_l_R(KDMAT(a), DMAT(u), DMAT(s)) {
     integer n = ac;
     REQUIRES(m>=1 && n==m && ur==n && uc==n && sr==n && sc==n, BAD_SIZE);
     DEBUGMSG("schur_l_R");
-    int k;
+    //int k;
     //printf("---------------------------\n");
     //printf("%p: ",ap); for(k=0;k<n*n;k++) printf("%f ",ap[k]); printf("\n");
     //printf("%p: ",up); for(k=0;k<n*n;k++) printf("%f ",up[k]); printf("\n");

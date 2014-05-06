@@ -148,7 +148,7 @@ int ode(int method, double h, double eps_abs, double eps_rel,
 
     double* y = (double*)calloc(xin,sizeof(double));
     int i,j;
-    int status;
+    int status=0;
     for(i=0; i< xin; i++) {
         y[i] = xip[i];
         solp[i] = xip[i];

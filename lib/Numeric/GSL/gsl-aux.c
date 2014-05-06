@@ -810,7 +810,9 @@ int integrate_cquad(double f(double,void*), double a, double b, double aprec, do
     gsl_function F;
     F.function = f;
     F.params = NULL;
-    int res = gsl_integration_cquad (&F, a, b, aprec, prec, wk, result, error, neval);
+    size_t * sneval = NULL;
+    int res = gsl_integration_cquad (&F, a, b, aprec, prec, wk, result, error, sneval);
+    *neval = *sneval;
     CHECK(res,res);
     gsl_integration_cquad_workspace_free (wk); 
     OK
