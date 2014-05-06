@@ -35,7 +35,7 @@ module Numeric.LinearAlgebra.LAPACK (
     -- * Cholesky
     cholS, cholH, mbCholS, mbCholH,
     -- * QR
-    qrR, qrC,
+    qrR, qrC, qrgrR, qrgrC,
     -- * Hessenberg
     hessR, hessC,
     -- * Schur
@@ -444,9 +444,27 @@ qrAux f st a = unsafePerformIO $ do
     tau <- createVector mn
     app3 f mat a vec tau mat r st
     return (r,tau)
-  where m = rows a
-        n = cols a
-        mn = min m n
+  where
+    m = rows a
+    n = cols a
+    mn = min m n
+
+foreign import ccall unsafe "c_dorgqr" dorgqr :: TMVM
+foreign import ccall unsafe "c_zungqr" zungqr :: TCMCVCM
+
+-- | build rotation from reflectors
+qrgrR :: Int -> (Matrix Double, Vector Double) -> Matrix Double
+qrgrR = qrgrAux dorgqr "qrgrR"
+-- | build rotation from reflectors
+qrgrC :: Int -> (Matrix (Complex Double), Vector (Complex Double)) -> Matrix (Complex Double)
+qrgrC = qrgrAux zungqr "qrgrC"
+
+qrgrAux f st n (a, tau) = unsafePerformIO $ do
+    res <- createMatrix ColumnMajor (rows a) n
+    app3 f mat (fmat a) vec (subVector 0 n tau') mat res st
+    return res
+  where
+    tau' = vjoin [tau, constantD 0 n]
 
 -----------------------------------------------------------------------------------
 foreign import ccall unsafe "hess_l_R" dgehrd :: TMVM

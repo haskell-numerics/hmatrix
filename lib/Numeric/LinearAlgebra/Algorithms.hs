@@ -49,7 +49,7 @@ module Numeric.LinearAlgebra.Algorithms (
     eigenvalues, eigenvaluesSH, eigenvaluesSH',
     geigSH',
 -- ** QR
-    qr, rq,
+    qr, rq, qrRaw, qrgr,
 -- ** Cholesky
     chol, cholSH, mbCholSH,
 -- ** Hessenberg
@@ -115,7 +115,8 @@ class (Product t,
     eigOnlySH    :: Matrix t -> Vector Double
     cholSH'      :: Matrix t -> Matrix t
     mbCholSH'    :: Matrix t -> Maybe (Matrix t)
-    qr'          :: Matrix t -> (Matrix t, Matrix t)
+    qr'          :: Matrix t -> (Matrix t, Vector t)
+    qrgr'        :: Int -> (Matrix t, Vector t) -> Matrix t
     hess'        :: Matrix t -> (Matrix t, Matrix t)
     schur'       :: Matrix t -> (Matrix t, Matrix t)
 
@@ -136,7 +137,8 @@ instance Field Double where
     eigOnlySH = eigOnlyS
     cholSH' = cholS
     mbCholSH' = mbCholS
-    qr' = unpackQR . qrR
+    qr' = qrR
+    qrgr' = qrgrR
     hess' = unpackHess hessR
     schur' = schurR
 
@@ -161,7 +163,8 @@ instance Field (Complex Double) where
     eigOnlySH = eigOnlyH
     cholSH' = cholH
     mbCholSH' = mbCholH
-    qr' = unpackQR . qrC
+    qr' = qrC
+    qrgr' = qrgrC
     hess' = unpackHess hessC
     schur' = schurC
 
@@ -285,7 +288,15 @@ eigenvaluesSH m | exactHermitian m = eigenvaluesSH' m
 --
 -- If @(q,r) = qr m@ then @m == q \<> r@, where q is unitary and r is upper triangular.
 qr :: Field t => Matrix t -> (Matrix t, Matrix t)
-qr = {-# SCC "qr" #-} qr'
+qr = {-# SCC "qr" #-} unpackQR . qr'
+
+qrRaw m = qr' m
+
+{- | generate a matrix with k orthogonal columns from the output of qrRaw
+-}
+qrgr n (a,t)
+    | dim t > min (cols a) (rows a) || n < 0 || n > dim t = error "qrgr expects k <= min(rows,cols)"
+    | otherwise = qrgr' n (a,t)
 
 -- | RQ factorization.
 --

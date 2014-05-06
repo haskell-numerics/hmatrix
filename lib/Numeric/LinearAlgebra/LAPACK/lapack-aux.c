@@ -930,6 +930,47 @@ int qr_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
     OK
 }
 
+/* Subroutine */ int dorgqr_(integer *m, integer *n, integer *k, doublereal *
+	a, integer *lda, doublereal *tau, doublereal *work, integer *lwork,
+	integer *info);
+
+int c_dorgqr(KDMAT(a), KDVEC(tau), DMAT(r)) {
+    integer m = ar;
+    integer n = MIN(ac,ar);
+    integer k = taun;
+    DEBUGMSG("c_dorgqr");
+    integer lwork = 8*n; // FIXME
+    double *WORK = (double*)malloc(lwork*sizeof(double));
+    CHECK(!WORK,MEM);
+    memcpy(rp,ap,m*k*sizeof(double));
+    integer res;
+    dorgqr_ (&m,&n,&k,rp,&m,(double*)taup,WORK,&lwork,&res);
+    CHECK(res,res);
+    free(WORK);
+    OK
+}
+
+/* Subroutine */ int zungqr_(integer *m, integer *n, integer *k,
+	doublecomplex *a, integer *lda, doublecomplex *tau, doublecomplex *
+	work, integer *lwork, integer *info);
+
+int c_zungqr(KCMAT(a), KCVEC(tau), CMAT(r)) {
+    integer m = ar;
+    integer n = MIN(ac,ar);
+    integer k = taun;
+    DEBUGMSG("z_ungqr");
+    integer lwork = 8*n; // FIXME
+    doublecomplex *WORK = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
+    CHECK(!WORK,MEM);
+    memcpy(rp,ap,m*k*sizeof(doublecomplex));
+    integer res;
+    zungqr_ (&m,&n,&k,rp,&m,(doublecomplex*)taup,WORK,&lwork,&res);
+    CHECK(res,res);
+    free(WORK);
+    OK
+}
+
+
 //////////////////// Hessenberg factorization /////////////////////////
 
 /* Subroutine */ int dgehrd_(integer *n, integer *ilo, integer *ihi,

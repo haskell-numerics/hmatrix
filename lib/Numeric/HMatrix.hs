@@ -86,7 +86,7 @@ module Numeric.HMatrix (
     geigSH',
 
     -- * QR
-    qr, rq,
+    qr, rq, qrRaw, qrgr,
 
     -- * Cholesky
     chol, cholSH, mbCholSH,
