@@ -38,7 +38,7 @@ module Numeric.Container (
     -- * Matrix product
     Product(..), udot,
     Mul(..),
-    Contraction(..), mmul,
+    Contraction(..),
     optimiseMult,
     mXm,mXv,vXm,LSDiv(..), cdot, (·), dot, (<.>),
     outer, kronecker,
@@ -296,8 +296,8 @@ meanCov x = (med,cov) where
 dot :: Product e => Vector e -> Vector e -> e
 dot = udot
 
-{-# DEPRECATED (<.>) "use udot or (×)" #-}
-infixl 7 <.>
-(<.>) :: Product e => Vector e -> Vector e -> e
-(<.>) = udot
+-- | contraction operator, equivalent to (x)
+infixr 7 <.>
+(<.>) :: Contraction a b c => a -> b -> c
+(<.>) = (×)
 

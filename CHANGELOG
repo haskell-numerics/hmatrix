@@ -10,11 +10,12 @@
 
     * join deprecated, use vjoin
 
-    * added udot (unconjugated dot product)
     * added (·) = cdot, which conjugates the first input vector
-    * dot and (<.>) deprecated, use udot or (×)
+    * added udot (unconjugated dot product)
+    * deprecated dot, use udot or (×) to keep the old behaviour
     
-    * added alternative overloaded multiplication operator (×)
+    * added alternative overloaded multiplication operator (×) (or (<.>))
+    * (<.>) changed to infixr
     * added Monoid instance for Matrix using matrix product
     
     * improved build and konst

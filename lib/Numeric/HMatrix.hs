@@ -123,7 +123,7 @@ module Numeric.HMatrix (
     rand, randn, RandDist(..), randomVector, gaussianSample, uniformSample,
     
     -- * Misc
-    meanCov, peps, relativeError, haussholder, optimiseMult, udot, cdot, mmul
+    meanCov, peps, relativeError, haussholder, optimiseMult, udot, cdot, (<.>)
 ) where
 
 import Numeric.HMatrix.Data
