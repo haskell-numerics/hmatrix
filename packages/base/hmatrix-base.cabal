@@ -1,0 +1,45 @@
+Name:               hmatrix-base
+Version:            0.16.0.0
+License:            BSD3
+License-file:       LICENSE
+Author:             Alberto Ruiz
+Maintainer:         Alberto Ruiz
+Stability:          provisional
+Homepage:           https://github.com/albertoruiz/hmatrix
+Synopsis:           Numeric Linear Algebra
+Description:        Numeric Linear Algebra
+Category:           Math
+tested-with:        GHC==7.8
+
+cabal-version:      >=1.8
+
+build-type:         Simple
+
+extra-source-files:
+
+library
+
+    Build-Depends:      base >= 4 && < 5
+
+    hs-source-dirs:     src
+
+    exposed-modules:    
+
+    other-modules:      
+
+    extensions:         ForeignFunctionInterface,
+                        CPP
+
+    ghc-options:        -Wall
+
+    cc-options:         -O4 -msse2 -Wall
+
+    cpp-options:        -DBINARY
+
+    extra-libraries:    blas lapack
+
+
+source-repository head
+    type:     git
+    location: https://github.com/albertoruiz/hmatrix
+

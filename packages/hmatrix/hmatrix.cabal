@@ -16,7 +16,7 @@ tested-with:        GHC ==7.8
 
 cabal-version:      >=1.8
 
-build-type:         Custom
+build-type:         Simple
 
 extra-source-files: Config.hs THANKS.md INSTALL.md CHANGELOG
 
@@ -45,8 +45,8 @@ extra-source-files: examples/deriv.hs
                     examples/bool.hs
                     examples/multiply.hs
 
-extra-source-files: lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
-                    lib/Numeric/GSL/gsl-ode.c
+extra-source-files: src/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
+                    src/Numeric/GSL/gsl-ode.c
 
 flag dd
     description:    svd = zgesdd
@@ -74,7 +74,7 @@ flag debugnan
 
 library
 
-    Build-Depends:      base >= 4 && < 5,
+    Build-Depends:      base, hmatrix-base,
                         array,
                         storable-complex,
                         process, random,
@@ -85,7 +85,7 @@ library
     Extensions:         ForeignFunctionInterface,
                         CPP
 
-    hs-source-dirs:     lib
+    hs-source-dirs:     src
     Exposed-modules:    Data.Packed,
                         Data.Packed.Vector,
                         Data.Packed.Matrix,
@@ -127,8 +127,8 @@ library
                         Numeric.LinearAlgebra.Util.Convolution
                         
 
-    C-sources:          lib/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
-                        lib/Numeric/GSL/gsl-aux.c
+    C-sources:          src/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
+                        src/Numeric/GSL/gsl-aux.c
 
     cc-options:         -O4 -msse2 -Wall
 
@@ -195,11 +195,7 @@ library
         if arch(x86_64)
             cc-options: -fPIC
 
--- The extra-libraries required for GSL and LAPACK
--- should now be automatically detected by configure(.hs)
-
-    extra-libraries:
-    extra-lib-dirs:
+    extra-libraries: gsl
 
 source-repository head
     type:     git
