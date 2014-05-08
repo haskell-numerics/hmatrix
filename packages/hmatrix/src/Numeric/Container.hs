@@ -71,7 +71,7 @@ import Numeric.Chain
 import Numeric.IO
 import Data.Complex
 import Numeric.LinearAlgebra.Algorithms(Field,linearSolveSVD)
-import Data.Packed.Random
+import Numeric.Random
 
 ------------------------------------------------------------------
 

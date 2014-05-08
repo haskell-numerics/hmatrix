@@ -1,17 +1,17 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Packed.Vector
--- Copyright   :  (c) Alberto Ruiz 2009
+-- Module      :  Numeric.Random
+-- Copyright   :  (c) Alberto Ruiz 2009-14
 -- License     :  GPL
 --
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
 --
 -- Random vectors and matrices.
 --
 -----------------------------------------------------------------------------
 
-module Data.Packed.Random (
+module Numeric.Random (
     Seed,
     RandDist(..),
     randomVector,

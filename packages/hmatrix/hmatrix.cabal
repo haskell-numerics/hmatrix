@@ -115,7 +115,7 @@ library
                         Data.Packed.Internal.Signatures,
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix,
-                        Data.Packed.Random,
+                        Numeric.Random,
                         Numeric.GSL.Internal,
                         Numeric.GSL.Vector,
                         Numeric.Conversion,
