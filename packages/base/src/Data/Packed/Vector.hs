@@ -18,7 +18,7 @@
 
 module Data.Packed.Vector (
     Vector,
-    fromList, (|>), toList, buildVector,
+    fromList, (|>), toList, buildVector, constant,
     dim, (@>),
     subVector, takesV, vjoin, join,
     mapVector, mapVectorWithIndex, zipVector, zipVectorWith, unzipVector, unzipVectorWith,
@@ -27,6 +27,7 @@ module Data.Packed.Vector (
 ) where
 
 import Data.Packed.Internal.Vector
+import Data.Packed.Internal.Matrix
 import Foreign.Storable
 
 -------------------------------------------------------------------
@@ -93,4 +94,14 @@ unzipVector = unzipVectorWith id
 {-# DEPRECATED join "use vjoin or Data.Vector.concat" #-}
 join ::  Storable t => [Vector t] -> Vector t
 join = vjoin
+
+{- | creates a vector with a given number of equal components:
+
+@> constant 2 7
+7 |> [2.0,2.0,2.0,2.0,2.0,2.0,2.0]@
+-}
+constant :: Element a => a -> Int -> Vector a
+-- constant x n = runSTVector (newVector x n)
+constant = constantD-- about 2x faster
+
 

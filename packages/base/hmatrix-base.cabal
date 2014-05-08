@@ -33,7 +33,9 @@ library
                         Data.Packed.Matrix,
                         Data.Packed.Foreign,
                         Data.Packed.ST,
-                        Data.Packed.Development
+                        Data.Packed.Development,
+                        Numeric.Conversion
+                        Numeric.LAPACK
                         
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,

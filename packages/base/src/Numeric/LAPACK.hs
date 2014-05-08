@@ -1,19 +1,17 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numeric.LinearAlgebra.LAPACK
--- Copyright   :  (c) Alberto Ruiz 2006-7
--- License     :  GPL-style
+-- Module      :  Numeric.LAPACK
+-- Copyright   :  (c) Alberto Ruiz 2006-14
+-- License     :  BSD3
 -- 
--- Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
--- Portability :  portable (uses FFI)
 --
 -- Functional interface to selected LAPACK functions (<http://www.netlib.org/lapack>).
 --
 -----------------------------------------------------------------------------
-{-# OPTIONS_HADDOCK hide #-}
 
-module Numeric.LinearAlgebra.LAPACK (
+module Numeric.LAPACK (
     -- * Matrix product
     multiplyR, multiplyC, multiplyF, multiplyQ,
     -- * Linear systems
@@ -42,10 +40,10 @@ module Numeric.LinearAlgebra.LAPACK (
     schurR, schurC
 ) where
 
+import Data.Packed.Development
+import Data.Packed
 import Data.Packed.Internal
-import Data.Packed.Matrix
 import Numeric.Conversion
-import Numeric.GSL.Vector(vectorMapValR, FunCodeSV(Scale))
 
 import Foreign.Ptr(nullPtr)
 import Foreign.C.Types
@@ -267,9 +265,8 @@ fixeig1 s = toComplex' (subVector 0 r (asReal s), subVector r r (asReal s))
 fixeig  []  _ =  []
 fixeig [_] [v] = [comp' v]
 fixeig ((r1:+i1):(r2:+i2):r) (v1:v2:vs)
-    | r1 == r2 && i1 == (-i2) = toComplex' (v1,v2) : toComplex' (v1,scale (-1) v2) : fixeig r vs
+    | r1 == r2 && i1 == (-i2) = toComplex' (v1,v2) : toComplex' (v1, mapVector negate v2) : fixeig r vs
     | otherwise = comp' v1 : fixeig ((r2:+i2):r) (v2:vs)
-  where scale = vectorMapValR Scale
 fixeig _ _ = error "fixeig with impossible inputs"
 
 

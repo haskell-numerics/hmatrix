@@ -9,15 +9,15 @@
 -- |
 -- Module      :  Numeric.Conversion
 -- Copyright   :  (c) Alberto Ruiz 2010
--- License     :  GPL-style
---
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- License     :  BSD3
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
--- Portability :  portable
 --
 -- Conversion routines
 --
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
+
 
 module Numeric.Conversion (
     Complexable(..), RealElement,
