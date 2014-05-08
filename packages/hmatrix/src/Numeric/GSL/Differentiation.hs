@@ -1,13 +1,10 @@
-{-# OPTIONS  #-}
------------------------------------------------------------------------------
 {- |
 Module      :  Numeric.GSL.Differentiation
 Copyright   :  (c) Alberto Ruiz 2006
-License     :  GPL-style
+License     :  GPL
 
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
-Portability :  uses ffi
 
 Numerical differentiation.
 
@@ -15,7 +12,8 @@ Numerical differentiation.
 
 From the GSL manual: \"The functions described in this chapter compute numerical derivatives by finite differencing. An adaptive algorithm is used to find the best choice of finite difference and to estimate the error in the derivative.\"
 -}
------------------------------------------------------------------------------
+
+
 module Numeric.GSL.Differentiation (
     derivCentral,
     derivForward,
@@ -26,7 +24,7 @@ import Foreign.C.Types
 import Foreign.Marshal.Alloc(malloc, free)
 import Foreign.Ptr(Ptr, FunPtr, freeHaskellFunPtr)
 import Foreign.Storable(peek)
-import Data.Packed.Internal(check,(//))
+import Numeric.GSL.Internal
 import System.IO.Unsafe(unsafePerformIO)
 
 derivGen ::

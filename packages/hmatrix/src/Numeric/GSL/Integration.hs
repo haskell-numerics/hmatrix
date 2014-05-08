@@ -1,19 +1,15 @@
-{-# OPTIONS #-}
------------------------------------------------------------------------------
 {- |
 Module      :  Numeric.GSL.Integration
 Copyright   :  (c) Alberto Ruiz 2006
-License     :  GPL-style
-
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+License     :  GPL
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
-Portability :  uses ffi
 
 Numerical integration routines.
 
 <http://www.gnu.org/software/gsl/manual/html_node/Numerical-Integration.html#Numerical-Integration>
 -}
------------------------------------------------------------------------------
+
 
 module Numeric.GSL.Integration (
     integrateQNG,
@@ -28,7 +24,7 @@ import Foreign.C.Types
 import Foreign.Marshal.Alloc(malloc, free)
 import Foreign.Ptr(Ptr, FunPtr, freeHaskellFunPtr)
 import Foreign.Storable(peek)
-import Data.Packed.Internal(check,(//))
+import Numeric.GSL.Internal
 import System.IO.Unsafe(unsafePerformIO)
 
 eps = 1e-12

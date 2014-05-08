@@ -1,13 +1,9 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
------------------------------------------------------------------------------
 {- |
 Module      :  Numeric.GSL.Minimization
 Copyright   :  (c) Alberto Ruiz 2006-9
-License     :  GPL-style
-
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+License     :  GPL
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
-Portability :  uses ffi
 
 Minimization of a multidimensional function using some of the algorithms described in:
 
@@ -48,7 +44,7 @@ The nmsimplex2 version is a new O(N) implementation of the earlier O(N^2) nmsimp
 
 -}
 
------------------------------------------------------------------------------
+
 module Numeric.GSL.Minimization (
     minimize, minimizeV, MinimizeMethod(..),
     minimizeD, minimizeVD, MinimizeMethodD(..),
@@ -60,8 +56,7 @@ module Numeric.GSL.Minimization (
 ) where
 
 
-import Data.Packed.Internal
-import Data.Packed.Matrix
+import Data.Packed
 import Numeric.GSL.Internal
 
 import Foreign.Ptr(Ptr, FunPtr, freeHaskellFunPtr)
@@ -112,7 +107,7 @@ uniMinimizeGen m f xmin xl xu epsrel maxit = unsafePerformIO $ do
 
 
 foreign import ccall safe "uniMinimize"
-    c_uniMinize:: CInt -> FunPtr (Double -> Double) -> Double -> CInt -> Double -> Double -> Double -> TM
+    c_uniMinize:: CInt -> FunPtr (Double -> Double) -> Double -> CInt -> Double -> Double -> Double -> TM Res
 
 data MinimizeMethod = NMSimplex
                     | NMSimplex2
@@ -150,13 +145,13 @@ minimizeV method eps maxit szv f xiv = unsafePerformIO $ do
                          "minimize"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
-        sol = cdat $ dropColumns 3 $ dropRows (it-1) path
+        sol = flatten $ dropColumns 3 $ dropRows (it-1) path
     freeHaskellFunPtr fp
     return (sol, path)
 
 
 foreign import ccall safe "gsl-aux.h minimize"
-    c_minimize:: CInt -> FunPtr (CInt -> Ptr Double -> Double) -> Double -> CInt -> TVVM
+    c_minimize:: CInt -> FunPtr (CInt -> Ptr Double -> Double) -> Double -> CInt -> TV(TV(TM Res))
 
 ----------------------------------------------------------------------------------
 
@@ -207,7 +202,7 @@ minimizeVD method eps maxit istep tol f df xiv = unsafePerformIO $ do
                          "minimizeD"
     let it = round (rawpath @@> (maxit-1,0))
         path = takeRows it rawpath
-        sol = cdat $ dropColumns 2 $ dropRows (it-1) path
+        sol = flatten $ dropColumns 2 $ dropRows (it-1) path
     freeHaskellFunPtr fp
     freeHaskellFunPtr dfp
     return (sol,path)
@@ -215,9 +210,9 @@ minimizeVD method eps maxit istep tol f df xiv = unsafePerformIO $ do
 foreign import ccall safe "gsl-aux.h minimizeD"
     c_minimizeD :: CInt
                 -> FunPtr (CInt -> Ptr Double -> Double)
-                -> FunPtr TVV
+                -> FunPtr (TV (TV Res))
                 -> Double -> Double -> Double -> CInt
-                -> TVM
+                -> TV (TM Res)
 
 ---------------------------------------------------------------------
 

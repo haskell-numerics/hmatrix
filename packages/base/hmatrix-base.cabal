@@ -7,7 +7,8 @@ Maintainer:         Alberto Ruiz
 Stability:          provisional
 Homepage:           https://github.com/albertoruiz/hmatrix
 Synopsis:           Numeric Linear Algebra
-Description:        Numeric Linear Algebra
+Description:        Basic support for dense linear algebra
+                    internally implemented using BLAS and LAPACK.
 Category:           Math
 tested-with:        GHC==7.8
 
@@ -35,7 +36,7 @@ library
                         Data.Packed.ST,
                         Data.Packed.Development,
                         Numeric.Conversion
-                        Numeric.LAPACK
+                        Numeric.LinearAlgebra.LAPACK
                         
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
@@ -52,7 +53,6 @@ library
     ghc-options:        -Wall
                         -fno-warn-missing-signatures
                         -fno-warn-orphans
---                        -fno-warn-unused-binds
 
     cc-options:         -O4 -msse2 -Wall
 

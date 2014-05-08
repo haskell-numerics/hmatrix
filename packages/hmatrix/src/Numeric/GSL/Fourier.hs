@@ -1,26 +1,23 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
------------------------------------------------------------------------------
 {- |
 Module      : Numeric.GSL.Fourier
 Copyright   :  (c) Alberto Ruiz 2006
-License     :  GPL-style
-
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+License     :  GPL
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
-Portability :  uses ffi
 
 Fourier Transform.
 
 <http://www.gnu.org/software/gsl/manual/html_node/Fast-Fourier-Transforms.html#Fast-Fourier-Transforms>
 
 -}
------------------------------------------------------------------------------
+
 module Numeric.GSL.Fourier (
     fft,
     ifft
 ) where
 
-import Data.Packed.Internal
+import Data.Packed
+import Numeric.GSL.Internal
 import Data.Complex
 import Foreign.C.Types
 import System.IO.Unsafe (unsafePerformIO)
@@ -30,7 +27,7 @@ genfft code v = unsafePerformIO $ do
     app2 (c_fft code) vec v vec r "fft"
     return r
 
-foreign import ccall unsafe "gsl-aux.h fft" c_fft ::  CInt -> TCVCV
+foreign import ccall unsafe "gsl-aux.h fft" c_fft ::  CInt -> TCV (TCV Res)
 
 
 {- | Fast 1D Fourier transform of a 'Vector' @(@'Complex' 'Double'@)@ using /gsl_fft_complex_forward/. It uses the same scaling conventions as GNU Octave.

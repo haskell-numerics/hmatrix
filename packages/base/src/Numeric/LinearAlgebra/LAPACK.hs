@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numeric.LAPACK
+-- Module      :  Numeric.LinearAlgebra.LAPACK
 -- Copyright   :  (c) Alberto Ruiz 2006-14
 -- License     :  BSD3
 -- 
@@ -11,7 +11,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Numeric.LAPACK (
+module Numeric.LinearAlgebra.LAPACK (
     -- * Matrix product
     multiplyR, multiplyC, multiplyF, multiplyQ,
     -- * Linear systems

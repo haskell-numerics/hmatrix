@@ -1,23 +1,43 @@
+-- |
 -- Module      :  Numeric.GSL.Internal
 -- Copyright   :  (c) Alberto Ruiz 2009
 -- License     :  GPL
---
--- Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
--- Portability :  uses ffi
+--
 --
 -- Auxiliary functions.
 --
--- #hide
 
-module Numeric.GSL.Internal where
 
-import Data.Packed.Internal
+module Numeric.GSL.Internal(
+    iv,
+    mkVecfun,
+    mkVecVecfun,
+    mkDoubleVecVecfun,
+    mkDoublefun,
+    aux_vTov,
+    mkVecMatfun,
+    mkDoubleVecMatfun,
+    aux_vTom,
+    createV,
+    createMIO,
+    module Data.Packed.Development,
+    check,
+    Res,TV,TM,TCV,TCM
+) where
+
+import Data.Packed
+import Data.Packed.Development hiding (check)
+import Data.Complex
 
 import Foreign.Marshal.Array(copyArray)
 import Foreign.Ptr(Ptr, FunPtr)
 import Foreign.C.Types
+import Foreign.C.String(peekCString)
 import System.IO.Unsafe(unsafePerformIO)
+import Data.Vector.Storable(unsafeWith)
+import Control.Monad(when)
 
 iv :: (Vector Double -> Double) -> (CInt -> Ptr Double -> Double)
 iv f n p = f (createV (fromIntegral n) copy "iv") where
@@ -74,3 +94,33 @@ createMIO r c fun msg = do
     res <- createMatrix RowMajor r c
     app1 fun mat res msg
     return res
+
+--------------------------------------------------------------------------------
+
+-- | check the error code
+check :: String -> IO CInt -> IO ()
+check msg f = do
+    err <- f
+    when (err/=0) $ do
+        ps <- gsl_strerror err
+        s <- peekCString ps
+        error (msg++": "++s)
+    return ()
+
+-- | description of GSL error codes
+foreign import ccall unsafe "gsl_strerror" gsl_strerror :: CInt -> IO (Ptr CChar)
+
+type PF = Ptr Float
+type PD = Ptr Double
+type PQ = Ptr (Complex Float)
+type PC = Ptr (Complex Double)
+
+type Res = IO CInt
+type TV x  = CInt -> PD -> x
+type TM x  = CInt -> CInt -> PD -> x
+type TCV x = CInt -> PC -> x
+type TCM x = CInt -> CInt -> PC -> x
+
+type TVV = TV (TV Res)
+type TVM = TV (TM Res)
+

@@ -42,7 +42,7 @@ module Numeric.ContainerBoot (
 import Data.Packed
 import Data.Packed.ST as ST
 import Numeric.Conversion
-import Data.Packed.Internal
+import Data.Packed.Development
 import Numeric.GSL.Vector
 import Data.Complex
 import Control.Applicative((<*>))
@@ -201,7 +201,7 @@ instance Container Vector Float where
     equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
     arctan2 = vectorZipF ATan2
     scalar x = fromList [x]
-    konst' = constantD
+    konst' = constant
     build' = buildV
     conj = id
     cmap = mapVector
@@ -229,7 +229,7 @@ instance Container Vector Double where
     equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
     arctan2 = vectorZipR ATan2
     scalar x = fromList [x]
-    konst' = constantD
+    konst' = constant
     build' = buildV
     conj = id
     cmap = mapVector
@@ -257,7 +257,7 @@ instance Container Vector (Complex Double) where
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     arctan2 = vectorZipC ATan2
     scalar x = fromList [x]
-    konst' = constantD
+    konst' = constant
     build' = buildV
     conj = conjugateC
     cmap = mapVector
@@ -285,7 +285,7 @@ instance Container Vector (Complex Float) where
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     arctan2 = vectorZipQ ATan2
     scalar x = fromList [x]
-    konst' = constantD
+    konst' = constant
     build' = buildV
     conj = conjugateQ
     cmap = mapVector
@@ -569,7 +569,7 @@ diag v = diagRect 0 v n n where n = dim v
 
 -- | creates the identity matrix of given dimension
 ident :: (Num a, Element a) => Int -> Matrix a
-ident n = diag (constantD 1 n)
+ident n = diag (constant 1 n)
 
 --------------------------------------------------------
 

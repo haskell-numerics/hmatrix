@@ -30,7 +30,7 @@ module Numeric.Container (
     -- * Basic functions
     module Data.Packed,
     konst, build,
-    constant, linspace,
+    linspace,
     diag, ident,
     ctrans,
     -- * Generic operations
@@ -64,8 +64,7 @@ module Numeric.Container (
     fscanfVector, fprintfVector, freadVector, fwriteVector,
 ) where
 
-import Data.Packed
-import Data.Packed.Internal(constantD)
+import Data.Packed hiding (stepD, stepF, condD, condF, conjugateC, conjugateQ)
 import Numeric.ContainerBoot
 import Numeric.Chain
 import Numeric.IO
@@ -74,15 +73,6 @@ import Numeric.LinearAlgebra.Algorithms(Field,linearSolveSVD)
 import Numeric.Random
 
 ------------------------------------------------------------------
-
-{- | creates a vector with a given number of equal components:
-
-@> constant 2 7
-7 |> [2.0,2.0,2.0,2.0,2.0,2.0,2.0]@
--}
-constant :: Element a => a -> Int -> Vector a
--- constant x n = runSTVector (newVector x n)
-constant = constantD-- about 2x faster
 
 {- | Creates a real vector containing a range of values:
 

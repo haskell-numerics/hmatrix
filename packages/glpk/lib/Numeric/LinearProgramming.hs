@@ -5,7 +5,7 @@ Module      :  Numeric.LinearProgramming
 Copyright   :  (c) Alberto Ruiz 2010
 License     :  GPL
 
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
 
 This module provides an interface to the standard simplex algorithm.
@@ -67,7 +67,7 @@ module Numeric.LinearProgramming(
     Solution(..)
 ) where
 
-import Numeric.LinearAlgebra hiding (i)
+import Data.Packed
 import Data.Packed.Development
 import Foreign(Ptr)
 import System.IO.Unsafe(unsafePerformIO)
@@ -224,7 +224,6 @@ foreign import ccall unsafe "c_simplex_sparse" c_simplex_sparse
 simplexSparse :: Int -> Int -> Matrix Double -> Matrix Double -> Vector Double
 simplexSparse m n c b = unsafePerformIO $ do
     s <- createVector (2+n)
-    let fi = fromIntegral
     app3 (c_simplex_sparse (fi m) (fi n)) mat (cmat c) mat (cmat b) vec s "c_simplex_sparse"
     return s
 

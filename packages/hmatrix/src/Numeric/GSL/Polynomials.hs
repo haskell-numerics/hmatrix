@@ -1,25 +1,23 @@
-{-# LANGUAGE CPP, ForeignFunctionInterface #-}
------------------------------------------------------------------------------
 {- |
 Module      :  Numeric.GSL.Polynomials
 Copyright   :  (c) Alberto Ruiz 2006
-License     :  GPL-style
-
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+License     :  GPL
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
-Portability :  uses ffi
 
 Polynomials.
 
 <http://www.gnu.org/software/gsl/manual/html_node/General-Polynomial-Equations.html#General-Polynomial-Equations>
 
 -}
------------------------------------------------------------------------------
+
+
 module Numeric.GSL.Polynomials (
     polySolve
 ) where
 
-import Data.Packed.Internal
+import Data.Packed
+import Numeric.GSL.Internal
 import Data.Complex
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -55,4 +53,5 @@ polySolve' v | dim v > 1 = unsafePerformIO $ do
     return r
              | otherwise = error "polySolve on a polynomial of degree zero"
 
-foreign import ccall unsafe "gsl-aux.h polySolve" c_polySolve:: TVCV
+foreign import ccall unsafe "gsl-aux.h polySolve" c_polySolve:: TV (TCV Res)
+

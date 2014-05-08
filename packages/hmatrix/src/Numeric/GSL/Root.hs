@@ -2,10 +2,8 @@
 Module      :  Numeric.GSL.Root
 Copyright   :  (c) Alberto Ruiz 2009
 License     :  GPL
-
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
-Portability :  uses ffi
 
 Multidimensional root finding.
 
@@ -41,14 +39,16 @@ module Numeric.GSL.Root (
     rootJ, RootMethodJ(..),
 ) where
 
-import Data.Packed.Internal
-import Data.Packed.Matrix
+import Data.Packed
 import Numeric.GSL.Internal
 import Foreign.Ptr(FunPtr, freeHaskellFunPtr)
 import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
 
 -------------------------------------------------------------------------
+type TVV = TV (TV Res)
+type TVM = TV (TM Res)
+
 
 data UniRootMethod = Bisection
                    | FalsePos
@@ -76,7 +76,7 @@ uniRootGen m f xl xu epsrel maxit = unsafePerformIO $ do
     return (sol !! 1, path)
 
 foreign import ccall safe "root"
-    c_root:: CInt -> FunPtr (Double -> Double) -> Double -> CInt -> Double -> Double -> TM
+    c_root:: CInt -> FunPtr (Double -> Double) -> Double -> CInt -> Double -> Double -> TM Res
 
 -------------------------------------------------------------------------
 data UniRootMethodJ = UNewton
@@ -108,7 +108,7 @@ uniRootJGen m f df x epsrel maxit = unsafePerformIO $ do
 
 foreign import ccall safe "rootj"
     c_rootj :: CInt -> FunPtr (Double -> Double) -> FunPtr (Double -> Double)
-            -> Double -> CInt -> Double -> TM
+            -> Double -> CInt -> Double -> TM Res
 
 -------------------------------------------------------------------------
 

@@ -23,7 +23,8 @@ module Data.Packed.Vector (
     subVector, takesV, vjoin, join,
     mapVector, mapVectorWithIndex, zipVector, zipVectorWith, unzipVector, unzipVectorWith,
     mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
-    foldLoop, foldVector, foldVectorG, foldVectorWithIndex
+    foldLoop, foldVector, foldVectorG, foldVectorWithIndex,
+    stepD, stepF, condD, condF, conjugateC, conjugateQ
 ) where
 
 import Data.Packed.Internal.Vector

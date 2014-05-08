@@ -3,9 +3,8 @@ Module      :  Numeric.GSL.Fitting
 Copyright   :  (c) Alberto Ruiz 2010
 License     :  GPL
 
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
-Portability :  uses ffi
 
 Nonlinear Least-Squares Fitting
 
@@ -42,7 +41,7 @@ expModelDer [a,lambda,b] [t] = [[exp (-lambda * t), -t * a * exp(-lambda*t) , 1]
 (1.0192487112786812,3.782067731353722e-2)]
 
 -}
------------------------------------------------------------------------------
+
 
 module Numeric.GSL.Fitting (
     -- * Levenberg-Marquardt
@@ -51,7 +50,6 @@ module Numeric.GSL.Fitting (
     fitModelScaled, fitModel
 ) where
 
-import Data.Packed.Internal
 import Numeric.LinearAlgebra
 import Numeric.GSL.Internal
 
@@ -60,6 +58,9 @@ import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
 
 -------------------------------------------------------------------------
+
+type TVV = TV (TV Res)
+type TVM = TV (TM Res)
 
 data FittingMethod = LevenbergMarquardtScaled -- ^ Interface to gsl_multifit_fdfsolver_lmsder. This is a robust and efficient version of the Levenberg-Marquardt algorithm as implemented in the scaled lmder routine in minpack. Minpack was written by Jorge J. More, Burton S. Garbow and Kenneth E. Hillstrom.
                    | LevenbergMarquardt -- ^ This is an unscaled version of the lmder algorithm. The elements of the diagonal scaling matrix D are set to 1. This algorithm may be useful in circumstances where the scaled version of lmder converges too slowly, or the function is already scaled appropriately.

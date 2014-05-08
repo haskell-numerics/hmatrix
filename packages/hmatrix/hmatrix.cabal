@@ -6,11 +6,11 @@ Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          provisional
 Homepage:           https://github.com/albertoruiz/hmatrix
-Synopsis:           Linear algebra and numerical computation
+Synopsis:           Numerical computation
 Description:        Purely functional interface to basic linear algebra
                     and other numerical computations, internally implemented using
                     GSL, BLAS and LAPACK.
-                    
+
 Category:           Math
 tested-with:        GHC ==7.8
 
@@ -45,8 +45,7 @@ extra-source-files: examples/deriv.hs
                     examples/bool.hs
                     examples/multiply.hs
 
-extra-source-files: src/Numeric/LinearAlgebra/LAPACK/lapack-aux.h,
-                    src/Numeric/GSL/gsl-ode.c
+extra-source-files: src/Numeric/GSL/gsl-ode.c
 
 flag dd
     description:    svd = zgesdd
@@ -74,23 +73,15 @@ flag debugnan
 
 library
 
-    Build-Depends:      base, hmatrix-base,
-                        array,
-                        storable-complex,
-                        process, random,
-                        vector >= 0.8,
-                        binary,
-                        deepseq
+    Build-Depends:      base, hmatrix-base, array, vector,
+                        process, random
+
 
     Extensions:         ForeignFunctionInterface,
                         CPP
 
     hs-source-dirs:     src
-    Exposed-modules:    Data.Packed,
-                        Data.Packed.Vector,
-                        Data.Packed.Matrix,
-                        Data.Packed.Foreign,
-                        Numeric.GSL.Differentiation,
+    Exposed-modules:    Numeric.GSL.Differentiation,
                         Numeric.GSL.Integration,
                         Numeric.GSL.Fourier,
                         Numeric.GSL.Polynomials,
@@ -101,24 +92,15 @@ library
                         Numeric.GSL,
                         Numeric.Container,
                         Numeric.LinearAlgebra,
-                        Numeric.LinearAlgebra.LAPACK,
                         Numeric.LinearAlgebra.Algorithms,
                         Numeric.LinearAlgebra.Util,
-                        Data.Packed.ST,
-                        Data.Packed.Development
                         Graphics.Plot,
                         Numeric.HMatrix,
                         Numeric.HMatrix.Data,
                         Numeric.HMatrix.Devel
-    other-modules:      Data.Packed.Internal,
-                        Data.Packed.Internal.Common,
-                        Data.Packed.Internal.Signatures,
-                        Data.Packed.Internal.Vector,
-                        Data.Packed.Internal.Matrix,
-                        Numeric.Random,
+    other-modules:      Numeric.Random,
                         Numeric.GSL.Internal,
                         Numeric.GSL.Vector,
-                        Numeric.Conversion,
                         Numeric.ContainerBoot,
                         Numeric.IO,
                         Numeric.Chain,
@@ -127,8 +109,7 @@ library
                         Numeric.LinearAlgebra.Util.Convolution
                         
 
-    C-sources:          src/Numeric/LinearAlgebra/LAPACK/lapack-aux.c,
-                        src/Numeric/GSL/gsl-aux.c
+    C-sources:          src/Numeric/GSL/gsl-aux.c
 
     cc-options:         -O4 -msse2 -Wall
 

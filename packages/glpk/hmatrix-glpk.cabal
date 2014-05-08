@@ -1,5 +1,5 @@
 Name:               hmatrix-glpk
-Version:            0.3.1
+Version:            0.4.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -22,7 +22,7 @@ extra-source-files:     examples/simplex1.hs
                         examples/simplex4.hs
 
 library
-    Build-Depends:      base >= 3 && < 5, hmatrix >= 0.8.3
+    Build-Depends:      base, hmatrix-base
 
     hs-source-dirs:     lib
 

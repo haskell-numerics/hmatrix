@@ -24,7 +24,8 @@ module Data.Packed.Development (
     unsafeFromForeignPtr,
     unsafeToForeignPtr,
     check, (//),
-    at', atM', fi, table
+    at', atM', fi, table,
+    conformMs, conformVs, shSize, splitEvery
 ) where
 
 import Data.Packed.Internal

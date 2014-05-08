@@ -2,10 +2,8 @@
 Module      :  Numeric.GSL.ODE
 Copyright   :  (c) Alberto Ruiz 2010
 License     :  GPL
-
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
-Portability :  uses ffi
 
 Solution of ordinary differential equation (ODE) initial value problems.
 
@@ -34,7 +32,7 @@ module Numeric.GSL.ODE (
     odeSolve, odeSolveV, ODEMethod(..), Jacobian
 ) where
 
-import Data.Packed.Internal
+import Data.Packed
 import Numeric.GSL.Internal
 
 import Foreign.Ptr(FunPtr, nullFunPtr, freeHaskellFunPtr)
@@ -42,6 +40,10 @@ import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
 
 -------------------------------------------------------------------------
+
+type TVV  = TV (TV Res)
+type TVM  = TV (TM Res)
+type TVVM = TV (TV (TM Res))
 
 type Jacobian = Double -> Vector Double -> Matrix Double
 
