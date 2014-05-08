@@ -1,29 +1,25 @@
 -----------------------------------------------------------------------------
 {- |
 Module      :  Data.Packed
-Copyright   :  (c) Alberto Ruiz 2006-2010
-License     :  GPL-style
-
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+Copyright   :  (c) Alberto Ruiz 2006-2014
+License     :  BSD3
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
-Portability :  uses ffi
 
 Types for dense 'Vector' and 'Matrix' of 'Storable' elements.
 
 -}
 -----------------------------------------------------------------------------
-{-# OPTIONS_HADDOCK hide #-}
 
 module Data.Packed (
+    -- * Vector
+    --
+    -- | Vectors are @Data.Vector.Storable.Vector@ from the \"vector\" package.
     module Data.Packed.Vector,
+    -- * Matrix
     module Data.Packed.Matrix,
---    module Numeric.Conversion,
---    module Data.Packed.Random,
---    module Data.Complex
 ) where
 
 import Data.Packed.Vector
 import Data.Packed.Matrix
---import Data.Packed.Random
---import Data.Complex
---import Numeric.Conversion
+

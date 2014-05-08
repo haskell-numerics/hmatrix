@@ -6,9 +6,8 @@
 -- |
 -- Module      :  Data.Packed.ST
 -- Copyright   :  (c) Alberto Ruiz 2008
--- License     :  GPL-style
---
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- License     :  BSD3
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
 -- Portability :  portable
 --
@@ -16,7 +15,6 @@
 -- See examples/inplace.hs in the distribution.
 --
 -----------------------------------------------------------------------------
-{-# OPTIONS_HADDOCK hide #-}
 
 module Data.Packed.ST (
     -- * Mutable Vectors
@@ -177,3 +175,4 @@ newUndefinedMatrix ord r c = unsafeIOToST $ fmap STMatrix $ createMatrix ord r c
 {-# NOINLINE newMatrix #-}
 newMatrix :: Storable t => t -> Int -> Int -> ST s (STMatrix s t)
 newMatrix v r c = unsafeThawMatrix $ reshape c $ runSTVector $ newVector v (r*c)
+

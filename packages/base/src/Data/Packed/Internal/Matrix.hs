@@ -2,20 +2,16 @@
 {-# LANGUAGE FlexibleContexts         #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE BangPatterns             #-}
------------------------------------------------------------------------------
+
 -- |
 -- Module      :  Data.Packed.Internal.Matrix
 -- Copyright   :  (c) Alberto Ruiz 2007
--- License     :  GPL-style
---
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- License     :  BSD3
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
--- Portability :  portable (uses FFI)
 --
 -- Internal matrix representation
 --
------------------------------------------------------------------------------
--- #hide
 
 module Data.Packed.Internal.Matrix(
     Matrix(..), rows, cols, cdat, fdat,
@@ -30,7 +26,6 @@ module Data.Packed.Internal.Matrix(
     subMatrix,
     liftMatrix, liftMatrix2,
     (@@>), atM',
-    saveMatrix,
     singleton,
     emptyM,
     size, shSize, conformVs, conformMs, conformVTo, conformMTo
@@ -46,7 +41,6 @@ import Foreign.Ptr(Ptr, castPtr)
 import Foreign.Storable(Storable, peekElemOff, pokeElemOff, poke, sizeOf)
 import Data.Complex(Complex)
 import Foreign.C.Types
-import Foreign.C.String(newCString)
 import System.IO.Unsafe(unsafePerformIO)
 import Control.DeepSeq
 
@@ -290,34 +284,6 @@ instance Element (Complex Double) where
 
 -------------------------------------------------------------------
 
-transdata' :: Storable a => Int -> Vector a -> Int -> Vector a
-transdata' c1 v c2 =
-    if noneed
-        then v
-        else unsafePerformIO $ do
-                w <- createVector (r2*c2)
-                unsafeWith v $ \p ->
-                    unsafeWith w $ \q -> do
-                        let go (-1) _ = return ()
-                            go !i (-1) = go (i-1) (c1-1)
-                            go !i !j = do x <- peekElemOff p (i*c1+j)
-                                          pokeElemOff      q (j*c2+i) x
-                                          go i (j-1)
-                        go (r1-1) (c1-1)
-                return w
-  where r1 = dim v `div` c1
-        r2 = dim v `div` c2
-        noneed = dim v == 0 || r1 == 1 || c1 == 1
-
--- {-# SPECIALIZE transdata' :: Int -> Vector Double -> Int ->  Vector Double #-}
--- {-# SPECIALIZE transdata' :: Int -> Vector (Complex Double) -> Int -> Vector (Complex Double) #-}
-
--- I don't know how to specialize...
--- The above pragmas only seem to work on top level defs
--- Fortunately everything seems to work using the above class
-
--- C versions, still a little faster:
-
 transdataAux fun c1 d c2 =
     if noneed
         then d
@@ -354,16 +320,6 @@ foreign import ccall unsafe "transP" ctransP :: CInt -> CInt -> Ptr () -> CInt -
 
 ----------------------------------------------------------------------
 
-constant' v n = unsafePerformIO $ do
-    w <- createVector n
-    unsafeWith w $ \p -> do
-        let go (-1) = return ()
-            go !k = pokeElemOff p k v >> go (k-1)
-        go (n-1)
-    return w
-
--- C versions
-
 constantAux fun x n = unsafePerformIO $ do
     v <- createVector n
     px <- newArray [x]
@@ -371,20 +327,12 @@ constantAux fun x n = unsafePerformIO $ do
     free px
     return v
 
-constantF :: Float -> Int -> Vector Float
-constantF = constantAux cconstantF
 foreign import ccall unsafe "constantF" cconstantF :: Ptr Float -> TF
 
-constantR :: Double -> Int -> Vector Double
-constantR = constantAux cconstantR
 foreign import ccall unsafe "constantR" cconstantR :: Ptr Double -> TV
 
-constantQ :: Complex Float -> Int -> Vector (Complex Float)
-constantQ = constantAux cconstantQ
 foreign import ccall unsafe "constantQ" cconstantQ :: Ptr (Complex Float) -> TQV
 
-constantC :: Complex Double -> Int -> Vector (Complex Double)
-constantC = constantAux cconstantC
 foreign import ccall unsafe "constantC" cconstantC :: Ptr (Complex Double) -> TCV
 
 constantP :: Storable a => a -> Int -> Vector a
@@ -428,23 +376,6 @@ subMatrix' (r0,c0) (rt,ct) (Matrix { icols = c, xdat = v, order = RowMajor}) = M
 subMatrix' (r0,c0) (rt,ct) m = trans $ subMatrix' (c0,r0) (ct,rt) (trans m)
 
 --------------------------------------------------------------------------
-
--- | Saves a matrix as 2D ASCII table.
-saveMatrix :: FilePath
-           -> String     -- ^ format (%f, %g, %e)
-           -> Matrix Double
-           -> IO ()
-saveMatrix filename fmt m = do
-    charname <- newCString filename
-    charfmt <- newCString fmt
-    let o = if orderOf m == RowMajor then 1 else 0
-    app1 (matrix_fprintf charname charfmt o) mat m "matrix_fprintf"
-    free charname
-    free charfmt
-
-foreign import ccall unsafe "matrix_fprintf" matrix_fprintf :: Ptr CChar -> Ptr CChar -> CInt -> TM
-
-----------------------------------------------------------------------
 
 maxZ xs = if minimum xs == 0 then 0 else maximum xs
 

@@ -3,9 +3,8 @@
 -- |
 -- Module      :  Data.Packed.Development
 -- Copyright   :  (c) Alberto Ruiz 2009
--- License     :  GPL
---
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- License     :  BSD3
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
 -- Portability :  portable
 --
@@ -14,7 +13,6 @@
 -- in the @examples\/devel@ folder included in the package.
 --
 -----------------------------------------------------------------------------
-{-# OPTIONS_HADDOCK hide #-}
 
 module Data.Packed.Development (
     createVector, createMatrix,
@@ -30,3 +28,4 @@ module Data.Packed.Development (
 ) where
 
 import Data.Packed.Internal
+

@@ -15,22 +15,42 @@ cabal-version:      >=1.8
 
 build-type:         Simple
 
-extra-source-files:
+extra-source-files: src/C/lapack-aux.h
 
 library
 
-    Build-Depends:      base >= 4 && < 5
+    Build-Depends:      base,
+                        binary,
+                        array,
+                        deepseq,
+                        storable-complex,
+                        vector >= 0.8
 
     hs-source-dirs:     src
 
-    exposed-modules:    
+    exposed-modules:    Data.Packed,
+                        Data.Packed.Vector,
+                        Data.Packed.Matrix,
+                        Data.Packed.Foreign,
+                        Data.Packed.ST,
+                        Data.Packed.Development
+                        
+    other-modules:      Data.Packed.Internal,
+                        Data.Packed.Internal.Common,
+                        Data.Packed.Internal.Signatures,
+                        Data.Packed.Internal.Vector,
+                        Data.Packed.Internal.Matrix
 
-    other-modules:      
+    C-sources:          src/C/lapack-aux.c
+                        
 
     extensions:         ForeignFunctionInterface,
                         CPP
 
     ghc-options:        -Wall
+                        -fno-warn-missing-signatures
+                        -fno-warn-orphans
+--                        -fno-warn-unused-binds
 
     cc-options:         -O4 -msse2 -Wall
 

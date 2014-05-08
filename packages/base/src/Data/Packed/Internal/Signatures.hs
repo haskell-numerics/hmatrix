@@ -1,16 +1,13 @@
------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Signatures
 -- Copyright   :  (c) Alberto Ruiz 2009
--- License     :  GPL-style
---
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- License     :  BSD3
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
--- Portability :  portable (uses FFI)
 --
 -- Signatures of the C functions.
 --
------------------------------------------------------------------------------
+
 
 module Data.Packed.Internal.Signatures where
 
@@ -70,3 +67,4 @@ type TVCV = CInt -> PD -> TCV                   --
 type TCVM = CInt -> PC -> TM                    --
 type TMCVM = CInt -> CInt -> PD -> TCVM         --
 type TMMCVM = CInt -> CInt -> PD -> TMCVM       --
+

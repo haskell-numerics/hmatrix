@@ -1,18 +1,15 @@
 {-# LANGUAGE CPP #-}
------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Common
 -- Copyright   :  (c) Alberto Ruiz 2007
--- License     :  GPL-style
---
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- License     :  BSD3
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
--- Portability :  portable (uses FFI)
+--
 --
 -- Development utilities.
 --
------------------------------------------------------------------------------
--- #hide
+
 
 module Data.Packed.Internal.Common(
   Adapt,
@@ -21,12 +18,11 @@ module Data.Packed.Internal.Common(
   (//), check, mbCatch,
   splitEvery, common, compatdim,
   fi,
-  table
+  table,
+  finit
 ) where
 
-import Foreign
 import Control.Monad(when)
-import Foreign.C.String(peekCString)
 import Foreign.C.Types
 import Foreign.Storable.Complex()
 import Data.List(transpose,intersperse)
@@ -153,19 +149,12 @@ check msg f = do
     finit
 #endif
     err <- f
-    when (err/=0) $ if err > 1024
-                      then (error (msg++": "++errorCode err)) -- our errors
-                      else do                                 -- GSL errors
-                        ps <- gsl_strerror err
-                        s <- peekCString ps
-                        error (msg++": "++s)
+    when (err/=0) $ error (msg++": "++errorCode err)
     return ()
-
--- | description of GSL error codes
-foreign import ccall unsafe "gsl_strerror" gsl_strerror :: CInt -> IO (Ptr CChar)
 
 -- | Error capture and conversion to Maybe
 mbCatch :: IO x -> IO (Maybe x)
 mbCatch act = E.catch (Just `fmap` act) f
     where f :: SomeException -> IO (Maybe x)
           f _ = return Nothing
+
