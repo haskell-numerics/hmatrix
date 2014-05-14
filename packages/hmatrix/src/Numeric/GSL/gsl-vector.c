@@ -132,57 +132,6 @@ inline gsl_complex complex_signum(gsl_complex z) {
 
 #define OP(C,F) case C: { for(k=0;k<xn;k++) rp[k] = F(xp[k]); OK }
 #define OPV(C,E) case C: { for(k=0;k<xn;k++) rp[k] = E; OK }
-int mapR(int code, KRVEC(x), RVEC(r)) {
-    int k;
-    REQUIRES(xn == rn,BAD_SIZE);
-    DEBUGMSG("mapR");
-    switch (code) {
-        OP(0,sin)
-        OP(1,cos)
-        OP(2,tan)
-        OP(3,fabs)
-        OP(4,asin)
-        OP(5,acos)
-        OP(6,atan) /* atan2 mediante vectorZip */
-        OP(7,sinh)
-        OP(8,cosh)
-        OP(9,tanh)
-        OP(10,gsl_asinh)
-        OP(11,gsl_acosh)
-        OP(12,gsl_atanh)
-        OP(13,exp)
-        OP(14,log)
-        OP(15,sign)
-        OP(16,sqrt)
-        default: ERROR(BAD_CODE);
-    }
-}
-
-int mapF(int code, KFVEC(x), FVEC(r)) {
-    int k;
-    REQUIRES(xn == rn,BAD_SIZE);
-    DEBUGMSG("mapF");
-    switch (code) {
-        OP(0,sin)
-        OP(1,cos)
-        OP(2,tan)
-        OP(3,fabs)
-        OP(4,asin)
-        OP(5,acos)
-        OP(6,atan) /* atan2 mediante vectorZip */
-        OP(7,sinh)
-        OP(8,cosh)
-        OP(9,tanh)
-        OP(10,gsl_asinh)
-        OP(11,gsl_acosh)
-        OP(12,gsl_atanh)
-        OP(13,exp)
-        OP(14,log)
-        OP(15,sign)
-        OP(16,sqrt)
-        default: ERROR(BAD_CODE);
-    }
-}
 
 
 int mapCAux(int code, KGCVEC(x), GCVEC(r)) {
@@ -296,37 +245,6 @@ int mapQ(int code, KQVEC(x), QVEC(r)) {
 }
 
 
-int mapValR(int code, double* pval, KRVEC(x), RVEC(r)) {
-    int k;
-    double val = *pval;
-    REQUIRES(xn == rn,BAD_SIZE);
-    DEBUGMSG("mapValR");
-    switch (code) {
-        OPV(0,val*xp[k])
-        OPV(1,val/xp[k])
-        OPV(2,val+xp[k])
-        OPV(3,val-xp[k])
-        OPV(4,pow(val,xp[k]))
-        OPV(5,pow(xp[k],val))
-        default: ERROR(BAD_CODE);
-    }
-}
-
-int mapValF(int code, float* pval, KFVEC(x), FVEC(r)) {
-    int k;
-    float val = *pval;
-    REQUIRES(xn == rn,BAD_SIZE);
-    DEBUGMSG("mapValF");
-    switch (code) {
-        OPV(0,val*xp[k])
-        OPV(1,val/xp[k])
-        OPV(2,val+xp[k])
-        OPV(3,val-xp[k])
-        OPV(4,pow(val,xp[k]))
-        OPV(5,pow(xp[k],val))
-        default: ERROR(BAD_CODE);
-    }
-}
 
 int mapValCAux(int code, gsl_complex* pval, KGCVEC(x), GCVEC(r)) {
     int k;

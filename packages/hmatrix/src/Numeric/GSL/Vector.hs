@@ -28,8 +28,8 @@ import Numeric.Vectorized(
     sumF, sumR, sumQ, sumC,
     prodF, prodR, prodQ, prodC,
     FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ,
-    FunCodeV(..),
-    FunCodeSV(..),
+    FunCodeV(..), vectorMapR, vectorMapF,
+    FunCodeSV(..), vectorMapValR, vectorMapValF,
     FunCodeVV(..)
    )
 
@@ -65,24 +65,11 @@ vectorZipAux fun code u v = unsafePerformIO $ do
 
 ---------------------------------------------------------------------
 
-
--- | map of real vectors with given function
-vectorMapR :: FunCodeV -> Vector Double -> Vector Double
-vectorMapR = vectorMapAux c_vectorMapR
-
-foreign import ccall unsafe "gsl-aux.h mapR" c_vectorMapR :: CInt -> TVV
-
 -- | map of complex vectors with given function
 vectorMapC :: FunCodeV -> Vector (Complex Double) -> Vector (Complex Double)
 vectorMapC oper = vectorMapAux c_vectorMapC (fromei oper)
 
 foreign import ccall unsafe "gsl-aux.h mapC" c_vectorMapC :: CInt -> TCVCV
-
--- | map of real vectors with given function
-vectorMapF :: FunCodeV -> Vector Float -> Vector Float
-vectorMapF = vectorMapAux c_vectorMapF
-
-foreign import ccall unsafe "gsl-aux.h mapF" c_vectorMapF :: CInt -> TFF
 
 -- | map of real vectors with given function
 vectorMapQ :: FunCodeV -> Vector (Complex Float) -> Vector (Complex Float)
@@ -92,23 +79,11 @@ foreign import ccall unsafe "gsl-aux.h mapQ" c_vectorMapQ :: CInt -> TQVQV
 
 -------------------------------------------------------------------
 
--- | map of real vectors with given function
-vectorMapValR :: FunCodeSV -> Double -> Vector Double -> Vector Double
-vectorMapValR oper = vectorMapValAux c_vectorMapValR (fromei oper)
-
-foreign import ccall unsafe "gsl-aux.h mapValR" c_vectorMapValR :: CInt -> Ptr Double -> TVV
-
 -- | map of complex vectors with given function
 vectorMapValC :: FunCodeSV -> Complex Double -> Vector (Complex Double) -> Vector (Complex Double)
 vectorMapValC = vectorMapValAux c_vectorMapValC
 
 foreign import ccall unsafe "gsl-aux.h mapValC" c_vectorMapValC :: CInt -> Ptr (Complex Double) -> TCVCV
-
--- | map of real vectors with given function
-vectorMapValF :: FunCodeSV -> Float -> Vector Float -> Vector Float
-vectorMapValF oper = vectorMapValAux c_vectorMapValF (fromei oper)
-
-foreign import ccall unsafe "gsl-aux.h mapValF" c_vectorMapValF :: CInt -> Ptr Float -> TFF
 
 -- | map of complex vectors with given function
 vectorMapValQ :: FunCodeSV -> Complex Float -> Vector (Complex Float) -> Vector (Complex Float)
