@@ -36,11 +36,11 @@ module Numeric.Container (
     -- * Generic operations
     Container(..),
     -- * Matrix product
-    Product(..), udot,
+    Product(..), udot, dot, (◇),
     Mul(..),
     Contraction(..),
     optimiseMult,
-    mXm,mXv,vXm,LSDiv(..), cdot, (·), dot, (<.>),
+    mXm,mXv,vXm,LSDiv(..),
     outer, kronecker,
     -- * Random numbers
     RandDist(..),
@@ -91,18 +91,12 @@ linspace 0 (a,b) = fromList[(a+b)/2]
 linspace n (a,b) = addConstant a $ scale s $ fromList $ map fromIntegral [0 .. n-1]
     where s = (b-a)/fromIntegral (n-1)
 
--- | dot product: @cdot u v = 'udot' ('conj' u) v@
-cdot :: (Container Vector t, Product t) => Vector t -> Vector t -> t
-cdot u v = udot (conj u) v
-
 --------------------------------------------------------
 
-class Contraction a b c | a b -> c, c -> a b
+class Contraction a b c | a b -> c
   where
-    infixr 7 ×
-    {- | Matrix-matrix product, matrix-vector product, and unconjugated dot product
-
-(unicode 0x00d7, multiplication sign)
+    infixl 7 <.>
+    {- | Matrix product, matrix vector product, and dot product
 
 Examples:
 
@@ -118,7 +112,7 @@ Examples:
 
 matrix × matrix:
 
->>> disp 2 (a × trans a)
+>>> disp 2 (a <.> trans a)
 3x3
  30   70  110
  70  174  278
@@ -126,44 +120,38 @@ matrix × matrix:
 
 matrix × vector:
 
->>> a × v
+>>> a <.> v
 fromList [3.0,11.0,19.0]
 
-unconjugated dot product:
+dot product:
 
->>> fromList [1,i] × fromList[2*i+1,3]
-1.0 :+ 5.0
+>>> u <.> fromList[3,2,1::Double]
+10
 
-(×) is right associative, so we can write:
+For complex vectors the first argument is conjugated:
 
->>> u × a × v
-82.0 :: Double
+>>> fromList [1,i] <.> fromList[2*i+1,3]
+1.0 :+ (-1.0)
+
+>>> fromList [1,i,1-i] <.> complex a
+fromList [10.0 :+ 4.0,12.0 :+ 4.0,14.0 :+ 4.0,16.0 :+ 4.0]
 
 -}
-    (×) :: a -> b -> c
+    (<.>) :: a -> b -> c
+
+
+instance (Product t, Container Vector t) => Contraction (Vector t) (Vector t) t where
+    u <.> v = conj u `udot` v
 
 instance Product t => Contraction (Matrix t) (Vector t) (Vector t) where
-    (×) = mXv
+    (<.>) = mXv
+
+instance (Container Vector t, Product t) => Contraction (Vector t) (Matrix t) (Vector t) where
+    (<.>) v m = (conj v) `vXm` m
 
 instance Product t => Contraction (Matrix t) (Matrix t) (Matrix t) where
-    (×) = mXm
+    (<.>) = mXm
 
-instance Contraction (Vector Double) (Vector Double) Double where
-    (×) = udot
-
-instance Contraction (Vector Float) (Vector Float) Float where
-    (×) = udot
-
-instance Contraction (Vector (Complex Double)) (Vector (Complex Double)) (Complex Double) where
-    (×) = udot
-
-instance Contraction (Vector (Complex Float)) (Vector (Complex Float)) (Complex Float) where
-    (×) = udot
-
-
--- | alternative function for the matrix product (×)
-mmul :: Contraction a b c => a -> b -> c
-mmul = (×)
 
 --------------------------------------------------------------------------------
 
@@ -194,23 +182,8 @@ instance LSDiv Vector where
 instance LSDiv Matrix where
     (<\>) = linearSolveSVD
 
---------------------------------------------------------
-
-{- | Dot product : @u · v = 'cdot' u v@
-
- (unicode 0x00b7, middle dot, Alt-Gr .)
-
->>> fromList [1,i] · fromList[2*i+1,3]
-1.0 :+ (-1.0)
-
--}
-(·) :: (Container Vector t, Product t) => Vector t -> Vector t -> t
-infixl 7 ·
-u · v = cdot u v
-
 --------------------------------------------------------------------------------
 
--- bidirectional type inference
 class Konst e d c | d -> c, c -> d
   where
     -- |
@@ -282,12 +255,17 @@ meanCov x = (med,cov) where
 
 --------------------------------------------------------------------------------
 
-{-# DEPRECATED dot "use udot" #-}
-dot :: Product e => Vector e -> Vector e -> e
-dot = udot
+{- | alternative operator for '(\<.\>)'
 
--- | contraction operator, equivalent to (x)
-infixr 7 <.>
-(<.>) :: Contraction a b c => a -> b -> c
-(<.>) = (×)
+x25c7, white diamond
+
+-}
+(◇) :: Contraction a b c => a -> b -> c
+infixl 7 ◇
+(◇) = (<.>)
+
+-- | dot product: @cdot u v = 'udot' ('conj' u) v@
+dot :: (Container Vector t, Product t) => Vector t -> Vector t -> t
+dot u v = udot (conj u) v
+
 

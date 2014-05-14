@@ -1,6 +1,8 @@
 0.16.0.0
 --------
 
+    * created hmatrix-base
+
     * Added more organized reexport modules:
       Numeric.HMatrix, Numeric.HMatrix.Data, Numeric.HMatrix.Devel
       (The documentation is hidden for the other modules,
@@ -10,12 +12,10 @@
 
     * join deprecated, use vjoin
 
-    * added (·) = cdot, which conjugates the first input vector
+    * dot now conjugates the first input vector
     * added udot (unconjugated dot product)
-    * deprecated dot, use udot or (×) to keep the old behaviour
     
-    * added alternative overloaded multiplication operator (×) (or (<.>))
-    * (<.>) changed to infixr
+    * (<.>) overloaded to matrix and dot products
     * added Monoid instance for Matrix using matrix product
     
     * improved build and konst

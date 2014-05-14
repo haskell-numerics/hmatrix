@@ -403,7 +403,7 @@ emptyVal f v =
         else 0
 
 -- FIXME remove unused C wrappers
--- | (unconjugated) dot product
+-- | unconjugated dot product
 udot :: Product e => Vector e -> Vector e -> e
 udot u v
     | dim u == dim v = val (asRow u `multiply` asColumn v)

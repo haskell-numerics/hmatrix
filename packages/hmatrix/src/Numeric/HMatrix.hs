@@ -39,7 +39,7 @@ module Numeric.HMatrix (
     --
 
     -- * Products
-    (×),
+    (<.>),
     
     -- | The matrix product is also implemented in the "Data.Monoid" instance for Matrix, where
     -- single-element matrices (created from numeric literals or using 'scalar')
@@ -53,7 +53,8 @@ module Numeric.HMatrix (
     --
     -- mconcat uses 'optimiseMult' to get the optimal association order.
  
-    (·), outer, kronecker, cross,
+    (◇),
+    outer, kronecker, cross,
     scale,
     sumElements, prodElements, absSum,
     
@@ -123,7 +124,7 @@ module Numeric.HMatrix (
     rand, randn, RandDist(..), randomVector, gaussianSample, uniformSample,
     
     -- * Misc
-    meanCov, peps, relativeError, haussholder, optimiseMult, udot, cdot, (<.>)
+    meanCov, peps, relativeError, haussholder, optimiseMult, udot
 ) where
 
 import Numeric.HMatrix.Data
