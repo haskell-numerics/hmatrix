@@ -88,56 +88,6 @@
 #define BAD_FILE 2003
 
 
-int sumF(KFVEC(x),FVEC(r)) {
-    DEBUGMSG("sumF");
-    REQUIRES(rn==1,BAD_SIZE);
-    int i;
-    float res = 0;
-    for (i = 0; i < xn; i++) res += xp[i];
-    rp[0] = res;
-    OK
-}
-    
-int sumR(KRVEC(x),RVEC(r)) {
-    DEBUGMSG("sumR");
-    REQUIRES(rn==1,BAD_SIZE);
-    int i;
-    double res = 0;
-    for (i = 0; i < xn; i++) res += xp[i];
-    rp[0] = res;
-    OK
-}
-    
-int sumQ(KQVEC(x),QVEC(r)) {
-    DEBUGMSG("sumQ");
-    REQUIRES(rn==1,BAD_SIZE);
-    int i;
-    gsl_complex_float res;
-    res.dat[0] = 0;
-    res.dat[1] = 0;
-    for (i = 0; i < xn; i++) {
-      res.dat[0] += xp[i].dat[0];
-      res.dat[1] += xp[i].dat[1];
-    }
-    rp[0] = res;
-    OK
-}
-    
-int sumC(KCVEC(x),CVEC(r)) {
-    DEBUGMSG("sumC");
-    REQUIRES(rn==1,BAD_SIZE);
-    int i;
-    gsl_complex res;
-    res.dat[0] = 0;
-    res.dat[1] = 0;
-    for (i = 0; i < xn; i++)  {
-      res.dat[0] += xp[i].dat[0];
-      res.dat[1] += xp[i].dat[1];
-    }
-    rp[0] = res;
-    OK
-}
-
 int prodF(KFVEC(x),FVEC(r)) {
     DEBUGMSG("prodF");
     REQUIRES(rn==1,BAD_SIZE);

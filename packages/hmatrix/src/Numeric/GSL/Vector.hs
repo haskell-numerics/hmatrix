@@ -24,6 +24,13 @@ module Numeric.GSL.Vector (
 
 import Data.Packed
 import Numeric.GSL.Internal hiding (TV,TM,TCV,TCM)
+import Numeric.Vectorized(
+    sumF, sumR, sumQ, sumC,
+    FunCodeS(..),
+    FunCodeV(..),
+    FunCodeSV(..),
+    FunCodeVV(..)
+   )
 
 import Data.Complex
 import Foreign.Marshal.Alloc(free)
@@ -36,83 +43,7 @@ import Control.Monad(when)
 
 fromei x = fromIntegral (fromEnum x) :: CInt
 
-data FunCodeV = Sin
-              | Cos
-              | Tan
-              | Abs
-              | ASin
-              | ACos
-              | ATan
-              | Sinh
-              | Cosh
-              | Tanh
-              | ASinh
-              | ACosh
-              | ATanh
-              | Exp
-              | Log
-              | Sign
-              | Sqrt
-              deriving Enum
-
-data FunCodeSV = Scale
-               | Recip
-               | AddConstant
-               | Negate
-               | PowSV
-               | PowVS
-               deriving Enum
-
-data FunCodeVV = Add
-               | Sub
-               | Mul
-               | Div
-               | Pow
-               | ATan2
-               deriving Enum
-
-data FunCodeS = Norm2
-              | AbsSum
-              | MaxIdx
-              | Max
-              | MinIdx
-              | Min
-              deriving Enum
-
 ------------------------------------------------------------------
-
--- | sum of elements
-sumF :: Vector Float -> Float
-sumF x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_sumF vec x vec r "sumF"
-           return $ r @> 0
-
--- | sum of elements
-sumR :: Vector Double -> Double
-sumR x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_sumR vec x vec r "sumR"
-           return $ r @> 0
-
--- | sum of elements
-sumQ :: Vector (Complex Float) -> Complex Float
-sumQ x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_sumQ vec x vec r "sumQ"
-           return $ r @> 0
-
--- | sum of elements
-sumC :: Vector (Complex Double) -> Complex Double
-sumC x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_sumC vec x vec r "sumC"
-           return $ r @> 0
-
-foreign import ccall unsafe "gsl-aux.h sumF" c_sumF :: TFF
-foreign import ccall unsafe "gsl-aux.h sumR" c_sumR :: TVV
-foreign import ccall unsafe "gsl-aux.h sumQ" c_sumQ :: TQVQV
-foreign import ccall unsafe "gsl-aux.h sumC" c_sumC :: TCVCV
 
 -- | product of elements
 prodF :: Vector Float -> Float

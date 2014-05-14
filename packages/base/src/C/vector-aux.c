@@ -43,7 +43,6 @@
 
 int sumF(KFVEC(x),FVEC(r)) {
     DEBUGMSG("sumF");
-    printf("hello!\n");
     REQUIRES(rn==1,BAD_SIZE);
     int i;
     float res = 0;
