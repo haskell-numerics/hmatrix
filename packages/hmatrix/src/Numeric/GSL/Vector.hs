@@ -26,6 +26,7 @@ import Data.Packed
 import Numeric.GSL.Internal hiding (TV,TM,TCV,TCM)
 import Numeric.Vectorized(
     sumF, sumR, sumQ, sumC,
+    prodF, prodR, prodQ, prodC,
     FunCodeS(..),
     FunCodeV(..),
     FunCodeSV(..),
@@ -42,41 +43,6 @@ import System.IO.Unsafe(unsafePerformIO)
 import Control.Monad(when)
 
 fromei x = fromIntegral (fromEnum x) :: CInt
-
-------------------------------------------------------------------
-
--- | product of elements
-prodF :: Vector Float -> Float
-prodF x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_prodF vec x vec r "prodF"
-           return $ r @> 0
-
--- | product of elements
-prodR :: Vector Double -> Double
-prodR x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_prodR vec x vec r "prodR"
-           return $ r @> 0
-
--- | product of elements
-prodQ :: Vector (Complex Float) -> Complex Float
-prodQ x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_prodQ vec x vec r "prodQ"
-           return $ r @> 0
-
--- | product of elements
-prodC :: Vector (Complex Double) -> Complex Double
-prodC x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_prodC vec x vec r "prodC"
-           return $ r @> 0
-
-foreign import ccall unsafe "gsl-aux.h prodF" c_prodF :: TFF
-foreign import ccall unsafe "gsl-aux.h prodR" c_prodR :: TVV
-foreign import ccall unsafe "gsl-aux.h prodQ" c_prodQ :: TQVQV
-foreign import ccall unsafe "gsl-aux.h prodC" c_prodC :: TCVCV
 
 ------------------------------------------------------------------
 
