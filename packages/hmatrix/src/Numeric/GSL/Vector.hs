@@ -30,7 +30,7 @@ import Numeric.Vectorized(
     FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ,
     FunCodeV(..), vectorMapR, vectorMapF,
     FunCodeSV(..), vectorMapValR, vectorMapValF,
-    FunCodeVV(..)
+    FunCodeVV(..), vectorZipR,  vectorZipF
    )
 
 import Data.Complex
@@ -93,23 +93,11 @@ foreign import ccall unsafe "gsl-aux.h mapValQ" c_vectorMapValQ :: CInt -> Ptr (
 
 -------------------------------------------------------------------
 
--- | elementwise operation on real vectors
-vectorZipR :: FunCodeVV -> Vector Double -> Vector Double -> Vector Double
-vectorZipR = vectorZipAux c_vectorZipR
-
-foreign import ccall unsafe "gsl-aux.h zipR" c_vectorZipR :: CInt -> TVVV
-
 -- | elementwise operation on complex vectors
 vectorZipC :: FunCodeVV -> Vector (Complex Double) -> Vector (Complex Double) -> Vector (Complex Double)
 vectorZipC = vectorZipAux c_vectorZipC
 
 foreign import ccall unsafe "gsl-aux.h zipC" c_vectorZipC :: CInt -> TCVCVCV
-
--- | elementwise operation on real vectors
-vectorZipF :: FunCodeVV -> Vector Float -> Vector Float -> Vector Float
-vectorZipF = vectorZipAux c_vectorZipF
-
-foreign import ccall unsafe "gsl-aux.h zipF" c_vectorZipF :: CInt -> TFFF
 
 -- | elementwise operation on complex vectors
 vectorZipQ :: FunCodeVV -> Vector (Complex Float) -> Vector (Complex Float) -> Vector (Complex Float)

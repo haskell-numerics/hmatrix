@@ -290,48 +290,7 @@ int mapValQ(int code, gsl_complex_float* val, KQVEC(x), QVEC(r)) {
 
 #define OPZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = E(ap[k],bp[k]); OK }
 #define OPZV(C,msg,E) case C: {DEBUGMSG(msg) res = E(V(r),V(b)); CHECK(res,res); OK }
-int zipR(int code, KRVEC(a), KRVEC(b), RVEC(r)) {
-    REQUIRES(an == bn && an == rn, BAD_SIZE);
-    int k;
-    switch(code) {
-        OPZE(4,"zipR Pow",pow)
-        OPZE(5,"zipR ATan2",atan2)
-    }
-    KDVVIEW(a);
-    KDVVIEW(b);
-    DVVIEW(r);
-    gsl_vector_memcpy(V(r),V(a));
-    int res;
-    switch(code) {
-        OPZV(0,"zipR Add",gsl_vector_add)
-        OPZV(1,"zipR Sub",gsl_vector_sub)
-        OPZV(2,"zipR Mul",gsl_vector_mul)
-        OPZV(3,"zipR Div",gsl_vector_div)
-        default: ERROR(BAD_CODE);
-    }
-}
 
-
-int zipF(int code, KFVEC(a), KFVEC(b), FVEC(r)) {
-    REQUIRES(an == bn && an == rn, BAD_SIZE);
-    int k;
-    switch(code) {
-        OPZE(4,"zipF Pow",pow)
-        OPZE(5,"zipF ATan2",atan2)
-    }
-    KFVVIEW(a);
-    KFVVIEW(b);
-    FVVIEW(r);
-    gsl_vector_float_memcpy(V(r),V(a));
-    int res;
-    switch(code) {
-        OPZV(0,"zipF Add",gsl_vector_float_add)
-        OPZV(1,"zipF Sub",gsl_vector_float_sub)
-        OPZV(2,"zipF Mul",gsl_vector_float_mul)
-        OPZV(3,"zipF Div",gsl_vector_float_div)
-        default: ERROR(BAD_CODE);
-    }
-}
 
 
 int zipCAux(int code, KGCVEC(a), KGCVEC(b), GCVEC(r)) {
