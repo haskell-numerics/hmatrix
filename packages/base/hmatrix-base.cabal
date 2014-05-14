@@ -37,6 +37,7 @@ library
                         Data.Packed.Development,
                         Numeric.Conversion
                         Numeric.LinearAlgebra.LAPACK
+                        Numeric.Vectorized
                         
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
@@ -45,6 +46,7 @@ library
                         Data.Packed.Internal.Matrix
 
     C-sources:          src/C/lapack-aux.c
+                        src/C/vector-aux.c
                         
 
     extensions:         ForeignFunctionInterface,

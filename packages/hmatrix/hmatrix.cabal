@@ -109,7 +109,8 @@ library
                         Numeric.LinearAlgebra.Util.Convolution
                         
 
-    C-sources:          src/Numeric/GSL/gsl-aux.c
+    C-sources:          src/Numeric/GSL/gsl-vector.c
+                        src/Numeric/GSL/gsl-aux.c
 
     cc-options:         -O4 -msse2 -Wall
 
