@@ -199,7 +199,7 @@ int toScalarR(int code, KDVEC(x), DVEC(r)) {
     DEBUGMSG("toScalarR");
     double res;
     integer one = 1;
-    integer n = rn;
+    integer n = xn;
     switch(code) {
         case 0: { res = dnrm2_(&n,xp,&one); break; }
         case 1: { res = dasum_(&n,xp,&one);  break; }
@@ -265,7 +265,7 @@ int toScalarF(int code, KFVEC(x), FVEC(r)) {
     DEBUGMSG("toScalarF");
     float res;
     integer one = 1;
-    integer n = rn;
+    integer n = xn;
     switch(code) {
         case 0: { res = snrm2_(&n,xp,&one); break; }
         case 1: { res = sasum_(&n,xp,&one);  break; }
@@ -287,7 +287,7 @@ int toScalarC(int code, KCVEC(x), DVEC(r)) {
     DEBUGMSG("toScalarC");
     double res;
     integer one = 1;
-    integer n = rn;
+    integer n = xn;
     switch(code) {
         case 0: { res = dznrm2_(&n,xp,&one); break; }
         case 1: { res = dzasum_(&n,xp,&one);  break; }
@@ -306,7 +306,7 @@ int toScalarQ(int code, KQVEC(x), FVEC(r)) {
     DEBUGMSG("toScalarQ");
     float res;
     integer one = 1;
-    integer n = rn;
+    integer n = xn;
     switch(code) {
         case 0: { res = scnrm2_(&n,xp,&one); break; }
         case 1: { res = scasum_(&n,xp,&one);  break; }
