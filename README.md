@@ -71,7 +71,7 @@ Related Projects
 [pLAPACK]: http://github.com/patperry/lapack
 [aGSL]: http://hackage.haskell.org/package/bindings-gsl
 [nprelude]: http://hackage.haskell.org/package/numeric-prelude
-[mathHack]: http://hackage.haskell.org/packages/archive/pkg-list.html#cat:math
+[mathHack]: http://hackage.haskell.org/packages/#cat:Math
 [easyVision]: https://github.com/AlbertoRuiz/easyVision
 
 [repa]: http://hackage.haskell.org/package/repa
