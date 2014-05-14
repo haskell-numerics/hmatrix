@@ -27,7 +27,7 @@ import Numeric.GSL.Internal hiding (TV,TM,TCV,TCM)
 import Numeric.Vectorized(
     sumF, sumR, sumQ, sumC,
     prodF, prodR, prodQ, prodC,
-    FunCodeS(..),
+    FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ,
     FunCodeV(..),
     FunCodeSV(..),
     FunCodeVV(..)
@@ -45,11 +45,6 @@ import Control.Monad(when)
 fromei x = fromIntegral (fromEnum x) :: CInt
 
 ------------------------------------------------------------------
-
-toScalarAux fun code v = unsafePerformIO $ do
-    r <- createVector 1
-    app2 (fun (fromei code)) vec v vec r "toScalarAux"
-    return (r @> 0)
 
 vectorMapAux fun code v = unsafePerformIO $ do
     r <- createVector (dim v)
@@ -70,31 +65,6 @@ vectorZipAux fun code u v = unsafePerformIO $ do
 
 ---------------------------------------------------------------------
 
--- | obtains different functions of a vector: norm1, norm2, max, min, posmax, posmin, etc.
-toScalarR :: FunCodeS -> Vector Double -> Double
-toScalarR oper =  toScalarAux c_toScalarR (fromei oper)
-
-foreign import ccall unsafe "gsl-aux.h toScalarR" c_toScalarR :: CInt -> TVV
-
--- | obtains different functions of a vector: norm1, norm2, max, min, posmax, posmin, etc.
-toScalarF :: FunCodeS -> Vector Float -> Float
-toScalarF oper =  toScalarAux c_toScalarF (fromei oper)
-
-foreign import ccall unsafe "gsl-aux.h toScalarF" c_toScalarF :: CInt -> TFF
-
--- | obtains different functions of a vector: only norm1, norm2
-toScalarC :: FunCodeS -> Vector (Complex Double) -> Double
-toScalarC oper =  toScalarAux c_toScalarC (fromei oper)
-
-foreign import ccall unsafe "gsl-aux.h toScalarC" c_toScalarC :: CInt -> TCVV
-
--- | obtains different functions of a vector: only norm1, norm2
-toScalarQ :: FunCodeS -> Vector (Complex Float) -> Float
-toScalarQ oper =  toScalarAux c_toScalarQ (fromei oper)
-
-foreign import ccall unsafe "gsl-aux.h toScalarQ" c_toScalarQ :: CInt -> TQVF
-
-------------------------------------------------------------------
 
 -- | map of real vectors with given function
 vectorMapR :: FunCodeV -> Vector Double -> Vector Double
