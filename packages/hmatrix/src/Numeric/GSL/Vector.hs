@@ -28,7 +28,7 @@ import Numeric.Vectorized(
     sumF, sumR, sumQ, sumC,
     prodF, prodR, prodQ, prodC,
     FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ,
-    FunCodeV(..), vectorMapR, vectorMapF,
+    FunCodeV(..), vectorMapR, vectorMapF, vectorMapC, vectorMapQ,
     FunCodeSV(..), vectorMapValR, vectorMapValF,
     FunCodeVV(..), vectorZipR,  vectorZipF
    )
@@ -64,20 +64,6 @@ vectorZipAux fun code u v = unsafePerformIO $ do
     return r
 
 ---------------------------------------------------------------------
-
--- | map of complex vectors with given function
-vectorMapC :: FunCodeV -> Vector (Complex Double) -> Vector (Complex Double)
-vectorMapC oper = vectorMapAux c_vectorMapC (fromei oper)
-
-foreign import ccall unsafe "gsl-aux.h mapC" c_vectorMapC :: CInt -> TCVCV
-
--- | map of real vectors with given function
-vectorMapQ :: FunCodeV -> Vector (Complex Float) -> Vector (Complex Float)
-vectorMapQ = vectorMapAux c_vectorMapQ
-
-foreign import ccall unsafe "gsl-aux.h mapQ" c_vectorMapQ :: CInt -> TQVQV
-
--------------------------------------------------------------------
 
 -- | map of complex vectors with given function
 vectorMapValC :: FunCodeSV -> Complex Double -> Vector (Complex Double) -> Vector (Complex Double)

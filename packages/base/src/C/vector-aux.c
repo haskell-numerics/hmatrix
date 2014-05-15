@@ -1,3 +1,10 @@
+#include <complex.h>
+
+typedef double complex TCD;
+typedef float  complex TCF;
+
+#undef complex
+
 #include "lapack-aux.h"
 
 #define V(x) x##n,x##p
@@ -418,35 +425,31 @@ inline doublecomplex complex_signum_complex(doublecomplex z) {
     return r;
 }
 
-
-
+#define OPb(C,F) case C: { for(k=0;k<xn;k++) r2p[k] = F(x2p[k]); OK }
 int mapC(int code, KCVEC(x), CVEC(r)) {
+    TCD* x2p = (TCD*)xp;
+    TCD* r2p = (TCD*)rp;
     int k;
     REQUIRES(xn == rn,BAD_SIZE);
     DEBUGMSG("mapC");
     switch (code) {
-/*
-        OP(0,gsl_complex_sin)
-        OP(1,gsl_complex_cos)
-        OP(2,gsl_complex_tan)
-*/
+        OPb(0,csin)
+        OPb(1,ccos)
+        OPb(2,ctan)
         OP(3,complex_abs_complex)
-/*
-        OP(4,gsl_complex_arcsin)
-        OP(5,gsl_complex_arccos)
-        OP(6,gsl_complex_arctan)
-        OP(7,gsl_complex_sinh)
-        OP(8,gsl_complex_cosh)
-        OP(9,gsl_complex_tanh)
-        OP(10,gsl_complex_arcsinh)
-        OP(11,gsl_complex_arccosh)
-        OP(12,gsl_complex_arctanh)
-        OP(13,gsl_complex_exp)
-        OP(14,gsl_complex_log)
-*/
+        OPb(4,casin)
+        OPb(5,cacos)
+        OPb(6,catan)
+        OPb(7,csinh)
+        OPb(8,ccosh)
+        OPb(9,ctanh)
+        OPb(10,casinh)
+        OPb(11,cacosh)
+        OPb(12,catanh)
+        OPb(13,cexp)
+        OPb(14,clog)
         OP(15,complex_signum_complex)
-        
-//      OP(16,gsl_complex_sqrt)
+        OPb(16,csqrt)
         default: ERROR(BAD_CODE);
     }
 }
@@ -495,32 +498,29 @@ inline complex complex_f_math_op(doublecomplex (*cf)(doublecomplex,doublecomplex
 #define OPC(C,F) case C: { for(k=0;k<xn;k++) rp[k] = complex_f_math_fun(&F,xp[k]); OK }
 #define OPCA(C,F,A,B) case C: { for(k=0;k<xn;k++) rp[k] = complex_f_math_op(&F,A,B); OK }
 int mapQ(int code, KQVEC(x), QVEC(r)) {
+    TCF* x2p = (TCF*)xp;
+    TCF* r2p = (TCF*)rp;
     int k;
     REQUIRES(xn == rn,BAD_SIZE);
     DEBUGMSG("mapQ");
     switch (code) {
-/*
-        OPC(0,gsl_complex_sin)
-        OPC(1,gsl_complex_cos)
-        OPC(2,gsl_complex_tan)
-*/
+        OPb(0,csinf)
+        OPb(1,ccosf)
+        OPb(2,ctanf)
         OPC(3,complex_abs_complex)
-/*
-        OPC(4,gsl_complex_arcsin)
-        OPC(5,gsl_complex_arccos)
-        OPC(6,gsl_complex_arctan)
-        OPC(7,gsl_complex_sinh)
-        OPC(8,gsl_complex_cosh)
-        OPC(9,gsl_complex_tanh)
-        OPC(10,gsl_complex_arcsinh)
-        OPC(11,gsl_complex_arccosh)
-        OPC(12,gsl_complex_arctanh)
-        OPC(13,gsl_complex_exp)
-        OPC(14,gsl_complex_log)
-*/
+        OPb(4,casinf)
+        OPb(5,cacosf)
+        OPb(6,catanf)
+        OPb(7,csinhf)
+        OPb(8,ccoshf)
+        OPb(9,ctanhf)
+        OPb(10,casinhf)
+        OPb(11,cacoshf)
+        OPb(12,catanhf)
+        OPb(13,cexpf)
+        OPb(14,clogf)
         OPC(15,complex_signum_complex)
-        
-//      OPC(16,gsl_complex_sqrt)
+        OPb(16,csqrtf)
         default: ERROR(BAD_CODE);
     }
 }
