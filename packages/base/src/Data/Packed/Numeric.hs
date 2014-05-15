@@ -7,19 +7,16 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numeric.ContainerBoot
--- Copyright   :  (c) Alberto Ruiz 2010
--- License     :  GPL-style
+-- Module      :  Data.Packed.Numeric
+-- Copyright   :  (c) Alberto Ruiz 2010-14
+-- License     :  BSD3
 --
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
--- Portability :  portable
---
--- Module to avoid cyclyc dependencies.
 --
 -----------------------------------------------------------------------------
 
-module Numeric.ContainerBoot (
+module Data.Packed.Numeric (
     -- * Basic functions
     ident, diag, ctrans,
     -- * Generic operations
@@ -43,7 +40,7 @@ import Data.Packed
 import Data.Packed.ST as ST
 import Numeric.Conversion
 import Data.Packed.Development
-import Numeric.GSL.Vector
+import Numeric.Vectorized
 import Data.Complex
 import Control.Applicative((<*>))
 

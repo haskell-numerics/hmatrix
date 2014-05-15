@@ -101,7 +101,6 @@ library
     other-modules:      Numeric.Random,
                         Numeric.GSL.Internal,
                         Numeric.GSL.Vector,
-                        Numeric.ContainerBoot,
                         Numeric.IO,
                         Numeric.Chain,
                         Numeric.Vector,

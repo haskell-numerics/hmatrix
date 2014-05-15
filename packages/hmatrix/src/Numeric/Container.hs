@@ -65,7 +65,7 @@ module Numeric.Container (
 ) where
 
 import Data.Packed hiding (stepD, stepF, condD, condF, conjugateC, conjugateQ)
-import Numeric.ContainerBoot
+import Data.Packed.Numeric
 import Numeric.Chain
 import Numeric.IO
 import Data.Complex

@@ -11,12 +11,6 @@
 -----------------------------------------------------------------------------
 
 module Numeric.GSL.Vector (
-    sumF, sumR, sumQ, sumC,
-    prodF, prodR, prodQ, prodC,
-    FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ,
-    FunCodeV(..), vectorMapR, vectorMapC, vectorMapF, vectorMapQ,
-    FunCodeSV(..), vectorMapValR, vectorMapValC, vectorMapValF, vectorMapValQ,
-    FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF, vectorZipQ,
     RandDist(..), randomVector,
     saveMatrix,
     fwriteVector, freadVector, fprintfVector, fscanfVector
@@ -24,7 +18,6 @@ module Numeric.GSL.Vector (
 
 import Data.Packed
 import Numeric.GSL.Internal hiding (TV,TM,TCV,TCM)
-import Numeric.Vectorized
 
 import Data.Complex
 import Foreign.Marshal.Alloc(free)

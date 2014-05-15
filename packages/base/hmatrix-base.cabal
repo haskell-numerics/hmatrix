@@ -37,6 +37,7 @@ library
                         Data.Packed.Development,
                         Numeric.Conversion
                         Numeric.LinearAlgebra.LAPACK
+                        Data.Packed.Numeric
                         Numeric.Vectorized
                         
     other-modules:      Data.Packed.Internal,
