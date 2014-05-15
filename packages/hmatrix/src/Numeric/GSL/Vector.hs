@@ -24,72 +24,16 @@ module Numeric.GSL.Vector (
 
 import Data.Packed
 import Numeric.GSL.Internal hiding (TV,TM,TCV,TCM)
-import Numeric.Vectorized(
-    sumF, sumR, sumQ, sumC,
-    prodF, prodR, prodQ, prodC,
-    FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ,
-    FunCodeV(..), vectorMapR, vectorMapF, vectorMapC, vectorMapQ,
-    FunCodeSV(..), vectorMapValR, vectorMapValF,
-    FunCodeVV(..), vectorZipR,  vectorZipF
-   )
+import Numeric.Vectorized
 
 import Data.Complex
 import Foreign.Marshal.Alloc(free)
-import Foreign.Marshal.Array(newArray)
 import Foreign.Ptr(Ptr)
 import Foreign.C.Types
 import Foreign.C.String(newCString)
 import System.IO.Unsafe(unsafePerformIO)
-import Control.Monad(when)
 
 fromei x = fromIntegral (fromEnum x) :: CInt
-
-------------------------------------------------------------------
-
-vectorMapAux fun code v = unsafePerformIO $ do
-    r <- createVector (dim v)
-    app2 (fun (fromei code)) vec v vec r "vectorMapAux"
-    return r
-
-vectorMapValAux fun code val v = unsafePerformIO $ do
-    r <- createVector (dim v)
-    pval <- newArray [val]
-    app2 (fun (fromei code) pval) vec v vec r "vectorMapValAux"
-    free pval
-    return r
-
-vectorZipAux fun code u v = unsafePerformIO $ do
-    r <- createVector (dim u)
-    when (dim u > 0) $ app3 (fun (fromei code)) vec u vec v vec r "vectorZipAux"
-    return r
-
----------------------------------------------------------------------
-
--- | map of complex vectors with given function
-vectorMapValC :: FunCodeSV -> Complex Double -> Vector (Complex Double) -> Vector (Complex Double)
-vectorMapValC = vectorMapValAux c_vectorMapValC
-
-foreign import ccall unsafe "gsl-aux.h mapValC" c_vectorMapValC :: CInt -> Ptr (Complex Double) -> TCVCV
-
--- | map of complex vectors with given function
-vectorMapValQ :: FunCodeSV -> Complex Float -> Vector (Complex Float) -> Vector (Complex Float)
-vectorMapValQ oper = vectorMapValAux c_vectorMapValQ (fromei oper)
-
-foreign import ccall unsafe "gsl-aux.h mapValQ" c_vectorMapValQ :: CInt -> Ptr (Complex Float) -> TQVQV
-
--------------------------------------------------------------------
-
--- | elementwise operation on complex vectors
-vectorZipC :: FunCodeVV -> Vector (Complex Double) -> Vector (Complex Double) -> Vector (Complex Double)
-vectorZipC = vectorZipAux c_vectorZipC
-
-foreign import ccall unsafe "gsl-aux.h zipC" c_vectorZipC :: CInt -> TCVCVCV
-
--- | elementwise operation on complex vectors
-vectorZipQ :: FunCodeVV -> Vector (Complex Float) -> Vector (Complex Float) -> Vector (Complex Float)
-vectorZipQ = vectorZipAux c_vectorZipQ
-
-foreign import ccall unsafe "gsl-aux.h zipQ" c_vectorZipQ :: CInt -> TQVQVQV
 
 -----------------------------------------------------------------------
 

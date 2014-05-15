@@ -29,19 +29,6 @@ typedef float  complex TCF;
 
 #define CHECK(RES,CODE) MACRO(if(RES) return CODE;)
 
-#ifdef DBG
-#define DEBUGMAT(MSG,X) printf(MSG" = \n"); gsl_matrix_fprintf(stdout,X,"%f"); printf("\n");
-#else
-#define DEBUGMAT(MSG,X)
-#endif
-
-#ifdef DBG
-#define DEBUGVEC(MSG,X) printf(MSG" = \n"); gsl_vector_fprintf(stdout,X,"%f"); printf("\n");
-#else
-#define DEBUGVEC(MSG,X)
-#endif
-
-
 #define BAD_SIZE 2000
 #define BAD_CODE 2001
 #define MEM      2002
@@ -358,7 +345,7 @@ int mapR(int code, KDVEC(x), DVEC(r)) {
         OP(3,fabs)
         OP(4,asin)
         OP(5,acos)
-        OP(6,atan) /* atan2 using vectorZip */
+        OP(6,atan)
         OP(7,sinh)
         OP(8,cosh)
         OP(9,tanh)
@@ -384,7 +371,7 @@ int mapF(int code, KFVEC(x), FVEC(r)) {
         OP(3,fabs)
         OP(4,asin)
         OP(5,acos)
-        OP(6,atan) /* atan2 using vectorZip */
+        OP(6,atan)
         OP(7,sinh)
         OP(8,cosh)
         OP(9,tanh)
@@ -474,29 +461,8 @@ inline complex complex_f_math_fun(doublecomplex (*cf)(doublecomplex), complex a)
   return float_r;
 }
 
-inline complex complex_f_math_op(doublecomplex (*cf)(doublecomplex,doublecomplex),
-                                 complex a,complex b)
-{
-  doublecomplex c1,c2,r;
-
-  complex float_r;
-
-  c1.r = a.r;
-  c1.i = a.i;
-
-  c2.r = b.r;
-  c2.i = b.i;
-
-  r = (*cf)(c1,c2);
-
-  float_r.r = r.r;
-  float_r.i = r.i;
-
-  return float_r;
-}
 
 #define OPC(C,F) case C: { for(k=0;k<xn;k++) rp[k] = complex_f_math_fun(&F,xp[k]); OK }
-#define OPCA(C,F,A,B) case C: { for(k=0;k<xn;k++) rp[k] = complex_f_math_op(&F,A,B); OK }
 int mapQ(int code, KQVEC(x), QVEC(r)) {
     TCF* x2p = (TCF*)xp;
     TCF* r2p = (TCF*)rp;
@@ -567,36 +533,40 @@ inline doublecomplex complex_add(doublecomplex a, doublecomplex b) {
     return r;
 }
 
-
+#define OPVb(C,E) case C: { for(k=0;k<xn;k++) r2p[k] = E; OK }
 int mapValC(int code, doublecomplex* pval, KCVEC(x), CVEC(r)) {
+    TCD* x2p = (TCD*)xp;
+    TCD* r2p = (TCD*)rp;
     int k;
-    doublecomplex val = *pval;
+    TCD val = * (TCD*)pval;
     REQUIRES(xn == rn,BAD_SIZE);
     DEBUGMSG("mapValC");
     switch (code) {
-//        OPV(0,gsl_complex_mul(val,xp[k]))
-//        OPV(1,gsl_complex_div(val,xp[k]))
-        OPV(2,complex_add(val,xp[k]))
-//        OPV(3,gsl_complex_sub(val,xp[k]))
-//        OPV(4,gsl_complex_pow(val,xp[k]))
-//        OPV(5,gsl_complex_pow(xp[k],val))
+        OPVb(0,val*x2p[k])
+        OPVb(1,val/x2p[k])
+        OPVb(2,val+x2p[k])
+        OPVb(3,val-x2p[k])
+        OPVb(4,cpow(val,x2p[k]))
+        OPVb(5,cpow(x2p[k],val))
         default: ERROR(BAD_CODE);
     }
 }
 
 
 int mapValQ(int code, complex* pval, KQVEC(x), QVEC(r)) {
+    TCF* x2p = (TCF*)xp;
+    TCF* r2p = (TCF*)rp;
     int k;
-    complex val = *pval;
+    TCF val = *(TCF*)pval;
     REQUIRES(xn == rn,BAD_SIZE);
     DEBUGMSG("mapValQ");
     switch (code) {
-//        OPCA(0,gsl_complex_mul,val,xp[k])
-//        OPCA(1,gsl_complex_div,val,xp[k])
-        OPCA(2,complex_add,val,xp[k])
-//        OPCA(3,gsl_complex_sub,val,xp[k])
-//        OPCA(4,gsl_complex_pow,val,xp[k])
-//        OPCA(5,gsl_complex_pow,xp[k],val)
+        OPVb(0,val*x2p[k])
+        OPVb(1,val/x2p[k])
+        OPVb(2,val+x2p[k])
+        OPVb(3,val-x2p[k])
+        OPVb(4,cpow(val,x2p[k]))
+        OPVb(5,cpow(x2p[k],val))
         default: ERROR(BAD_CODE);
     }
 }
@@ -637,17 +607,20 @@ REQUIRES(an == bn && an == rn, BAD_SIZE);
 
 
 
-
+#define OPZOb(C,msg,O) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) r2p[k] = a2p[k] O b2p[k]; OK }
+#define OPZEb(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) r2p[k] = E(a2p[k],b2p[k]); OK }
 int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
     REQUIRES(an == bn && an == rn, BAD_SIZE);
+    TCD* a2p = (TCD*)ap;
+    TCD* b2p = (TCD*)bp;
+    TCD* r2p = (TCD*)rp;
     int k;
     switch(code) {
-        OPZE(0,"zipC Add",complex_add)
-//        OPZE(1,"zipC Sub",gsl_complex_sub)
-//        OPZE(2,"zipC Mul",gsl_complex_mul)
-//        OPZE(3,"zipC Div",gsl_complex_div)
-//        OPZE(4,"zipC Pow",gsl_complex_pow)
-//        //OPZE(5,"zipR ATan2",atan2)
+        OPZOb(0,"zipC Add",+)
+        OPZOb(1,"zipC Sub",-)
+        OPZOb(2,"zipC Mul",*)
+        OPZOb(3,"zipC Div",/)
+        OPZEb(4,"zipC Pow",cpow)
         default: ERROR(BAD_CODE);
     }
 }
@@ -660,14 +633,17 @@ int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
 
 int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
     REQUIRES(an == bn && an == rn, BAD_SIZE);
+    TCF* a2p = (TCF*)ap;
+    TCF* b2p = (TCF*)bp;
+    TCF* r2p = (TCF*)rp;
+
     int k;
     switch(code) {
-        OPCZE(0,"zipQ Add",complex_add)
-//        OPCZE(1,"zipQ Sub",gsl_complex_sub)
-//        OPCZE(2,"zipQ Mul",gsl_complex_mul)
-//        OPCZE(3,"zipQ Div",gsl_complex_div)
-//        OPCZE(4,"zipQ Pow",gsl_complex_pow)
-//        //OPZE(5,"zipR ATan2",atan2)
+        OPZOb(0,"zipC Add",+)
+        OPZOb(1,"zipC Sub",-)
+        OPZOb(2,"zipC Mul",*)
+        OPZOb(3,"zipC Div",/)
+        OPZEb(4,"zipC Pow",cpowf)
         default: ERROR(BAD_CODE);
     }
 }
