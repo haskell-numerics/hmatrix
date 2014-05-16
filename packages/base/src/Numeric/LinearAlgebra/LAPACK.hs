@@ -3,7 +3,6 @@
 -- Module      :  Numeric.LinearAlgebra.LAPACK
 -- Copyright   :  (c) Alberto Ruiz 2006-14
 -- License     :  BSD3
--- 
 -- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
 --

@@ -8,9 +8,8 @@
 -- |
 -- Module      :  Data.Packed.Matrix
 -- Copyright   :  (c) Alberto Ruiz 2007-10
--- License     :  GPL
---
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- License     :  BSD3
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
 --
 -- A Matrix representation suitable for numerical computations using LAPACK and GSL.

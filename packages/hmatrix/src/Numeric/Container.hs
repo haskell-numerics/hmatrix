@@ -12,6 +12,7 @@
 -- License     :  BSD3
 -- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
+-- Portability :  portable
 --
 -- Basic numeric operations on 'Vector' and 'Matrix', including conversion routines.
 --

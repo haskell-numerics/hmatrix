@@ -7,12 +7,10 @@
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Algorithms
-Copyright   :  (c) Alberto Ruiz 2006-9
-License     :  GPL-style
-
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+Copyright   :  (c) Alberto Ruiz 2006-14
+License     :  BSD3
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
-Portability :  uses ffi
 
 High level generic interface to common matrix computations.
 
@@ -20,6 +18,7 @@ Specific functions for particular base types can also be explicitly
 imported from "Numeric.LinearAlgebra.LAPACK".
 
 -}
+{-# OPTIONS_HADDOCK hide #-}
 -----------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.Algorithms (

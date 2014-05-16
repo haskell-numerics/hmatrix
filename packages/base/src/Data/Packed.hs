@@ -10,6 +10,7 @@ Types for dense 'Vector' and 'Matrix' of 'Storable' elements.
 
 -}
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
 
 module Data.Packed (
     -- * Vector

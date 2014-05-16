@@ -6,6 +6,7 @@
 -- @ glUniformMatrix4fv 0 1 (fromIntegral gl_TRUE) \`appMatrix\` perspective 0.01 100 (pi\/2) (4\/3) 
 -- @
 --
+{-# OPTIONS_HADDOCK hide #-}
 module Data.Packed.Foreign 
     ( app
     , appVector, appVectorLen

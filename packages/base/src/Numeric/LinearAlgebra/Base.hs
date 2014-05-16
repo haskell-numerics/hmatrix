@@ -1,9 +1,8 @@
 -----------------------------------------------------------------------------
 {- |
-Module      :  Numeric.HMatrix
+Module      :  Numeric.LinearAlgebra
 Copyright   :  (c) Alberto Ruiz 2006-14
-License     :  GPL
-
+License     :  BSD3
 Maintainer  :  Alberto Ruiz
 Stability   :  provisional
 
@@ -11,10 +10,10 @@ This module reexports the most common Linear Algebra functions.
 
 -}
 -----------------------------------------------------------------------------
-module Numeric.HMatrix (
+module Numeric.LinearAlgebra.Base (
 
     -- * Basic types and data processing    
-    module Numeric.HMatrix.Data,
+    module Numeric.LinearAlgebra.Data,
     
     -- | The standard numeric classes are defined elementwise:
     --
@@ -121,19 +120,20 @@ module Numeric.HMatrix (
     corr, conv, corrMin, corr2, conv2,
 
     -- * Random arrays
-    rand, randn, RandDist(..), randomVector, gaussianSample, uniformSample,
+
+    -- |    rand, randn, RandDist(..), randomVector, gaussianSample, uniformSample
     
     -- * Misc
     meanCov, peps, relativeError, haussholder, optimiseMult, udot
 ) where
 
-import Numeric.HMatrix.Data
+import Numeric.LinearAlgebra.Data
 
---import Numeric.Matrix()
---import Numeric.Vector()
+import Numeric.Matrix()
+import Numeric.Vector()
 import Numeric.Container
 import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Util
-import Numeric.Random
+
 
 

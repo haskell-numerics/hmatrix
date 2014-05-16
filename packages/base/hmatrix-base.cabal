@@ -39,10 +39,12 @@ library
                         Numeric.LinearAlgebra.LAPACK
                         Numeric.LinearAlgebra.Algorithms
                         Numeric.Container
-                        Numeric.LinearAlgebra
                         Numeric.LinearAlgebra.Util
                         Numeric.LinearAlgebra.Util.Convolution
                         Data.Packed.IO
+                        Numeric.LinearAlgebra.Base
+                        Numeric.LinearAlgebra.Devel
+                        Numeric.LinearAlgebra.Data
                         
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,

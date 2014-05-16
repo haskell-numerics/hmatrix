@@ -2,11 +2,9 @@
 -- |
 -- Module      :  Data.Packed.Internal
 -- Copyright   :  (c) Alberto Ruiz 2007
--- License     :  GPL-style
---
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- License     :  BSD3
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
--- Portability :  portable
 --
 -- Reexports all internal modules
 --

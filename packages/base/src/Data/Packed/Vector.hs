@@ -4,9 +4,8 @@
 -- |
 -- Module      :  Data.Packed.Vector
 -- Copyright   :  (c) Alberto Ruiz 2007-10
--- License     :  GPL
---
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- License     :  BSD3
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
 --
 -- 1D arrays suitable for numeric computations using external libraries.

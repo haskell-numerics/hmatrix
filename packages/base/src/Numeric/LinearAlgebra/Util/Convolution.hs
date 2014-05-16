@@ -3,9 +3,8 @@
 {- |
 Module      :  Numeric.LinearAlgebra.Util.Convolution
 Copyright   :  (c) Alberto Ruiz 2012
-License     :  GPL
-
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+License     :  BSD3
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
 
 -}
@@ -17,7 +16,7 @@ module Numeric.LinearAlgebra.Util.Convolution(
    corr2, conv2, separable
 ) where
 
-import Numeric.LinearAlgebra
+import Numeric.Container
 
 
 vectSS :: Element t => Int -> Vector t -> Matrix t

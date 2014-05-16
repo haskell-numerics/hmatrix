@@ -7,11 +7,10 @@
 -- |
 -- Module      :  Numeric.Vector
 -- Copyright   :  (c) Alberto Ruiz 2011
--- License     :  GPL-style
+-- License     :  BSD3
 --
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
--- Portability :  portable
 --
 -- Provides instances of standard classes 'Show', 'Read', 'Eq',
 -- 'Num', 'Fractional',  and 'Floating' for 'Vector'.

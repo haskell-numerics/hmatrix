@@ -1,9 +1,8 @@
 --------------------------------------------------------------------------------
 {- |
-Module      :  Numeric.HMatrix.Data
+Module      :  Numeric.LinearAlgebra.Data
 Copyright   :  (c) Alberto Ruiz 2014
-License     :  GPL
-
+License     :  BSD3
 Maintainer  :  Alberto Ruiz
 Stability   :  provisional
 
@@ -12,7 +11,7 @@ Basic data processing.
 -}
 --------------------------------------------------------------------------------
 
-module Numeric.HMatrix.Data(
+module Numeric.LinearAlgebra.Data(
 
     -- * Vector
     -- | 1D arrays are storable vectors from the vector package.
@@ -44,10 +43,9 @@ module Numeric.HMatrix.Data(
     find, maxIndex, minIndex, maxElement, minElement, atIndex,
 
     -- * IO
-    disp, dispf, disps, dispcf, latexFormat, format,
-    loadMatrix, saveMatrix, fromFile, fileDimensions,
-    readMatrix,
-    fscanfVector, fprintfVector, freadVector, fwriteVector,
+    disp, dispf, disps, dispcf, latexFormat, format, readMatrix,
+
+    -- | loadMatrix, saveMatrix, fromFile, fileDimensions, fscanfVector, fprintfVector, freadVector, fwriteVector
 
 -- * Conversion
     Convert(..),
@@ -64,7 +62,7 @@ module Numeric.HMatrix.Data(
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import Numeric.Container
-import Numeric.IO
+import Data.Packed.IO
 import Numeric.LinearAlgebra.Util
 import Data.Complex
 

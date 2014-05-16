@@ -3,9 +3,8 @@
 {- |
 Module      :  Numeric.LinearAlgebra.Util
 Copyright   :  (c) Alberto Ruiz 2013
-License     :  GPL
-
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+License     :  BSD3
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
 
 -}

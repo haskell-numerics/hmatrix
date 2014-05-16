@@ -7,12 +7,11 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Matrix
--- Copyright   :  (c) Alberto Ruiz 2010
--- License     :  GPL-style
+-- Copyright   :  (c) Alberto Ruiz 2014
+-- License     :  BSD3
 --
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
--- Portability :  portable
 --
 -- Provides instances of standard classes 'Show', 'Read', 'Eq',
 -- 'Num', 'Fractional', and 'Floating' for 'Matrix'.

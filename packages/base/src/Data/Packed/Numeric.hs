@@ -10,7 +10,6 @@
 -- Module      :  Data.Packed.Numeric
 -- Copyright   :  (c) Alberto Ruiz 2010-14
 -- License     :  BSD3
---
 -- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
 --

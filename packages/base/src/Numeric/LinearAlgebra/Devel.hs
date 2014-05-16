@@ -2,8 +2,7 @@
 {- |
 Module      :  Numeric.HMatrix.Devel
 Copyright   :  (c) Alberto Ruiz 2014
-License     :  GPL
-
+License     :  BSD3
 Maintainer  :  Alberto Ruiz
 Stability   :  provisional
 
@@ -12,7 +11,7 @@ The library can be easily extended using the tools in this module.
 -}
 --------------------------------------------------------------------------------
 
-module Numeric.HMatrix.Devel(
+module Numeric.LinearAlgebra.Devel(
     -- * FFI helpers
     -- | Sample usage, to upload a perspective matrix to a shader.
     --

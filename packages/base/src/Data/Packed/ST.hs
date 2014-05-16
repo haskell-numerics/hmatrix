@@ -9,12 +9,12 @@
 -- License     :  BSD3
 -- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
--- Portability :  portable
 --
 -- In-place manipulation inside the ST monad.
 -- See examples/inplace.hs in the distribution.
 --
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
 
 module Data.Packed.ST (
     -- * Mutable Vectors
