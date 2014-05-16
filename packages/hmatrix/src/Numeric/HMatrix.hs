@@ -134,4 +134,6 @@ import Numeric.Vector()
 import Numeric.Container
 import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Util
+import Numeric.Random
+
 

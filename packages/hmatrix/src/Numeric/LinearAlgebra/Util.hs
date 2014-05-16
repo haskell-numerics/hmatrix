@@ -22,7 +22,6 @@ module Numeric.LinearAlgebra.Util(
     col,
     (&), (¦), (——), (#),
     (?), (¿),
-    rand, randn,
     cross,
     norm,
     unitary,
@@ -60,7 +59,6 @@ import Numeric.LinearAlgebra.Algorithms hiding (i)
 import Numeric.Matrix()
 import Numeric.Vector()
 
-import System.Random(randomIO)
 import Numeric.LinearAlgebra.Util.Convolution
 import Graphics.Plot
 
@@ -77,31 +75,6 @@ disp :: Int -> Matrix Double -> IO ()
 
 disp n = putStrLn . dispf n
 
--- | pseudorandom matrix with uniform elements between 0 and 1
-randm :: RandDist
-     -> Int -- ^ rows
-     -> Int -- ^ columns
-     -> IO (Matrix Double)
-randm d r c = do
-    seed <- randomIO
-    return (reshape c $ randomVector seed d (r*c))
-
--- | pseudorandom matrix with uniform elements between 0 and 1
-rand :: Int -> Int -> IO (Matrix Double)
-rand = randm Uniform
-
-{- | pseudorandom matrix with normal elements
-
->>> x <- randn 3 5
->>> disp 3 x
-3x5
-0.386  -1.141   0.491  -0.510   1.512
-0.069  -0.919   1.022  -0.181   0.745
-0.313  -0.670  -0.097  -1.575  -0.583
-
--}
-randn :: Int -> Int -> IO (Matrix Double)
-randn = randm Gaussian
 
 {- | create a real diagonal matrix from a list
 
