@@ -129,7 +129,7 @@ import Numeric.LinearAlgebra.Data
 
 import Numeric.Matrix()
 import Numeric.Vector()
-import Numeric.Container
+import Data.Packed.Numeric
 import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Util
 

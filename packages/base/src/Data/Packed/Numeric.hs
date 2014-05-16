@@ -1,8 +1,8 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
@@ -13,16 +13,32 @@
 -- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
 --
+-- Basic numeric operations on 'Vector' and 'Matrix', including conversion routines.
+--
+-- The 'Container' class is used to define optimized generic functions which work
+-- on 'Vector' and 'Matrix' with real or complex elements.
+--
+-- Some of these functions are also available in the instances of the standard
+-- numeric Haskell classes provided by "Numeric.LinearAlgebra".
+--
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
 
 module Data.Packed.Numeric (
     -- * Basic functions
-    ident, diag, ctrans,
+    module Data.Packed,
+    konst, build,
+    linspace,
+    diag, ident,
+    ctrans,
     -- * Generic operations
     Container(..),
-    -- * Matrix product and related functions
-    Product(..), udot,
-    mXm,mXv,vXm,
+    -- * Matrix product
+    Product(..), udot, dot, (◇),
+    Mul(..),
+    Contraction(..),
+    optimiseMult,
+    mXm,mXv,vXm,LSDiv(..),
     outer, kronecker,
     -- * Element conversion
     Convert(..),
@@ -32,576 +48,196 @@ module Data.Packed.Numeric (
     RealOf, ComplexOf, SingleOf, DoubleOf,
 
     IndexOf,
-    module Data.Complex
+    module Data.Complex,
+    -- * IO
+    module Data.Packed.IO
 ) where
 
-import Data.Packed
-import Data.Packed.ST as ST
-import Numeric.Conversion
-import Data.Packed.Development
-import Numeric.Vectorized
+import Data.Packed hiding (stepD, stepF, condD, condF, conjugateC, conjugateQ)
+import Data.Packed.Internal.Numeric
 import Data.Complex
-import Control.Applicative((<*>))
+import Numeric.LinearAlgebra.Algorithms(Field,linearSolveSVD)
+import Data.Monoid(Monoid(mconcat))
+import Data.Packed.IO
 
-import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ)
+------------------------------------------------------------------
 
--------------------------------------------------------------------
+{- | Creates a real vector containing a range of values:
 
-type family IndexOf (c :: * -> *)
+>>> linspace 5 (-3,7::Double)
+fromList [-3.0,-0.5,2.0,4.5,7.0]@
 
-type instance IndexOf Vector = Int
-type instance IndexOf Matrix = (Int,Int)
+>>> linspace 5 (8,2+i) :: Vector (Complex Double)
+fromList [8.0 :+ 0.0,6.5 :+ 0.25,5.0 :+ 0.5,3.5 :+ 0.75,2.0 :+ 1.0]
 
-type family ArgOf (c :: * -> *) a
+Logarithmic spacing can be defined as follows:
 
-type instance ArgOf Vector a = a -> a
-type instance ArgOf Matrix a = a -> a -> a
+@logspace n (a,b) = 10 ** linspace n (a,b)@
+-}
+linspace :: (Container Vector e) => Int -> (e, e) -> Vector e
+linspace 0 (a,b) = fromList[(a+b)/2]
+linspace n (a,b) = addConstant a $ scale s $ fromList $ map fromIntegral [0 .. n-1]
+    where s = (b-a)/fromIntegral (n-1)
 
--------------------------------------------------------------------
+--------------------------------------------------------
 
--- | Basic element-by-element functions for numeric containers
-class (Complexable c, Fractional e, Element e) => Container c e where
-    -- | create a structure with a single element
+class Contraction a b c | a b -> c
+  where
+    infixl 7 <.>
+    {- | Matrix product, matrix vector product, and dot product
+
+Examples:
+
+>>> let a = (3><4)   [1..]      :: Matrix Double
+>>> let v = fromList [1,0,2,-1] :: Vector Double
+>>> let u = fromList [1,2,3]    :: Vector Double
+
+>>> a
+(3><4)
+ [ 1.0,  2.0,  3.0,  4.0
+ , 5.0,  6.0,  7.0,  8.0
+ , 9.0, 10.0, 11.0, 12.0 ]
+
+matrix × matrix:
+
+>>> disp 2 (a <.> trans a)
+3x3
+ 30   70  110
+ 70  174  278
+110  278  446
+
+matrix × vector:
+
+>>> a <.> v
+fromList [3.0,11.0,19.0]
+
+dot product:
+
+>>> u <.> fromList[3,2,1::Double]
+10
+
+For complex vectors the first argument is conjugated:
+
+>>> fromList [1,i] <.> fromList[2*i+1,3]
+1.0 :+ (-1.0)
+
+>>> fromList [1,i,1-i] <.> complex a
+fromList [10.0 :+ 4.0,12.0 :+ 4.0,14.0 :+ 4.0,16.0 :+ 4.0]
+
+-}
+    (<.>) :: a -> b -> c
+
+
+instance (Product t, Container Vector t) => Contraction (Vector t) (Vector t) t where
+    u <.> v = conj u `udot` v
+
+instance Product t => Contraction (Matrix t) (Vector t) (Vector t) where
+    (<.>) = mXv
+
+instance (Container Vector t, Product t) => Contraction (Vector t) (Matrix t) (Vector t) where
+    (<.>) v m = (conj v) `vXm` m
+
+instance Product t => Contraction (Matrix t) (Matrix t) (Matrix t) where
+    (<.>) = mXm
+
+
+--------------------------------------------------------------------------------
+
+class Mul a b c | a b -> c where
+ infixl 7 <>
+ -- | Matrix-matrix, matrix-vector, and vector-matrix products.
+ (<>)  :: Product t => a t -> b t -> c t
+
+instance Mul Matrix Matrix Matrix where
+    (<>) = mXm
+
+instance Mul Matrix Vector Vector where
+    (<>) m v = flatten $ m <> asColumn v
+
+instance Mul Vector Matrix Vector where
+    (<>) v m = flatten $ asRow v <> m
+
+--------------------------------------------------------------------------------
+
+class LSDiv c where
+ infixl 7 <\>
+ -- | least squares solution of a linear system, similar to the \\ operator of Matlab\/Octave (based on linearSolveSVD)
+ (<\>)  :: Field t => Matrix t -> c t -> c t
+
+instance LSDiv Vector where
+    m <\> v = flatten (linearSolveSVD m (reshape 1 v))
+
+instance LSDiv Matrix where
+    (<\>) = linearSolveSVD
+
+--------------------------------------------------------------------------------
+
+class Konst e d c | d -> c, c -> d
+  where
+    -- |
+    -- >>> konst 7 3 :: Vector Float
+    -- fromList [7.0,7.0,7.0]
     --
-    -- >>> let v = fromList [1..3::Double]
-    -- >>> v / scalar (norm2 v)
-    -- fromList [0.2672612419124244,0.5345224838248488,0.8017837257372732]
+    -- >>> konst i (3::Int,4::Int)
+    -- (3><4)
+    --  [ 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0
+    --  , 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0
+    --  , 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0 ]
     --
-    scalar      :: e -> c e
-    -- | complex conjugate
-    conj        :: c e -> c e
-    scale       :: e -> c e -> c e
-    -- | scale the element by element reciprocal of the object:
-    --
-    -- @scaleRecip 2 (fromList [5,i]) == 2 |> [0.4 :+ 0.0,0.0 :+ (-2.0)]@
-    scaleRecip  :: e -> c e -> c e
-    addConstant :: e -> c e -> c e
-    add         :: c e -> c e -> c e
-    sub         :: c e -> c e -> c e
-    -- | element by element multiplication
-    mul         :: c e -> c e -> c e
-    -- | element by element division
-    divide      :: c e -> c e -> c e
-    equal       :: c e -> c e -> Bool
-    --
-    -- element by element inverse tangent
-    arctan2     :: c e -> c e -> c e
-    --
-    -- | cannot implement instance Functor because of Element class constraint
-    cmap        :: (Element b) => (e -> b) -> c e -> c b
-    -- | constant structure of given size
-    konst'      :: e -> IndexOf c -> c e
-    -- | create a structure using a function
+    konst :: e -> d -> c e
+
+instance Container Vector e => Konst e Int Vector
+  where
+    konst = konst'
+
+instance Container Vector e => Konst e (Int,Int) Matrix
+  where
+    konst = konst'
+
+--------------------------------------------------------------------------------
+
+class Build d f c e | d -> c, c -> d, f -> e, f -> d, f -> c, c e -> f, d e -> f
+  where
+    -- |
+    -- >>> build 5 (**2) :: Vector Double
+    -- fromList [0.0,1.0,4.0,9.0,16.0]
     --
     -- Hilbert matrix of order N:
     --
-    -- @hilb n = build' (n,n) (\\i j -> 1/(i+j+1))@
-    build'       :: IndexOf c -> (ArgOf c e) -> c e
-    -- | indexing function
-    atIndex     :: c e -> IndexOf c -> e
-    -- | index of min element
-    minIndex    :: c e -> IndexOf c
-    -- | index of max element
-    maxIndex    :: c e -> IndexOf c
-    -- | value of min element
-    minElement  :: c e -> e
-    -- | value of max element
-    maxElement  :: c e -> e
-    -- the C functions sumX/prodX are twice as fast as using foldVector
-    -- | the sum of elements (faster than using @fold@)
-    sumElements :: c e -> e
-    -- | the product of elements (faster than using @fold@)
-    prodElements :: c e -> e
-
-    -- | A more efficient implementation of @cmap (\\x -> if x>0 then 1 else 0)@
+    -- >>> let hilb n = build (n,n) (\i j -> 1/(i+j+1)) :: Matrix Double
+    -- >>> putStr . dispf 2 $ hilb 3
+    -- 3x3
+    -- 1.00  0.50  0.33
+    -- 0.50  0.33  0.25
+    -- 0.33  0.25  0.20
     --
-    -- >>> step $ linspace 5 (-1,1::Double)
-    -- 5 |> [0.0,0.0,0.0,1.0,1.0]
-    --
-    
-    step :: RealElement e => c e -> c e
+    build :: d -> f -> c e
 
-    -- | Element by element version of @case compare a b of {LT -> l; EQ -> e; GT -> g}@.
-    --
-    -- Arguments with any dimension = 1 are automatically expanded: 
-    --
-    -- >>> cond ((1><4)[1..]) ((3><1)[1..]) 0 100 ((3><4)[1..]) :: Matrix Double
-    -- (3><4)
-    -- [ 100.0,   2.0,   3.0,  4.0
-    -- ,   0.0, 100.0,   7.0,  8.0
-    -- ,   0.0,   0.0, 100.0, 12.0 ]
-    --
-    
-    cond :: RealElement e 
-         => c e -- ^ a
-         -> c e -- ^ b
-         -> c e -- ^ l 
-         -> c e -- ^ e
-         -> c e -- ^ g
-         -> c e -- ^ result
-
-    -- | Find index of elements which satisfy a predicate
-    --
-    -- >>> find (>0) (ident 3 :: Matrix Double)
-    -- [(0,0),(1,1),(2,2)]
-    --
-
-    find :: (e -> Bool) -> c e -> [IndexOf c]
-
-    -- | Create a structure from an association list
-    --
-    -- >>> assoc 5 0 [(3,7),(1,4)] :: Vector Double
-    -- fromList [0.0,4.0,0.0,7.0,0.0]
-    --
-    -- >>> assoc (2,3) 0 [((0,2),7),((1,0),2*i-3)] :: Matrix (Complex Double)
-    -- (2><3)
-    --  [    0.0 :+ 0.0, 0.0 :+ 0.0, 7.0 :+ 0.0
-    --  , (-3.0) :+ 2.0, 0.0 :+ 0.0, 0.0 :+ 0.0 ]
-    --
-    assoc :: IndexOf c        -- ^ size
-          -> e                -- ^ default value
-          -> [(IndexOf c, e)] -- ^ association list
-          -> c e              -- ^ result
-
-    -- | Modify a structure using an update function
-    --
-    -- >>> accum (ident 5) (+) [((1,1),5),((0,3),3)] :: Matrix Double
-    -- (5><5)
-    --  [ 1.0, 0.0, 0.0, 3.0, 0.0
-    --  , 0.0, 6.0, 0.0, 0.0, 0.0
-    --  , 0.0, 0.0, 1.0, 0.0, 0.0
-    --  , 0.0, 0.0, 0.0, 1.0, 0.0
-    --  , 0.0, 0.0, 0.0, 0.0, 1.0 ]
-    --
-    -- computation of histogram:
-    --
-    -- >>> accum (konst 0 7) (+) (map (flip (,) 1) [4,5,4,1,5,2,5]) :: Vector Double
-    -- fromList [0.0,1.0,1.0,0.0,2.0,3.0,0.0]
-    --
-    
-    accum :: c e              -- ^ initial structure
-          -> (e -> e -> e)    -- ^ update function
-          -> [(IndexOf c, e)] -- ^ association list
-          -> c e              -- ^ result
-
---------------------------------------------------------------------------
-
-instance Container Vector Float where
-    scale = vectorMapValF Scale
-    scaleRecip = vectorMapValF Recip
-    addConstant = vectorMapValF AddConstant
-    add = vectorZipF Add
-    sub = vectorZipF Sub
-    mul = vectorZipF Mul
-    divide = vectorZipF Div
-    equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
-    arctan2 = vectorZipF ATan2
-    scalar x = fromList [x]
-    konst' = constant
-    build' = buildV
-    conj = id
-    cmap = mapVector
-    atIndex = (@>)
-    minIndex     = emptyErrorV "minIndex"   (round . toScalarF MinIdx)
-    maxIndex     = emptyErrorV "maxIndex"   (round . toScalarF MaxIdx)
-    minElement   = emptyErrorV "minElement" (toScalarF Min)
-    maxElement   = emptyErrorV "maxElement" (toScalarF Max)
-    sumElements  = sumF
-    prodElements = prodF
-    step = stepF
-    find = findV
-    assoc = assocV
-    accum = accumV
-    cond = condV condF
-
-instance Container Vector Double where
-    scale = vectorMapValR Scale
-    scaleRecip = vectorMapValR Recip
-    addConstant = vectorMapValR AddConstant
-    add = vectorZipR Add
-    sub = vectorZipR Sub
-    mul = vectorZipR Mul
-    divide = vectorZipR Div
-    equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
-    arctan2 = vectorZipR ATan2
-    scalar x = fromList [x]
-    konst' = constant
-    build' = buildV
-    conj = id
-    cmap = mapVector
-    atIndex = (@>)
-    minIndex     = emptyErrorV "minIndex"   (round . toScalarR MinIdx)
-    maxIndex     = emptyErrorV "maxIndex"   (round . toScalarR MaxIdx)
-    minElement   = emptyErrorV "minElement" (toScalarR Min)
-    maxElement   = emptyErrorV "maxElement" (toScalarR Max)
-    sumElements  = sumR
-    prodElements = prodR
-    step = stepD
-    find = findV
-    assoc = assocV
-    accum = accumV
-    cond = condV condD
-
-instance Container Vector (Complex Double) where
-    scale = vectorMapValC Scale
-    scaleRecip = vectorMapValC Recip
-    addConstant = vectorMapValC AddConstant
-    add = vectorZipC Add
-    sub = vectorZipC Sub
-    mul = vectorZipC Mul
-    divide = vectorZipC Div
-    equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
-    arctan2 = vectorZipC ATan2
-    scalar x = fromList [x]
-    konst' = constant
-    build' = buildV
-    conj = conjugateC
-    cmap = mapVector
-    atIndex = (@>)
-    minIndex     = emptyErrorV "minIndex" (minIndex . fst . fromComplex . (mul <*> conj))
-    maxIndex     = emptyErrorV "maxIndex" (maxIndex . fst . fromComplex . (mul <*> conj))
-    minElement   = emptyErrorV "minElement" (atIndex <*> minIndex)
-    maxElement   = emptyErrorV "maxElement" (atIndex <*> maxIndex)
-    sumElements  = sumC
-    prodElements = prodC
-    step = undefined -- cannot match
-    find = findV
-    assoc = assocV
-    accum = accumV
-    cond = undefined -- cannot match
-
-instance Container Vector (Complex Float) where
-    scale = vectorMapValQ Scale
-    scaleRecip = vectorMapValQ Recip
-    addConstant = vectorMapValQ AddConstant
-    add = vectorZipQ Add
-    sub = vectorZipQ Sub
-    mul = vectorZipQ Mul
-    divide = vectorZipQ Div
-    equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
-    arctan2 = vectorZipQ ATan2
-    scalar x = fromList [x]
-    konst' = constant
-    build' = buildV
-    conj = conjugateQ
-    cmap = mapVector
-    atIndex = (@>)
-    minIndex     = emptyErrorV "minIndex" (minIndex . fst . fromComplex . (mul <*> conj))
-    maxIndex     = emptyErrorV "maxIndex" (maxIndex . fst . fromComplex . (mul <*> conj))
-    minElement   = emptyErrorV "minElement" (atIndex <*> minIndex)
-    maxElement   = emptyErrorV "maxElement" (atIndex <*> maxIndex)
-    sumElements  = sumQ
-    prodElements = prodQ
-    step = undefined -- cannot match
-    find = findV
-    assoc = assocV
-    accum = accumV
-    cond = undefined -- cannot match
-
----------------------------------------------------------------
-
-instance (Container Vector a) => Container Matrix a where
-    scale x = liftMatrix (scale x)
-    scaleRecip x = liftMatrix (scaleRecip x)
-    addConstant x = liftMatrix (addConstant x)
-    add = liftMatrix2 add
-    sub = liftMatrix2 sub
-    mul = liftMatrix2 mul
-    divide = liftMatrix2 divide
-    equal a b = cols a == cols b && flatten a `equal` flatten b
-    arctan2 = liftMatrix2 arctan2
-    scalar x = (1><1) [x]
-    konst' v (r,c) = matrixFromVector RowMajor r c (konst' v (r*c))
-    build' = buildM
-    conj = liftMatrix conj
-    cmap f = liftMatrix (mapVector f)
-    atIndex = (@@>)
-    minIndex = emptyErrorM "minIndex of Matrix" $
-                \m -> divMod (minIndex $ flatten m) (cols m)
-    maxIndex = emptyErrorM "maxIndex of Matrix" $
-                \m -> divMod (maxIndex $ flatten m) (cols m)
-    minElement = emptyErrorM "minElement of Matrix" (atIndex <*> minIndex)
-    maxElement = emptyErrorM "maxElement of Matrix" (atIndex <*> maxIndex)
-    sumElements = sumElements . flatten
-    prodElements = prodElements . flatten
-    step = liftMatrix step
-    find = findM
-    assoc = assocM
-    accum = accumM
-    cond = condM
-
-
-emptyErrorV msg f v =
-    if dim v > 0
-        then f v
-        else error $ msg ++ " of Vector with dim = 0"
-
-emptyErrorM msg f m =
-    if rows m > 0 && cols m > 0
-        then f m
-        else error $ msg++" "++shSize m
-
-----------------------------------------------------
-
--- | Matrix product and related functions
-class (Num e, Element e) => Product e where
-    -- | matrix product
-    multiply :: Matrix e -> Matrix e -> Matrix e
-    -- | sum of absolute value of elements (differs in complex case from @norm1@)
-    absSum     :: Vector e -> RealOf e
-    -- | sum of absolute value of elements
-    norm1      :: Vector e -> RealOf e
-    -- | euclidean norm
-    norm2      :: Vector e -> RealOf e
-    -- | element of maximum magnitude
-    normInf    :: Vector e -> RealOf e
-
-instance Product Float where
-    norm2      = emptyVal (toScalarF Norm2)
-    absSum     = emptyVal (toScalarF AbsSum)
-    norm1      = emptyVal (toScalarF AbsSum)
-    normInf    = emptyVal (maxElement . vectorMapF Abs)
-    multiply   = emptyMul multiplyF
-
-instance Product Double where
-    norm2      = emptyVal (toScalarR Norm2)
-    absSum     = emptyVal (toScalarR AbsSum)
-    norm1      = emptyVal (toScalarR AbsSum)
-    normInf    = emptyVal (maxElement . vectorMapR Abs)
-    multiply   = emptyMul multiplyR
-
-instance Product (Complex Float) where
-    norm2      = emptyVal (toScalarQ Norm2)
-    absSum     = emptyVal (toScalarQ AbsSum)
-    norm1      = emptyVal (sumElements . fst . fromComplex . vectorMapQ Abs)
-    normInf    = emptyVal (maxElement . fst . fromComplex . vectorMapQ Abs)
-    multiply   = emptyMul multiplyQ
-
-instance Product (Complex Double) where
-    norm2      = emptyVal (toScalarC Norm2)
-    absSum     = emptyVal (toScalarC AbsSum)
-    norm1      = emptyVal (sumElements . fst . fromComplex . vectorMapC Abs)
-    normInf    = emptyVal (maxElement . fst . fromComplex . vectorMapC Abs)
-    multiply   = emptyMul multiplyC
-
-emptyMul m a b
-    | x1 == 0 && x2 == 0 || r == 0 || c == 0 = konst' 0 (r,c)
-    | otherwise = m a b
+instance Container Vector e => Build Int (e -> e) Vector e
   where
-    r  = rows a
-    x1 = cols a
-    x2 = rows b
-    c  = cols b
+    build = build'
 
-emptyVal f v =
-    if dim v > 0
-        then f v
-        else 0
-
--- FIXME remove unused C wrappers
--- | unconjugated dot product
-udot :: Product e => Vector e -> Vector e -> e
-udot u v
-    | dim u == dim v = val (asRow u `multiply` asColumn v)
-    | otherwise = error $ "different dimensions "++show (dim u)++" and "++show (dim v)++" in dot product"
+instance Container Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
   where
-    val m | dim u > 0 = m@@>(0,0)
-          | otherwise = 0
+    build = build'
 
-----------------------------------------------------------
+--------------------------------------------------------------------------------
 
--- synonym for matrix product
-mXm :: Product t => Matrix t -> Matrix t -> Matrix t
-mXm = multiply
+{- | alternative operator for '(\<.\>)'
 
--- matrix - vector product
-mXv :: Product t => Matrix t -> Vector t -> Vector t
-mXv m v = flatten $ m `mXm` (asColumn v)
-
--- vector - matrix product
-vXm :: Product t => Vector t -> Matrix t -> Vector t
-vXm v m = flatten $ (asRow v) `mXm` m
-
-{- | Outer product of two vectors.
-
->>> fromList [1,2,3] `outer` fromList [5,2,3]
-(3><3)
- [  5.0, 2.0, 3.0
- , 10.0, 4.0, 6.0
- , 15.0, 6.0, 9.0 ]
+x25c7, white diamond
 
 -}
-outer :: (Product t) => Vector t -> Vector t -> Matrix t
-outer u v = asColumn u `multiply` asRow v
+(◇) :: Contraction a b c => a -> b -> c
+infixl 7 ◇
+(◇) = (<.>)
 
-{- | Kronecker product of two matrices.
+-- | dot product: @cdot u v = 'udot' ('conj' u) v@
+dot :: (Container Vector t, Product t) => Vector t -> Vector t -> t
+dot u v = udot (conj u) v
 
-@m1=(2><3)
- [ 1.0,  2.0, 0.0
- , 0.0, -1.0, 3.0 ]
-m2=(4><3)
- [  1.0,  2.0,  3.0
- ,  4.0,  5.0,  6.0
- ,  7.0,  8.0,  9.0
- , 10.0, 11.0, 12.0 ]@
+--------------------------------------------------------------------------------
 
->>> kronecker m1 m2
-(8><9)
- [  1.0,  2.0,  3.0,   2.0,   4.0,   6.0,  0.0,  0.0,  0.0
- ,  4.0,  5.0,  6.0,   8.0,  10.0,  12.0,  0.0,  0.0,  0.0
- ,  7.0,  8.0,  9.0,  14.0,  16.0,  18.0,  0.0,  0.0,  0.0
- , 10.0, 11.0, 12.0,  20.0,  22.0,  24.0,  0.0,  0.0,  0.0
- ,  0.0,  0.0,  0.0,  -1.0,  -2.0,  -3.0,  3.0,  6.0,  9.0
- ,  0.0,  0.0,  0.0,  -4.0,  -5.0,  -6.0, 12.0, 15.0, 18.0
- ,  0.0,  0.0,  0.0,  -7.0,  -8.0,  -9.0, 21.0, 24.0, 27.0
- ,  0.0,  0.0,  0.0, -10.0, -11.0, -12.0, 30.0, 33.0, 36.0 ]
-
--}
-kronecker :: (Product t) => Matrix t -> Matrix t -> Matrix t
-kronecker a b = fromBlocks
-              . splitEvery (cols a)
-              . map (reshape (cols b))
-              . toRows
-              $ flatten a `outer` flatten b
-
--------------------------------------------------------------------
-
-
-class Convert t where
-    real    :: Container c t => c (RealOf t) -> c t
-    complex :: Container c t => c t -> c (ComplexOf t)
-    single  :: Container c t => c t -> c (SingleOf t)
-    double  :: Container c t => c t -> c (DoubleOf t)
-    toComplex   :: (Container c t, RealElement t) => (c t, c t) -> c (Complex t)
-    fromComplex :: (Container c t, RealElement t) => c (Complex t) -> (c t, c t)
-
-
-instance Convert Double where
-    real = id
-    complex = comp'
-    single = single'
-    double = id
-    toComplex = toComplex'
-    fromComplex = fromComplex'
-
-instance Convert Float where
-    real = id
-    complex = comp'
-    single = id
-    double = double'
-    toComplex = toComplex'
-    fromComplex = fromComplex'
-
-instance Convert (Complex Double) where
-    real = comp'
-    complex = id
-    single = single'
-    double = id
-    toComplex = toComplex'
-    fromComplex = fromComplex'
-
-instance Convert (Complex Float) where
-    real = comp'
-    complex = id
-    single = id
-    double = double'
-    toComplex = toComplex'
-    fromComplex = fromComplex'
-
--------------------------------------------------------------------
-
-type family RealOf x
-
-type instance RealOf Double = Double
-type instance RealOf (Complex Double) = Double
-
-type instance RealOf Float = Float
-type instance RealOf (Complex Float) = Float
-
-type family ComplexOf x
-
-type instance ComplexOf Double = Complex Double
-type instance ComplexOf (Complex Double) = Complex Double
-
-type instance ComplexOf Float = Complex Float
-type instance ComplexOf (Complex Float) = Complex Float
-
-type family SingleOf x
-
-type instance SingleOf Double = Float
-type instance SingleOf Float  = Float
-
-type instance SingleOf (Complex a) = Complex (SingleOf a)
-
-type family DoubleOf x
-
-type instance DoubleOf Double = Double
-type instance DoubleOf Float  = Double
-
-type instance DoubleOf (Complex a) = Complex (DoubleOf a)
-
-type family ElementOf c
-
-type instance ElementOf (Vector a) = a
-type instance ElementOf (Matrix a) = a
-
-------------------------------------------------------------
-
-buildM (rc,cc) f = fromLists [ [f r c | c <- cs] | r <- rs ]
-    where rs = map fromIntegral [0 .. (rc-1)]
-          cs = map fromIntegral [0 .. (cc-1)]
-
-buildV n f = fromList [f k | k <- ks]
-    where ks = map fromIntegral [0 .. (n-1)]
-
---------------------------------------------------------
--- | conjugate transpose
-ctrans :: (Container Vector e, Element e) => Matrix e -> Matrix e
-ctrans = liftMatrix conj . trans
-
--- | Creates a square matrix with a given diagonal.
-diag :: (Num a, Element a) => Vector a -> Matrix a
-diag v = diagRect 0 v n n where n = dim v
-
--- | creates the identity matrix of given dimension
-ident :: (Num a, Element a) => Int -> Matrix a
-ident n = diag (constant 1 n)
-
---------------------------------------------------------
-
-findV p x = foldVectorWithIndex g [] x where
-    g k z l = if p z then k:l else l
-
-findM p x = map ((`divMod` cols x)) $ findV p (flatten x)
-
-assocV n z xs = ST.runSTVector $ do
-        v <- ST.newVector z n
-        mapM_ (\(k,x) -> ST.writeVector v k x) xs
-        return v
-
-assocM (r,c) z xs = ST.runSTMatrix $ do
-        m <- ST.newMatrix z r c
-        mapM_ (\((i,j),x) -> ST.writeMatrix m i j x) xs
-        return m
-
-accumV v0 f xs = ST.runSTVector $ do
-        v <- ST.thawVector v0
-        mapM_ (\(k,x) -> ST.modifyVector v k (f x)) xs
-        return v
-
-accumM m0 f xs = ST.runSTMatrix $ do
-        m <- ST.thawMatrix m0
-        mapM_ (\((i,j),x) -> ST.modifyMatrix m i j (f x)) xs
-        return m
-
-----------------------------------------------------------------------
-
-condM a b l e t = matrixFromVector RowMajor (rows a'') (cols a'') $ cond a' b' l' e' t'
-  where
-    args@(a'':_) = conformMs [a,b,l,e,t]
-    [a', b', l', e', t'] = map flatten args
-
-condV f a b l e t = f a' b' l' e' t'
-  where
-    [a', b', l', e', t'] = conformVs [a,b,l,e,t]
+optimiseMult :: Monoid (Matrix t) => [Matrix t] -> Matrix t
+optimiseMult = mconcat
 

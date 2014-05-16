@@ -81,7 +81,7 @@ import Data.Packed
 import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Data.List(foldl1')
 import Data.Array
-import Data.Packed.Numeric
+import Data.Packed.Internal.Numeric
 
 
 {- | Generic linear algebra functions for double precision real and complex matrices.

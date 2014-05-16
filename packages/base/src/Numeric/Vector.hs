@@ -21,7 +21,7 @@ module Numeric.Vector () where
 
 import Numeric.Vectorized
 import Data.Packed.Vector
-import Data.Packed.Numeric
+import Data.Packed.Internal.Numeric
 
 -------------------------------------------------------------------
 

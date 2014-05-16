@@ -60,7 +60,7 @@ module Numeric.LinearAlgebra.Devel(
 import Data.Packed.Foreign
 import Data.Packed.Development
 import Data.Packed.ST
-import Numeric.Container(Container,Contraction,LSDiv,Product,
+import Data.Packed.Numeric(Container,Contraction,LSDiv,Product,
                          Complexable(),RealElement(),
                          RealOf, ComplexOf, SingleOf, DoubleOf, IndexOf)
 import Data.Packed

@@ -91,6 +91,7 @@ library
                         Numeric.GSL.ODE,
                         Numeric.GSL,
                         Numeric.LinearAlgebra,
+                        Numeric.Container,
                         Graphics.Plot
     other-modules:      Numeric.GSL.Internal,
                         Numeric.GSL.LinearAlgebra,

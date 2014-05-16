@@ -27,7 +27,7 @@ module Numeric.Matrix (
 -------------------------------------------------------------------
 
 import Data.Packed
-import Data.Packed.Numeric
+import Data.Packed.Internal.Numeric
 import qualified Data.Monoid as M
 import Data.List(partition)
 import Numeric.Chain

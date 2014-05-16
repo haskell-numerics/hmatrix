@@ -61,8 +61,7 @@ module Numeric.LinearAlgebra.Data(
 
 import Data.Packed.Vector
 import Data.Packed.Matrix
-import Numeric.Container
-import Data.Packed.IO
+import Data.Packed.Numeric
 import Numeric.LinearAlgebra.Util
 import Data.Complex
 

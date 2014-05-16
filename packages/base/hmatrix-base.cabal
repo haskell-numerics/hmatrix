@@ -34,13 +34,12 @@ library
                         Data.Packed.Foreign,
                         Data.Packed.ST,
                         Data.Packed.Development,
-                        Numeric.Conversion
+
                         Numeric.LinearAlgebra.LAPACK
                         Numeric.LinearAlgebra.Algorithms
-                        Numeric.Container
+                        Data.Packed.Numeric
                         Numeric.LinearAlgebra.Util
-                        Numeric.LinearAlgebra.Util.Convolution
-                        Data.Packed.IO
+
                         Numeric.LinearAlgebra.Base
                         Numeric.LinearAlgebra.Devel
                         Numeric.LinearAlgebra.Data
@@ -50,12 +49,14 @@ library
                         Data.Packed.Internal.Signatures,
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix
+                        Data.Packed.IO
                         Numeric.Chain
                         Numeric.Vectorized
                         Numeric.Vector
                         Numeric.Matrix
-                        Data.Packed.Numeric
-
+                        Data.Packed.Internal.Numeric
+                        Numeric.LinearAlgebra.Util.Convolution
+                        Numeric.Conversion
 
     C-sources:          src/C/lapack-aux.c
                         src/C/vector-aux.c

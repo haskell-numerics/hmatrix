@@ -19,7 +19,7 @@ module Numeric.Chain (
 import Data.Maybe
 
 import Data.Packed.Matrix
-import Data.Packed.Numeric
+import Data.Packed.Internal.Numeric
 
 import qualified Data.Array.IArray as A
 
