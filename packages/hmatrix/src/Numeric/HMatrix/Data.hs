@@ -64,6 +64,7 @@ module Numeric.HMatrix.Data(
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import Numeric.Container
+import Numeric.IO
 import Numeric.LinearAlgebra.Util
 import Data.Complex
 

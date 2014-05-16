@@ -42,12 +42,6 @@ module Numeric.Container (
     optimiseMult,
     mXm,mXv,vXm,LSDiv(..),
     outer, kronecker,
-    -- * Random numbers
-    RandDist(..),
-    randomVector,
-    gaussianSample,
-    uniformSample,
-    meanCov,
     -- * Element conversion
     Convert(..),
     Complexable(),
@@ -56,20 +50,13 @@ module Numeric.Container (
     RealOf, ComplexOf, SingleOf, DoubleOf,
 
     IndexOf,
-    module Data.Complex,
-    -- * IO
-    dispf, disps, dispcf, vecdisp, latexFormat, format,
-    loadMatrix, saveMatrix, fromFile, fileDimensions,
-    readMatrix,
-    fscanfVector, fprintfVector, freadVector, fwriteVector,
+    module Data.Complex
 ) where
 
 import Data.Packed hiding (stepD, stepF, condD, condF, conjugateC, conjugateQ)
 import Data.Packed.Numeric
-import Numeric.IO
 import Data.Complex
 import Numeric.LinearAlgebra.Algorithms(Field,linearSolveSVD)
-import Numeric.Random
 import Data.Monoid(Monoid(mconcat))
 
 ------------------------------------------------------------------
@@ -232,26 +219,6 @@ instance Container Vector e => Build Int (e -> e) Vector e
 instance Container Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
   where
     build = build'
-
---------------------------------------------------------------------------------
-
-{- | Compute mean vector and covariance matrix of the rows of a matrix.
-
->>> meanCov $ gaussianSample 666 1000 (fromList[4,5]) (diagl[2,3])
-(fromList [4.010341078059521,5.0197204699640405],
-(2><2)
- [     1.9862461923890056, -1.0127225830525157e-2
- , -1.0127225830525157e-2,     3.0373954915729318 ])
-
--}
-meanCov :: Matrix Double -> (Vector Double, Matrix Double)
-meanCov x = (med,cov) where
-    r    = rows x
-    k    = 1 / fromIntegral r
-    med  = konst k r `vXm` x
-    meds = konst 1 r `outer` med
-    xc   = x `sub` meds
-    cov  = scale (recip (fromIntegral (r-1))) (trans xc `mXm` xc)
 
 --------------------------------------------------------------------------------
 

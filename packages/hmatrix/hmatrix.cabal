@@ -18,7 +18,7 @@ cabal-version:      >=1.8
 
 build-type:         Simple
 
-extra-source-files: Config.hs THANKS.md INSTALL.md CHANGELOG
+extra-source-files: THANKS.md INSTALL.md CHANGELOG
 
 extra-source-files: examples/deriv.hs
                     examples/integrate.hs
@@ -90,9 +90,7 @@ library
                         Numeric.GSL.Fitting,
                         Numeric.GSL.ODE,
                         Numeric.GSL,
-                        Numeric.Container,
                         Numeric.LinearAlgebra,
-                        Numeric.LinearAlgebra.Algorithms,
                         Numeric.LinearAlgebra.Util,
                         Graphics.Plot,
                         Numeric.HMatrix,

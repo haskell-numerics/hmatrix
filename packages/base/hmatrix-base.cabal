@@ -37,10 +37,12 @@ library
                         Data.Packed.Development,
                         Numeric.Conversion
                         Numeric.LinearAlgebra.LAPACK
+                        Numeric.LinearAlgebra.Algorithms
                         Data.Packed.Numeric
                         Numeric.Vectorized
                         Numeric.Vector
                         Numeric.Matrix
+                        Numeric.Container
                         
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,

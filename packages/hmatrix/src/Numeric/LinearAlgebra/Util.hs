@@ -27,6 +27,7 @@ module Numeric.LinearAlgebra.Util(
     unitary,
     mt,
     pairwiseD2,
+    meanCov,
     rowOuters,
     null1,
     null1sym,
@@ -55,6 +56,7 @@ module Numeric.LinearAlgebra.Util(
 ) where
 
 import Numeric.Container
+import Numeric.IO
 import Numeric.LinearAlgebra.Algorithms hiding (i)
 import Numeric.Matrix()
 import Numeric.Vector()
@@ -196,7 +198,27 @@ size m = (rows m, cols m)
 mt :: Matrix Double -> Matrix Double
 mt = trans . inv
 
-----------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+{- | Compute mean vector and covariance matrix of the rows of a matrix.
+
+>>> meanCov $ gaussianSample 666 1000 (fromList[4,5]) (diagl[2,3])
+(fromList [4.010341078059521,5.0197204699640405],
+(2><2)
+ [     1.9862461923890056, -1.0127225830525157e-2
+ , -1.0127225830525157e-2,     3.0373954915729318 ])
+
+-}
+meanCov :: Matrix Double -> (Vector Double, Matrix Double)
+meanCov x = (med,cov) where
+    r    = rows x
+    k    = 1 / fromIntegral r
+    med  = konst k r `vXm` x
+    meds = konst 1 r `outer` med
+    xc   = x `sub` meds
+    cov  = scale (recip (fromIntegral (r-1))) (trans xc `mXm` xc)
+
+--------------------------------------------------------------------------------
 
 -- | Matrix of pairwise squared distances of row vectors
 -- (using the matrix product trick in blog.smola.org)

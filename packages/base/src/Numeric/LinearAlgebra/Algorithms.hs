@@ -21,8 +21,6 @@ imported from "Numeric.LinearAlgebra.LAPACK".
 
 -}
 -----------------------------------------------------------------------------
-{-# OPTIONS_HADDOCK hide #-}
-
 
 module Numeric.LinearAlgebra.Algorithms (
 -- * Supported types
