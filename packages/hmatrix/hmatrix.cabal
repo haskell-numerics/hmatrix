@@ -90,8 +90,6 @@ library
                         Numeric.GSL.Fitting,
                         Numeric.GSL.ODE,
                         Numeric.GSL,
-                        Numeric.LinearAlgebra,
-                        Numeric.LinearAlgebra.Util,
                         Graphics.Plot,
                         Numeric.HMatrix,
                         Numeric.HMatrix.Data,
@@ -99,8 +97,7 @@ library
     other-modules:      Numeric.Random,
                         Numeric.GSL.Internal,
                         Numeric.GSL.Vector,
-                        Numeric.IO,
-                        Numeric.LinearAlgebra.Util.Convolution
+                        Numeric.IO
                         
 
     C-sources:          src/Numeric/GSL/gsl-aux.c

@@ -10,6 +10,7 @@ Stability   :  provisional
 
 -}
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
 
 module Numeric.LinearAlgebra.Util.Convolution(
    corr, conv, corrMin,

@@ -21,8 +21,7 @@ module Numeric.Random (
 ) where
 
 import Numeric.GSL.Vector
-import Data.Packed
-import Data.Packed.Numeric
+import Numeric.Container
 import Numeric.LinearAlgebra.Algorithms
 import System.Random(randomIO)
 

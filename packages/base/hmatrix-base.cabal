@@ -38,11 +38,11 @@ library
                         Numeric.Conversion
                         Numeric.LinearAlgebra.LAPACK
                         Numeric.LinearAlgebra.Algorithms
-                        Data.Packed.Numeric
-                        Numeric.Vectorized
-                        Numeric.Vector
-                        Numeric.Matrix
                         Numeric.Container
+                        Numeric.LinearAlgebra
+                        Numeric.LinearAlgebra.Util
+                        Numeric.LinearAlgebra.Util.Convolution
+                        Data.Packed.IO
                         
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
@@ -50,6 +50,11 @@ library
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix
                         Numeric.Chain
+                        Numeric.Vectorized
+                        Numeric.Vector
+                        Numeric.Matrix
+                        Data.Packed.Numeric
+
 
     C-sources:          src/C/lapack-aux.c
                         src/C/vector-aux.c

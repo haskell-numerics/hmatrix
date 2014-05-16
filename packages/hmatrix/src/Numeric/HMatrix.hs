@@ -129,8 +129,8 @@ module Numeric.HMatrix (
 
 import Numeric.HMatrix.Data
 
-import Numeric.Matrix()
-import Numeric.Vector()
+--import Numeric.Matrix()
+--import Numeric.Vector()
 import Numeric.Container
 import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Util

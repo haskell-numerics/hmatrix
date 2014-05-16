@@ -47,22 +47,23 @@ module Numeric.LinearAlgebra.Util(
     vech,
     dup,
     vtrans,
-    -- * Plot
+{-    -- * Plot
     mplot,
     plot, parametricPlot,
     splot, mesh, meshdom,
     matrixToPGM, imshow,
     gnuplotX, gnuplotpdf, gnuplotWin
+-}
 ) where
 
 import Numeric.Container
-import Numeric.IO
+import Data.Packed.IO
 import Numeric.LinearAlgebra.Algorithms hiding (i)
 import Numeric.Matrix()
 import Numeric.Vector()
 
 import Numeric.LinearAlgebra.Util.Convolution
-import Graphics.Plot
+--import Graphics.Plot
 
 
 {- | print a real matrix with given number of digits after the decimal point

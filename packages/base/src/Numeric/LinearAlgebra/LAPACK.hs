@@ -10,6 +10,8 @@
 -- Functional interface to selected LAPACK functions (<http://www.netlib.org/lapack>).
 --
 -----------------------------------------------------------------------------
+{-# OPTIONS_HADDOCK hide #-}
+
 
 module Numeric.LinearAlgebra.LAPACK (
     -- * Matrix product
