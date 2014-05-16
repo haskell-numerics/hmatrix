@@ -102,9 +102,6 @@ library
                         Numeric.GSL.Internal,
                         Numeric.GSL.Vector,
                         Numeric.IO,
-                        Numeric.Chain,
-                        Numeric.Vector,
-                        Numeric.Matrix,
                         Numeric.LinearAlgebra.Util.Convolution
                         
 

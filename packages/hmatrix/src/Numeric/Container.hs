@@ -66,11 +66,11 @@ module Numeric.Container (
 
 import Data.Packed hiding (stepD, stepF, condD, condF, conjugateC, conjugateQ)
 import Data.Packed.Numeric
-import Numeric.Chain
 import Numeric.IO
 import Data.Complex
 import Numeric.LinearAlgebra.Algorithms(Field,linearSolveSVD)
 import Numeric.Random
+import Data.Monoid(Monoid(mconcat))
 
 ------------------------------------------------------------------
 
@@ -268,4 +268,8 @@ infixl 7 ◇
 dot :: (Container Vector t, Product t) => Vector t -> Vector t -> t
 dot u v = udot (conj u) v
 
+--------------------------------------------------------------------------------
+
+optimiseMult :: Monoid (Matrix t) => [Matrix t] -> Matrix t
+optimiseMult = mconcat
 

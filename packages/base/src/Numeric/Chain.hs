@@ -130,7 +130,7 @@ chain_paren (r,c) ixes ma = let ((lr,lc),(rr,rc)) = fromJust $ (ixes A.! r) A.! 
 
 --------------------------------------------------------------------------
 
-{- TESTS -}
+{- TESTS
 
 -- optimal association is ((m1*(m2*m3))*m4)
 m1, m2, m3, m4 :: Matrix Double
@@ -138,3 +138,6 @@ m1 = (10><15) [1..]
 m2 = (15><20) [1..]
 m3 = (20><5) [1..]
 m4 = (5><10) [1..]
+
+-}
+

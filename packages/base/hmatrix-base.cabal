@@ -39,12 +39,15 @@ library
                         Numeric.LinearAlgebra.LAPACK
                         Data.Packed.Numeric
                         Numeric.Vectorized
+                        Numeric.Vector
+                        Numeric.Matrix
                         
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Signatures,
                         Data.Packed.Internal.Vector,
                         Data.Packed.Internal.Matrix
+                        Numeric.Chain
 
     C-sources:          src/C/lapack-aux.c
                         src/C/vector-aux.c
