@@ -1,19 +1,18 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numeric.GSL.Vector
--- Copyright   :  (c) Alberto Ruiz 2007
+-- Module      :  Numeric.LinearAlgebra.GSL
+-- Copyright   :  (c) Alberto Ruiz 2007-14
 -- License     :  GPL
 -- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
 --
--- Low level interface to vector operations.
---
 -----------------------------------------------------------------------------
 
-module Numeric.GSL.Vector (
+module Numeric.LinearAlgebra.GSL (
     RandDist(..), randomVector,
     saveMatrix,
-    fwriteVector, freadVector, fprintfVector, fscanfVector
+    fwriteVector, freadVector, fprintfVector, fscanfVector,
+    fileDimensions, loadMatrix, fromFile
 ) where
 
 import Data.Packed
@@ -25,6 +24,7 @@ import Foreign.Ptr(Ptr)
 import Foreign.C.Types
 import Foreign.C.String(newCString)
 import System.IO.Unsafe(unsafePerformIO)
+import System.Process(readProcess)
 
 fromei x = fromIntegral (fromEnum x) :: CInt
 
@@ -107,56 +107,30 @@ fwriteVector filename v = do
 
 foreign import ccall unsafe "vector_fwrite" gsl_vector_fwrite :: Ptr CChar -> TV
 
-type PF = Ptr Float                             --
 type PD = Ptr Double                            --
-type PQ = Ptr (Complex Float)                   --
-type PC = Ptr (Complex Double)                  --
-type TF = CInt -> PF -> IO CInt                 --
-type TFF = CInt -> PF -> TF                     --
-type TFV = CInt -> PF -> TV                     --
-type TVF = CInt -> PD -> TF                     --
-type TFFF = CInt -> PF -> TFF                   --
 type TV = CInt -> PD -> IO CInt                 --
-type TVV = CInt -> PD -> TV                     --
-type TVVV = CInt -> PD -> TVV                   --
-type TFM = CInt -> CInt -> PF -> IO CInt        --
-type TFMFM =  CInt -> CInt -> PF -> TFM         --
-type TFMFMFM =  CInt -> CInt -> PF -> TFMFM     --
 type TM = CInt -> CInt -> PD -> IO CInt         --
-type TMM =  CInt -> CInt -> PD -> TM            --
-type TVMM = CInt -> PD -> TMM                   --
-type TMVMM = CInt -> CInt -> PD -> TVMM         --
-type TMMM =  CInt -> CInt -> PD -> TMM          --
-type TVM = CInt -> PD -> TM                     --
-type TVVM = CInt -> PD -> TVM                   --
-type TMV = CInt -> CInt -> PD -> TV             --
-type TMMV = CInt -> CInt -> PD -> TMV           --
-type TMVM = CInt -> CInt -> PD -> TVM           --
-type TMMVM = CInt -> CInt -> PD -> TMVM         --
-type TCM = CInt -> CInt -> PC -> IO CInt        --
-type TCVCM = CInt -> PC -> TCM                  --
-type TCMCVCM = CInt -> CInt -> PC -> TCVCM      --
-type TMCMCVCM = CInt -> CInt -> PD -> TCMCVCM   --
-type TCMCMCVCM = CInt -> CInt -> PC -> TCMCVCM  --
-type TCMCM = CInt -> CInt -> PC -> TCM          --
-type TVCM = CInt -> PD -> TCM                   --
-type TCMVCM = CInt -> CInt -> PC -> TVCM        --
-type TCMCMVCM = CInt -> CInt -> PC -> TCMVCM    --
-type TCMCMCM = CInt -> CInt -> PC -> TCMCM      --
-type TCV = CInt -> PC -> IO CInt                --
-type TCVCV = CInt -> PC -> TCV                  --
-type TCVCVCV = CInt -> PC -> TCVCV              --
-type TCVV = CInt -> PC -> TV                    --
-type TQV = CInt -> PQ -> IO CInt                --
-type TQVQV = CInt -> PQ -> TQV                  --
-type TQVQVQV = CInt -> PQ -> TQVQV              --
-type TQVF = CInt -> PQ -> TF                    --
-type TQM = CInt -> CInt -> PQ -> IO CInt        --
-type TQMQM = CInt -> CInt -> PQ -> TQM          --
-type TQMQMQM = CInt -> CInt -> PQ -> TQMQM      --
-type TCMCV = CInt -> CInt -> PC -> TCV          --
-type TVCV = CInt -> PD -> TCV                   --
-type TCVM = CInt -> PC -> TM                    --
-type TMCVM = CInt -> CInt -> PD -> TCVM         --
-type TMMCVM = CInt -> CInt -> PD -> TMCVM       --
+
+--------------------------------------------------------------------------------
+
+{- |  obtains the number of rows and columns in an ASCII data file
+      (provisionally using unix's wc).
+-}
+fileDimensions :: FilePath -> IO (Int,Int)
+fileDimensions fname = do
+    wcres <- readProcess "wc" ["-w",fname] ""
+    contents <- readFile fname
+    let tot = read . head . words $ wcres
+        c   = length . head . dropWhile null . map words . lines $ contents
+    if tot > 0
+        then return (tot `div` c, c)
+        else return (0,0)
+
+-- | Loads a matrix from an ASCII file formatted as a 2D table.
+loadMatrix :: FilePath -> IO (Matrix Double)
+loadMatrix file = fromFile file =<< fileDimensions file
+
+-- | Loads a matrix from an ASCII file (the number of rows and columns must be known in advance).
+fromFile :: FilePath -> (Int,Int) -> IO (Matrix Double)
+fromFile filename (r,c) = reshape c `fmap` fscanfVector filename (r*c)
 

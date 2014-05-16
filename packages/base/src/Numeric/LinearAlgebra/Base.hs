@@ -6,8 +6,6 @@ License     :  BSD3
 Maintainer  :  Alberto Ruiz
 Stability   :  provisional
 
-This module reexports the most common Linear Algebra functions.
-
 -}
 -----------------------------------------------------------------------------
 module Numeric.LinearAlgebra.Base (

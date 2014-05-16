@@ -1,28 +1,22 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numeric.IO
--- Copyright   :  (c) Alberto Ruiz 2010
+-- Module      :  Numeric.LinearAlgebra.IO
+-- Copyright   :  (c) Alberto Ruiz 2007-14
 -- License     :  GPL
---
--- Maintainer  :  Alberto Ruiz <aruiz@um.es>
+-- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
--- Portability :  portable
---
--- Display, formatting and IO functions for numeric 'Vector' and 'Matrix'
 --
 -----------------------------------------------------------------------------
 
-module Numeric.IO (
-    dispf, disps, dispcf, vecdisp, latexFormat, format,
-    loadMatrix, saveMatrix, fromFile, fileDimensions,
-    readMatrix, fromArray2D,
-    fscanfVector, fprintfVector, freadVector, fwriteVector
+module Numeric.LinearAlgebra.IO (
+    saveMatrix,
+    fwriteVector, freadVector, fprintfVector, fscanfVector,
+    fileDimensions, loadMatrix, fromFile
 ) where
 
 import Data.Packed
-import Data.Packed.IO
+import Numeric.GSL.LinearAlgebra
 import System.Process(readProcess)
-import Numeric.GSL.Vector
 
 
 {- |  obtains the number of rows and columns in an ASCII data file

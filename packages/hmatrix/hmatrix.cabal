@@ -90,15 +90,13 @@ library
                         Numeric.GSL.Fitting,
                         Numeric.GSL.ODE,
                         Numeric.GSL,
-                        Graphics.Plot,
-                        Numeric.HMatrix,
-                        Numeric.HMatrix.Data,
-                        Numeric.HMatrix.Devel
-    other-modules:      Numeric.Random,
-                        Numeric.GSL.Internal,
-                        Numeric.GSL.Vector,
-                        Numeric.IO
-                        
+                        Numeric.LinearAlgebra,
+                        Graphics.Plot
+    other-modules:      Numeric.GSL.Internal,
+                        Numeric.GSL.LinearAlgebra,
+                        Numeric.LinearAlgebra.IO,
+                        Numeric.LinearAlgebra.Random
+
 
     C-sources:          src/Numeric/GSL/gsl-aux.c
 

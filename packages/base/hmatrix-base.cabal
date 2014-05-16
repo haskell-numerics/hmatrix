@@ -7,8 +7,7 @@ Maintainer:         Alberto Ruiz
 Stability:          provisional
 Homepage:           https://github.com/albertoruiz/hmatrix
 Synopsis:           Numeric Linear Algebra
-Description:        Basic support for dense linear algebra
-                    internally implemented using BLAS and LAPACK.
+Description:        Dense linear algebra based on BLAS and LAPACK.
 Category:           Math
 tested-with:        GHC==7.8
 
