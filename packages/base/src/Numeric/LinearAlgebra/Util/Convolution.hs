@@ -32,8 +32,10 @@ corr :: Product t => Vector t -- ^ kernel
 fromList [14.0,20.0,26.0,32.0,38.0,44.0,50.0,56.0]
 
 -}
-corr ker v | dim ker <= dim v = vectSS (dim ker) v <> ker
-           | otherwise = error $ "corr: dim kernel ("++show (dim ker)++") > dim vector ("++show (dim v)++")"
+corr ker v
+    | dim ker == 0 = constant 0 (dim v)
+    | dim ker <= dim v = vectSS (dim ker) v <> ker
+    | otherwise = error $ "corr: dim kernel ("++show (dim ker)++") > dim vector ("++show (dim v)++")"
 
 
 conv :: (Product t, Num t) => Vector t -> Vector t -> Vector t
@@ -43,11 +45,12 @@ conv :: (Product t, Num t) => Vector t -> Vector t -> Vector t
 fromList [-1.0,0.0,1.0]
 
 -}
-conv ker v = corr ker' v'
+conv ker v
+    | dim ker == 0 = constant 0 (dim v)
+    | otherwise = corr ker' v'
   where
     ker' = (flatten.fliprl.asRow) ker
-    v' | dim ker > 1 = vjoin [z,v,z]
-       | otherwise   = v
+    v' = vjoin [z,v,z]
     z = constant 0 (dim ker -1)
 
 corrMin :: (Container Vector t, RealElement t, Product t)
@@ -55,7 +58,9 @@ corrMin :: (Container Vector t, RealElement t, Product t)
         -> Vector t
         -> Vector t
 -- ^ similar to 'corr', using 'min' instead of (*)
-corrMin ker v = minEvery ss (asRow ker) <> ones
+corrMin ker v
+    | dim ker == 0 = error "corrMin: empty kernel"
+    | otherwise    = minEvery ss (asRow ker) <> ones
   where
     minEvery a b = cond a b a a b
     ss = vectSS (dim ker) v
@@ -72,8 +77,21 @@ matSS dr m = map (reshape c) [ subVector (k*c) n v | k <- [0 .. r - dr] ]
     n = dr*c
 
 
+{- | 2D correlation (without padding)
+
+>>> disp 5 $ corr2 (konst 1 (3,3)) (ident 10 :: Matrix Double)
+8x8
+3  2  1  0  0  0  0  0
+2  3  2  1  0  0  0  0
+1  2  3  2  1  0  0  0
+0  1  2  3  2  1  0  0
+0  0  1  2  3  2  1  0
+0  0  0  1  2  3  2  1
+0  0  0  0  1  2  3  2
+0  0  0  0  0  1  2  3
+
+-}
 corr2 :: Product a => Matrix a -> Matrix a -> Matrix a
--- ^ 2D correlation
 corr2 ker mat = dims
               . concatMap (map (udot ker' . flatten) . matSS c . trans)
               . matSS r $ mat
@@ -86,26 +104,41 @@ corr2 ker mat = dims
     dims | rr > 0 && rc > 0 = (rr >< rc)
          | otherwise = error $ "corr2: dim kernel ("++sz ker++") > dim matrix ("++sz mat++")"
     sz m = show (rows m)++"x"++show (cols m)
+-- TODO check empty kernel
 
-conv2 :: (Num a, Product a, Container Vector a) => Matrix a -> Matrix a -> Matrix a
--- ^ 2D convolution
-conv2 k m = corr2 (fliprl . flipud $ k) pm
+{- | 2D convolution
+
+>>> disp 5 $ conv2 (konst 1 (3,3)) (ident 10 :: Matrix Double)
+12x12
+1  1  1  0  0  0  0  0  0  0  0  0
+1  2  2  1  0  0  0  0  0  0  0  0
+1  2  3  2  1  0  0  0  0  0  0  0
+0  1  2  3  2  1  0  0  0  0  0  0
+0  0  1  2  3  2  1  0  0  0  0  0
+0  0  0  1  2  3  2  1  0  0  0  0
+0  0  0  0  1  2  3  2  1  0  0  0
+0  0  0  0  0  1  2  3  2  1  0  0
+0  0  0  0  0  0  1  2  3  2  1  0
+0  0  0  0  0  0  0  1  2  3  2  1
+0  0  0  0  0  0  0  0  1  2  2  1
+0  0  0  0  0  0  0  0  0  1  1  1
+
+-}
+conv2
+    :: (Num (Matrix a), Product a, Container Vector a)
+    => Matrix a -- ^ kernel
+    -> Matrix a -> Matrix a
+conv2 k m
+    | empty     = konst 0 (rows m + r -1, cols m + c -1)
+    | otherwise = corr2 (fliprl . flipud $ k) padded
   where
-    pm | r == 0 && c == 0 = m
-       | r == 0           = fromBlocks [[z3,m,z3]]
-       |           c == 0 = fromBlocks [[z2],[m],[z2]]
-       | otherwise        = fromBlocks [[z1,z2,z1]
-                                       ,[z3, m,z3]
-                                       ,[z1,z2,z1]]
-    r = rows k - 1
-    c = cols k - 1
-    h = rows m
-    w = cols m
-    z1 = konst 0 (r,c)
-    z2 = konst 0 (r,w)
-    z3 = konst 0 (h,c)
-
--- TODO: could be simplified using future empty arrays
+    padded = fromBlocks [[z,0,0]
+                        ,[0,m,0]
+                        ,[0,0,z]]
+    r = rows k
+    c = cols k
+    z = konst 0 (r-1,c-1)
+    empty = r == 0 || c == 0
 
 
 separable :: Element t => (Vector t -> Vector t) -> Matrix t -> Matrix t
