@@ -2,8 +2,7 @@
 -- |
 -- Module      :  Numeric.LinearAlgebra.Random
 -- Copyright   :  (c) Alberto Ruiz 2009-14
--- License     :  GPL
---
+-- License     :  BSD3
 -- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
 --
@@ -20,12 +19,10 @@ module Numeric.LinearAlgebra.Random (
     rand, randn
 ) where
 
-import Numeric.GSL.LinearAlgebra
+import Numeric.Vectorized
 import Data.Packed.Numeric
-import Numeric.LinearAlgebra.Base(Seed,RandDist(..),cholSH)
+import Numeric.LinearAlgebra.Algorithms
 import System.Random(randomIO)
-
-
 
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
@@ -71,8 +68,7 @@ rand = randm Uniform
 
 {- | pseudorandom matrix with normal elements
 
->>> x <- randn 3 5
->>> disp 3 x
+>>> disp 3 =<< randn 3 5
 3x5
 0.386  -1.141   0.491  -0.510   1.512
 0.069  -0.919   1.022  -0.181   0.745

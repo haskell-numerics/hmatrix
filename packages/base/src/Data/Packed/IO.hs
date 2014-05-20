@@ -149,6 +149,8 @@ apparentCols s = f . dropWhile null . map words . lines <$> readFile s
     f [] = 0
     f (x:_) = length x
 
+
+-- | load a matrix from an ASCII file formatted as a 2D table.
 loadMatrix :: FilePath -> IO (Matrix Double)
 loadMatrix f = do
     v <- vectorScan f

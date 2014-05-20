@@ -35,10 +35,13 @@ module Numeric.LinearAlgebra.Base (
     --  , 5.0, 5.0, 7.0 ]
     --
 
-    -- * Products
+    -- * Matrix product
     (<.>),
     
-    -- | The matrix product is also implemented in the "Data.Monoid" instance for Matrix, where
+    -- | This operator can also be written using the unicode symbol ◇ (25c7).
+    --
+    
+    -- | The matrix x matrix product is also implemented in the "Data.Monoid" instance, where
     -- single-element matrices (created from numeric literals or using 'scalar')
     -- are used for scaling.
     --
@@ -48,9 +51,9 @@ module Numeric.LinearAlgebra.Base (
     -- [ 1.0,  4.0, 0.0
     -- , 4.0, 10.0, 0.0 ]
     --
-    -- mconcat uses 'optimiseMult' to get the optimal association order.
- 
-    (◇),
+    -- 'mconcat' uses 'optimiseMult' to get the optimal association order.
+     
+    -- * Other products
     outer, kronecker, cross,
     scale,
     sumElements, prodElements, absSum,
@@ -114,15 +117,15 @@ module Numeric.LinearAlgebra.Base (
     -- * Norms
     norm1, norm2, normInf, pnorm, NormType(..),
 
-    -- * Correlation and Convolution
+    -- * Correlation and convolution
     corr, conv, corrMin, corr2, conv2,
 
     -- * Random arrays
 
-    -- |    rand, randn, RandDist(..), randomVector, gaussianSample, uniformSample
+    RandDist(..), randomVector, rand, randn, gaussianSample, uniformSample,
     
     -- * Misc
-    meanCov, peps, relativeError, haussholder, optimiseMult, udot
+    meanCov, peps, relativeError, haussholder, optimiseMult, udot, Seed, (◇)
 ) where
 
 import Numeric.LinearAlgebra.Data
@@ -132,6 +135,7 @@ import Numeric.Vector()
 import Data.Packed.Numeric
 import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Util
+import Numeric.LinearAlgebra.Random
 
 
 

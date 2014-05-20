@@ -924,8 +924,8 @@ int nlfit(int method, int f(int, double*, int, double*),
 
 #define RAN(C,F) case C: { for(k=0;k<rn;k++) { rp[k]= F(gen); }; OK }
 
-int random_vector(int seed, int code, RVEC(r)) {
-    DEBUGMSG("random_vector")
+int random_vector_GSL(int seed, int code, RVEC(r)) {
+    DEBUGMSG("random_vector_GSL")
     static gsl_rng * gen = NULL;
     if (!gen) { gen = gsl_rng_alloc (gsl_rng_mt19937);}
     gsl_rng_set (gen, seed);

@@ -695,3 +695,52 @@ int saveMatrix(char * file, char * format, KDMAT(a)){
     OK
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+// http://c-faq.com/lib/gaussian.html
+double gaussrand()
+{
+	static double V1, V2, S;
+	static int phase = 0;
+	double X;
+
+	if(phase == 0) {
+		do {
+			double U1 = (double)rand() / RAND_MAX;
+			double U2 = (double)rand() / RAND_MAX;
+
+			V1 = 2 * U1 - 1;
+			V2 = 2 * U2 - 1;
+			S = V1 * V1 + V2 * V2;
+			} while(S >= 1 || S == 0);
+
+		X = V1 * sqrt(-2 * log(S) / S);
+	} else
+		X = V2 * sqrt(-2 * log(S) / S);
+
+	phase = 1 - phase;
+
+	return X;
+}
+
+int random_vector(int seed, int code, DVEC(r)) {
+    srand(seed);
+    int k;
+    switch (code) {
+      case 0: { // uniform
+        for (k=0; k<rn; k++) {
+            rp[k] = (double)rand()/RAND_MAX;
+        }
+        OK
+      }
+      case 1: { // gaussian
+        for (k=0; k<rn; k++) {
+            rp[k] = gaussrand();
+        }
+        OK
+      }
+
+      default: ERROR(BAD_CODE);
+    }
+}
+

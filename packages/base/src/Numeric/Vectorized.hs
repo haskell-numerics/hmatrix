@@ -17,7 +17,8 @@ module Numeric.Vectorized (
     FunCodeV(..), vectorMapR, vectorMapC, vectorMapF, vectorMapQ,
     FunCodeSV(..), vectorMapValR, vectorMapValC, vectorMapValF, vectorMapValQ,
     FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF, vectorZipQ,
-    vectorScan, saveMatrix
+    vectorScan, saveMatrix,
+    Seed, RandDist(..), randomVector
 ) where
 
 import Data.Packed.Internal.Common
@@ -308,7 +309,13 @@ vectorScan s = do
 foreign import ccall unsafe "saveMatrix" c_saveMatrix
     :: CString -> CString -> TM
 
-saveMatrix :: FilePath -> String -> Matrix Double -> IO ()
+{- | save a matrix as a 2D ASCII table
+-}
+saveMatrix
+    :: FilePath
+    -> String        -- ^ \"printf\" format (e.g. \"%.2f\", \"%g\", etc.)
+    -> Matrix Double
+    -> IO ()
 saveMatrix name format m = do
     cname   <- newCString name
     cformat <- newCString format
@@ -317,4 +324,23 @@ saveMatrix name format m = do
     free cformat
     return ()
 
+--------------------------------------------------------------------------------
+
+type Seed = Int
+
+data RandDist = Uniform  -- ^ uniform distribution in [0,1)
+              | Gaussian -- ^ normal distribution with mean zero and standard deviation one
+              deriving Enum
+
+-- | Obtains a vector of pseudorandom elements (use randomIO to get a random seed).
+randomVector :: Seed
+             -> RandDist -- ^ distribution
+             -> Int      -- ^ vector size
+             -> Vector Double
+randomVector seed dist n = unsafePerformIO $ do
+    r <- createVector n
+    app1 (c_random_vector (fi seed) ((fi.fromEnum) dist)) vec r "randomVector"
+    return r
+
+foreign import ccall unsafe "random_vector" c_random_vector :: CInt -> CInt -> TV
 

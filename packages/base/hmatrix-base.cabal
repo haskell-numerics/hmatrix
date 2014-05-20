@@ -23,6 +23,7 @@ library
                         binary,
                         array,
                         deepseq,
+                        random,
                         storable-complex,
                         vector >= 0.8
 
@@ -56,6 +57,7 @@ library
                         Numeric.Matrix
                         Data.Packed.Internal.Numeric
                         Numeric.LinearAlgebra.Util.Convolution
+                        Numeric.LinearAlgebra.Random
                         Numeric.Conversion
 
     C-sources:          src/C/lapack-aux.c

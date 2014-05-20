@@ -16,7 +16,7 @@ module Numeric.Container (
     meanCov
 ) where
 
-import Data.Packed.Numeric
+import Data.Packed.Numeric hiding (saveMatrix, loadMatrix)
 import Numeric.LinearAlgebra.IO
 import Numeric.LinearAlgebra.Random hiding (Seed)
 import Numeric.LinearAlgebra.Util(meanCov)

@@ -84,7 +84,7 @@ linspace n (a,b) = addConstant a $ scale s $ fromList $ map fromIntegral [0 .. n
 class Contraction a b c | a b -> c
   where
     infixl 7 <.>
-    {- | Matrix product, matrix vector product, and dot product
+    {- | Matrix product, matrix - vector product, and dot product
 
 Examples:
 
@@ -223,11 +223,7 @@ instance Container Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
 
 --------------------------------------------------------------------------------
 
-{- | alternative operator for '(\<.\>)'
-
-x25c7, white diamond
-
--}
+-- | alternative unicode symbol (25c7) for the contraction operator '(\<.\>)'
 (◇) :: Contraction a b c => a -> b -> c
 infixl 7 ◇
 (◇) = (<.>)
