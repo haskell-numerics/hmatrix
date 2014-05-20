@@ -12,6 +12,7 @@ typedef float  complex TCF;
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define MACRO(B) do {B} while (0)
 #define ERROR(CODE) MACRO(return CODE;)
@@ -648,4 +649,49 @@ int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+int vectorScan(char * file, int* n, double**pp){
+    FILE * fp;
+    fp = fopen (file, "r");
+    int nbuf = 100*100;
+    double * p = (double*)malloc(nbuf*sizeof(double));
+    int k=0;
+    double d;
+    int ok;
+    for (;;) {
+        ok = fscanf(fp,"%lf",&d);
+        if (ok<1) {
+            break;
+        }
+        if (k==nbuf) {
+            nbuf = nbuf * 2;
+            p = (double*)realloc(p,nbuf*sizeof(double));
+            //printf("R\n");
+        }
+        p[k++] = d;
+    }
+    *n = k;
+    *pp = p;
+    fclose(fp);
+    OK
+}    
+
+int saveMatrix(char * file, char * format, KDMAT(a)){
+    FILE * fp;
+    fp = fopen (file, "w");
+    int r, c;
+    for (r=0;r<ar; r++) {
+        for (c=0; c<ac; c++) {
+            fprintf(fp,format,ap[r*ac+c]);
+            if (c<ac-1) {
+                fprintf(fp," ");
+            } else {
+                fprintf(fp,"\n");
+            }
+        }
+    }
+    fclose(fp);
+    OK
+}
 

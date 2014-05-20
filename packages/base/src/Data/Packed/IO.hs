@@ -14,7 +14,7 @@
 
 module Data.Packed.IO (
     dispf, disps, dispcf, vecdisp, latexFormat, format,
-    readMatrix, fromArray2D
+    readMatrix, fromArray2D, loadMatrix, saveMatrix
 ) where
 
 import Data.Packed
@@ -22,6 +22,8 @@ import Data.Packed.Development
 import Text.Printf(printf)
 import Data.List(intersperse)
 import Data.Complex
+import Numeric.Vectorized(vectorScan,saveMatrix)
+import Control.Applicative((<$>))
 
 {- | Creates a string from a matrix given a separator and a function to show each entry. Using
 this function the user can easily define any desired display function:
@@ -138,4 +140,18 @@ dispcf d m = sdims m ++ "\n" ++ format "  " (showComplex d) m
 -- | reads a matrix from a string containing a table of numbers.
 readMatrix :: String -> Matrix Double
 readMatrix = fromLists . map (map read). map words . filter (not.null) . lines
+
+--------------------------------------------------------------------------------
+
+apparentCols :: FilePath -> IO Int
+apparentCols s = f . dropWhile null . map words . lines <$> readFile s
+  where
+    f [] = 0
+    f (x:_) = length x
+
+loadMatrix :: FilePath -> IO (Matrix Double)
+loadMatrix f = do
+    v <- vectorScan f
+    c <- apparentCols f
+    return (reshape c v)
 

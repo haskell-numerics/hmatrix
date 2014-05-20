@@ -43,9 +43,10 @@ module Numeric.LinearAlgebra.Data(
     find, maxIndex, minIndex, maxElement, minElement, atIndex,
 
     -- * IO
-    disp, dispf, disps, dispcf, latexFormat, format, readMatrix,
-
-    -- | loadMatrix, saveMatrix, fromFile, fileDimensions, fscanfVector, fprintfVector, freadVector, fwriteVector
+    disp,
+    loadMatrix, saveMatrix,
+    latexFormat,
+    dispf, disps, dispcf, format,
 
 -- * Conversion
     Convert(..),

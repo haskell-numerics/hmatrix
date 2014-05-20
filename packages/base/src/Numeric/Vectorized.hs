@@ -16,19 +16,28 @@ module Numeric.Vectorized (
     FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ,
     FunCodeV(..), vectorMapR, vectorMapC, vectorMapF, vectorMapQ,
     FunCodeSV(..), vectorMapValR, vectorMapValC, vectorMapValF, vectorMapValQ,
-    FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF, vectorZipQ
+    FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF, vectorZipQ,
+    vectorScan, saveMatrix
 ) where
 
 import Data.Packed.Internal.Common
 import Data.Packed.Internal.Signatures
 import Data.Packed.Internal.Vector
+import Data.Packed.Internal.Matrix
 
 import Data.Complex
-import Foreign.Marshal.Alloc(free)
-import Foreign.Marshal.Array(newArray)
+import Foreign.Marshal.Alloc(free,malloc)
+import Foreign.Marshal.Array(newArray,copyArray)
 import Foreign.Ptr(Ptr)
+import Foreign.Storable(peek)
 import Foreign.C.Types
+import Foreign.C.String
 import System.IO.Unsafe(unsafePerformIO)
+
+import Control.Monad(when)
+import Control.Applicative((<$>))
+
+
 
 fromei x = fromIntegral (fromEnum x) :: CInt
 
@@ -270,4 +279,42 @@ vectorZipQ :: FunCodeVV -> Vector (Complex Float) -> Vector (Complex Float) -> V
 vectorZipQ = vectorZipAux c_vectorZipQ
 
 foreign import ccall unsafe "zipQ" c_vectorZipQ :: CInt -> TQVQVQV
+
+--------------------------------------------------------------------------------
+
+foreign import ccall unsafe "vectorScan" c_vectorScan
+    :: CString -> Ptr CInt -> Ptr (Ptr Double) -> IO CInt
+
+vectorScan :: FilePath -> IO (Vector Double)
+vectorScan s = do
+    pp <- malloc
+    pn <- malloc
+    cs <- newCString s
+    ok <- c_vectorScan cs pn pp
+    when (not (ok == 0)) $
+        error ("vectorScan \"" ++ s ++"\"")
+    n <- fromIntegral <$> peek pn
+    p <- peek pp
+    v <- createVector n
+    free pn
+    free cs
+    unsafeWith v $ \pv -> copyArray pv p n
+    free p
+    free pp
+    return v
+
+--------------------------------------------------------------------------------
+
+foreign import ccall unsafe "saveMatrix" c_saveMatrix
+    :: CString -> CString -> TM
+
+saveMatrix :: FilePath -> String -> Matrix Double -> IO ()
+saveMatrix name format m = do
+    cname   <- newCString name
+    cformat <- newCString format
+    app1 (c_saveMatrix cname cformat) mat m "saveMatrix"
+    free cname
+    free cformat
+    return ()
+
 
