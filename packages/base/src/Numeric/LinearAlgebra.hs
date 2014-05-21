@@ -8,7 +8,7 @@ Stability   :  provisional
 
 -}
 -----------------------------------------------------------------------------
-module Numeric.LinearAlgebra.Base (
+module Numeric.LinearAlgebra (
 
     -- * Basic types and data processing    
     module Numeric.LinearAlgebra.Data,
@@ -132,7 +132,7 @@ import Numeric.LinearAlgebra.Data
 
 import Numeric.Matrix()
 import Numeric.Vector()
-import Data.Packed.Numeric
+import Numeric.Container
 import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Util
 import Numeric.LinearAlgebra.Random

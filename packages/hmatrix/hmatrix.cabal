@@ -1,5 +1,5 @@
-Name:               hmatrix
-Version:            0.16.0.1
+Name:               hmatrix-gsl
+Version:            0.16.0.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -73,7 +73,7 @@ flag debugnan
 
 library
 
-    Build-Depends:      base, hmatrix-base, array, vector,
+    Build-Depends:      base, hmatrix, array, vector,
                         process, random
 
 
@@ -90,13 +90,12 @@ library
                         Numeric.GSL.Fitting,
                         Numeric.GSL.ODE,
                         Numeric.GSL,
-                        Numeric.LinearAlgebra,
-                        Numeric.Container,
+                        Numeric.GSL.LinearAlgebra,
                         Graphics.Plot
     other-modules:      Numeric.GSL.Internal,
-                        Numeric.GSL.LinearAlgebra,
-                        Numeric.LinearAlgebra.IO,
-                        Numeric.LinearAlgebra.Random
+                        Numeric.GSL.Vector,
+                        Numeric.GSL.IO,
+                        Numeric.GSL.Random
 
 
     C-sources:          src/Numeric/GSL/gsl-aux.c

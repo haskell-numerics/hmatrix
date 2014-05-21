@@ -48,7 +48,7 @@ module Numeric.LinearAlgebra.Util(
     vtrans
 ) where
 
-import Data.Packed.Numeric
+import Numeric.Container
 import Numeric.LinearAlgebra.Algorithms hiding (i)
 import Numeric.Matrix()
 import Numeric.Vector()

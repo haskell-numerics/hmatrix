@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numeric.LinearAlgebra.Random
+-- Module      :  Numeric.GSL.Random
 -- Copyright   :  (c) Alberto Ruiz 2009-14
 -- License     :  GPL
 --
@@ -11,7 +11,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Numeric.LinearAlgebra.Random (
+module Numeric.GSL.Random (
     Seed,
     RandDist(..),
     randomVector,
@@ -20,9 +20,9 @@ module Numeric.LinearAlgebra.Random (
     rand, randn
 ) where
 
-import Numeric.GSL.LinearAlgebra
-import Data.Packed.Numeric
-import Numeric.LinearAlgebra.Base(Seed,RandDist(..),cholSH)
+import Numeric.GSL.Vector
+import Numeric.Container
+import Numeric.LinearAlgebra(Seed,RandDist(..),cholSH)
 import System.Random(randomIO)
 
 

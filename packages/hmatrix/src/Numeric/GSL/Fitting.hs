@@ -116,7 +116,7 @@ err (model,deriv) dat vsol = zip sol errs where
     dof = length dat - (rows cov)
     chi = norm2 (fromList $ cost (resMs model) dat sol)
     js = fromLists $ jacobian (resDs deriv) dat sol
-    cov = inv $ trans js <> js
+    cov = inv $ trans js <.> js
     errs = toList $ scalar c * sqrt (takeDiag cov)
 
 

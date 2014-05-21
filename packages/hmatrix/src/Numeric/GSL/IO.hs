@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numeric.LinearAlgebra.IO
+-- Module      :  Numeric.GSL.IO
 -- Copyright   :  (c) Alberto Ruiz 2007-14
 -- License     :  GPL
 -- Maintainer  :  Alberto Ruiz
@@ -8,14 +8,14 @@
 --
 -----------------------------------------------------------------------------
 
-module Numeric.LinearAlgebra.IO (
+module Numeric.GSL.IO (
     saveMatrix,
     fwriteVector, freadVector, fprintfVector, fscanfVector,
     fileDimensions, loadMatrix, fromFile
 ) where
 
 import Data.Packed
-import Numeric.GSL.LinearAlgebra
+import Numeric.GSL.Vector
 import System.Process(readProcess)
 
 

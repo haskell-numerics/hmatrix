@@ -1,5 +1,5 @@
-Name:               hmatrix-base
-Version:            0.16.0.0
+Name:               hmatrix
+Version:            0.16.0.2
 License:            BSD3
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -38,10 +38,10 @@ library
 
                         Numeric.LinearAlgebra.LAPACK
                         Numeric.LinearAlgebra.Algorithms
-                        Data.Packed.Numeric
+                        Numeric.Container
                         Numeric.LinearAlgebra.Util
 
-                        Numeric.LinearAlgebra.Base
+                        Numeric.LinearAlgebra
                         Numeric.LinearAlgebra.Devel
                         Numeric.LinearAlgebra.Data
                         

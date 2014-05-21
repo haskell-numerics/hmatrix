@@ -9,13 +9,13 @@
 -----------------------------------------------------------------------------
 
 module Numeric.GSL.LinearAlgebra (
-    randomVector,
+    RandDist(..), randomVector,
     saveMatrix,
-    fwriteVector, freadVector, fprintfVector, fscanfVector
+    fwriteVector, freadVector, fprintfVector, fscanfVector,
+    fileDimensions, loadMatrix, fromFile
 ) where
 
 import Data.Packed
-import Numeric.LinearAlgebra.Base(RandDist(..))
 import Numeric.GSL.Internal hiding (TV,TM,TCV,TCM)
 
 import Foreign.Marshal.Alloc(free)
@@ -23,10 +23,15 @@ import Foreign.Ptr(Ptr)
 import Foreign.C.Types
 import Foreign.C.String(newCString)
 import System.IO.Unsafe(unsafePerformIO)
+import System.Process(readProcess)
 
 fromei x = fromIntegral (fromEnum x) :: CInt
 
 -----------------------------------------------------------------------
+
+data RandDist = Uniform  -- ^ uniform distribution in [0,1)
+              | Gaussian -- ^ normal distribution with mean zero and standard deviation one
+              deriving Enum
 
 -- | Obtains a vector of pseudorandom elements from the the mt19937 generator in GSL, with a given seed. Use randomIO to get a random seed.
 randomVector :: Int      -- ^ seed
@@ -35,10 +40,10 @@ randomVector :: Int      -- ^ seed
              -> Vector Double
 randomVector seed dist n = unsafePerformIO $ do
     r <- createVector n
-    app1 (c_random_vector_GSL (fi seed) ((fi.fromEnum) dist)) vec r "randomVectorGSL"
+    app1 (c_random_vector (fi seed) ((fi.fromEnum) dist)) vec r "randomVector"
     return r
 
-foreign import ccall unsafe "random_vector_GSL" c_random_vector_GSL :: CInt -> CInt -> TV
+foreign import ccall unsafe "random_vector" c_random_vector :: CInt -> CInt -> TV
 
 --------------------------------------------------------------------------------
 
@@ -104,4 +109,27 @@ foreign import ccall unsafe "vector_fwrite" gsl_vector_fwrite :: Ptr CChar -> TV
 type PD = Ptr Double                            --
 type TV = CInt -> PD -> IO CInt                 --
 type TM = CInt -> CInt -> PD -> IO CInt         --
+
+--------------------------------------------------------------------------------
+
+{- |  obtains the number of rows and columns in an ASCII data file
+      (provisionally using unix's wc).
+-}
+fileDimensions :: FilePath -> IO (Int,Int)
+fileDimensions fname = do
+    wcres <- readProcess "wc" ["-w",fname] ""
+    contents <- readFile fname
+    let tot = read . head . words $ wcres
+        c   = length . head . dropWhile null . map words . lines $ contents
+    if tot > 0
+        then return (tot `div` c, c)
+        else return (0,0)
+
+-- | Loads a matrix from an ASCII file formatted as a 2D table.
+loadMatrix :: FilePath -> IO (Matrix Double)
+loadMatrix file = fromFile file =<< fileDimensions file
+
+-- | Loads a matrix from an ASCII file (the number of rows and columns must be known in advance).
+fromFile :: FilePath -> (Int,Int) -> IO (Matrix Double)
+fromFile filename (r,c) = reshape c `fmap` fscanfVector filename (r*c)
 

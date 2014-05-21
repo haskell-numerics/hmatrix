@@ -7,7 +7,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Packed.Numeric
+-- Module      :  Numeric.Container
 -- Copyright   :  (c) Alberto Ruiz 2010-14
 -- License     :  BSD3
 -- Maintainer  :  Alberto Ruiz
@@ -24,7 +24,7 @@
 -----------------------------------------------------------------------------
 {-# OPTIONS_HADDOCK hide #-}
 
-module Data.Packed.Numeric (
+module Numeric.Container (
     -- * Basic functions
     module Data.Packed,
     konst, build,
