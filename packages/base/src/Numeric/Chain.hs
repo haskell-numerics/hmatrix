@@ -2,7 +2,7 @@
 -- |
 -- Module      :  Numeric.Chain
 -- Copyright   :  (c) Vivian McPhail 2010
--- License     :  GPL-style
+-- License     :  BSD3
 --
 -- Maintainer  :  Vivian McPhail <haskell.vivian.mcphail <at> gmail.com>
 -- Stability   :  provisional
@@ -98,21 +98,22 @@ minimum_cost :: (Sizes,Cost,Indexes) -> (Int,Int) -> (Sizes,Cost,Indexes)
 minimum_cost sci fu = foldl (smaller_cost fu) sci (fulcrum_order fu)
 
 smaller_cost :: (Int,Int) -> (Sizes,Cost,Indexes) -> ((Int,Int),(Int,Int)) -> (Sizes,Cost,Indexes)
-smaller_cost (r,c) (mz,cost,ixes) ix@((lr,lc),(rr,rc)) = let op_cost =   fromJust ((cost A.! lr) A.! lc)
-                                                                       + fromJust ((cost A.! rr) A.! rc)
-                                                                       + fst (mz A.! (lr-lc+1))
-                                                                         * snd (mz A.! lc)
-                                                                         * snd (mz A.! rr)
-                                                             cost' = (cost A.! r) A.! c
-                                                         in case cost' of
-                                                                       Nothing -> let cost'' = update cost (r,c) (Just op_cost)
-                                                                                      ixes'' = update ixes (r,c) (Just ix)
-                                                                                  in (mz,cost'',ixes'')
-                                                                       Just ct -> if op_cost < ct then
-                                                                                  let cost'' = update cost (r,c) (Just op_cost)
-                                                                                      ixes'' = update ixes (r,c) (Just ix)
-                                                                                  in (mz,cost'',ixes'')
-                                                                                  else (mz,cost,ixes)
+smaller_cost (r,c) (mz,cost,ixes) ix@((lr,lc),(rr,rc)) =
+    let op_cost =   fromJust ((cost A.! lr) A.! lc)
+               + fromJust ((cost A.! rr) A.! rc)
+               + fst (mz A.! (lr-lc+1))
+                 * snd (mz A.! lc)
+                 * snd (mz A.! rr)
+        cost' = (cost A.! r) A.! c
+    in case cost' of
+               Nothing -> let cost'' = update cost (r,c) (Just op_cost)
+                              ixes'' = update ixes (r,c) (Just ix)
+                          in (mz,cost'',ixes'')
+               Just ct -> if op_cost < ct then
+                          let cost'' = update cost (r,c) (Just op_cost)
+                              ixes'' = update ixes (r,c) (Just ix)
+                          in (mz,cost'',ixes'')
+                          else (mz,cost,ixes)
                                                                          
 
 fulcrum_order (r,c) = let fs' = zip (repeat r) [1..(c-1)]
