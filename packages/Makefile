@@ -1,4 +1,4 @@
-pkgs=base hmatrix special glpk tests ../../hTensor
+pkgs=base gsl special glpk tests ../../hTensor
 
 all:
 	for p in $(pkgs); do \

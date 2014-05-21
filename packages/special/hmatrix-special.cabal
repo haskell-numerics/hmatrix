@@ -27,7 +27,7 @@ flag safe-cheap
     default:        False
 
 library
-    Build-Depends:  base, hmatrix-base, hmatrix
+    Build-Depends:  base, hmatrix, hmatrix-gsl
 
     Extensions:     ForeignFunctionInterface,
                     CPP

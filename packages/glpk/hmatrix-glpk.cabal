@@ -22,7 +22,7 @@ extra-source-files:     examples/simplex1.hs
                         examples/simplex4.hs
 
 library
-    Build-Depends:      base, hmatrix-base
+    Build-Depends:      base, hmatrix
 
     hs-source-dirs:     lib
 

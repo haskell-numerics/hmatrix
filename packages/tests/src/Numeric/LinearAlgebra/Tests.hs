@@ -26,6 +26,7 @@ module Numeric.LinearAlgebra.Tests(
 
 --import Data.Packed.Random
 import Numeric.LinearAlgebra
+import Numeric.Container
 import Numeric.LinearAlgebra.LAPACK
 import Numeric.LinearAlgebra.Tests.Instances
 import Numeric.LinearAlgebra.Tests.Properties
@@ -65,6 +66,11 @@ utest str b = TestCase $ assertBool str b
 a ~~ b = fromList a |~| fromList b
 
 feye n = flipud (ident n) :: Matrix Double
+
+eps = peps :: Double
+
+i = 0 :+ 1 :: Complex Double
+
 
 -----------------------------------------------------------
 
@@ -427,8 +433,6 @@ conformTest = utest "conform" ok
                    ,26,28,30
                    ,39,41,43
                    ,52,54,56]
-    row = asRow . fromList
-    col = asColumn . fromList :: [Double] -> Matrix Double
 
 ---------------------------------------------------------------------
 

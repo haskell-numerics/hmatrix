@@ -29,6 +29,8 @@ module Numeric.LinearAlgebra.Tests.Instances(
 import System.Random
 
 import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra.Devel
+import Numeric.Container
 import Control.Monad(replicateM)
 import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
                       ,sized,classify,Testable,Property

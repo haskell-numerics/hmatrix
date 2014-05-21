@@ -44,6 +44,8 @@ module Numeric.LinearAlgebra.Tests.Properties (
 ) where
 
 import Numeric.LinearAlgebra --hiding (real,complex)
+import Numeric.LinearAlgebra.Devel
+import Numeric.Container
 import Numeric.LinearAlgebra.LAPACK
 import Debug.Trace
 import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
