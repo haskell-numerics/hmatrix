@@ -25,8 +25,9 @@ module Numeric.LinearAlgebra.Tests(
 ) where
 
 --import Data.Packed.Random
-import Numeric.LinearAlgebra
-import Numeric.Container
+import Numeric.LinearAlgebra.Compat
+import Numeric.LinearAlgebra.Util(row,col)
+import Data.Packed
 import Numeric.LinearAlgebra.LAPACK
 import Numeric.LinearAlgebra.Tests.Instances
 import Numeric.LinearAlgebra.Tests.Properties
@@ -66,10 +67,6 @@ utest str b = TestCase $ assertBool str b
 a ~~ b = fromList a |~| fromList b
 
 feye n = flipud (ident n) :: Matrix Double
-
-eps = peps :: Double
-
-i = 0 :+ 1 :: Complex Double
 
 
 -----------------------------------------------------------
@@ -466,10 +463,10 @@ kroneckerTest = utest "kronecker" ok
     x = (4><2) [3,5..]
     b = (2><5) [0,5..]
     v1 = vec (a <> x <> b)
-    v2 = (trans b `kronecker` a) <> vec x
+    v2 = (trans b `kronecker` a) <.> vec x
     s = trans b <> b
     v3 = vec s
-    v4 = dup 5 <> vech s
+    v4 = (dup 5 :: Matrix Double) <.> vech s
     ok = v1 == v2 && v3 == v4
       && vtrans 1 a == trans a
       && vtrans (rows a) a == asColumn (vec a)

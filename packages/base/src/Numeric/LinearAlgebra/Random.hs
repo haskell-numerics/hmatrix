@@ -20,7 +20,8 @@ module Numeric.LinearAlgebra.Random (
 ) where
 
 import Numeric.Vectorized
-import Numeric.Container
+import Data.Packed
+import Data.Packed.Internal.Numeric
 import Numeric.LinearAlgebra.Algorithms
 import System.Random(randomIO)
 

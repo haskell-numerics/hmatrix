@@ -46,6 +46,8 @@ library
                         Numeric.LinearAlgebra
                         Numeric.LinearAlgebra.Devel
                         Numeric.LinearAlgebra.Data
+
+                        Numeric.LinearAlgebra.Compat
                         
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,

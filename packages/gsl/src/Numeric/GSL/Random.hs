@@ -21,8 +21,12 @@ module Numeric.GSL.Random (
 ) where
 
 import Numeric.GSL.Vector
-import Numeric.Container
-import Numeric.LinearAlgebra(Seed,RandDist(..),cholSH)
+import Numeric.LinearAlgebra(Seed,cholSH)
+import Numeric.Container hiding (
+    randomVector,
+    gaussianSample,
+    uniformSample
+    )
 import System.Random(randomIO)
 
 

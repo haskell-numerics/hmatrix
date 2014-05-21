@@ -40,6 +40,11 @@ module Numeric.Container (
     optimiseMult,
     mXm,mXv,vXm,LSDiv(..),
     outer, kronecker,
+    -- * Random numbers
+    RandDist(..),
+    randomVector,
+    gaussianSample,
+    uniformSample,
     -- * Element conversion
     Convert(..),
     Complexable(),
@@ -59,6 +64,7 @@ import Data.Complex
 import Numeric.LinearAlgebra.Algorithms(Field,linearSolveSVD)
 import Data.Monoid(Monoid(mconcat))
 import Data.Packed.IO
+import Numeric.LinearAlgebra.Random
 
 ------------------------------------------------------------------
 

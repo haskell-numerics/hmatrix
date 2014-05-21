@@ -43,9 +43,7 @@ module Numeric.LinearAlgebra.Tests.Properties (
     linearSolveProp, linearSolveProp2
 ) where
 
-import Numeric.LinearAlgebra --hiding (real,complex)
-import Numeric.LinearAlgebra.Devel
-import Numeric.Container
+import Numeric.LinearAlgebra.Compat --hiding (real,complex)
 import Numeric.LinearAlgebra.LAPACK
 import Debug.Trace
 import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
@@ -95,13 +93,13 @@ positiveDefinite m = minimum (toList e) > 0
 
 upperTriang m = rows m == 1 || down == z
     where down = fromList $ concat $ zipWith drop [1..] (toLists (ctrans m))
-          z = constant 0 (dim down)
+          z = konst 0 (dim down)
 
 upperHessenberg m = rows m < 3 || down == z
     where down = fromList $ concat $ zipWith drop [2..] (toLists (ctrans m))
-          z = constant 0 (dim down)
+          z = konst 0 (dim down)
 
-zeros (r,c) = reshape c (constant 0 (r*c))
+zeros (r,c) = reshape c (konst 0 (r*c))
 
 ones (r,c) = zeros (r,c) + 1
 
