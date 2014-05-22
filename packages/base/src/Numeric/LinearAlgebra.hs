@@ -13,7 +13,9 @@ module Numeric.LinearAlgebra (
     -- * Basic types and data processing    
     module Numeric.LinearAlgebra.Data,
     
-    -- | The standard numeric classes are defined elementwise:
+    -- * Arithmetic and numeric classes
+    -- |
+    -- The standard numeric classes are defined elementwise:
     --
     -- >>> fromList [1,2,3] * fromList [3,0,-2 :: Double]
     -- fromList [3.0,0.0,-6.0]
@@ -38,7 +40,7 @@ module Numeric.LinearAlgebra (
     -- * Matrix product
     (<.>),
 
-    -- | The overloaded multiplication operator may need type annotations to remove
+    -- | The overloaded multiplication operators may need type annotations to remove
     -- ambiguity. In those cases we can also use the specific functions 'mXm', 'mXv', and 'dot'.
     --
     -- The matrix x matrix product is also implemented in the "Data.Monoid" instance, where
@@ -66,6 +68,7 @@ module Numeric.LinearAlgebra (
     linearSolveSVD,
     luSolve,
     cholSolve,
+    cgSolve,
     
     -- * Inverse and pseudoinverse
     inv, pinv, pinvTol,
@@ -126,7 +129,15 @@ module Numeric.LinearAlgebra (
     RandDist(..), randomVector, rand, randn, gaussianSample, uniformSample,
     
     -- * Misc
-    meanCov, peps, relativeError, haussholder, optimiseMult, dot, udot, mXm, mXv, smXv, (<>), (◇), Seed, checkT
+    meanCov, peps, relativeError, haussholder, optimiseMult, dot, udot, mXm, mXv, smXv, (<>), (◇), Seed, checkT,
+    -- * Auxiliary classes
+    Element, Container, Product, Contraction, LSDiv,
+    Complexable(), RealElement(),
+    RealOf, ComplexOf, SingleOf, DoubleOf,
+    IndexOf,
+    Field, Normed,
+    CGMat, Transposable
+
 ) where
 
 import Numeric.LinearAlgebra.Data
@@ -137,5 +148,7 @@ import Numeric.Container
 import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Util
 import Numeric.LinearAlgebra.Random
-import Data.Packed.Internal.Sparse(smXv)
+import Numeric.Sparse(smXv)
+import Numeric.LinearAlgebra.Util.CG(cgSolve)
+import Numeric.LinearAlgebra.Util.CG(CGMat)
 

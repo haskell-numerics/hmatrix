@@ -20,6 +20,10 @@ module Data.Packed.Internal.Numeric (
     ident, diag, ctrans,
     -- * Generic operations
     Container(..),
+    scalar, conj, scale, arctan2, cmap,
+    atIndex, minIndex, maxIndex, minElement, maxElement,
+    sumElements, prodElements,
+    step, cond, find, assoc, accum,
     Transposable(..), Linear(..), Testable(..),
     -- * Matrix product and related functions
     Product(..), udot,
@@ -62,16 +66,9 @@ type instance ArgOf Matrix a = a -> a -> a
 
 -- | Basic element-by-element functions for numeric containers
 class (Complexable c, Fractional e, Element e) => Container c e where
-    -- | create a structure with a single element
-    --
-    -- >>> let v = fromList [1..3::Double]
-    -- >>> v / scalar (norm2 v)
-    -- fromList [0.2672612419124244,0.5345224838248488,0.8017837257372732]
-    --
-    scalar      :: e -> c e
-    -- | complex conjugate
-    conj        :: c e -> c e
-    scale       :: e -> c e -> c e
+    scalar'      :: e -> c e
+    conj'        :: c e -> c e
+    scale'       :: e -> c e -> c e
     -- | scale the element by element reciprocal of the object:
     --
     -- @scaleRecip 2 (fromList [5,i]) == 2 |> [0.4 :+ 0.0,0.0 :+ (-2.0)]@
@@ -86,101 +83,31 @@ class (Complexable c, Fractional e, Element e) => Container c e where
     equal       :: c e -> c e -> Bool
     --
     -- element by element inverse tangent
-    arctan2     :: c e -> c e -> c e
-    --
-    -- | cannot implement instance Functor because of Element class constraint
-    cmap        :: (Element b) => (e -> b) -> c e -> c b
-    -- | constant structure of given size
+    arctan2'     :: c e -> c e -> c e
+    cmap'        :: (Element b) => (e -> b) -> c e -> c b
     konst'      :: e -> IndexOf c -> c e
-    -- | create a structure using a function
-    --
-    -- Hilbert matrix of order N:
-    --
-    -- @hilb n = build' (n,n) (\\i j -> 1/(i+j+1))@
     build'       :: IndexOf c -> (ArgOf c e) -> c e
-    -- | indexing function
-    atIndex     :: c e -> IndexOf c -> e
-    -- | index of min element
-    minIndex    :: c e -> IndexOf c
-    -- | index of max element
-    maxIndex    :: c e -> IndexOf c
-    -- | value of min element
-    minElement  :: c e -> e
-    -- | value of max element
-    maxElement  :: c e -> e
-    -- the C functions sumX/prodX are twice as fast as using foldVector
-    -- | the sum of elements (faster than using @fold@)
-    sumElements :: c e -> e
-    -- | the product of elements (faster than using @fold@)
-    prodElements :: c e -> e
-
-    -- | A more efficient implementation of @cmap (\\x -> if x>0 then 1 else 0)@
-    --
-    -- >>> step $ linspace 5 (-1,1::Double)
-    -- 5 |> [0.0,0.0,0.0,1.0,1.0]
-    --
-    
-    step :: RealElement e => c e -> c e
-
-    -- | Element by element version of @case compare a b of {LT -> l; EQ -> e; GT -> g}@.
-    --
-    -- Arguments with any dimension = 1 are automatically expanded: 
-    --
-    -- >>> cond ((1><4)[1..]) ((3><1)[1..]) 0 100 ((3><4)[1..]) :: Matrix Double
-    -- (3><4)
-    -- [ 100.0,   2.0,   3.0,  4.0
-    -- ,   0.0, 100.0,   7.0,  8.0
-    -- ,   0.0,   0.0, 100.0, 12.0 ]
-    --
-    
-    cond :: RealElement e 
+    atIndex'     :: c e -> IndexOf c -> e
+    minIndex'    :: c e -> IndexOf c
+    maxIndex'    :: c e -> IndexOf c
+    minElement'  :: c e -> e
+    maxElement'  :: c e -> e
+    sumElements' :: c e -> e
+    prodElements' :: c e -> e
+    step' :: RealElement e => c e -> c e
+    cond' :: RealElement e
          => c e -- ^ a
          -> c e -- ^ b
-         -> c e -- ^ l 
+         -> c e -- ^ l
          -> c e -- ^ e
          -> c e -- ^ g
          -> c e -- ^ result
-
-    -- | Find index of elements which satisfy a predicate
-    --
-    -- >>> find (>0) (ident 3 :: Matrix Double)
-    -- [(0,0),(1,1),(2,2)]
-    --
-
-    find :: (e -> Bool) -> c e -> [IndexOf c]
-
-    -- | Create a structure from an association list
-    --
-    -- >>> assoc 5 0 [(3,7),(1,4)] :: Vector Double
-    -- fromList [0.0,4.0,0.0,7.0,0.0]
-    --
-    -- >>> assoc (2,3) 0 [((0,2),7),((1,0),2*i-3)] :: Matrix (Complex Double)
-    -- (2><3)
-    --  [    0.0 :+ 0.0, 0.0 :+ 0.0, 7.0 :+ 0.0
-    --  , (-3.0) :+ 2.0, 0.0 :+ 0.0, 0.0 :+ 0.0 ]
-    --
-    assoc :: IndexOf c        -- ^ size
+    find' :: (e -> Bool) -> c e -> [IndexOf c]
+    assoc' :: IndexOf c       -- ^ size
           -> e                -- ^ default value
           -> [(IndexOf c, e)] -- ^ association list
           -> c e              -- ^ result
-
-    -- | Modify a structure using an update function
-    --
-    -- >>> accum (ident 5) (+) [((1,1),5),((0,3),3)] :: Matrix Double
-    -- (5><5)
-    --  [ 1.0, 0.0, 0.0, 3.0, 0.0
-    --  , 0.0, 6.0, 0.0, 0.0, 0.0
-    --  , 0.0, 0.0, 1.0, 0.0, 0.0
-    --  , 0.0, 0.0, 0.0, 1.0, 0.0
-    --  , 0.0, 0.0, 0.0, 0.0, 1.0 ]
-    --
-    -- computation of histogram:
-    --
-    -- >>> accum (konst 0 7) (+) (map (flip (,) 1) [4,5,4,1,5,2,5]) :: Vector Double
-    -- fromList [0.0,1.0,1.0,0.0,2.0,3.0,0.0]
-    --
-    
-    accum :: c e              -- ^ initial structure
+    accum' :: c e             -- ^ initial structure
           -> (e -> e -> e)    -- ^ update function
           -> [(IndexOf c, e)] -- ^ association list
           -> c e              -- ^ result
@@ -188,7 +115,7 @@ class (Complexable c, Fractional e, Element e) => Container c e where
 --------------------------------------------------------------------------
 
 instance Container Vector Float where
-    scale = vectorMapValF Scale
+    scale' = vectorMapValF Scale
     scaleRecip = vectorMapValF Recip
     addConstant = vectorMapValF AddConstant
     add = vectorZipF Add
@@ -196,27 +123,27 @@ instance Container Vector Float where
     mul = vectorZipF Mul
     divide = vectorZipF Div
     equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
-    arctan2 = vectorZipF ATan2
-    scalar x = fromList [x]
+    arctan2' = vectorZipF ATan2
+    scalar' x = fromList [x]
     konst' = constant
     build' = buildV
-    conj = id
-    cmap = mapVector
-    atIndex = (@>)
-    minIndex     = emptyErrorV "minIndex"   (round . toScalarF MinIdx)
-    maxIndex     = emptyErrorV "maxIndex"   (round . toScalarF MaxIdx)
-    minElement   = emptyErrorV "minElement" (toScalarF Min)
-    maxElement   = emptyErrorV "maxElement" (toScalarF Max)
-    sumElements  = sumF
-    prodElements = prodF
-    step = stepF
-    find = findV
-    assoc = assocV
-    accum = accumV
-    cond = condV condF
+    conj' = id
+    cmap' = mapVector
+    atIndex' = (@>)
+    minIndex'     = emptyErrorV "minIndex"   (round . toScalarF MinIdx)
+    maxIndex'     = emptyErrorV "maxIndex"   (round . toScalarF MaxIdx)
+    minElement'   = emptyErrorV "minElement" (toScalarF Min)
+    maxElement'   = emptyErrorV "maxElement" (toScalarF Max)
+    sumElements'  = sumF
+    prodElements' = prodF
+    step' = stepF
+    find' = findV
+    assoc' = assocV
+    accum' = accumV
+    cond' = condV condF
 
 instance Container Vector Double where
-    scale = vectorMapValR Scale
+    scale' = vectorMapValR Scale
     scaleRecip = vectorMapValR Recip
     addConstant = vectorMapValR AddConstant
     add = vectorZipR Add
@@ -224,27 +151,27 @@ instance Container Vector Double where
     mul = vectorZipR Mul
     divide = vectorZipR Div
     equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
-    arctan2 = vectorZipR ATan2
-    scalar x = fromList [x]
+    arctan2' = vectorZipR ATan2
+    scalar' x = fromList [x]
     konst' = constant
     build' = buildV
-    conj = id
-    cmap = mapVector
-    atIndex = (@>)
-    minIndex     = emptyErrorV "minIndex"   (round . toScalarR MinIdx)
-    maxIndex     = emptyErrorV "maxIndex"   (round . toScalarR MaxIdx)
-    minElement   = emptyErrorV "minElement" (toScalarR Min)
-    maxElement   = emptyErrorV "maxElement" (toScalarR Max)
-    sumElements  = sumR
-    prodElements = prodR
-    step = stepD
-    find = findV
-    assoc = assocV
-    accum = accumV
-    cond = condV condD
+    conj' = id
+    cmap' = mapVector
+    atIndex' = (@>)
+    minIndex'     = emptyErrorV "minIndex"   (round . toScalarR MinIdx)
+    maxIndex'     = emptyErrorV "maxIndex"   (round . toScalarR MaxIdx)
+    minElement'   = emptyErrorV "minElement" (toScalarR Min)
+    maxElement'   = emptyErrorV "maxElement" (toScalarR Max)
+    sumElements'  = sumR
+    prodElements' = prodR
+    step' = stepD
+    find' = findV
+    assoc' = assocV
+    accum' = accumV
+    cond' = condV condD
 
 instance Container Vector (Complex Double) where
-    scale = vectorMapValC Scale
+    scale' = vectorMapValC Scale
     scaleRecip = vectorMapValC Recip
     addConstant = vectorMapValC AddConstant
     add = vectorZipC Add
@@ -252,27 +179,27 @@ instance Container Vector (Complex Double) where
     mul = vectorZipC Mul
     divide = vectorZipC Div
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
-    arctan2 = vectorZipC ATan2
-    scalar x = fromList [x]
+    arctan2' = vectorZipC ATan2
+    scalar' x = fromList [x]
     konst' = constant
     build' = buildV
-    conj = conjugateC
-    cmap = mapVector
-    atIndex = (@>)
-    minIndex     = emptyErrorV "minIndex" (minIndex . fst . fromComplex . (mul <*> conj))
-    maxIndex     = emptyErrorV "maxIndex" (maxIndex . fst . fromComplex . (mul <*> conj))
-    minElement   = emptyErrorV "minElement" (atIndex <*> minIndex)
-    maxElement   = emptyErrorV "maxElement" (atIndex <*> maxIndex)
-    sumElements  = sumC
-    prodElements = prodC
-    step = undefined -- cannot match
-    find = findV
-    assoc = assocV
-    accum = accumV
-    cond = undefined -- cannot match
+    conj' = conjugateC
+    cmap' = mapVector
+    atIndex' = (@>)
+    minIndex'     = emptyErrorV "minIndex" (minIndex' . fst . fromComplex . (mul <*> conj'))
+    maxIndex'     = emptyErrorV "maxIndex" (maxIndex' . fst . fromComplex . (mul <*> conj'))
+    minElement'   = emptyErrorV "minElement" (atIndex' <*> minIndex')
+    maxElement'   = emptyErrorV "maxElement" (atIndex' <*> maxIndex')
+    sumElements'  = sumC
+    prodElements' = prodC
+    step' = undefined -- cannot match
+    find' = findV
+    assoc' = assocV
+    accum' = accumV
+    cond' = undefined -- cannot match
 
 instance Container Vector (Complex Float) where
-    scale = vectorMapValQ Scale
+    scale' = vectorMapValQ Scale
     scaleRecip = vectorMapValQ Recip
     addConstant = vectorMapValQ AddConstant
     add = vectorZipQ Add
@@ -280,29 +207,29 @@ instance Container Vector (Complex Float) where
     mul = vectorZipQ Mul
     divide = vectorZipQ Div
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
-    arctan2 = vectorZipQ ATan2
-    scalar x = fromList [x]
+    arctan2' = vectorZipQ ATan2
+    scalar' x = fromList [x]
     konst' = constant
     build' = buildV
-    conj = conjugateQ
-    cmap = mapVector
-    atIndex = (@>)
-    minIndex     = emptyErrorV "minIndex" (minIndex . fst . fromComplex . (mul <*> conj))
-    maxIndex     = emptyErrorV "maxIndex" (maxIndex . fst . fromComplex . (mul <*> conj))
-    minElement   = emptyErrorV "minElement" (atIndex <*> minIndex)
-    maxElement   = emptyErrorV "maxElement" (atIndex <*> maxIndex)
-    sumElements  = sumQ
-    prodElements = prodQ
-    step = undefined -- cannot match
-    find = findV
-    assoc = assocV
-    accum = accumV
-    cond = undefined -- cannot match
+    conj' = conjugateQ
+    cmap' = mapVector
+    atIndex' = (@>)
+    minIndex'     = emptyErrorV "minIndex" (minIndex' . fst . fromComplex . (mul <*> conj'))
+    maxIndex'     = emptyErrorV "maxIndex" (maxIndex' . fst . fromComplex . (mul <*> conj'))
+    minElement'   = emptyErrorV "minElement" (atIndex' <*> minIndex')
+    maxElement'   = emptyErrorV "maxElement" (atIndex' <*> maxIndex')
+    sumElements'  = sumQ
+    prodElements' = prodQ
+    step' = undefined -- cannot match
+    find' = findV
+    assoc' = assocV
+    accum' = accumV
+    cond' = undefined -- cannot match
 
 ---------------------------------------------------------------
 
 instance (Container Vector a) => Container Matrix a where
-    scale x = liftMatrix (scale x)
+    scale' x = liftMatrix (scale' x)
     scaleRecip x = liftMatrix (scaleRecip x)
     addConstant x = liftMatrix (addConstant x)
     add = liftMatrix2 add
@@ -310,26 +237,26 @@ instance (Container Vector a) => Container Matrix a where
     mul = liftMatrix2 mul
     divide = liftMatrix2 divide
     equal a b = cols a == cols b && flatten a `equal` flatten b
-    arctan2 = liftMatrix2 arctan2
-    scalar x = (1><1) [x]
+    arctan2' = liftMatrix2 arctan2'
+    scalar' x = (1><1) [x]
     konst' v (r,c) = matrixFromVector RowMajor r c (konst' v (r*c))
     build' = buildM
-    conj = liftMatrix conj
-    cmap f = liftMatrix (mapVector f)
-    atIndex = (@@>)
-    minIndex = emptyErrorM "minIndex of Matrix" $
-                \m -> divMod (minIndex $ flatten m) (cols m)
-    maxIndex = emptyErrorM "maxIndex of Matrix" $
-                \m -> divMod (maxIndex $ flatten m) (cols m)
-    minElement = emptyErrorM "minElement of Matrix" (atIndex <*> minIndex)
-    maxElement = emptyErrorM "maxElement of Matrix" (atIndex <*> maxIndex)
-    sumElements = sumElements . flatten
-    prodElements = prodElements . flatten
-    step = liftMatrix step
-    find = findM
-    assoc = assocM
-    accum = accumM
-    cond = condM
+    conj' = liftMatrix conj'
+    cmap' f = liftMatrix (mapVector f)
+    atIndex' = (@@>)
+    minIndex' = emptyErrorM "minIndex of Matrix" $
+                \m -> divMod (minIndex' $ flatten m) (cols m)
+    maxIndex' = emptyErrorM "maxIndex of Matrix" $
+                \m -> divMod (maxIndex' $ flatten m) (cols m)
+    minElement' = emptyErrorM "minElement of Matrix" (atIndex' <*> minIndex')
+    maxElement' = emptyErrorM "maxElement of Matrix" (atIndex' <*> maxIndex')
+    sumElements' = sumElements . flatten
+    prodElements' = prodElements . flatten
+    step' = liftMatrix step
+    find' = findM
+    assoc' = assocM
+    accum' = accumM
+    cond' = condM
 
 
 emptyErrorV msg f v =
@@ -342,7 +269,151 @@ emptyErrorM msg f m =
         then f m
         else error $ msg++" "++shSize m
 
-----------------------------------------------------
+--------------------------------------------------------------------------------
+
+-- | create a structure with a single element
+--
+-- >>> let v = fromList [1..3::Double]
+-- >>> v / scalar (norm2 v)
+-- fromList [0.2672612419124244,0.5345224838248488,0.8017837257372732]
+--
+scalar :: Container c e => e -> c e
+scalar = scalar'
+
+-- | complex conjugate
+conj :: Container c e => c e -> c e
+conj = conj'
+
+-- | multiplication by scalar
+scale :: Container c e => e -> c e -> c e
+scale = scale'
+
+arctan2 :: Container c e => c e -> c e -> c e
+arctan2 = arctan2'
+
+-- | like 'fmap' (cannot implement instance Functor because of Element class constraint)
+cmap :: (Element b, Container c e) => (e -> b) -> c e -> c b
+cmap = cmap'
+
+-- | indexing function
+atIndex :: Container c e => c e -> IndexOf c -> e
+atIndex = atIndex'
+
+-- | index of minimum element
+minIndex :: Container c e => c e -> IndexOf c
+minIndex = minIndex'
+
+-- | index of maximum element
+maxIndex :: Container c e => c e -> IndexOf c
+maxIndex = maxIndex'
+
+-- | value of minimum element
+minElement :: Container c e => c e -> e
+minElement = minElement'
+
+-- | value of maximum element
+maxElement :: Container c e => c e -> e
+maxElement = maxElement'
+
+-- | the sum of elements
+sumElements :: Container c e => c e -> e
+sumElements = sumElements'
+
+-- | the product of elements
+prodElements :: Container c e => c e -> e
+prodElements = prodElements'
+
+
+-- | A more efficient implementation of @cmap (\\x -> if x>0 then 1 else 0)@
+--
+-- >>> step $ linspace 5 (-1,1::Double)
+-- 5 |> [0.0,0.0,0.0,1.0,1.0]
+--
+step
+  :: (RealElement e, Container c e)
+    => c e
+    -> c e
+step = step'
+
+
+-- | Element by element version of @case compare a b of {LT -> l; EQ -> e; GT -> g}@.
+--
+-- Arguments with any dimension = 1 are automatically expanded:
+--
+-- >>> cond ((1><4)[1..]) ((3><1)[1..]) 0 100 ((3><4)[1..]) :: Matrix Double
+-- (3><4)
+-- [ 100.0,   2.0,   3.0,  4.0
+-- ,   0.0, 100.0,   7.0,  8.0
+-- ,   0.0,   0.0, 100.0, 12.0 ]
+--
+cond
+    :: (RealElement e, Container c e)
+    => c e -- ^ a
+    -> c e -- ^ b
+    -> c e -- ^ l
+    -> c e -- ^ e
+    -> c e -- ^ g
+    -> c e -- ^ result
+cond = cond'
+
+
+-- | Find index of elements which satisfy a predicate
+--
+-- >>> find (>0) (ident 3 :: Matrix Double)
+-- [(0,0),(1,1),(2,2)]
+--
+find
+  :: Container c e
+    => (e -> Bool)
+    -> c e
+    -> [IndexOf c]
+find = find'
+
+
+-- | Create a structure from an association list
+--
+-- >>> assoc 5 0 [(3,7),(1,4)] :: Vector Double
+-- fromList [0.0,4.0,0.0,7.0,0.0]
+--
+-- >>> assoc (2,3) 0 [((0,2),7),((1,0),2*i-3)] :: Matrix (Complex Double)
+-- (2><3)
+--  [    0.0 :+ 0.0, 0.0 :+ 0.0, 7.0 :+ 0.0
+--  , (-3.0) :+ 2.0, 0.0 :+ 0.0, 0.0 :+ 0.0 ]
+--
+assoc
+  :: Container c e
+    => IndexOf c        -- ^ size
+    -> e                -- ^ default value
+    -> [(IndexOf c, e)] -- ^ association list
+    -> c e              -- ^ result
+assoc = assoc'
+
+
+-- | Modify a structure using an update function
+--
+-- >>> accum (ident 5) (+) [((1,1),5),((0,3),3)] :: Matrix Double
+-- (5><5)
+--  [ 1.0, 0.0, 0.0, 3.0, 0.0
+--  , 0.0, 6.0, 0.0, 0.0, 0.0
+--  , 0.0, 0.0, 1.0, 0.0, 0.0
+--  , 0.0, 0.0, 0.0, 1.0, 0.0
+--  , 0.0, 0.0, 0.0, 0.0, 1.0 ]
+--
+-- computation of histogram:
+--
+-- >>> accum (konst 0 7) (+) (map (flip (,) 1) [4,5,4,1,5,2,5]) :: Vector Double
+-- fromList [0.0,1.0,1.0,0.0,2.0,3.0,0.0]
+--
+accum
+  :: Container c e
+    => c e              -- ^ initial structure
+    -> (e -> e -> e)    -- ^ update function
+    -> [(IndexOf c, e)] -- ^ association list
+    -> c e              -- ^ result
+accum = accum'
+
+
+--------------------------------------------------------------------------------
 
 -- | Matrix product and related functions
 class (Num e, Element e) => Product e where
@@ -558,7 +629,7 @@ buildV n f = fromList [f k | k <- ks]
 --------------------------------------------------------
 -- | conjugate transpose
 ctrans :: (Container Vector e, Element e) => Matrix e -> Matrix e
-ctrans = liftMatrix conj . trans
+ctrans = liftMatrix conj' . trans
 
 -- | Creates a square matrix with a given diagonal.
 diag :: (Num a, Element a) => Vector a -> Matrix a

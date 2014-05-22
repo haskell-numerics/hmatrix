@@ -80,7 +80,7 @@ data MatrixOrder = RowMajor | ColumnMajor deriving (Show,Eq)
 
 transOrder RowMajor = ColumnMajor
 transOrder ColumnMajor = RowMajor
-{- | Matrix representation suitable for GSL and LAPACK computations.
+{- | Matrix representation suitable for BLAS\/LAPACK computations.
 
 The elements are stored in a continuous memory array.
 

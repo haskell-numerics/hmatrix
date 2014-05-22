@@ -90,8 +90,8 @@ instance (Container Vector t, Eq t, Num (Vector t), Product t) => M.Monoid (Matr
     mconcat xs = work (partition isScalar xs)
       where
         work (ss,[]) = product ss
-        work (ss,ms) = scale' (product ss) (optimiseMult ms)
-        scale' x m
+        work (ss,ms) = scl (product ss) (optimiseMult ms)
+        scl x m
             | isScalar x && x00 == 1 = m
             | otherwise              = scale x00 m
           where

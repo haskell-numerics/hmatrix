@@ -49,20 +49,10 @@ module Numeric.LinearAlgebra.Devel(
     mapMatrixWithIndex, mapMatrixWithIndexM, mapMatrixWithIndexM_,
     liftMatrix, liftMatrix2, liftMatrix2Auto,
 
-    -- * Auxiliary classes
-    Element, Container, Product, Contraction, LSDiv,
-    Complexable(), RealElement(),
-    RealOf, ComplexOf, SingleOf, DoubleOf,
-    IndexOf,
-    Field, Normed
 ) where
 
 import Data.Packed.Foreign
 import Data.Packed.Development
 import Data.Packed.ST
-import Numeric.Container(Container,Contraction,LSDiv,Product,
-                         Complexable(),RealElement(),
-                         RealOf, ComplexOf, SingleOf, DoubleOf, IndexOf)
 import Data.Packed
-import Numeric.LinearAlgebra.Algorithms(Field,Normed)
 

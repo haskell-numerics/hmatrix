@@ -32,7 +32,13 @@ module Numeric.Container (
     diag, ident,
     ctrans,
     -- * Generic operations
-    Container(..), Transposable(..), Linear(..),
+    Container,
+    add, mul, sub, divide, equal, scaleRecip, addConstant,
+    scalar, conj, scale, arctan2, cmap,
+    atIndex, minIndex, maxIndex, minElement, maxElement,
+    sumElements, prodElements,
+    step, cond, find, assoc, accum,
+    Transposable(..), Linear(..),
     -- * Matrix product
     Product(..), udot, dot, (◇),
     Mul(..),
