@@ -69,5 +69,5 @@ import Data.Packed.Matrix
 import Numeric.Container
 import Numeric.LinearAlgebra.Util
 import Data.Complex
-import Data.Packed.Internal.Sparse
+import Numeric.Sparse
 

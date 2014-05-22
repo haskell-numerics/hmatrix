@@ -2,9 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-
-
-module Data.Packed.Internal.Sparse(
+module Numeric.Sparse(
     SMatrix(..),
     mkCSR, mkDiag,
     AssocMatrix,
@@ -19,7 +17,8 @@ import Control.Arrow((***))
 import Control.Monad(when)
 import Data.List(groupBy, sort)
 import Foreign.C.Types(CInt(..))
-import Numeric.LinearAlgebra.Devel
+import Numeric.LinearAlgebra.Util.CG(CGMat)
+import Data.Packed.Development
 import System.IO.Unsafe(unsafePerformIO)
 import Foreign(Ptr)
 import Text.Printf(printf)
@@ -127,7 +126,7 @@ toDense asm = assoc (r+1,c+1) 0 asm
 
 
 
-instance Transposable (SMatrix)
+instance Transposable SMatrix
   where
     tr (CSR vs cs rs n m) = CSC vs cs rs m n
     tr (CSC vs rs cs n m) = CSR vs rs cs m n
@@ -138,6 +137,8 @@ instance Transposable (Matrix Double)
     tr = trans
 
 
+instance CGMat SMatrix
+instance CGMat (Matrix Double)
 
 --------------------------------------------------------------------------------
 

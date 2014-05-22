@@ -48,7 +48,7 @@ library
                         Numeric.LinearAlgebra.Data
 
                         Numeric.LinearAlgebra.Compat
-                        Data.Packed.Internal.Sparse
+                        
                         
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
@@ -62,8 +62,10 @@ library
                         Numeric.Matrix
                         Data.Packed.Internal.Numeric
                         Numeric.LinearAlgebra.Util.Convolution
+                        Numeric.LinearAlgebra.Util.CG
                         Numeric.LinearAlgebra.Random
                         Numeric.Conversion
+                        Numeric.Sparse
 
     C-sources:          src/C/lapack-aux.c
                         src/C/vector-aux.c
