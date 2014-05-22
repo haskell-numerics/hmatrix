@@ -25,8 +25,8 @@ module Numeric.LinearAlgebra.Tests(
 ) where
 
 --import Data.Packed.Random
-import Numeric.LinearAlgebra.Compat
-import Numeric.LinearAlgebra.Util(row,col)
+import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra.Util(col,row)
 import Data.Packed
 import Numeric.LinearAlgebra.LAPACK
 import Numeric.LinearAlgebra.Tests.Instances
@@ -55,6 +55,9 @@ import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
                       ,quickCheckWithResult,maxSize,stdArgs,shrink)
 
 import Test.QuickCheck.Test(isSuccess)
+
+eps = peps :: Double
+i = 0:+1 :: Complex Double
 
 qCheck n x = do
     r <- quickCheckWithResult stdArgs {maxSize = n} x
@@ -473,6 +476,7 @@ kroneckerTest = utest "kronecker" ok
 
 --------------------------------------------------------------------------------
 
+sparseTest = utest "sparse mul" (fst $ checkT (undefined :: SMatrix))
 
 
 -- | All tests must pass with a maximum dimension of about 20
@@ -632,7 +636,7 @@ runTests n = do
         , utest "buildVector/Matrix" $
                         complex (10 |> [0::Double ..]) == buildVector 10 fromIntegral
                      && ident 5 == buildMatrix 5 5 (\(r,c) -> if r==c then 1::Double else 0)
-        , utest "rank" $  rank ((2><3)[1,0,0,1,6*eps,0]) == 1
+        , utest "rank" $  rank ((2><3)[1,0,0,1,5*eps,0]) == 1
                        && rank ((2><3)[1,0,0,1,7*eps,0]) == 2
         , utest "block" $ fromBlocks [[ident 3,0],[0,ident 4]] == (ident 7 :: CM)
         , odeTest
@@ -650,6 +654,7 @@ runTests n = do
         , accumTest
         , convolutionTest
         , kroneckerTest
+        , sparseTest
         ]
     when (errors c + failures c > 0) exitFailure
     return ()
