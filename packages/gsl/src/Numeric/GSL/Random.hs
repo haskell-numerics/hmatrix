@@ -41,7 +41,7 @@ gaussianSample :: Seed
                -> Matrix Double -- ^ result
 gaussianSample seed n med cov = m where
     c = dim med
-    meds = konst' 1 n `outer` med
+    meds = konst 1 n `outer` med
     rs = reshape c $ randomVector seed Gaussian (c * n)
     m = rs `mXm` cholSH cov `add` meds
 
@@ -57,7 +57,7 @@ uniformSample seed n rgs = m where
     cs = zipWith subtract as bs
     d = dim a
     dat = toRows $ reshape n $ randomVector seed Uniform (n*d)
-    am = konst' 1 n `outer` a
+    am = konst 1 n `outer` a
     m = fromColumns (zipWith scale cs dat) `add` am
 
 -- | pseudorandom matrix with uniform elements between 0 and 1

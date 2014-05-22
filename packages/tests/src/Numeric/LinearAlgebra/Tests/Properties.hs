@@ -43,7 +43,8 @@ module Numeric.LinearAlgebra.Tests.Properties (
     linearSolveProp, linearSolveProp2
 ) where
 
-import Numeric.LinearAlgebra.Compat hiding (Testable) --hiding (real,complex)
+import Numeric.Container hiding (Testable)
+import Numeric.LinearAlgebra --hiding (real,complex)
 import Numeric.LinearAlgebra.LAPACK
 import Debug.Trace
 import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
