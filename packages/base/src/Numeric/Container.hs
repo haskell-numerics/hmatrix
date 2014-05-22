@@ -32,11 +32,11 @@ module Numeric.Container (
     diag, ident,
     ctrans,
     -- * Generic operations
-    Container(..),
+    Container(..), Transposable(..), Linear(..),
     -- * Matrix product
     Product(..), udot, dot, (◇),
     Mul(..),
-    Contraction(..),
+    Contraction(..),(<.>),
     optimiseMult,
     mXm,mXv,vXm,LSDiv(..),
     outer, kronecker,
@@ -55,7 +55,9 @@ module Numeric.Container (
     IndexOf,
     module Data.Complex,
     -- * IO
-    module Data.Packed.IO
+    module Data.Packed.IO,
+    -- * Misc
+    Testable(..)
 ) where
 
 import Data.Packed hiding (stepD, stepF, condD, condF, conjugateC, conjugateQ)
@@ -87,10 +89,9 @@ linspace n (a,b) = addConstant a $ scale s $ fromList $ map fromIntegral [0 .. n
 
 --------------------------------------------------------
 
-class Contraction a b c | a b -> c
-  where
-    infixl 7 <.>
-    {- | Matrix product, matrix - vector product, and dot product
+{- | Matrix product, matrix - vector product, and dot product (equivalent to 'contraction')
+
+(This operator can also be written using the unicode symbol ◇ (25c7).)
 
 Examples:
 
@@ -129,22 +130,28 @@ For complex vectors the first argument is conjugated:
 
 >>> fromList [1,i,1-i] <.> complex a
 fromList [10.0 :+ 4.0,12.0 :+ 4.0,14.0 :+ 4.0,16.0 :+ 4.0]
-
 -}
-    (<.>) :: a -> b -> c
+infixl 7 <.>
+(<.>) :: Contraction a b c => a -> b -> c
+(<.>) = contraction
 
+
+class Contraction a b c | a b -> c
+  where
+    -- | Matrix product, matrix - vector product, and dot product
+    contraction :: a -> b -> c
 
 instance (Product t, Container Vector t) => Contraction (Vector t) (Vector t) t where
-    u <.> v = conj u `udot` v
+    u `contraction` v = conj u `udot` v
 
 instance Product t => Contraction (Matrix t) (Vector t) (Vector t) where
-    (<.>) = mXv
+    contraction = mXv
 
 instance (Container Vector t, Product t) => Contraction (Vector t) (Matrix t) (Vector t) where
-    (<.>) v m = (conj v) `vXm` m
+    contraction v m = (conj v) `vXm` m
 
 instance Product t => Contraction (Matrix t) (Matrix t) (Matrix t) where
-    (<.>) = mXm
+    contraction = mXm
 
 
 --------------------------------------------------------------------------------
@@ -229,10 +236,10 @@ instance Container Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
 
 --------------------------------------------------------------------------------
 
--- | alternative unicode symbol (25c7) for the contraction operator '(\<.\>)'
+-- | alternative unicode symbol (25c7) for 'contraction'
 (◇) :: Contraction a b c => a -> b -> c
 infixl 7 ◇
-(◇) = (<.>)
+(◇) = contraction
 
 -- | dot product: @cdot u v = 'udot' ('conj' u) v@
 dot :: (Container Vector t, Product t) => Vector t -> Vector t -> t

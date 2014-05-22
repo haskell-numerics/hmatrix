@@ -37,11 +37,11 @@ module Numeric.LinearAlgebra (
 
     -- * Matrix product
     (<.>),
-    
-    -- | This operator can also be written using the unicode symbol ◇ (25c7).
+
+    -- | The overloaded multiplication operator may need type annotations to remove
+    -- ambiguity. In those cases we can also use the specific functions 'mXm', 'mXv', and 'dot'.
     --
-    
-    -- | The matrix x matrix product is also implemented in the "Data.Monoid" instance, where
+    -- The matrix x matrix product is also implemented in the "Data.Monoid" instance, where
     -- single-element matrices (created from numeric literals or using 'scalar')
     -- are used for scaling.
     --
@@ -52,6 +52,7 @@ module Numeric.LinearAlgebra (
     -- , 4.0, 10.0, 0.0 ]
     --
     -- 'mconcat' uses 'optimiseMult' to get the optimal association order.
+
      
     -- * Other products
     outer, kronecker, cross,
@@ -125,7 +126,7 @@ module Numeric.LinearAlgebra (
     RandDist(..), randomVector, rand, randn, gaussianSample, uniformSample,
     
     -- * Misc
-    meanCov, peps, relativeError, haussholder, optimiseMult, udot, Seed, (◇)
+    meanCov, peps, relativeError, haussholder, optimiseMult, dot, udot, mXm, mXv, smXv, (<>), (◇), Seed, checkT
 ) where
 
 import Numeric.LinearAlgebra.Data
@@ -136,6 +137,5 @@ import Numeric.Container
 import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Util
 import Numeric.LinearAlgebra.Random
-
-
+import Data.Packed.Internal.Sparse(smXv)
 

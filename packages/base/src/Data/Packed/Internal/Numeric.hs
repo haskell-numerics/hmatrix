@@ -20,6 +20,7 @@ module Data.Packed.Internal.Numeric (
     ident, diag, ctrans,
     -- * Generic operations
     Container(..),
+    Transposable(..), Linear(..), Testable(..),
     -- * Matrix product and related functions
     Product(..), udot,
     mXm,mXv,vXm,
@@ -604,4 +605,26 @@ condM a b l e t = matrixFromVector RowMajor (rows a'') (cols a'') $ cond a' b' l
 condV f a b l e t = f a' b' l' e' t'
   where
     [a', b', l', e', t'] = conformVs [a,b,l,e,t]
+
+--------------------------------------------------------------------------------
+
+class Transposable t
+  where
+    tr :: t -> t
+
+
+class Linear t v
+  where
+    scalarL :: t -> v
+    addL    :: v -> v -> v
+    scaleL  :: t -> v -> v
+
+
+class Testable t
+  where
+    checkT   :: t -> (Bool, IO())
+    ioCheckT :: t -> IO (Bool, IO())
+    ioCheckT = return . checkT
+
+--------------------------------------------------------------------------------
 

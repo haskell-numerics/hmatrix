@@ -36,6 +36,7 @@ typedef short ftnlen;
 
 /********************************************************/
 
+#define IVEC(A) int A##n, int*A##p
 #define FVEC(A) int A##n, float*A##p
 #define DVEC(A) int A##n, double*A##p
 #define QVEC(A) int A##n, complex*A##p
@@ -47,6 +48,7 @@ typedef short ftnlen;
 #define CMAT(A) int A##r, int A##c, doublecomplex* A##p
 #define PMAT(A) int A##r, int A##c, void* A##p, int A##s
 
+#define KIVEC(A) int A##n, const int*A##p
 #define KFVEC(A) int A##n, const float*A##p
 #define KDVEC(A) int A##n, const double*A##p
 #define KQVEC(A) int A##n, const complex*A##p

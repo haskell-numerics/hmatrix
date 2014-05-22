@@ -48,6 +48,7 @@ library
                         Numeric.LinearAlgebra.Data
 
                         Numeric.LinearAlgebra.Compat
+                        Data.Packed.Internal.Sparse
                         
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,

@@ -744,3 +744,29 @@ int random_vector(int seed, int code, DVEC(r)) {
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+int smXv(KDVEC(vals),KIVEC(cols),KIVEC(rows),KDVEC(x),DVEC(r)) {
+    int r, c;
+    for (r = 0; r < rowsn - 1; r++) {
+        rp[r] = 0;
+        for (c = rowsp[r]; c < rowsp[r+1]; c++) {
+            rp[r] += valsp[c-1] * xp[colsp[c-1]-1];
+        }
+    }
+    OK
+}
+
+int smTXv(KDVEC(vals),KIVEC(cols),KIVEC(rows),KDVEC(x),DVEC(r)) {
+    int r,c;
+    for (c = 0; c < rn; c++) {
+        rp[c] = 0;
+    }
+    for (r = 0; r < rowsn - 1; r++) {
+        for (c = rowsp[r]; c < rowsp[r+1]; c++) {
+            rp[colsp[c-1]-1] += valsp[c-1] * xp[r];
+        }
+    }
+    OK
+}
+

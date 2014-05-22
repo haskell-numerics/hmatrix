@@ -48,6 +48,10 @@ module Numeric.LinearAlgebra.Data(
     latexFormat,
     dispf, disps, dispcf, format,
 
+    -- * Sparse
+    SMatrix, AssocMatrix, mkCSR, toDense,
+    mkDiag,
+
 -- * Conversion
     Convert(..),
     
@@ -56,7 +60,7 @@ module Numeric.LinearAlgebra.Data(
     rows, cols,
     separable,
 
-    module Data.Complex
+    module Data.Complex,
 
 ) where
 
@@ -65,4 +69,5 @@ import Data.Packed.Matrix
 import Numeric.Container
 import Numeric.LinearAlgebra.Util
 import Data.Complex
+import Data.Packed.Internal.Sparse
 
