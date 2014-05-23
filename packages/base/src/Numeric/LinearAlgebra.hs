@@ -69,6 +69,7 @@ module Numeric.LinearAlgebra (
     luSolve,
     cholSolve,
     cgSolve,
+    cgSolve',
     
     -- * Inverse and pseudoinverse
     inv, pinv, pinvTol,
@@ -136,8 +137,8 @@ module Numeric.LinearAlgebra (
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
     Field, Normed,
-    CGMat, Transposable
-
+    CGMat, Transposable,
+    R,V
 ) where
 
 import Numeric.LinearAlgebra.Data
@@ -149,6 +150,6 @@ import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Util
 import Numeric.LinearAlgebra.Random
 import Numeric.Sparse(smXv)
-import Numeric.LinearAlgebra.Util.CG(cgSolve)
-import Numeric.LinearAlgebra.Util.CG(CGMat)
+import Numeric.LinearAlgebra.Util.CG
+
 

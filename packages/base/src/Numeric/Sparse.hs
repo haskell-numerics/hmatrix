@@ -17,7 +17,8 @@ import Control.Arrow((***))
 import Control.Monad(when)
 import Data.List(groupBy, sort)
 import Foreign.C.Types(CInt(..))
-import Numeric.LinearAlgebra.Util.CG(CGMat)
+import Numeric.LinearAlgebra.Util.CG(CGMat,cgSolve)
+import Numeric.LinearAlgebra.Algorithms(linearSolveLS, relativeError, NormType(..))
 import Data.Packed.Development
 import System.IO.Unsafe(unsafePerformIO)
 import Foreign(Ptr)
@@ -150,12 +151,13 @@ instance Testable SMatrix
         x1 = vect [1..20]
         x2 = vect [1..40]
         sm = mkCSR sma
+        dm = toDense sma
 
         s1 = sm ◇ x1
-        d1 = toDense sma  ◇  x1
+        d1 = dm  ◇  x1
 
         s2 = tr sm  ◇  x2
-        d2 = tr (toDense sma) ◇  x2
+        d2 = tr dm  ◇  x2
 
         sdia = mkDiagR 40 20 (vect [1..10])
         s3 =    sdia  ◇  x1
@@ -164,6 +166,10 @@ instance Testable SMatrix
         d3 = ddia  ◇  x1
         d4 = tr ddia  ◇  x2
 
+        v = testb 40
+        s5 = cgSolve False sm v
+        d5 = denseSolve dm v
+
         info = do
             print sm
             disp (toDense sma)
@@ -171,11 +177,14 @@ instance Testable SMatrix
             print s2; print d2
             print s3; print d3
             print s4; print d4
+            print s5; print d5
+            print $ relativeError Infinity s5 d5
 
         ok = s1==d1
           && s2==d2
           && s3==d3
           && s4==d4
+          && relativeError Infinity s5 d5 < 1E-10
 
         disp = putStr . dispf 2
 
@@ -189,4 +198,8 @@ instance Testable SMatrix
           where
             m1 = convomat n k
             m2 = map (((+n) *** id) *** id) m1
+            
+        testb n = vect $ take n $ cycle ([0..10]++[9,8..1])
+        
+        denseSolve a = flatten . linearSolveLS a . asColumn
 

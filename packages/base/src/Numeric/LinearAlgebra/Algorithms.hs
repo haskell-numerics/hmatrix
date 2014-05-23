@@ -66,7 +66,7 @@ module Numeric.LinearAlgebra.Algorithms (
     orth,
 -- * Norms
     Normed(..), NormType(..),
-    relativeError,
+    relativeError', relativeError,
 -- * Misc
     eps, peps, i,
 -- * Util
@@ -719,10 +719,25 @@ instance Normed Matrix (Complex Float) where
     pnorm Frobenius = pnorm PNorm2 . flatten
 
 -- | Approximate number of common digits in the maximum element.
-relativeError :: (Normed c t, Container c t) => c t -> c t -> Int
-relativeError x y = dig (norm (x `sub` y) / norm x)
+relativeError' :: (Normed c t, Container c t) => c t -> c t -> Int
+relativeError' x y = dig (norm (x `sub` y) / norm x)
     where norm = pnorm Infinity
           dig r = round $ -logBase 10 (realToFrac r :: Double)
+
+
+relativeError :: (Normed c t, Num (c t)) => NormType -> c t -> c t -> Double
+relativeError t a b = realToFrac r
+  where
+    norm = pnorm t
+    na = norm a
+    nb = norm b
+    nab = norm (a-b)
+    mx = max na nb
+    mn = min na nb
+    r = if mn < peps
+        then mx
+        else nab/mx
+
 
 ----------------------------------------------------------------------
 

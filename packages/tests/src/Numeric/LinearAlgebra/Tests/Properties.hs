@@ -54,19 +54,9 @@ import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
 trivial :: Testable a => Bool -> a -> Property
 trivial = (`classify` "trivial")
 
-
 -- relative error
 dist :: (Normed c t, Num (c t)) => c t -> c t -> Double
-dist a b = realToFrac r
-    where norm = pnorm Infinity
-          na = norm a
-          nb = norm b
-          nab = norm (a-b)
-          mx = max na nb
-          mn = min na nb
-          r = if mn < peps
-                then mx
-                else nab/mx
+dist = relativeError Infinity
 
 infixl 4 |~|
 a |~| b = a :~10~: b

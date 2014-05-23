@@ -2,8 +2,8 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Numeric.LinearAlgebra.Util.CG(
-    cgSolve,
-    CGMat
+    cgSolve, cgSolve',
+    CGMat, CGState(..), R, V
 ) where
 
 import Numeric.Container
@@ -16,23 +16,23 @@ import Util.Misc(debug, debugMat)
 infix 0 // -- , ///
 a // b = debug b id a
 
-(///) :: DV -> String -> DV
+(///) :: V -> String -> V
 infix 0 ///
 v /// b = debugMat b 2 asRow v
 -}
 
-
-type DV = Vector Double
+type R = Double
+type V = Vector R
 
 data CGState = CGState
-    { cgp  :: DV
-    , cgr  :: DV
-    , cgr2 :: Double
-    , cgx  :: DV
-    , cgdx :: Double
+    { cgp  :: V  -- ^ conjugate gradient
+    , cgr  :: V  -- ^ residual
+    , cgr2 :: R  -- ^ squared norm of residual
+    , cgx  :: V  -- ^ current solution
+    , cgdx :: R  -- ^ normalized size of correction
     }
 
-cg :: Bool -> (DV -> DV) -> (DV -> DV) -> CGState -> CGState
+cg :: Bool -> (V -> V) -> (V -> V) -> CGState -> CGState
 cg sym at a (CGState p r r2 x _) = CGState p' r' r'2 x' rdx
   where
     ap1 = a p
@@ -51,16 +51,16 @@ cg sym at a (CGState p r r2 x _) = CGState p' r' r'2 x' rdx
     rdx = norm2 dx / max 1 (norm2 x)
 
 conjugrad
-  :: (Transposable m, Contraction m DV DV)
-  => Bool -> m -> DV -> DV -> Double -> Double -> [CGState]
+  :: (Transposable m, Contraction m V V)
+  => Bool -> m -> V -> V -> R -> R -> [CGState]
 conjugrad sym a b = solveG (tr a ◇) (a ◇) (cg sym) b
 
 solveG
-    :: (DV -> DV) -> (DV -> DV)
-    -> ((DV -> DV) -> (DV -> DV) -> CGState -> CGState)
-    -> DV
-    -> DV
-    -> Double -> Double
+    :: (V -> V) -> (V -> V)
+    -> ((V -> V) -> (V -> V) -> CGState -> CGState)
+    -> V
+    -> V
+    -> R -> R
     -> [CGState]
 solveG mat ma meth rawb x0' ϵb ϵx
     = takeUntil ok . iterate (meth mat ma) $ CGState p0 r0 r20 x0 1
@@ -82,15 +82,27 @@ takeUntil q xs = a++ take 1 b
   where
     (a,b) = break q xs
 
-class (Transposable m, Contraction m (Vector Double) (Vector Double)) => CGMat m
+class (Transposable m, Contraction m V V) => CGMat m
 
 cgSolve
   :: CGMat m
-  => Bool   -- ^ symmetric
-  -> Double -- ^ relative tolerance for the residual (e.g. 1E-4)
-  -> Double -- ^ relative tolerance for δx (e.g. 1E-3)
-  -> m      -- ^ coefficient matrix
+  => Bool     -- ^ is symmetric
+  -> m        -- ^ coefficient matrix
   -> Vector Double -- ^ right-hand side
-  -> Vector Double -- ^ solution
-cgSolve sym er es a b  = cgx $ last $ conjugrad sym a b 0 er es
+  -> Vector Double        -- ^ solution
+cgSolve sym a b  = cgx $ last $ cgSolve' sym 1E-4 1E-3 n a b 0
+  where
+    n = max 10 (round $ sqrt (fromIntegral (dim b) :: Double))
+
+cgSolve'
+  :: CGMat m
+  => Bool      -- ^ symmetric
+  -> R         -- ^ relative tolerance for the residual (e.g. 1E-4)
+  -> R         -- ^ relative tolerance for δx (e.g. 1E-3)
+  -> Int       -- ^ maximum number of iterations
+  -> m         -- ^ coefficient matrix
+  -> V         -- ^ initial solution
+  -> V         -- ^ right-hand side
+  -> [CGState] -- ^ solution
+cgSolve' sym er es n a b x = take n $ conjugrad sym a b x er es
 
