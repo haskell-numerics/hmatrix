@@ -134,7 +134,7 @@ module Numeric.HMatrix (
     -- * Misc
     meanCov, peps, relativeError, haussholder, optimiseMult, dot, udot, mXm, mXv, smXv, (<>), (◇), Seed, checkT,
     -- * Auxiliary classes
-    Element, Container, Product, Contraction, LSDiv,
+    Element, Container, Product, Numeric, Contraction, LSDiv,
     Complexable, RealElement,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,

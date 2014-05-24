@@ -48,15 +48,19 @@ module Numeric.LinearAlgebra.Data(
     -- * Find elements
     find, maxIndex, minIndex, maxElement, minElement, atIndex,
 
+    -- * Sparse
+    SMatrix, AssocMatrix, mkCSR, toDense,
+    mkDiag,
+
+    -- * Static dimensions
+    
+    Static, ddata, R, vect0, sScalar, vect2, vect3, (&),
+
     -- * IO
     disp,
     loadMatrix, saveMatrix,
     latexFormat,
     dispf, disps, dispcf, format,
-
-    -- * Sparse
-    SMatrix, AssocMatrix, mkCSR, toDense,
-    mkDiag,
 
 -- * Conversion
     Convert(..),
@@ -75,7 +79,9 @@ module Numeric.LinearAlgebra.Data(
 import Data.Packed.Vector
 import Data.Packed.Matrix
 import Data.Packed.Numeric
-import Numeric.LinearAlgebra.Util
+import Numeric.LinearAlgebra.Util hiding ((&))
 import Data.Complex
 import Numeric.Sparse
+import Numeric.LinearAlgebra.Util.Static
+
 

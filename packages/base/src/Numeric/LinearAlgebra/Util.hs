@@ -28,6 +28,7 @@ module Numeric.LinearAlgebra.Util(
     (&), (¦), (——), (#),
     (?), (¿),
     Indexable(..), size,
+    Numeric,
     rand, randn,
     cross,
     norm,
@@ -100,6 +101,19 @@ mat
   -> [ℝ] -- ^ elements
   -> Matrix ℝ
 mat c = reshape c . fromList
+
+
+
+class ( Container Vector t
+      , Container Matrix t
+      , Konst t Int Vector
+      , Konst t (Int,Int) Matrix
+      ) => Numeric t
+
+instance Numeric Double
+instance Numeric (Complex Double)
+
+
 
 {- | print a real matrix with given number of digits after the decimal point
 
