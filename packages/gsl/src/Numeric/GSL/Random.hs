@@ -21,7 +21,7 @@ module Numeric.GSL.Random (
 ) where
 
 import Numeric.GSL.Vector
-import Numeric.LinearAlgebra(Seed,cholSH)
+import Numeric.LinearAlgebra(cholSH)
 import Numeric.Container hiding (
     randomVector,
     gaussianSample,
@@ -30,7 +30,7 @@ import Numeric.Container hiding (
 import System.Random(randomIO)
 
 
-
+type Seed = Int
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
 -- Gaussian distribution.

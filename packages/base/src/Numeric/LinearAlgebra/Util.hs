@@ -1,4 +1,9 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
+
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Util
@@ -14,19 +19,24 @@ Stability   :  provisional
 module Numeric.LinearAlgebra.Util(
 
     -- * Convenience functions
-    size, disp,
+    vect, mat,
+    disp,
     zeros, ones,
     diagl,
     row,
     col,
     (&), (¦), (——), (#),
     (?), (¿),
+    Indexable(..), size,
+    rand, randn,
     cross,
     norm,
+    ℕ,ℤ,ℝ,ℂ,ℝn,ℂn,𝑖,i_C, --ℍ
+    norm_1, norm_2, norm_0, norm_Inf, norm_Frob, norm_nuclear,
+    mnorm_1, mnorm_2, mnorm_0, mnorm_Inf,
     unitary,
     mt,
     pairwiseD2,
-    meanCov,
     rowOuters,
     null1,
     null1sym,
@@ -48,12 +58,48 @@ module Numeric.LinearAlgebra.Util(
     vtrans
 ) where
 
-import Numeric.Container
+import Data.Packed.Numeric
 import Numeric.LinearAlgebra.Algorithms hiding (i)
 import Numeric.Matrix()
 import Numeric.Vector()
-
+import Numeric.LinearAlgebra.Random
 import Numeric.LinearAlgebra.Util.Convolution
+
+type ℝ = Double
+type ℕ = Int
+type ℤ = Int
+type ℂ = Complex Double
+type ℝn = Vector ℝ
+type ℂn = Vector ℂ
+--newtype ℍ m = H m
+
+i_C, 𝑖 :: ℂ
+𝑖 = 0:+1
+i_C = 𝑖
+
+{- | create a real vector
+
+>>> vect [1..5]
+fromList [1.0,2.0,3.0,4.0,5.0]
+
+-}
+vect :: [ℝ] -> ℝn
+vect = fromList
+
+{- | create a real matrix
+
+>>> mat 5 [1..15]
+(3><5)
+ [  1.0,  2.0,  3.0,  4.0,  5.0
+ ,  6.0,  7.0,  8.0,  9.0, 10.0
+ , 11.0, 12.0, 13.0, 14.0, 15.0 ]
+
+-}
+mat
+  :: Int -- ^ columns
+  -> [ℝ] -- ^ elements
+  -> Matrix ℝ
+mat c = reshape c . fromList
 
 {- | print a real matrix with given number of digits after the decimal point
 
@@ -175,38 +221,97 @@ norm :: Vector Double -> Double
 -- ^ 2-norm of real vector
 norm = pnorm PNorm2
 
+norm_2 :: Normed Vector t => Vector t -> RealOf t
+norm_2 = pnorm PNorm2
+
+norm_1 :: Normed Vector t => Vector t -> RealOf t
+norm_1 = pnorm PNorm1
+
+norm_Inf :: Normed Vector t => Vector t -> RealOf t
+norm_Inf = pnorm Infinity
+
+norm_0 :: Vector ℝ -> ℝ
+norm_0 v = sumElements (step (abs v - scalar (eps*mx)))
+  where
+    mx = norm_Inf v
+
+norm_Frob :: Normed Matrix t => Matrix t -> RealOf t
+norm_Frob = pnorm Frobenius
+
+norm_nuclear :: Field t => Matrix t -> ℝ
+norm_nuclear = sumElements . singularValues
+
+mnorm_2 :: Normed Matrix t => Matrix t -> RealOf t
+mnorm_2 = pnorm PNorm2
+
+mnorm_1 :: Normed Matrix t => Matrix t -> RealOf t
+mnorm_1 = pnorm PNorm1
+
+mnorm_Inf :: Normed Matrix t => Matrix t -> RealOf t
+mnorm_Inf = pnorm Infinity
+
+mnorm_0 :: Matrix ℝ -> ℝ
+mnorm_0 = norm_0 . flatten
 
 -- | Obtains a vector in the same direction with 2-norm=1
 unitary :: Vector Double -> Vector Double
 unitary v = v / scalar (norm v)
 
--- | ('rows' &&& 'cols')
-size :: Matrix t -> (Int, Int)
-size m = (rows m, cols m)
 
 -- | trans . inv
 mt :: Matrix Double -> Matrix Double
 mt = trans . inv
 
 --------------------------------------------------------------------------------
+{- |
 
-{- | Compute mean vector and covariance matrix of the rows of a matrix.
-
->>> meanCov $ gaussianSample 666 1000 (fromList[4,5]) (diagl[2,3])
-(fromList [4.010341078059521,5.0197204699640405],
-(2><2)
- [     1.9862461923890056, -1.0127225830525157e-2
- , -1.0127225830525157e-2,     3.0373954915729318 ])
+>>> size $ fromList[1..10::Double]
+10
+>>> size $ (2><5)[1..10::Double]
+(2,5)
 
 -}
-meanCov :: Matrix Double -> (Vector Double, Matrix Double)
-meanCov x = (med,cov) where
-    r    = rows x
-    k    = 1 / fromIntegral r
-    med  = konst k r `vXm` x
-    meds = konst 1 r `outer` med
-    xc   = x `sub` meds
-    cov  = scale (recip (fromIntegral (r-1))) (trans xc `mXm` xc)
+size :: Container c t => c t -> IndexOf c
+size = size'
+
+{- |
+
+>>> vect [1..10] ! 3
+4.0
+
+>>> mat 5 [1..15] ! 1
+fromList [6.0,7.0,8.0,9.0,10.0]
+
+>>> mat 5 [1..15] ! 1 ! 3
+9.0
+
+-}
+class Indexable c t | c -> t , t -> c
+  where
+    infixl 9 !
+    (!) :: c -> Int -> t
+
+instance Indexable (Vector Double) Double
+  where
+    (!) = (@>)
+
+instance Indexable (Vector Float) Float
+  where
+    (!) = (@>)
+
+instance Indexable (Vector (Complex Double)) (Complex Double)
+  where
+    (!) = (@>)
+
+instance Indexable (Vector (Complex Float)) (Complex Float)
+  where
+    (!) = (@>)
+
+instance Element t => Indexable (Matrix t) (Vector t)
+  where
+    m!j = subVector (j*c) c (flatten m)
+      where
+        c = cols m
 
 --------------------------------------------------------------------------------
 
@@ -220,7 +325,7 @@ pairwiseD2 x y | ok = x2 `outer` oy + ox `outer` y2 - 2* x <> trans y
     ox = one (rows x)
     oy = one (rows y)
     oc = one (cols x)
-    one k = constant 1 k
+    one k = konst 1 k
     x2 = x * x <> oc
     y2 = y * y <> oc
     ok = cols x == cols y

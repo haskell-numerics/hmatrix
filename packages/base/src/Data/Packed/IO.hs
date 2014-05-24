@@ -18,12 +18,12 @@ module Data.Packed.IO (
 ) where
 
 import Data.Packed
-import Data.Packed.Development
 import Text.Printf(printf)
 import Data.List(intersperse)
 import Data.Complex
 import Numeric.Vectorized(vectorScan,saveMatrix)
 import Control.Applicative((<$>))
+import Data.Packed.Internal
 
 {- | Creates a string from a matrix given a separator and a function to show each entry. Using
 this function the user can easily define any desired display function:

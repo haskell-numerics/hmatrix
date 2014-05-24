@@ -16,13 +16,19 @@ module Numeric.LinearAlgebra.Data(
     -- * Vector
     -- | 1D arrays are storable vectors from the vector package.
     
-    Vector, (|>), dim, (@>),
-    
+    vect, (|>),
+
     -- * Matrix
-    Matrix, (><), size, (@@>), trans, ctrans,
+    
+    mat, (><), tr,
+    
+    -- * Indexing
+    
+    size,
+    Indexable(..),
     
     -- * Construction
-    scalar, konst, build, assoc, accum, linspace, -- ones, zeros,
+    scalar, Konst(..), Build(..), assoc, accum, linspace, -- ones, zeros,
 
     -- * Diagonal
     ident, diag, diagl, diagRect, takeDiag,
@@ -62,11 +68,13 @@ module Numeric.LinearAlgebra.Data(
 
     module Data.Complex,
 
+    Vector, Matrix
+
 ) where
 
 import Data.Packed.Vector
 import Data.Packed.Matrix
-import Numeric.Container
+import Data.Packed.Numeric
 import Numeric.LinearAlgebra.Util
 import Data.Complex
 import Numeric.Sparse

@@ -76,12 +76,12 @@ module Numeric.LinearAlgebra.Algorithms (
 ) where
 
 
-import Data.Packed.Development hiding ((//))
 import Data.Packed
 import Numeric.LinearAlgebra.LAPACK as LAPACK
 import Data.List(foldl1')
 import Data.Array
 import Data.Packed.Internal.Numeric
+import Data.Packed.Internal(shSize)
 
 
 {- | Generic linear algebra functions for double precision real and complex matrices.

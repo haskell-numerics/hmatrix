@@ -38,18 +38,18 @@ library
                         Data.Packed.ST,
                         Data.Packed.Development,
 
+                        Numeric.LinearAlgebra
                         Numeric.LinearAlgebra.LAPACK
                         Numeric.LinearAlgebra.Algorithms
                         Numeric.Container
                         Numeric.LinearAlgebra.Util
 
-                        Numeric.LinearAlgebra
+                        Numeric.HMatrix
                         Numeric.LinearAlgebra.Devel
                         Numeric.LinearAlgebra.Data
 
-    --                  Numeric.LinearAlgebra.Compat
-                        
-                        
+
+
     other-modules:      Data.Packed.Internal,
                         Data.Packed.Internal.Common,
                         Data.Packed.Internal.Signatures,
@@ -61,6 +61,7 @@ library
                         Numeric.Vector
                         Numeric.Matrix
                         Data.Packed.Internal.Numeric
+                        Data.Packed.Numeric
                         Numeric.LinearAlgebra.Util.Convolution
                         Numeric.LinearAlgebra.Util.CG
                         Numeric.LinearAlgebra.Random
@@ -69,7 +70,7 @@ library
 
     C-sources:          src/C/lapack-aux.c
                         src/C/vector-aux.c
-                        
+
 
     extensions:         ForeignFunctionInterface,
                         CPP

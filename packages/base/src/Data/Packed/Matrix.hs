@@ -226,15 +226,12 @@ takeDiag m = fromList [flatten m `at` (k*cols m+k) | k <- [0 .. min (rows m) (co
 
 ------------------------------------------------------------
 
-{- | An easy way to create a matrix:
+{- | create a general matrix
 
->>> (2><3)[2,4,7,-3,11,0]
+>>> (2><3) [2, 4, 7+2*𝑖,   -3, 11, 0]
 (2><3)
- [  2.0,  4.0, 7.0
- , -3.0, 11.0, 0.0 ]
-
-This is the format produced by the instances of Show (Matrix a), which
-can also be used for input.
+ [       2.0 :+ 0.0,  4.0 :+ 0.0, 7.0 :+ 2.0
+ , (-3.0) :+ (-0.0), 11.0 :+ 0.0, 0.0 :+ 0.0 ]
 
 The input list is explicitly truncated, so that it can
 safely be used with lists that are too long (like infinite lists).
@@ -244,6 +241,8 @@ safely be used with lists that are too long (like infinite lists).
  [ 1.0, 2.0, 3.0
  , 4.0, 5.0, 6.0 ]
 
+This is the format produced by the instances of Show (Matrix a), which
+can also be used for input.
 
 -}
 (><) :: (Storable a) => Int -> Int -> [a] -> Matrix a

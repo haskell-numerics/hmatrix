@@ -24,8 +24,8 @@ module Numeric.LinearAlgebra.Tests(
 --, runBigTests
 ) where
 
---import Data.Packed.Random
 import Numeric.LinearAlgebra
+import Numeric.HMatrix
 import Numeric.LinearAlgebra.Util(col,row)
 import Data.Packed
 import Numeric.LinearAlgebra.LAPACK
@@ -56,8 +56,8 @@ import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
 
 import Test.QuickCheck.Test(isSuccess)
 
-eps = peps :: Double
-i = 0:+1 :: Complex Double
+--eps = peps :: Double
+--i = 0:+1 :: Complex Double
 
 qCheck n x = do
     r <- quickCheckWithResult stdArgs {maxSize = n} x
@@ -760,7 +760,7 @@ mkVecBench = do
 subBench = do
     putStrLn ""
     let g = foldl1' (.) (replicate (10^5) (\v -> subVector 1 (dim v -1) v))
-    time "0.1M subVector   " (g (constant 1 (1+10^5) :: Vector Double) @> 0)
+    time "0.1M subVector   " (g (konst 1 (1+10^5) :: Vector Double) @> 0)
     let f = foldl1' (.) (replicate (10^5) (fromRows.toRows))
     time "subVector-join  3" (f (ident  3 :: Matrix Double) @@>(0,0))
     time "subVector-join 10" (f (ident 10 :: Matrix Double) @@>(0,0))

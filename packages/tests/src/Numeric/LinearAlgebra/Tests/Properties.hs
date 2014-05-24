@@ -43,7 +43,7 @@ module Numeric.LinearAlgebra.Tests.Properties (
     linearSolveProp, linearSolveProp2
 ) where
 
-import Numeric.Container hiding (Testable)
+import Numeric.Container
 import Numeric.LinearAlgebra --hiding (real,complex)
 import Numeric.LinearAlgebra.LAPACK
 import Debug.Trace

@@ -10,7 +10,7 @@ module Numeric.Sparse(
     smXv
 )where
 
-import Numeric.Container
+import Data.Packed.Numeric
 import qualified Data.Vector.Storable as V
 import Data.Function(on)
 import Control.Arrow((***))
@@ -132,10 +132,6 @@ instance Transposable SMatrix
     tr (CSR vs cs rs n m) = CSC vs cs rs m n
     tr (CSC vs rs cs n m) = CSR vs rs cs m n
     tr (Diag v n m) = Diag v m n
-
-instance Transposable (Matrix Double)
-  where
-    tr = trans
 
 
 instance CGMat SMatrix

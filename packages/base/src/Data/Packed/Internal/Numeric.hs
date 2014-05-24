@@ -49,6 +49,7 @@ import Data.Complex
 import Control.Applicative((<*>))
 
 import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ)
+import Data.Packed.Internal
 
 -------------------------------------------------------------------
 
@@ -65,7 +66,9 @@ type instance ArgOf Matrix a = a -> a -> a
 -------------------------------------------------------------------
 
 -- | Basic element-by-element functions for numeric containers
-class (Complexable c, Fractional e, Element e) => Container c e where
+class (Complexable c, Fractional e, Element e) => Container c e
+  where
+    size'        :: c e -> IndexOf c
     scalar'      :: e -> c e
     conj'        :: c e -> c e
     scale'       :: e -> c e -> c e
@@ -114,7 +117,9 @@ class (Complexable c, Fractional e, Element e) => Container c e where
 
 --------------------------------------------------------------------------
 
-instance Container Vector Float where
+instance Container Vector Float
+  where
+    size' = dim
     scale' = vectorMapValF Scale
     scaleRecip = vectorMapValF Recip
     addConstant = vectorMapValF AddConstant
@@ -125,7 +130,7 @@ instance Container Vector Float where
     equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
     arctan2' = vectorZipF ATan2
     scalar' x = fromList [x]
-    konst' = constant
+    konst' = constantD
     build' = buildV
     conj' = id
     cmap' = mapVector
@@ -142,7 +147,9 @@ instance Container Vector Float where
     accum' = accumV
     cond' = condV condF
 
-instance Container Vector Double where
+instance Container Vector Double
+  where
+    size' = dim
     scale' = vectorMapValR Scale
     scaleRecip = vectorMapValR Recip
     addConstant = vectorMapValR AddConstant
@@ -153,7 +160,7 @@ instance Container Vector Double where
     equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
     arctan2' = vectorZipR ATan2
     scalar' x = fromList [x]
-    konst' = constant
+    konst' = constantD
     build' = buildV
     conj' = id
     cmap' = mapVector
@@ -170,7 +177,9 @@ instance Container Vector Double where
     accum' = accumV
     cond' = condV condD
 
-instance Container Vector (Complex Double) where
+instance Container Vector (Complex Double)
+  where
+    size' = dim
     scale' = vectorMapValC Scale
     scaleRecip = vectorMapValC Recip
     addConstant = vectorMapValC AddConstant
@@ -181,7 +190,7 @@ instance Container Vector (Complex Double) where
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     arctan2' = vectorZipC ATan2
     scalar' x = fromList [x]
-    konst' = constant
+    konst' = constantD
     build' = buildV
     conj' = conjugateC
     cmap' = mapVector
@@ -198,7 +207,9 @@ instance Container Vector (Complex Double) where
     accum' = accumV
     cond' = undefined -- cannot match
 
-instance Container Vector (Complex Float) where
+instance Container Vector (Complex Float)
+  where
+    size' = dim
     scale' = vectorMapValQ Scale
     scaleRecip = vectorMapValQ Recip
     addConstant = vectorMapValQ AddConstant
@@ -209,7 +220,7 @@ instance Container Vector (Complex Float) where
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
     arctan2' = vectorZipQ ATan2
     scalar' x = fromList [x]
-    konst' = constant
+    konst' = constantD
     build' = buildV
     conj' = conjugateQ
     cmap' = mapVector
@@ -228,7 +239,9 @@ instance Container Vector (Complex Float) where
 
 ---------------------------------------------------------------
 
-instance (Container Vector a) => Container Matrix a where
+instance (Container Vector a) => Container Matrix a
+  where
+    size' = size
     scale' x = liftMatrix (scale' x)
     scaleRecip x = liftMatrix (scaleRecip x)
     addConstant x = liftMatrix (addConstant x)
@@ -637,7 +650,7 @@ diag v = diagRect 0 v n n where n = dim v
 
 -- | creates the identity matrix of given dimension
 ident :: (Num a, Element a) => Int -> Matrix a
-ident n = diag (constant 1 n)
+ident n = diag (constantD 1 n)
 
 --------------------------------------------------------
 
@@ -681,8 +694,12 @@ condV f a b l e t = f a' b' l' e' t'
 
 class Transposable t
   where
+    -- | (conjugate) transpose
     tr :: t -> t
 
+instance (Container Vector t) => Transposable (Matrix t)
+  where
+    tr = ctrans
 
 class Linear t v
   where

@@ -6,7 +6,7 @@ module Numeric.LinearAlgebra.Util.CG(
     CGMat, CGState(..), R, V
 ) where
 
-import Numeric.Container
+import Data.Packed.Numeric
 import Numeric.Vector()
 
 {-
