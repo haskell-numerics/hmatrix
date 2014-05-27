@@ -1,0 +1,39 @@
+Name:               hmatrix-sparse
+Version:            0.1.0
+License:            BSD3
+License-file:       LICENSE
+Author:             Alberto Ruiz
+Maintainer:         Alberto Ruiz <aruiz@um.es>
+Stability:          experimental
+Homepage:           https://github.com/albertoruiz/hmatrix
+Synopsis:           Sparse linear solver
+Description:        Interface to MKL direct sparse linear solver
+
+-- cabal install --extra-include-dirs=$MKL --extra-lib-dirs=$MKL
+
+Category:           Math
+tested-with:        GHC ==7.8
+
+cabal-version:      >=1.6
+build-type:         Simple
+
+
+library
+    Build-Depends:      base, hmatrix
+
+    hs-source-dirs:     src
+
+    Exposed-modules:    Numeric.LinearAlgebra.Sparse
+
+    ghc-options:        -Wall
+
+    c-sources:          src/Numeric/LinearAlgebra/sparse.c
+
+    cc-options:         -O4 -msse2 -Wall
+
+    extra-libraries:    mkl_intel mkl_sequential mkl_core
+
+source-repository head
+    type:     git
+    location: https://github.com/albertoruiz/hmatrix
+
