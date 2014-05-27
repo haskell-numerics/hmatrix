@@ -32,7 +32,7 @@ module Numeric.LinearAlgebra.Util(
     rand, randn,
     cross,
     norm,
-    ℕ,ℤ,ℝ,ℂ,ℝn,ℂn,𝑖,i_C, --ℍ
+    ℕ,ℤ,ℝ,ℂ,𝑖,i_C, --ℍ
     norm_1, norm_2, norm_0, norm_Inf, norm_Frob, norm_nuclear,
     mnorm_1, mnorm_2, mnorm_0, mnorm_Inf,
     unitary,
@@ -70,8 +70,8 @@ type ℝ = Double
 type ℕ = Int
 type ℤ = Int
 type ℂ = Complex Double
-type ℝn = Vector ℝ
-type ℂn = Vector ℂ
+--type ℝn = Vector ℝ
+--type ℂn = Vector ℂ
 --newtype ℍ m = H m
 
 i_C, 𝑖 :: ℂ
@@ -84,7 +84,7 @@ i_C = 𝑖
 fromList [1.0,2.0,3.0,4.0,5.0]
 
 -}
-vect :: [ℝ] -> ℝn
+vect :: [ℝ] -> Vector ℝ
 vect = fromList
 
 {- | create a real matrix
@@ -101,18 +101,6 @@ mat
   -> [ℝ] -- ^ elements
   -> Matrix ℝ
 mat c = reshape c . fromList
-
-
-
-class ( Container Vector t
-      , Container Matrix t
-      , Konst t Int Vector
-      , Konst t (Int,Int) Matrix
-      ) => Numeric t
-
-instance Numeric Double
-instance Numeric (Complex Double)
-
 
 
 {- | print a real matrix with given number of digits after the decimal point

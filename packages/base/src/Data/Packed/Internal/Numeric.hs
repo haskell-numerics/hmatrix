@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
@@ -692,12 +693,12 @@ condV f a b l e t = f a' b' l' e' t'
 
 --------------------------------------------------------------------------------
 
-class Transposable t
+class Transposable m mt | m -> mt, mt -> m
   where
     -- | (conjugate) transpose
-    tr :: t -> t
+    tr :: m -> mt
 
-instance (Container Vector t) => Transposable (Matrix t)
+instance (Container Vector t) => Transposable (Matrix t) (Matrix t)
   where
     tr = ctrans
 

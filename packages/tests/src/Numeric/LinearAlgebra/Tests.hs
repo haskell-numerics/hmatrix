@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports -fno-warn-incomplete-patterns #-}
+{-# LANGUAGE DataKinds #-}
+
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Tests
@@ -25,7 +27,8 @@ module Numeric.LinearAlgebra.Tests(
 ) where
 
 import Numeric.LinearAlgebra
-import Numeric.HMatrix
+import Numeric.HMatrix hiding ((<>))
+import Numeric.LinearAlgebra.Real(L)
 import Numeric.LinearAlgebra.Util(col,row)
 import Data.Packed
 import Numeric.LinearAlgebra.LAPACK
@@ -466,18 +469,23 @@ kroneckerTest = utest "kronecker" ok
     x = (4><2) [3,5..]
     b = (2><5) [0,5..]
     v1 = vec (a <> x <> b)
-    v2 = (trans b `kronecker` a) <.> vec x
+    v2 = (trans b `kronecker` a) <> vec x
     s = trans b <> b
     v3 = vec s
-    v4 = (dup 5 :: Matrix Double) <.> vech s
+    v4 = (dup 5 :: Matrix Double) <> vech s
     ok = v1 == v2 && v3 == v4
       && vtrans 1 a == trans a
       && vtrans (rows a) a == asColumn (vec a)
 
 --------------------------------------------------------------------------------
 
-sparseTest = utest "sparse mul" (fst $ checkT (undefined :: SMatrix))
+sparseTest = utest "sparse" (fst $ checkT (undefined :: GMatrix))
 
+--------------------------------------------------------------------------------
+
+staticTest = utest "static" (fst $ checkT (undefined :: L 3 5))
+
+--------------------------------------------------------------------------------
 
 -- | All tests must pass with a maximum dimension of about 20
 --  (some tests may fail with bigger sizes due to precision loss).
@@ -655,6 +663,7 @@ runTests n = do
         , convolutionTest
         , kroneckerTest
         , sparseTest
+        , staticTest
         ]
     when (errors c + failures c > 0) exitFailure
     return ()

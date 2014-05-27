@@ -10,16 +10,16 @@ Stability   :  provisional
 -----------------------------------------------------------------------------
 module Numeric.HMatrix (
 
-    -- * Basic types and data processing    
+    -- * Basic types and data processing
     module Numeric.LinearAlgebra.Data,
-    
+
     -- * Arithmetic and numeric classes
     -- |
     -- The standard numeric classes are defined elementwise:
     --
     -- >>> fromList [1,2,3] * fromList [3,0,-2 :: Double]
     -- fromList [3.0,0.0,-6.0]
-    -- 
+    --
     -- >>> (3><3) [1..9] * ident 3 :: Matrix Double
     -- (3><3)
     --  [ 1.0, 0.0, 0.0
@@ -29,7 +29,7 @@ module Numeric.HMatrix (
     -- In arithmetic operations single-element vectors and matrices
     -- (created from numeric literals or using 'scalar') automatically
     -- expand to match the dimensions of the other operand:
-    -- 
+    --
     -- >>> 5 + 2*ident 3 :: Matrix Double
     -- (3><3)
     --  [ 7.0, 5.0, 5.0
@@ -37,13 +37,14 @@ module Numeric.HMatrix (
     --  , 5.0, 5.0, 7.0 ]
     --
 
-    -- * Matrix product
-    (<.>),
-
-    -- | The overloaded multiplication operators may need type annotations to remove
-    -- ambiguity. In those cases we can also use the specific functions 'mXm', 'mXv', and 'dot'.
-    --
-    -- The matrix x matrix product is also implemented in the "Data.Monoid" instance, where
+    -- * Products
+    -- ** dot
+    (<·>),
+    -- ** matrix-vector
+     (#>),(!#>),
+    -- ** matrix-matrix
+     (<>),
+    -- | The matrix x matrix product is also implemented in the "Data.Monoid" instance, where
     -- single-element matrices (created from numeric literals or using 'scalar')
     -- are used for scaling.
     --
@@ -55,12 +56,12 @@ module Numeric.HMatrix (
     --
     -- 'mconcat' uses 'optimiseMult' to get the optimal association order.
 
-     
-    -- * Other products
+
+    -- ** other
     outer, kronecker, cross,
     scale,
     sumElements, prodElements,
-    
+
     -- * Linear Systems
     (<\>),
     linearSolve,
@@ -70,14 +71,14 @@ module Numeric.HMatrix (
     cholSolve,
     cgSolve,
     cgSolve',
-    
+
     -- * Inverse and pseudoinverse
     inv, pinv, pinvTol,
 
     -- * Determinant and rank
-    rcond, rank, ranksv, 
+    rcond, rank, ranksv,
     det, invlndet,
-    
+
     -- * Singular value decomposition
     svd,
     fullSVD,
@@ -85,7 +86,7 @@ module Numeric.HMatrix (
     compactSVD,
     singularValues,
     leftSV, rightSV,
-    
+
     -- * Eigensystems
     eig, eigSH, eigSH',
     eigenvalues, eigenvaluesSH, eigenvaluesSH',
@@ -105,7 +106,7 @@ module Numeric.HMatrix (
 
     -- * LU
     lu, luPacked,
-    
+
     -- * Matrix functions
     expm,
     sqrtm,
@@ -116,7 +117,7 @@ module Numeric.HMatrix (
     nullVector,
     nullspaceSVD,
     null1, null1sym,
-    
+
     orth,
 
     -- * Norms
@@ -129,30 +130,36 @@ module Numeric.HMatrix (
 
     -- * Random arrays
 
-    RandDist(..), randomVector, rand, randn, gaussianSample, uniformSample,
-    
+    Seed, RandDist(..), randomVector, rand, randn, gaussianSample, uniformSample,
+
     -- * Misc
-    meanCov, peps, relativeError, haussholder, optimiseMult, dot, udot, mXm, mXv, smXv, (<>), (◇), Seed, checkT,
+    meanCov, peps, relativeError, haussholder, optimiseMult, udot,
     -- * Auxiliary classes
-    Element, Container, Product, Numeric, Contraction, LSDiv,
+    Element, Container, Product, Contraction(..), Numeric, LSDiv,
     Complexable, RealElement,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
     Field,
     Normed,
-    CGMat, Transposable,
-    ℕ,ℤ,ℝ,ℂ,ℝn,ℂn, 𝑖, i_C --ℍ
+    Transposable,
+    CGState(..),
+    Testable(..),
+    ℕ,ℤ,ℝ,ℂ, 𝑖, i_C --ℍ
 ) where
 
 import Numeric.LinearAlgebra.Data
 
 import Numeric.Matrix()
 import Numeric.Vector()
-import Data.Packed.Numeric
+import Data.Packed.Numeric hiding ((<>))
 import Numeric.LinearAlgebra.Algorithms
 import Numeric.LinearAlgebra.Util
 import Numeric.LinearAlgebra.Random
-import Numeric.Sparse(smXv)
+import Numeric.Sparse((!#>))
 import Numeric.LinearAlgebra.Util.CG
 
+-- | matrix product
+(<>) :: Numeric t => Matrix t -> Matrix t -> Matrix t
+(<>) = mXm
+infixr 8 <>
 

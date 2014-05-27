@@ -32,7 +32,7 @@ module Data.Packed.Numeric (
     diag, ident,
     ctrans,
     -- * Generic operations
-    Container(..),
+    Container(..), Numeric,
     -- add, mul, sub, divide, equal, scaleRecip, addConstant,
     scalar, conj, scale, arctan2, cmap,
     atIndex, minIndex, maxIndex, minElement, maxElement,
@@ -40,7 +40,7 @@ module Data.Packed.Numeric (
     step, cond, find, assoc, accum,
     Transposable(..), Linear(..),
     -- * Matrix product
-    Product(..), udot, dot, (◇),
+    Product(..), udot, dot, (◇), (<·>), (#>),
     Mul(..),
     Contraction(..),(<.>),
     optimiseMult,
@@ -96,7 +96,7 @@ linspace n (a,b) = addConstant a $ scale s $ fromList $ map fromIntegral [0 .. n
 
 --------------------------------------------------------
 
-{- | Matrix product, matrix - vector product, and dot product (equivalent to 'contraction')
+{- Matrix product, matrix - vector product, and dot product (equivalent to 'contraction')
 
 (This operator can also be written using the unicode symbol ◇ (25c7).)
 
@@ -138,9 +138,8 @@ For complex vectors the first argument is conjugated:
 >>> fromList [1,i,1-i] <.> complex a
 fromList [10.0 :+ 4.0,12.0 :+ 4.0,14.0 :+ 4.0,16.0 :+ 4.0]
 -}
-infixl 7 <.>
-(<.>) :: Contraction a b c => a -> b -> c
-(<.>) = contraction
+
+
 
 
 class Contraction a b c | a b -> c
@@ -160,6 +159,23 @@ instance (Container Vector t, Product t) => Contraction (Vector t) (Matrix t) (V
 instance Product t => Contraction (Matrix t) (Matrix t) (Matrix t) where
     contraction = mXm
 
+--------------------------------------------------------------------------------
+
+infixl 7 <.>
+-- | An infix synonym for 'dot'
+(<.>) :: Numeric t => Vector t -> Vector t -> t
+(<.>) = dot
+
+
+infixr 8 <·>, #>
+-- | dot product
+(<·>) :: Numeric t => Vector t -> Vector t -> t
+(<·>) = dot
+
+
+-- | matrix-vector product
+(#>) :: Numeric t => Matrix t -> Vector t -> Vector t
+(#>) = mXv
 
 --------------------------------------------------------------------------------
 
@@ -286,3 +302,16 @@ meanCov x = (med,cov) where
 
 --------------------------------------------------------------------------------
 
+class ( Container Vector t
+      , Container Matrix t
+      , Konst t Int Vector
+      , Konst t (Int,Int) Matrix
+      , Product t
+      ) => Numeric t
+
+instance Numeric Double
+instance Numeric (Complex Double)
+instance Numeric Float
+instance Numeric (Complex Float)
+
+--------------------------------------------------------------------------------
