@@ -37,6 +37,7 @@ module Numeric.LinearAlgebra.Util(
     mnorm_1, mnorm_2, mnorm_0, mnorm_Inf,
     unitary,
     mt,
+    (~!~),
     pairwiseD2,
     rowOuters,
     null1,
@@ -65,6 +66,7 @@ import Numeric.Matrix()
 import Numeric.Vector()
 import Numeric.LinearAlgebra.Random
 import Numeric.LinearAlgebra.Util.Convolution
+import Control.Monad(when)
 
 type ℝ = Double
 type ℕ = Int
@@ -384,4 +386,9 @@ vtrans p m | r == 0 = fromBlocks . map (map asColumn . takesV (replicate q p)) .
            | otherwise = error $ "vtrans " ++ show p ++ " of matrix with " ++ show (rows m) ++ " rows"
   where
     (q,r) = divMod (rows m) p
+
+--------------------------------------------------------------------------------
+
+infixl 0 ~!~
+c ~!~ msg = when c (error msg)
 

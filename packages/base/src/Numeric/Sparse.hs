@@ -3,8 +3,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module Numeric.Sparse(
-    GMatrix(..),
-    mkSparse, mkDiagR, dense,
+    GMatrix, CSR(..), mkCSR,
+    mkSparse, mkDiagR, mkDense,
     AssocMatrix,
     toDense,
     gmXv, (!#>)
@@ -28,18 +28,49 @@ c ~!~ msg = when c (error msg)
 
 type AssocMatrix = [((Int,Int),Double)]
 
+data CSR = CSR
+        { csrVals  :: Vector Double
+        , csrCols  :: Vector CInt
+        , csrRows  :: Vector CInt
+        , csrNRows :: Int
+        , csrNCols :: Int
+        } deriving Show
+
+data CSC = CSC
+        { cscVals  :: Vector Double
+        , cscRows  :: Vector CInt
+        , cscCols  :: Vector CInt
+        , cscNRows :: Int
+        , cscNCols :: Int
+        } deriving Show
+
+
+mkCSR :: AssocMatrix -> CSR
+mkCSR sm' = CSR{..}
+  where
+    sm = sort sm'
+    rws = map ((fromList *** fromList)
+              . unzip
+              . map ((succ.fi.snd) *** id)
+              )
+        . groupBy ((==) `on` (fst.fst))
+        $ sm
+    rszs = map (fi . dim . fst) rws
+    csrRows = fromList (scanl (+) 1 rszs)
+    csrVals = vjoin (map snd rws)
+    csrCols = vjoin (map fst rws)
+    csrNRows = dim csrRows - 1
+    csrNCols = fromIntegral (V.maximum csrCols)
+
+
 data GMatrix
-    = CSR
-        { csrVals :: Vector Double
-        , csrCols :: Vector CInt
-        , csrRows :: Vector CInt
+    = SparseR
+        { gmCSR   :: CSR
         , nRows   :: Int
         , nCols   :: Int
         }
-    | CSC
-        { cscVals :: Vector Double
-        , cscRows :: Vector CInt
-        , cscCols :: Vector CInt
+    | SparseC
+        { gmCSC   :: CSC
         , nRows   :: Int
         , nCols   :: Int
         }
@@ -56,29 +87,21 @@ data GMatrix
 --    | Banded
     deriving Show
 
-dense :: Matrix Double -> GMatrix
-dense m = Dense{..}
+
+mkDense :: Matrix Double -> GMatrix
+mkDense m = Dense{..}
   where
     gmDense = m
     nRows = rows m
     nCols = cols m
 
-mkSparse :: AssocMatrix -> GMatrix
-mkSparse sm' = CSR{..}
+
+mkSparse :: CSR -> GMatrix
+mkSparse csr = SparseR {..}
   where
-    sm = sort sm'
-    rws = map ((fromList *** fromList)
-              . unzip
-              . map ((succ.fi.snd) *** id)
-              )
-        . groupBy ((==) `on` (fst.fst))
-        $ sm
-    rszs = map (fi . dim . fst) rws
-    csrRows = fromList (scanl (+) 1 rszs)
-    csrVals = vjoin (map snd rws)
-    csrCols = vjoin (map fst rws)
-    nRows = dim csrRows - 1
-    nCols = fromIntegral (V.maximum csrCols)
+    gmCSR @ CSR {..} = csr
+    nRows = csrNRows
+    nCols = csrNCols
 
 
 mkDiagR r c v
@@ -95,13 +118,13 @@ type  V t = CInt -> Ptr Double -> t
 type SMxV = V (IV (IV (V (V (IO CInt)))))
 
 gmXv :: GMatrix -> Vector Double -> Vector Double
-gmXv CSR{..} v = unsafePerformIO $ do
+gmXv SparseR { gmCSR = CSR{..}, .. } v = unsafePerformIO $ do
     dim v /= nCols ~!~ printf "gmXv (CSR): incorrect sizes: (%d,%d) x %d" nRows nCols (dim v)
     r <- createVector nRows
     app5 c_smXv vec csrVals vec csrCols vec csrRows vec v vec r "CSRXv"
     return r
 
-gmXv CSC{..} v = unsafePerformIO $ do
+gmXv SparseC { gmCSC = CSC{..}, .. } v = unsafePerformIO $ do
     dim v /= nCols ~!~ printf "gmXv (CSC): incorrect sizes: (%d,%d) x %d" nRows nCols (dim v)
     r <- createVector nRows
     app5 c_smTXv vec cscVals vec cscRows vec cscCols vec v vec r "CSCXv"
@@ -147,11 +170,18 @@ toDense asm = assoc (r+1,c+1) 0 asm
     (r,c) = (maximum *** maximum) . unzip . map fst $ asm
 
 
+instance Transposable CSR CSC
+  where
+    tr (CSR vs cs rs n m) = CSC vs cs rs m n
+
+instance Transposable CSC CSR
+  where
+    tr (CSC vs rs cs n m) = CSR vs rs cs m n
 
 instance Transposable GMatrix GMatrix
   where
-    tr (CSR vs cs rs n m) = CSC vs cs rs m n
-    tr (CSC vs rs cs n m) = CSR vs rs cs m n
+    tr (SparseR s n m) = SparseC (tr s) m n
+    tr (SparseC s n m) = SparseR (tr s) m n
     tr (Diag v n m) = Diag v m n
     tr (Dense a n m) = Dense (tr a) m n
 

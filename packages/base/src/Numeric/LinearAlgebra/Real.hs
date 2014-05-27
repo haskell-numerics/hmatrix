@@ -141,6 +141,16 @@ instance (Num (Matrix t), Numeric t) => Num (Dim m (Dim n (Matrix t)))
     negate = (lift1F . lift1F) negate
     fromInteger x = Dim (Dim (fromInteger x))
 
+instance Fractional (Dim n (Vector Double))
+  where
+    fromRational x = Dim (fromRational x)
+    (/) = lift2F (/)
+
+instance Fractional (Dim m (Dim n (Matrix Double)))
+  where
+    fromRational x = Dim (Dim (fromRational x))
+    (/) = (lift2F.lift2F) (/)
+
 --------------------------------------------------------------------------------
 
 class Konst t

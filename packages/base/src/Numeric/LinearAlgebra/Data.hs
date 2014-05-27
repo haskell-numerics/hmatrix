@@ -49,8 +49,8 @@ module Numeric.LinearAlgebra.Data(
     find, maxIndex, minIndex, maxElement, minElement, atIndex,
 
     -- * Sparse
-    GMatrix, AssocMatrix, mkSparse, toDense,
-    mkDiagR, dense,
+    AssocMatrix, toDense,
+    mkSparse, mkDiagR, mkDense,
     
     -- * IO
     disp,
@@ -68,7 +68,7 @@ module Numeric.LinearAlgebra.Data(
 
     module Data.Complex,
 
-    Vector, Matrix
+    Vector, Matrix, GMatrix, CSR(..), mkCSR
 
 ) where
 

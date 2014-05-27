@@ -115,7 +115,7 @@ instance Testable GMatrix
         sma = convo2 20 3
         x1 = vect [1..20]
         x2 = vect [1..40]
-        sm = mkSparse sma
+        sm = (mkSparse . mkCSR) sma
         dm = toDense sma
 
         s1 = sm !#> x1
