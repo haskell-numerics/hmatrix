@@ -49,10 +49,15 @@ module Numeric.LinearAlgebra.Devel(
     mapMatrixWithIndex, mapMatrixWithIndexM, mapMatrixWithIndexM_,
     liftMatrix, liftMatrix2, liftMatrix2Auto,
 
+    -- * Misc
+    CSR(..), fromCSR, mkCSR,
+    GMatrix(..)
+
 ) where
 
 import Data.Packed.Foreign
 import Data.Packed.Development
 import Data.Packed.ST
 import Data.Packed
+import Numeric.Sparse
 

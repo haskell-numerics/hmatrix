@@ -29,26 +29,26 @@ module Numeric.LinearAlgebra.Real(
     vec2, vec3, vec4, 𝕧, (&),
     -- * Matrix
     L, Sq,
-    𝕞,
-    (#),(¦),(——),
-     Konst(..),
-     eye,
-     diagR, diag,
-     blockAt,
+    row, col, (¦),(——),
+    Konst(..),
+    eye,
+    diagR, diag,
+    blockAt,
     -- * Products
-     (<>),(#>),(<·>),
-     -- * Pretty printing
-     Disp(..),
-     -- * Misc
-     Dim, unDim,
+    (<>),(#>),(<·>),
+    -- * Pretty printing
+    Disp(..),
+    -- * Misc
+    Dim, unDim,
     module Numeric.HMatrix
 ) where
 
 
 import GHC.TypeLits
-import Numeric.HMatrix hiding ((<>),(#>),(<·>),Konst(..),diag, disp,(¦),(——))
+import Numeric.HMatrix hiding ((<>),(#>),(<·>),Konst(..),diag, disp,(¦),(——),row,col)
 import qualified Numeric.HMatrix as LA
 import Data.Packed.ST
+import Data.Proxy(Proxy)
 
 newtype Dim (n :: Nat) t = Dim t
   deriving Show
@@ -56,7 +56,7 @@ newtype Dim (n :: Nat) t = Dim t
 unDim :: Dim n t -> t
 unDim (Dim x) = x
 
-data Proxy :: Nat -> *
+-- data Proxy :: Nat -> *
 
 
 lift1F
@@ -223,7 +223,7 @@ instance Disp (R n)
             else putStr "Dim " >> putStr (tail . dropWhile (/='x') $ su)
 
 --------------------------------------------------------------------------------
-
+{-
 infixl 3 #
 (#) :: L r c -> R c -> L (r+1) c
 Dim (Dim m) # Dim v = Dim (Dim (m LA.—— asRow v))
@@ -233,14 +233,31 @@ Dim (Dim m) # Dim v = Dim (Dim (m LA.—— asRow v))
 𝕞  = Dim (Dim (LA.konst 0 (0,d)))
   where
     d = fromIntegral . natVal $ (undefined :: Proxy n)
+-}
+
+row :: R n -> L 1 n
+row (Dim v) = Dim (Dim (asRow v))
+
+col :: R n -> L n 1
+col = tr . row
 
 infixl 3 ¦
-(¦) :: L r c1 -> L r c2 -> L r (c1+c2)
-Dim (Dim a) ¦ Dim (Dim b) = Dim (Dim (a LA.¦ b))
+(¦) :: (KnownNat r, KnownNat c1, KnownNat c2) => L r c1 -> L r c2 -> L r (c1+c2)
+a ¦ b = rjoin (expk a) (expk b)
+  where
+    Dim (Dim a') `rjoin` Dim (Dim b') = Dim (Dim (a' LA.¦ b'))
 
 infixl 2 ——
-(——) :: L r1 c -> L r2 c -> L (r1+r2) c
-Dim (Dim a) —— Dim (Dim b) = Dim (Dim (a LA.—— b))
+(——) :: (KnownNat r1, KnownNat r2, KnownNat c) => L r1 c -> L r2 c -> L (r1+r2) c
+a —— b = cjoin (expk a) (expk b)
+  where
+    Dim (Dim a') `cjoin` Dim (Dim b') = Dim (Dim (a' LA.—— b'))
+
+expk :: (KnownNat n, KnownNat m) => L m n -> L m n
+expk x | singleton x = konst (d2 x `atIndex` (0,0))
+       | otherwise = x
+  where
+    singleton (d2 -> m) = rows m == 1 && cols m == 1
 
 
 {-
@@ -337,11 +354,5 @@ test = (ok,info)
 instance (KnownNat n', KnownNat m') => Testable (L n' m')
   where
     checkT _ = test
-
-{-
-do (snd test)
-fst test
--}
-
 
 

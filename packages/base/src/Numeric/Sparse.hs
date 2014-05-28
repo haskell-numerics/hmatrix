@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module Numeric.Sparse(
-    GMatrix, CSR(..), mkCSR,
+    GMatrix(..), CSR(..), mkCSR, fromCSR,
     mkSparse, mkDiagR, mkDense,
     AssocMatrix,
     toDense,
@@ -95,9 +95,11 @@ mkDense m = Dense{..}
     nRows = rows m
     nCols = cols m
 
+mkSparse :: AssocMatrix -> GMatrix
+mkSparse = fromCSR . mkCSR
 
-mkSparse :: CSR -> GMatrix
-mkSparse csr = SparseR {..}
+fromCSR :: CSR -> GMatrix
+fromCSR csr = SparseR {..}
   where
     gmCSR @ CSR {..} = csr
     nRows = csrNRows
@@ -148,11 +150,6 @@ gmXv Dense{..} v
 infixr 8 !#>
 (!#>) :: GMatrix -> Vector Double -> Vector Double
 (!#>) = gmXv
-
-
-instance Contraction GMatrix (Vector Double) (Vector Double)
-  where
-    contraction = gmXv
 
 --------------------------------------------------------------------------------
 

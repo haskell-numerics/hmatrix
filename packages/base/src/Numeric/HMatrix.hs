@@ -41,7 +41,7 @@ module Numeric.HMatrix (
     -- ** dot
     (<·>),
     -- ** matrix-vector
-     (#>),(!#>),
+    (#>), (!#>),
     -- ** matrix-matrix
      (<>),
     -- | The matrix x matrix product is also implemented in the "Data.Monoid" instance, where
@@ -135,7 +135,7 @@ module Numeric.HMatrix (
     -- * Misc
     meanCov, peps, relativeError, haussholder, optimiseMult, udot,
     -- * Auxiliary classes
-    Element, Container, Product, Contraction(..), Numeric, LSDiv,
+    Element, Container, Product, Numeric, LSDiv,
     Complexable, RealElement,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,

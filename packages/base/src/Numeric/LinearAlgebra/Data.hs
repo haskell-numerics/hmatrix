@@ -68,7 +68,7 @@ module Numeric.LinearAlgebra.Data(
 
     module Data.Complex,
 
-    Vector, Matrix, GMatrix, CSR(..), mkCSR
+    Vector, Matrix, GMatrix, nRows, nCols
 
 ) where
 

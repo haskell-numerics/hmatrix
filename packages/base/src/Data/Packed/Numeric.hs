@@ -40,9 +40,9 @@ module Data.Packed.Numeric (
     step, cond, find, assoc, accum,
     Transposable(..), Linear(..),
     -- * Matrix product
-    Product(..), udot, dot, (◇), (<·>), (#>),
+    Product(..), udot, dot, (<·>), (#>),
     Mul(..),
-    Contraction(..),(<.>),
+    (<.>),
     optimiseMult,
     mXm,mXv,vXm,LSDiv,(<\>),
     outer, kronecker,
@@ -139,25 +139,6 @@ For complex vectors the first argument is conjugated:
 fromList [10.0 :+ 4.0,12.0 :+ 4.0,14.0 :+ 4.0,16.0 :+ 4.0]
 -}
 
-
-
-
-class Contraction a b c | a b -> c
-  where
-    -- | Matrix product, matrix - vector product, and dot product
-    contraction :: a -> b -> c
-
-instance (Product t, Container Vector t) => Contraction (Vector t) (Vector t) t where
-    u `contraction` v = conj u `udot` v
-
-instance Product t => Contraction (Matrix t) (Vector t) (Vector t) where
-    contraction = mXv
-
-instance (Container Vector t, Product t) => Contraction (Vector t) (Matrix t) (Vector t) where
-    contraction v m = (conj v) `vXm` m
-
-instance Product t => Contraction (Matrix t) (Matrix t) (Matrix t) where
-    contraction = mXm
 
 --------------------------------------------------------------------------------
 
@@ -264,11 +245,6 @@ instance Container Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
     build = build'
 
 --------------------------------------------------------------------------------
-
--- | alternative unicode symbol (25c7) for 'contraction'
-(◇) :: Contraction a b c => a -> b -> c
-infixl 7 ◇
-(◇) = contraction
 
 -- | dot product: @cdot u v = 'udot' ('conj' u) v@
 dot :: (Container Vector t, Product t) => Vector t -> Vector t -> t

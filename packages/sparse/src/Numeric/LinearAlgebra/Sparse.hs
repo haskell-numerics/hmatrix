@@ -8,7 +8,7 @@ module Numeric.LinearAlgebra.Sparse (
 ) where
 
 import Foreign.C.Types(CInt(..))
-import Data.Packed.Development
+import Numeric.LinearAlgebra.Devel
 import System.IO.Unsafe(unsafePerformIO)
 import Foreign(Ptr)
 import Numeric.HMatrix
