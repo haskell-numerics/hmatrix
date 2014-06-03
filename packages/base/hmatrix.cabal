@@ -48,6 +48,7 @@ library
                         Numeric.LinearAlgebra.Devel
                         Numeric.LinearAlgebra.Data
                         Numeric.LinearAlgebra.Real
+                        Numeric.LinearAlgebra.Complex
 
 
     other-modules:      Data.Packed.Internal,
@@ -67,6 +68,7 @@ library
                         Numeric.LinearAlgebra.Random
                         Numeric.Conversion
                         Numeric.Sparse
+                        Numeric.LinearAlgebra.Static
 
     C-sources:          src/C/lapack-aux.c
                         src/C/vector-aux.c
@@ -84,6 +86,27 @@ library
     cpp-options:        -DBINARY
 
     extra-libraries:    blas lapack
+
+    if os(OSX)
+        extra-lib-dirs: /opt/local/lib/
+        include-dirs: /opt/local/include/
+        extra-lib-dirs: /usr/local/lib/
+        include-dirs: /usr/local/include/
+        if arch(i386)
+            cc-options: -arch i386
+        frameworks: Accelerate
+
+    if os(freebsd)
+       extra-lib-dirs: /usr/local/lib
+       include-dirs: /usr/local/include
+       extra-libraries: blas lapack
+
+    if os(windows)
+        extra-libraries: blas lapack
+
+    if os(linux)
+        if arch(x86_64)
+            cc-options: -fPIC
 
 
 source-repository head

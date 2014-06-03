@@ -20,7 +20,7 @@ module Numeric.Container(
     sumElements, prodElements,
     step, cond, find, assoc, accum,
     Element(..),
-    Product(..),
+    Product(..), dot, udot,
     optimiseMult,
     mXm, mXv, vXm, (<.>),
     Mul(..),

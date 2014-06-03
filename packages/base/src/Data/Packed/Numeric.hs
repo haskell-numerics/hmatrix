@@ -90,7 +90,8 @@ Logarithmic spacing can be defined as follows:
 @logspace n (a,b) = 10 ** linspace n (a,b)@
 -}
 linspace :: (Container Vector e) => Int -> (e, e) -> Vector e
-linspace 0 (a,b) = fromList[(a+b)/2]
+linspace 0 _     = fromList[]
+linspace 1 (a,b) = fromList[(a+b)/2]
 linspace n (a,b) = addConstant a $ scale s $ fromList $ map fromIntegral [0 .. n-1]
     where s = (b-a)/fromIntegral (n-1)
 

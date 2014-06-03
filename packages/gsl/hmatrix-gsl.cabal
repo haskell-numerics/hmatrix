@@ -75,46 +75,9 @@ library
 
     cc-options:         -O4 -msse2 -Wall
 
-    cpp-options:        -DBINARY
-
- -- ghc-prof-options:   -auto
-
     ghc-options:  -Wall -fno-warn-missing-signatures
                         -fno-warn-orphans
                         -fno-warn-unused-binds
-
-    if flag(unsafe)
-        cpp-options: -DUNSAFE
-
-    if !flag(dd)
-        cpp-options: -DNOZGESDD
-
-    if impl(ghc < 6.10.2)
-        cpp-options: -DFINIT
-
-    if impl(ghc == 7.0.1)
-        cpp-options: -DFINIT
-
-    if impl(ghc == 7.0.2)
-        cpp-options: -DFINIT
-
-    if flag(finit)
-        cpp-options: -DFINIT
-
-    if flag(debugfpu)
-        cc-options: -DFPUDEBUG
-
-    if flag(debugnan)
-        cc-options: -DNANDEBUG
-
-    if impl(ghc == 7.0.1)
-        cpp-options: -DNONORMVTEST
-
-    if flag(mkl)
-      if arch(x86_64)
-        extra-libraries:   gsl mkl_lapack mkl_intel_lp64 mkl_sequential mkl_core
-      else
-        extra-libraries:   gsl mkl_lapack mkl_intel mkl_sequential mkl_core
 
     if os(OSX)
         extra-lib-dirs: /opt/local/lib/
@@ -129,10 +92,10 @@ library
     if os(freebsd)
        extra-lib-dirs: /usr/local/lib
        include-dirs: /usr/local/include
-       extra-libraries: gsl blas lapack
+       extra-libraries: gsl
 
     if os(windows)
-        extra-libraries: gsl-0 blas lapack
+        extra-libraries: gsl-0
 
     if os(linux)
         if arch(x86_64)
@@ -143,6 +106,4 @@ library
 source-repository head
     type:     git
     location: https://github.com/albertoruiz/hmatrix
-
--- The tests are in package hmatrix-tests
 
