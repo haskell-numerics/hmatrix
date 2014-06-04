@@ -74,6 +74,12 @@ instance forall n t . (Num (Vector t), Numeric t )=> Num (Dim n (Vector t))
     negate = lift1F negate
     fromInteger x = Dim (fromInteger x)
 
+instance (Num (Vector t), Num (Matrix t), Numeric t) => Fractional (Dim n (Vector t))
+  where
+    fromRational x = Dim (fromRational x)
+    (/) = lift2F (/)
+
+
 instance (Num (Matrix t), Numeric t) => Num (Dim m (Dim n (Matrix t)))
   where
     (+) = (lift2F . lift2F) (+)
@@ -83,11 +89,6 @@ instance (Num (Matrix t), Numeric t) => Num (Dim m (Dim n (Matrix t)))
     signum = (lift1F . lift1F) signum
     negate = (lift1F . lift1F) negate
     fromInteger x = Dim (Dim (fromInteger x))
-
-instance (Num (Vector t), Num (Matrix t), Numeric t) => Fractional (Dim n (Vector t))
-  where
-    fromRational x = Dim (fromRational x)
-    (/) = lift2F (/)
 
 instance (Num (Vector t), Num (Matrix t), Numeric t) => Fractional (Dim m (Dim n (Matrix t)))
   where
@@ -106,8 +107,8 @@ mkV = Dim
 
 type M m n t = Dim m (Dim n (Matrix t))
 
-ud2 :: Dim m (Dim n (Matrix t)) -> Matrix t
-ud2 (Dim (Dim m)) = m
+--ud2 :: Dim m (Dim n (Matrix t)) -> Matrix t
+--ud2 (Dim (Dim m)) = m
 
 mkM :: forall (m :: Nat) (n :: Nat) t . t -> Dim m (Dim n t)
 mkM = Dim . Dim
@@ -184,9 +185,9 @@ gmat st xs'
 class Num t => Sized t s d | s -> t, s -> d
   where
     konst     ::  t  -> s
-    extract   ::  s  -> d
+    unwrap    ::  s  -> d
     fromList  :: [t] -> s
-    expand    ::  s  -> d
+    extract   ::  s  -> d
 
 singleV v = size v == 1
 singleM m = rows m == 1 && cols m == 1

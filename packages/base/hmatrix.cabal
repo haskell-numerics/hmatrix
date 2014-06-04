@@ -48,7 +48,7 @@ library
                         Numeric.LinearAlgebra.Devel
                         Numeric.LinearAlgebra.Data
                         Numeric.LinearAlgebra.Real
-                        Numeric.LinearAlgebra.Complex
+             --           Numeric.LinearAlgebra.Complex
 
 
     other-modules:      Data.Packed.Internal,
