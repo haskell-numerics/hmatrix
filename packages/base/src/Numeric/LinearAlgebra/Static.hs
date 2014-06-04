@@ -27,7 +27,7 @@ module Numeric.LinearAlgebra.Static(
     lift1F, lift2F,
     vconcat, gvec2, gvec3, gvec4, gvect, gmat,
     Sized(..),
-    singleV, singleM
+    singleV, singleM,GM
 ) where
 
 
@@ -105,7 +105,7 @@ ud (Dim v) = v
 mkV :: forall (n :: Nat) t . t -> Dim n t
 mkV = Dim 
 
-type M m n t = Dim m (Dim n (Matrix t))
+type GM m n t = Dim m (Dim n (Matrix t))
 
 --ud2 :: Dim m (Dim n (Matrix t)) -> Matrix t
 --ud2 (Dim (Dim m)) = m
@@ -166,7 +166,7 @@ gvect st xs'
     abort info = error $ st++" "++show d++" can't be created from elements "++info
 
 
-gmat :: forall m n t . (Show t, KnownNat m, KnownNat n, Numeric t) => String -> [t] -> M m n t
+gmat :: forall m n t . (Show t, KnownNat m, KnownNat n, Numeric t) => String -> [t] -> GM m n t
 gmat st xs'
     | ok = mkM x
     | not (null rest) && null (tail rest) = abort (show xs')
