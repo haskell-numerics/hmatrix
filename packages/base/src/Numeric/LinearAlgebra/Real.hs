@@ -32,10 +32,10 @@ module Numeric.LinearAlgebra.Real(
     vect,
     linspace, range, dim,
     -- * Matrix
-    L, Sq,
+    L, Sq, M,
     row, col, (¦),(——),
     unrow, uncol,
-    
+
     eye,
     diagR, diag,
     blockAt,
@@ -50,7 +50,7 @@ module Numeric.LinearAlgebra.Real(
     Disp(..),
     -- * Misc
     withVector, withMatrix,
-    Sized(..), Diag(..), Sym, sym, -- Her, her,
+    Sized(..), Diag(..), Sym, sym, Her, her, 𝑖,
     module Numeric.HMatrix
 ) where
 
@@ -60,10 +60,12 @@ import Numeric.HMatrix hiding (
     (<>),(#>),(<·>),Konst(..),diag, disp,(¦),(——),row,col,vect,mat,linspace,
     (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',eigenvalues,eigenvaluesSH,eigenvaluesSH')
 import qualified Numeric.HMatrix as LA
-import Data.Packed.Internal(mbCatch)
 import Data.Proxy(Proxy)
 import Numeric.LinearAlgebra.Static
 import Text.Printf
+
+𝑖 :: Sized ℂ s c => s
+𝑖 = konst i_C
 
 instance forall n . KnownNat n => Show (R n)
   where
@@ -72,6 +74,15 @@ instance forall n . KnownNat n => Show (R n)
       | otherwise   = "(vect"++ drop 8 (show v)++" :: R "++show d++")"
       where
         d = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
+
+instance forall n . KnownNat n => Show (C n)
+  where
+    show (C (Dim v))
+      | singleV v = "("++show (v!0)++" :: C "++show d++")"
+      | otherwise   = "(fromList"++ drop 8 (show v)++" :: C "++show d++")"
+      where
+        d = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
+
 
 
 ud1 :: R n -> Vector ℝ
@@ -144,19 +155,30 @@ mkM x = M (Dim (Dim x))
 instance forall m n . (KnownNat m, KnownNat n) => Show (L m n)
   where
     show (isDiag -> Just (z,y,(m',n'))) = printf "(diag %s %s :: L %d %d)" (show z) (drop 9 $ show y) m' n'
-    show (ud2 -> x) 
+    show (ud2 -> x)
        | singleM x = printf "(%s :: L %d %d)" (show (x `atIndex` (0,0))) m' n'
        | otherwise = "(mat"++ dropWhile (/='\n') (show x)++" :: L "++show m'++" "++show n'++")"
       where
         m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
         n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
 
+instance forall m n . (KnownNat m, KnownNat n) => Show (M m n)
+  where
+    show (isDiagC -> Just (z,y,(m',n'))) = printf "(diag %s %s :: M %d %d)" (show z) (drop 9 $ show y) m' n'
+    show (M (Dim (Dim x)))
+       | singleM x = printf "(%s :: M %d %d)" (show (x `atIndex` (0,0))) m' n'
+       | otherwise = "(fromList"++ dropWhile (/='\n') (show x)++" :: M "++show m'++" "++show n'++")"
+      where
+        m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
+        n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
+
+
 --------------------------------------------------------------------------------
 
 instance forall n. KnownNat n => Sized ℂ (C n) (Vector ℂ)
   where
     konst x = mkC (LA.scalar x)
-    unwrap (C (Dim v)) = v 
+    unwrap (C (Dim v)) = v
     fromList xs = C (gvect "C" xs)
     extract (unwrap -> v)
       | singleV v = LA.konst (v!0) d
@@ -240,7 +262,7 @@ blockAt x r c a = mkL res
 
 mat :: forall m n . (KnownNat m, KnownNat n) => [ℝ] -> L m n
 mat xs = L (gmat "L" xs)
-    
+
 --------------------------------------------------------------------------------
 
 class Disp t
@@ -315,7 +337,7 @@ isKonst (unwrap -> x)
   where
     m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
     n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
-    
+
 
 
 isDiag :: forall m n . (KnownNat m, KnownNat n) => L m n -> Maybe (ℝ, Vector ℝ, (Int,Int))
@@ -329,7 +351,7 @@ isDiagg :: forall m n t . (Numeric t, KnownNat m, KnownNat n) => GM m n t -> May
 isDiagg (Dim (Dim x))
     | singleM x = Nothing
     | rows x == 1 && m' > 1 || cols x == 1 && n' > 1 = Just (z,yz,(m',n'))
-    | otherwise = Nothing  
+    | otherwise = Nothing
   where
     m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
     n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
@@ -377,6 +399,12 @@ instance (KnownNat n, KnownNat m) => Transposable (L m n) (L n m)
     tr a@(isDiag -> Just _) = mkL (extract a)
     tr (extract -> a) = mkL (tr a)
 
+instance (KnownNat n, KnownNat m) => Transposable (M m n) (M n m)
+  where
+    tr a@(isDiagC -> Just _) = mkM (extract a)
+    tr (extract -> a) = mkM (tr a)
+
+
 --------------------------------------------------------------------------------
 
 adaptDiag f a@(isDiag -> Just _) b | isFull b = f (mkL (extract a)) b
@@ -405,6 +433,33 @@ instance (KnownNat n, KnownNat m) => Fractional (L n m)
   where
     fromRational = L . Dim . Dim . fromRational
     (/) = lift2LD (/)
+
+--------------------------------------------------------------------------------
+
+adaptDiagC f a@(isDiagC -> Just _) b | isFullC b = f (mkM (extract a)) b
+adaptDiagC f a b@(isDiagC -> Just _) | isFullC a = f a (mkM (extract b))
+adaptDiagC f a b = f a b
+
+isFullC m = isDiagC m == Nothing && not (singleM (unwrap m))
+
+lift1M f (M v) = M (f v)
+lift2M f (M a) (M b) = M (f a b)
+lift2MD f = adaptDiagC (lift2M f)
+
+instance (KnownNat n, KnownNat m) =>  Num (M n m)
+  where
+    (+) = lift2MD (+)
+    (*) = lift2MD (*)
+    (-) = lift2MD (-)
+    abs = lift1M abs
+    signum = lift1M signum
+    negate = lift1M negate
+    fromInteger = M . Dim . Dim . fromInteger
+
+instance (KnownNat n, KnownNat m) => Fractional (M n m)
+  where
+    fromRational = M . Dim . Dim . fromRational
+    (/) = lift2MD (/)
 
 --------------------------------------------------------------------------------
 
@@ -481,16 +536,16 @@ class Eigen m l v | m -> l, m -> v
   where
     eigensystem :: m -> (l,v)
     eigenvalues :: m -> l
-    
+
 newtype Sym n = Sym (Sq n) deriving Show
 
---newtype Her n = Her (CSq n)
+newtype Her n = Her (M n n)
 
 sym :: KnownNat n => Sq n -> Sym n
 sym m = Sym $ (m + tr m)/2
 
---her :: KnownNat n => CSq n -> Her n
---her = undefined -- Her $ (m + tr m)/2
+her :: KnownNat n => M n n -> Her n
+her m = Her $ (m + tr m)/2
 
 instance KnownNat n => Eigen (Sym n) (R n) (L n n)
   where
@@ -505,12 +560,12 @@ instance KnownNat n => Eigen (Sq n) (C n) (M n n)
     eigensystem (extract -> m) = (mkC l, mkM v)
       where
         (l,v) = LA.eig m
-    
+
 --------------------------------------------------------------------------------
 
 withVector
     :: forall z
-     . Vector ℝ 
+     . Vector ℝ
     -> (forall n . (KnownNat n) => R n -> z)
     -> z
 withVector v f =
@@ -521,16 +576,16 @@ withVector v f =
 
 withMatrix
     :: forall z
-     . Matrix ℝ 
+     . Matrix ℝ
     -> (forall m n . (KnownNat m, KnownNat n) => L m n -> z)
     -> z
 withMatrix a f =
     case someNatVal $ fromIntegral $ rows a of
        Nothing -> error "static/dynamic mismatch"
-       Just (SomeNat (_ :: Proxy m)) -> 
+       Just (SomeNat (_ :: Proxy m)) ->
            case someNatVal $ fromIntegral $ cols a of
                Nothing -> error "static/dynamic mismatch"
-               Just (SomeNat (_ :: Proxy n)) -> 
+               Just (SomeNat (_ :: Proxy n)) ->
                   f (mkL a :: L n m)
 
 --------------------------------------------------------------------------------
@@ -539,8 +594,8 @@ test :: (Bool, IO ())
 test = (ok,info)
   where
     ok =   extract (eye :: Sq 5) == ident 5
-           && ud2 (mTm sm :: Sq 3) == tr ((3><3)[1..]) LA.<> (3><3)[1..]
-           && ud2 (tm :: L 3 5) == LA.mat 5 [1..15]
+           && unwrap (mTm sm :: Sq 3) == tr ((3><3)[1..]) LA.<> (3><3)[1..]
+           && unwrap (tm :: L 3 5) == LA.mat 5 [1..15]
            && thingS == thingD
            && precS == precD
            && withVector (LA.vect [1..15]) sumV == sumElements (LA.fromList [1..15])
@@ -557,7 +612,7 @@ test = (ok,info)
         print precS
         print precD
         print $ withVector (LA.vect [1..15]) sumV
-        
+
     sumV w = w <·> konst 1
 
     u = vec2 3 5

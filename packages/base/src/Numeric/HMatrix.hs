@@ -144,7 +144,7 @@ module Numeric.HMatrix (
     Transposable,
     CGState(..),
     Testable(..),
-    ℕ,ℤ,ℝ,ℂ, 𝑖, i_C --ℍ
+    ℕ,ℤ,ℝ,ℂ, i_C
 ) where
 
 import Numeric.LinearAlgebra.Data
