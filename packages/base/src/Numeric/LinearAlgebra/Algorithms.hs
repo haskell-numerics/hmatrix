@@ -26,6 +26,7 @@ module Numeric.LinearAlgebra.Algorithms (
     Field(),
 -- * Linear Systems
     linearSolve,
+    mbLinearSolve,
     luSolve,
     cholSolve,
     linearSolveLS,
@@ -102,6 +103,7 @@ class (Product t,
     sv'          :: Matrix t -> Vector Double
     luPacked'    :: Matrix t -> (Matrix t, [Int])
     luSolve'     :: (Matrix t, [Int]) -> Matrix t -> Matrix t
+    mbLinearSolve' :: Matrix t -> Matrix t -> Maybe (Matrix t)
     linearSolve' :: Matrix t -> Matrix t -> Matrix t
     cholSolve'   :: Matrix t -> Matrix t -> Matrix t
     linearSolveSVD' :: Matrix t -> Matrix t -> Matrix t
@@ -125,6 +127,7 @@ instance Field Double where
     luPacked' = luR
     luSolve' (l_u,perm) = lusR l_u perm
     linearSolve' = linearSolveR                 -- (luSolve . luPacked) ??
+    mbLinearSolve' = mbLinearSolveR
     cholSolve' = cholSolveR
     linearSolveLS' = linearSolveLSR
     linearSolveSVD' = linearSolveSVDR Nothing
@@ -151,6 +154,7 @@ instance Field (Complex Double) where
     luPacked' = luC
     luSolve' (l_u,perm) = lusC l_u perm
     linearSolve' = linearSolveC
+    mbLinearSolve' = mbLinearSolveC
     cholSolve' = cholSolveC
     linearSolveLS' = linearSolveLSC
     linearSolveSVD' = linearSolveSVDC Nothing
@@ -233,6 +237,10 @@ luSolve = {-# SCC "luSolve" #-} luSolve'
 -- It is similar to 'luSolve' . 'luPacked', but @linearSolve@ raises an error if called on a singular system.
 linearSolve :: Field t => Matrix t -> Matrix t -> Matrix t
 linearSolve = {-# SCC "linearSolve" #-} linearSolve'
+
+-- | Solve a linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, returning Nothing for a singular system. For underconstrained or overconstrained systems use 'linearSolveLS' or 'linearSolveSVD'. 
+mbLinearSolve :: Field t => Matrix t -> Matrix t -> Maybe (Matrix t)
+mbLinearSolve = {-# SCC "linearSolve" #-} mbLinearSolve'
 
 -- | Solve a symmetric or Hermitian positive definite linear system using a precomputed Cholesky decomposition obtained by 'chol'.
 cholSolve :: Field t => Matrix t -> Matrix t -> Matrix t

@@ -152,7 +152,8 @@ import Numeric.LinearAlgebra.Data
 import Numeric.Matrix()
 import Numeric.Vector()
 import Data.Packed.Numeric hiding ((<>))
-import Numeric.LinearAlgebra.Algorithms
+import Numeric.LinearAlgebra.Algorithms hiding (linearSolve)
+import qualified Numeric.LinearAlgebra.Algorithms as A
 import Numeric.LinearAlgebra.Util
 import Numeric.LinearAlgebra.Random
 import Numeric.Sparse((!#>))
@@ -162,4 +163,7 @@ import Numeric.LinearAlgebra.Util.CG
 (<>) :: Numeric t => Matrix t -> Matrix t -> Matrix t
 (<>) = mXm
 infixr 8 <>
+
+-- | Solve a linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, returning Nothing for a singular system. For underconstrained or overconstrained systems use 'linearSolveLS' or 'linearSolveSVD'. 
+linearSolve m b = A.mbLinearSolve m b
 

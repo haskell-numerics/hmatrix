@@ -29,7 +29,7 @@ module Numeric.LinearAlgebra.Real(
     -- * Vector
     R, C,
     vec2, vec3, vec4, (&), (#),
-    vect,
+    vector,
     linspace, range, dim,
     -- * Matrix
     L, Sq, M,
@@ -39,7 +39,7 @@ module Numeric.LinearAlgebra.Real(
     eye,
     diagR, diag,
     blockAt,
-    mat,
+    matrix,
     -- * Products
     (<>),(#>),(<·>),
     -- * Linear Systems
@@ -64,6 +64,7 @@ import Data.Proxy(Proxy)
 import Numeric.LinearAlgebra.Static
 import Text.Printf
 
+
 𝑖 :: Sized ℂ s c => s
 𝑖 = konst i_C
 
@@ -71,7 +72,7 @@ instance forall n . KnownNat n => Show (R n)
   where
     show (ud1 -> v)
       | singleV v = "("++show (v!0)++" :: R "++show d++")"
-      | otherwise   = "(vect"++ drop 8 (show v)++" :: R "++show d++")"
+      | otherwise   = "(vector"++ drop 8 (show v)++" :: R "++show d++")"
       where
         d = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
 
@@ -79,7 +80,7 @@ instance forall n . KnownNat n => Show (C n)
   where
     show (C (Dim v))
       | singleV v = "("++show (v!0)++" :: C "++show d++")"
-      | otherwise   = "(fromList"++ drop 8 (show v)++" :: C "++show d++")"
+      | otherwise   = "(vector"++ drop 8 (show v)++" :: C "++show d++")"
       where
         d = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
 
@@ -117,8 +118,11 @@ vec3 a b c = R (gvec3 a b c)
 vec4 :: ℝ -> ℝ -> ℝ -> ℝ -> R 4
 vec4 a b c d = R (gvec4 a b c d)
 
-vect :: forall n . KnownNat n => [ℝ] -> R n
-vect xs = R (gvect "R" xs)
+vector :: KnownNat n => [ℝ] -> R n
+vector = fromList
+
+matrix :: (KnownNat m, KnownNat n) => [ℝ] -> L m n
+matrix = fromList
 
 linspace :: forall n . KnownNat n => (ℝ,ℝ) -> R n
 linspace (a,b) = mkR (LA.linspace d (a,b))
@@ -157,7 +161,7 @@ instance forall m n . (KnownNat m, KnownNat n) => Show (L m n)
     show (isDiag -> Just (z,y,(m',n'))) = printf "(diag %s %s :: L %d %d)" (show z) (drop 9 $ show y) m' n'
     show (ud2 -> x)
        | singleM x = printf "(%s :: L %d %d)" (show (x `atIndex` (0,0))) m' n'
-       | otherwise = "(mat"++ dropWhile (/='\n') (show x)++" :: L "++show m'++" "++show n'++")"
+       | otherwise = "(matrix"++ dropWhile (/='\n') (show x)++" :: L "++show m'++" "++show n'++")"
       where
         m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
         n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
@@ -167,7 +171,7 @@ instance forall m n . (KnownNat m, KnownNat n) => Show (M m n)
     show (isDiagC -> Just (z,y,(m',n'))) = printf "(diag %s %s :: M %d %d)" (show z) (drop 9 $ show y) m' n'
     show (M (Dim (Dim x)))
        | singleM x = printf "(%s :: M %d %d)" (show (x `atIndex` (0,0))) m' n'
-       | otherwise = "(fromList"++ dropWhile (/='\n') (show x)++" :: M "++show m'++" "++show n'++")"
+       | otherwise = "(matrix"++ dropWhile (/='\n') (show x)++" :: M "++show m'++" "++show n'++")"
       where
         m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
         n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
@@ -191,7 +195,7 @@ instance forall n. KnownNat n => Sized ℝ (R n) (Vector ℝ)
   where
     konst x = mkR (LA.scalar x)
     unwrap = ud1
-    fromList = vect
+    fromList xs = R (gvect "R" xs)
     extract (unwrap -> v)
       | singleV v = LA.konst (v!0) d
       | otherwise = v
@@ -203,7 +207,7 @@ instance forall n. KnownNat n => Sized ℝ (R n) (Vector ℝ)
 instance forall m n . (KnownNat m, KnownNat n) => Sized ℝ (L m n) (Matrix ℝ)
   where
     konst x = mkL (LA.scalar x)
-    fromList = mat
+    fromList xs = L (gmat "L" xs)
     unwrap = ud2
     extract (isDiag -> Just (z,y,(m',n'))) = diagRect z y m' n'
     extract (unwrap -> a)
@@ -260,8 +264,7 @@ blockAt x r c a = mkL res
 
 
 
-mat :: forall m n . (KnownNat m, KnownNat n) => [ℝ] -> L m n
-mat xs = L (gmat "L" xs)
+
 
 --------------------------------------------------------------------------------
 
@@ -505,8 +508,8 @@ instance forall m n . (KnownNat m, KnownNat n, n <= m+1) => Diag (L m n) (R n)
 
 --------------------------------------------------------------------------------
 
-linSolve :: (KnownNat m, KnownNat n) => L m m -> L m n -> L m n
-linSolve (extract -> a) (extract -> b) = mkL (LA.linearSolve a b)
+linSolve :: (KnownNat m, KnownNat n) => L m m -> L m n -> Maybe (L m n)
+linSolve (extract -> a) (extract -> b) = fmap mkL (LA.linearSolve a b)
 
 (<\>) :: (KnownNat m, KnownNat n, KnownNat r) => L m n -> L m r -> L n r
 (extract -> a) <\> (extract -> b) = mkL (a LA.<\> b)
@@ -617,7 +620,7 @@ test = (ok,info)
 
     u = vec2 3 5
 
-    𝕧 x = vect [x] :: R 1
+    𝕧 x = vector [x] :: R 1
 
     v = 𝕧 2 & 4 & 7
 

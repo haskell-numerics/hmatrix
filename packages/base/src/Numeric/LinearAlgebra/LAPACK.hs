@@ -17,6 +17,7 @@ module Numeric.LinearAlgebra.LAPACK (
     multiplyR, multiplyC, multiplyF, multiplyQ,
     -- * Linear systems
     linearSolveR, linearSolveC,
+    mbLinearSolveR, mbLinearSolveC,
     lusR, lusC,
     cholSolveR, cholSolveC,
     linearSolveLSR, linearSolveLSC,
@@ -329,8 +330,8 @@ foreign import ccall unsafe "linearSolveC_l" zgesv :: TCMCMCM
 foreign import ccall unsafe "cholSolveR_l" dpotrs :: TMMM
 foreign import ccall unsafe "cholSolveC_l" zpotrs :: TCMCMCM
 
-linearSolveSQAux f st a b
-    | n1==n2 && n1==r = unsafePerformIO $ do
+linearSolveSQAux g f st a b
+    | n1==n2 && n1==r = unsafePerformIO . g $ do
         s <- createMatrix ColumnMajor r c
         app3 f mat a mat b mat s st
         return s
@@ -342,20 +343,26 @@ linearSolveSQAux f st a b
 
 -- | Solve a real linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, based on LAPACK's /dgesv/. For underconstrained or overconstrained systems use 'linearSolveLSR' or 'linearSolveSVDR'. See also 'lusR'.
 linearSolveR :: Matrix Double -> Matrix Double -> Matrix Double
-linearSolveR a b = linearSolveSQAux dgesv "linearSolveR" (fmat a) (fmat b)
+linearSolveR a b = linearSolveSQAux id dgesv "linearSolveR" (fmat a) (fmat b)
+
+mbLinearSolveR :: Matrix Double -> Matrix Double -> Maybe (Matrix Double)
+mbLinearSolveR a b = linearSolveSQAux mbCatch dgesv "linearSolveR" (fmat a) (fmat b)
+
 
 -- | Solve a complex linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, based on LAPACK's /zgesv/. For underconstrained or overconstrained systems use 'linearSolveLSC' or 'linearSolveSVDC'. See also 'lusC'.
 linearSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
-linearSolveC a b = linearSolveSQAux zgesv "linearSolveC" (fmat a) (fmat b)
+linearSolveC a b = linearSolveSQAux id zgesv "linearSolveC" (fmat a) (fmat b)
 
+mbLinearSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Maybe (Matrix (Complex Double))
+mbLinearSolveC a b = linearSolveSQAux mbCatch zgesv "linearSolveC" (fmat a) (fmat b)
 
 -- | Solves a symmetric positive definite system of linear equations using a precomputed Cholesky factorization obtained by 'cholS'.
 cholSolveR :: Matrix Double -> Matrix Double -> Matrix Double
-cholSolveR a b = linearSolveSQAux dpotrs "cholSolveR" (fmat a) (fmat b)
+cholSolveR a b = linearSolveSQAux id dpotrs "cholSolveR" (fmat a) (fmat b)
 
 -- | Solves a Hermitian positive definite system of linear equations using a precomputed Cholesky factorization obtained by 'cholH'.
 cholSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
-cholSolveC a b = linearSolveSQAux zpotrs "cholSolveC" (fmat a) (fmat b)
+cholSolveC a b = linearSolveSQAux id zpotrs "cholSolveC" (fmat a) (fmat b)
 
 -----------------------------------------------------------------------------------
 foreign import ccall unsafe "linearSolveLSR_l" dgels :: TMMM
