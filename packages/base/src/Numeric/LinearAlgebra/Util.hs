@@ -33,8 +33,7 @@ module Numeric.LinearAlgebra.Util(
     cross,
     norm,
     ℕ,ℤ,ℝ,ℂ,𝑖,i_C, --ℍ
-    norm_1, norm_2, norm_0, norm_Inf, norm_Frob, norm_nuclear,
-    mnorm_1, mnorm_2, mnorm_0, mnorm_Inf,
+    Normed(..), norm_Frob, norm_nuclear,
     unitary,
     mt,
     (~!~),
@@ -61,7 +60,8 @@ module Numeric.LinearAlgebra.Util(
 ) where
 
 import Data.Packed.Numeric
-import Numeric.LinearAlgebra.Algorithms hiding (i)
+import Numeric.LinearAlgebra.Algorithms hiding (i,Normed)
+--import qualified Numeric.LinearAlgebra.Algorithms as A
 import Numeric.Matrix()
 import Numeric.Vector()
 import Numeric.LinearAlgebra.Random
@@ -225,37 +225,49 @@ norm :: Vector Double -> Double
 -- ^ 2-norm of real vector
 norm = pnorm PNorm2
 
-norm_2 :: Normed Vector t => Vector t -> RealOf t
-norm_2 = pnorm PNorm2
-
-norm_1 :: Normed Vector t => Vector t -> RealOf t
-norm_1 = pnorm PNorm1
-
-norm_Inf :: Normed Vector t => Vector t -> RealOf t
-norm_Inf = pnorm Infinity
-
-norm_0 :: Vector ℝ -> ℝ
-norm_0 v = sumElements (step (abs v - scalar (eps*mx)))
+class Normed a
   where
-    mx = norm_Inf v
+    norm_0   :: a -> ℝ
+    norm_1   :: a -> ℝ
+    norm_2   :: a -> ℝ
+    norm_Inf :: a -> ℝ
 
-norm_Frob :: Normed Matrix t => Matrix t -> RealOf t
-norm_Frob = pnorm Frobenius
+
+instance Normed (Vector ℝ)
+  where
+    norm_0 v = sumElements (step (abs v - scalar (eps*normInf v)))
+    norm_1 = pnorm PNorm1
+    norm_2 = pnorm PNorm2
+    norm_Inf = pnorm Infinity
+
+instance Normed (Vector ℂ)
+  where
+    norm_0 v = sumElements (step (fst (fromComplex (abs v)) - scalar (eps*normInf v)))
+    norm_1 = pnorm PNorm1
+    norm_2 = pnorm PNorm2
+    norm_Inf = pnorm Infinity
+
+instance Normed (Matrix ℝ)
+  where
+    norm_0 = norm_0 . flatten
+    norm_1 = pnorm PNorm1
+    norm_2 = pnorm PNorm2
+    norm_Inf = pnorm Infinity
+
+instance Normed (Matrix ℂ)
+  where
+    norm_0 = norm_0 . flatten
+    norm_1 = pnorm PNorm1
+    norm_2 = pnorm PNorm2
+    norm_Inf = pnorm Infinity
+
+
+norm_Frob :: (Normed (Vector t), Element t) => Matrix t -> ℝ
+norm_Frob = norm_2 . flatten
 
 norm_nuclear :: Field t => Matrix t -> ℝ
 norm_nuclear = sumElements . singularValues
 
-mnorm_2 :: Normed Matrix t => Matrix t -> RealOf t
-mnorm_2 = pnorm PNorm2
-
-mnorm_1 :: Normed Matrix t => Matrix t -> RealOf t
-mnorm_1 = pnorm PNorm1
-
-mnorm_Inf :: Normed Matrix t => Matrix t -> RealOf t
-mnorm_Inf = pnorm Infinity
-
-mnorm_0 :: Matrix ℝ -> ℝ
-mnorm_0 = norm_0 . flatten
 
 -- | Obtains a vector in the same direction with 2-norm=1
 unitary :: Vector Double -> Vector Double

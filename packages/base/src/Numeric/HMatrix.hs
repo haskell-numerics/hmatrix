@@ -121,8 +121,7 @@ module Numeric.HMatrix (
     orth,
 
     -- * Norms
-    norm_0, norm_1, norm_2, norm_Inf,
-    mnorm_0, mnorm_1, mnorm_2, mnorm_Inf,
+    Normed(..),
     norm_Frob, norm_nuclear,
 
     -- * Correlation and convolution
@@ -140,7 +139,7 @@ module Numeric.HMatrix (
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
     Field,
-    Normed,
+--    Normed,
     Transposable,
     CGState(..),
     Testable(..),
@@ -152,7 +151,7 @@ import Numeric.LinearAlgebra.Data
 import Numeric.Matrix()
 import Numeric.Vector()
 import Data.Packed.Numeric hiding ((<>))
-import Numeric.LinearAlgebra.Algorithms hiding (linearSolve)
+import Numeric.LinearAlgebra.Algorithms hiding (linearSolve,Normed)
 import qualified Numeric.LinearAlgebra.Algorithms as A
 import Numeric.LinearAlgebra.Util
 import Numeric.LinearAlgebra.Random
