@@ -1,4 +1,3 @@
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -95,52 +94,6 @@ linspace 1 (a,b) = fromList[(a+b)/2]
 linspace n (a,b) = addConstant a $ scale s $ fromList $ map fromIntegral [0 .. n-1]
     where s = (b-a)/fromIntegral (n-1)
 
---------------------------------------------------------
-
-{- Matrix product, matrix - vector product, and dot product (equivalent to 'contraction')
-
-(This operator can also be written using the unicode symbol ◇ (25c7).)
-
-Examples:
-
->>> let a = (3><4)   [1..]      :: Matrix Double
->>> let v = fromList [1,0,2,-1] :: Vector Double
->>> let u = fromList [1,2,3]    :: Vector Double
-
->>> a
-(3><4)
- [ 1.0,  2.0,  3.0,  4.0
- , 5.0,  6.0,  7.0,  8.0
- , 9.0, 10.0, 11.0, 12.0 ]
-
-matrix × matrix:
-
->>> disp 2 (a <.> trans a)
-3x3
- 30   70  110
- 70  174  278
-110  278  446
-
-matrix × vector:
-
->>> a <.> v
-fromList [3.0,11.0,19.0]
-
-dot product:
-
->>> u <.> fromList[3,2,1::Double]
-10
-
-For complex vectors the first argument is conjugated:
-
->>> fromList [1,i] <.> fromList[2*i+1,3]
-1.0 :+ (-1.0)
-
->>> fromList [1,i,1-i] <.> complex a
-fromList [10.0 :+ 4.0,12.0 :+ 4.0,14.0 :+ 4.0,16.0 :+ 4.0]
--}
-
-
 --------------------------------------------------------------------------------
 
 infixl 7 <.>
@@ -150,12 +103,37 @@ infixl 7 <.>
 
 
 infixr 8 <·>, #>
--- | dot product
+
+{- | dot product
+
+>>> vect [1,2,3,4] <·> vect [-2,0,1,1]
+5.0
+
+>>> let 𝑖 = 0:+1 :: ℂ
+>>> fromList [1+𝑖,1] <·> fromList [1,1+𝑖]
+2.0 :+ 0.0
+
+(the dot symbol "·" is obtained by Alt-Gr .)
+
+-}
 (<·>) :: Numeric t => Vector t -> Vector t -> t
 (<·>) = dot
 
 
--- | matrix-vector product
+{- | dense matrix-vector product
+
+>>> let m = (2><3) [1..]
+>>> m
+(2><3)
+ [ 1.0, 2.0, 3.0
+ , 4.0, 5.0, 6.0 ]
+
+>>> let v = vect [10,20,30]
+
+>>> m #> v
+fromList [140.0,320.0]
+
+-}
 (#>) :: Numeric t => Matrix t -> Vector t -> Vector t
 (#>) = mXv
 
@@ -291,4 +269,4 @@ instance Numeric (Complex Double)
 instance Numeric Float
 instance Numeric (Complex Float)
 
---------------------------------------------------------------------------------
+

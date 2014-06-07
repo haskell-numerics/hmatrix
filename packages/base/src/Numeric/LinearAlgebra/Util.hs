@@ -32,7 +32,7 @@ module Numeric.LinearAlgebra.Util(
     rand, randn,
     cross,
     norm,
-    ℕ,ℤ,ℝ,ℂ,𝑖,i_C, --ℍ
+    ℕ,ℤ,ℝ,ℂ,iC,
     Normed(..), norm_Frob, norm_nuclear,
     unitary,
     mt,
@@ -72,13 +72,10 @@ type ℝ = Double
 type ℕ = Int
 type ℤ = Int
 type ℂ = Complex Double
---type ℝn = Vector ℝ
---type ℂn = Vector ℂ
---newtype ℍ m = H m
 
-i_C, 𝑖 :: ℂ
-𝑖 = 0:+1
-i_C = 𝑖
+-- | imaginary unit
+iC :: ℂ
+iC = 0:+1
 
 {- | create a real vector
 

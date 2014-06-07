@@ -62,7 +62,26 @@ mkCSR sm' = CSR{..}
     csrNRows = dim csrRows - 1
     csrNCols = fromIntegral (V.maximum csrCols)
 
+{- | General matrix with specialized internal representations for
+     dense, sparse, diagonal, banded, and constant elements.
 
+>>> let m = mkSparse [((0,999),1.0),((1,1999),2.0)]
+>>> m
+SparseR {gmCSR = CSR {csrVals = fromList [1.0,2.0],
+                      csrCols = fromList [1000,2000],
+                      csrRows = fromList [1,2,3],
+                      csrNRows = 2,
+                      csrNCols = 2000},
+                      nRows = 2,
+                      nCols = 2000}
+
+>>> let m = mkDense (mat 2 [1..4])
+>>> m
+Dense {gmDense = (2><2)
+ [ 1.0, 2.0
+ , 3.0, 4.0 ], nRows = 2, nCols = 2}
+
+-}
 data GMatrix
     = SparseR
         { gmCSR   :: CSR
@@ -146,7 +165,13 @@ gmXv Dense{..} v
                                  nRows nCols (dim v)
 
 
--- | general matrix - vector product
+{- | general matrix - vector product
+
+>>> let m = mkSparse [((0,999),1.0),((1,1999),2.0)]
+>>> m !#> vect[1..2000]
+fromList [1000.0,4000.0]
+
+-}
 infixr 8 !#>
 (!#>) :: GMatrix -> Vector Double -> Vector Double
 (!#>) = gmXv
