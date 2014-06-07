@@ -62,40 +62,19 @@ import Numeric.HMatrix hiding (
 import qualified Numeric.HMatrix as LA
 import Data.Proxy(Proxy)
 import Numeric.LinearAlgebra.Static
-import Text.Printf
 import Control.Arrow((***))
 
 
 𝑖 :: Sized ℂ s c => s
-𝑖 = konst i_C
+𝑖 = konst iC
 
-instance forall n . KnownNat n => Show (R n)
-  where
-    show (ud1 -> v)
-      | singleV v = "("++show (v!0)++" :: R "++show d++")"
-      | otherwise   = "(vector"++ drop 8 (show v)++" :: R "++show d++")"
-      where
-        d = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
 
-instance forall n . KnownNat n => Show (C n)
-  where
-    show (C (Dim v))
-      | singleV v = "("++show (v!0)++" :: C "++show d++")"
-      | otherwise   = "(vector"++ drop 8 (show v)++" :: C "++show d++")"
-      where
-        d = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
 
 
 
 ud1 :: R n -> Vector ℝ
 ud1 (R (Dim v)) = v
 
-
-mkR :: Vector ℝ -> R n
-mkR = R . Dim
-
-mkC :: Vector ℂ -> C n
-mkC = C . Dim
 
 infixl 4 &
 (&) :: forall n . KnownNat n
@@ -143,95 +122,12 @@ dim = mkR (scalar d)
 
 --------------------------------------------------------------------------------
 
-newtype L m n = L (Dim m (Dim n (Matrix ℝ)))
-
-newtype M m n = M (Dim m (Dim n (Matrix  ℂ)))
 
 ud2 :: L m n -> Matrix ℝ
 ud2 (L (Dim (Dim x))) = x
 
 
-mkL :: Matrix ℝ -> L m n
-mkL x = L (Dim (Dim x))
-
-mkM :: Matrix ℂ -> M m n
-mkM x = M (Dim (Dim x))
-
-instance forall m n . (KnownNat m, KnownNat n) => Show (L m n)
-  where
-    show (isDiag -> Just (z,y,(m',n'))) = printf "(diag %s %s :: L %d %d)" (show z) (drop 9 $ show y) m' n'
-    show (ud2 -> x)
-       | singleM x = printf "(%s :: L %d %d)" (show (x `atIndex` (0,0))) m' n'
-       | otherwise = "(matrix"++ dropWhile (/='\n') (show x)++" :: L "++show m'++" "++show n'++")"
-      where
-        m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
-        n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
-
-instance forall m n . (KnownNat m, KnownNat n) => Show (M m n)
-  where
-    show (isDiagC -> Just (z,y,(m',n'))) = printf "(diag %s %s :: M %d %d)" (show z) (drop 9 $ show y) m' n'
-    show (M (Dim (Dim x)))
-       | singleM x = printf "(%s :: M %d %d)" (show (x `atIndex` (0,0))) m' n'
-       | otherwise = "(matrix"++ dropWhile (/='\n') (show x)++" :: M "++show m'++" "++show n'++")"
-      where
-        m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
-        n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
-
-
 --------------------------------------------------------------------------------
-
-instance forall n. KnownNat n => Sized ℂ (C n) (Vector ℂ)
-  where
-    konst x = mkC (LA.scalar x)
-    unwrap (C (Dim v)) = v
-    fromList xs = C (gvect "C" xs)
-    extract (unwrap -> v)
-      | singleV v = LA.konst (v!0) d
-      | otherwise = v
-     where
-       d = fromIntegral . natVal $ (undefined :: Proxy n)
-
-
-instance forall n. KnownNat n => Sized ℝ (R n) (Vector ℝ)
-  where
-    konst x = mkR (LA.scalar x)
-    unwrap = ud1
-    fromList xs = R (gvect "R" xs)
-    extract (unwrap -> v)
-      | singleV v = LA.konst (v!0) d
-      | otherwise = v
-     where
-       d = fromIntegral . natVal $ (undefined :: Proxy n)
-
-
-
-instance forall m n . (KnownNat m, KnownNat n) => Sized ℝ (L m n) (Matrix ℝ)
-  where
-    konst x = mkL (LA.scalar x)
-    fromList xs = L (gmat "L" xs)
-    unwrap = ud2
-    extract (isDiag -> Just (z,y,(m',n'))) = diagRect z y m' n'
-    extract (unwrap -> a)
-        | singleM a = LA.konst (a `atIndex` (0,0)) (m',n')
-        | otherwise = a
-      where
-        m' = fromIntegral . natVal $ (undefined :: Proxy m)
-        n' = fromIntegral . natVal $ (undefined :: Proxy n)
-
-
-instance forall m n . (KnownNat m, KnownNat n) => Sized ℂ (M m n) (Matrix ℂ)
-  where
-    konst x = mkM (LA.scalar x)
-    fromList xs = M (gmat "M" xs)
-    unwrap (M (Dim (Dim m))) = m
-    extract (isDiagC -> Just (z,y,(m',n'))) = diagRect z y m' n'
-    extract (unwrap -> a)
-        | singleM a = LA.konst (a `atIndex` (0,0)) (m',n')
-        | otherwise = a
-      where
-        m' = fromIntegral . natVal $ (undefined :: Proxy m)
-        n' = fromIntegral . natVal $ (undefined :: Proxy n)
-
 --------------------------------------------------------------------------------
 
 diagR :: forall m n k . (KnownNat m, KnownNat n, KnownNat k) => ℝ -> R k -> L m n
@@ -265,41 +161,6 @@ blockAt x r c a = mkL res
 
 
 
-
-
---------------------------------------------------------------------------------
-
-class Disp t
-  where
-    disp :: Int -> t -> IO ()
-
-
-instance (KnownNat m, KnownNat n) => Disp (L m n)
-  where
-    disp n x = do
-        let a = extract x
-        let su = LA.dispf n a
-        printf "L %d %d" (rows a) (cols a) >> putStr (dropWhile (/='\n') $ su)
-
-instance (KnownNat m, KnownNat n) => Disp (M m n)
-  where
-    disp n x = do
-        let a = extract x
-        let su = LA.dispcf n a
-        printf "M %d %d" (rows a) (cols a) >> putStr (dropWhile (/='\n') $ su)
-
-
-instance KnownNat n => Disp (R n)
-  where
-    disp n v = do
-        let su = LA.dispf n (asRow $ extract v)
-        putStr "R " >> putStr (tail . dropWhile (/='x') $ su)
-
-instance KnownNat n => Disp (C n)
-  where
-    disp n v = do
-        let su = LA.dispcf n (asRow $ extract v)
-        putStr "C " >> putStr (tail . dropWhile (/='x') $ su)
 
 
 --------------------------------------------------------------------------------
@@ -344,28 +205,6 @@ isKonst (unwrap -> x)
 
 
 
-isDiag :: forall m n . (KnownNat m, KnownNat n) => L m n -> Maybe (ℝ, Vector ℝ, (Int,Int))
-isDiag (L x) = isDiagg x
-
-isDiagC :: forall m n . (KnownNat m, KnownNat n) => M m n -> Maybe (ℂ, Vector ℂ, (Int,Int))
-isDiagC (M x) = isDiagg x
-
-
-isDiagg :: forall m n t . (Numeric t, KnownNat m, KnownNat n) => GM m n t -> Maybe (t, Vector t, (Int,Int))
-isDiagg (Dim (Dim x))
-    | singleM x = Nothing
-    | rows x == 1 && m' > 1 || cols x == 1 && n' > 1 = Just (z,yz,(m',n'))
-    | otherwise = Nothing
-  where
-    m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
-    n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
-    v = flatten x
-    z = v `atIndex` 0
-    y = subVector 1 (size v-1) v
-    ny = size y
-    zeros = LA.konst 0 (max 0 (min m' n' - ny))
-    yz = vjoin [y,zeros]
-
 
 infixr 8 <>
 (<>) :: forall m k n. (KnownNat m, KnownNat k, KnownNat n) => L m k -> L k n -> L m n
@@ -396,74 +235,6 @@ infixr 8 <·>
 (ud1 -> u) <·> (ud1 -> v)
     | singleV u || singleV v = sumElements (u * v)
     | otherwise = udot u v
-
-
-instance (KnownNat n, KnownNat m) => Transposable (L m n) (L n m)
-  where
-    tr a@(isDiag -> Just _) = mkL (extract a)
-    tr (extract -> a) = mkL (tr a)
-
-instance (KnownNat n, KnownNat m) => Transposable (M m n) (M n m)
-  where
-    tr a@(isDiagC -> Just _) = mkM (extract a)
-    tr (extract -> a) = mkM (tr a)
-
-
---------------------------------------------------------------------------------
-
-adaptDiag f a@(isDiag -> Just _) b | isFull b = f (mkL (extract a)) b
-adaptDiag f a b@(isDiag -> Just _) | isFull a = f a (mkL (extract b))
-adaptDiag f a b = f a b
-
-isFull m = isDiag m == Nothing && not (singleM (unwrap m))
-
-
-lift1L f (L v) = L (f v)
-lift2L f (L a) (L b) = L (f a b)
-lift2LD f = adaptDiag (lift2L f)
-
-
-instance (KnownNat n, KnownNat m) =>  Num (L n m)
-  where
-    (+) = lift2LD (+)
-    (*) = lift2LD (*)
-    (-) = lift2LD (-)
-    abs = lift1L abs
-    signum = lift1L signum
-    negate = lift1L negate
-    fromInteger = L . Dim . Dim . fromInteger
-
-instance (KnownNat n, KnownNat m) => Fractional (L n m)
-  where
-    fromRational = L . Dim . Dim . fromRational
-    (/) = lift2LD (/)
-
---------------------------------------------------------------------------------
-
-adaptDiagC f a@(isDiagC -> Just _) b | isFullC b = f (mkM (extract a)) b
-adaptDiagC f a b@(isDiagC -> Just _) | isFullC a = f a (mkM (extract b))
-adaptDiagC f a b = f a b
-
-isFullC m = isDiagC m == Nothing && not (singleM (unwrap m))
-
-lift1M f (M v) = M (f v)
-lift2M f (M a) (M b) = M (f a b)
-lift2MD f = adaptDiagC (lift2M f)
-
-instance (KnownNat n, KnownNat m) =>  Num (M n m)
-  where
-    (+) = lift2MD (+)
-    (*) = lift2MD (*)
-    (-) = lift2MD (-)
-    abs = lift1M abs
-    signum = lift1M signum
-    negate = lift1M negate
-    fromInteger = M . Dim . Dim . fromInteger
-
-instance (KnownNat n, KnownNat m) => Fractional (M n m)
-  where
-    fromRational = M . Dim . Dim . fromRational
-    (/) = lift2MD (/)
 
 --------------------------------------------------------------------------------
 
