@@ -64,6 +64,7 @@ module Numeric.LinearAlgebra.Algorithms (
     nullspacePrec,
     nullVector,
     nullspaceSVD,
+    orthSVD,
     orth,
 -- * Norms
     Normed(..), NormType(..),
@@ -463,7 +464,7 @@ nullspaceSVD :: Field t
                                   --   or Right \"theoretical\" matrix rank.
              -> Matrix t          -- ^ input matrix m
              -> (Vector Double, Matrix t) -- ^ 'rightSV' of m
-             -> [Vector t]        -- ^ list of unitary vectors spanning the nullspace
+             -> Matrix t          -- ^ nullspace
 nullspaceSVD hint a (s,v) = vs where
     tol = case hint of
         Left t -> t
@@ -471,7 +472,7 @@ nullspaceSVD hint a (s,v) = vs where
     k = case hint of
         Right t -> t
         _       -> rankSVD tol a s
-    vs = drop k $ toRows $ ctrans v
+    vs = dropColumns k v
 
 
 -- | The nullspace of a matrix. See also 'nullspaceSVD'.
@@ -479,11 +480,28 @@ nullspacePrec :: Field t
               => Double     -- ^ relative tolerance in 'eps' units (e.g., use 3 to get 3*'eps')
               -> Matrix t   -- ^ input matrix
               -> [Vector t] -- ^ list of unitary vectors spanning the nullspace
-nullspacePrec t m = nullspaceSVD (Left (t*eps)) m (rightSV m)
+nullspacePrec t m = toColumns $ nullspaceSVD (Left (t*eps)) m (rightSV m)
 
 -- | The nullspace of a matrix, assumed to be one-dimensional, with machine precision.
 nullVector :: Field t => Matrix t -> Vector t
 nullVector = last . nullspacePrec 1
+
+-- | The range space a matrix from its precomputed SVD decomposition.
+orthSVD :: Field t
+             => Either Double Int -- ^ Left \"numeric\" zero (eg. 1*'eps'),
+                                  --   or Right \"theoretical\" matrix rank.
+             -> Matrix t          -- ^ input matrix m
+             -> (Matrix t, Vector Double) -- ^ 'leftSV' of m
+             -> Matrix t          -- ^ orth
+orthSVD hint a (v,s) = vs where
+    tol = case hint of
+        Left t -> t
+        _      -> eps
+    k = case hint of
+        Right t -> t
+        _       -> rankSVD tol a s
+    vs = takeColumns k v
+
 
 orth :: Field t => Matrix t -> [Vector t]
 -- ^ Return an orthonormal basis of the range space of a matrix
@@ -541,7 +559,7 @@ rcond :: Field t => Matrix t -> Double
 rcond m = last s / head s
     where s = toList (singularValues m)
 
--- | Number of linearly independent rows or columns.
+-- | Number of linearly independent rows or columns. See also 'ranksv'
 rank :: Field t => Matrix t -> Int
 rank m = rankSVD eps m (singularValues m)
 
