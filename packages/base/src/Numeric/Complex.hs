@@ -14,43 +14,35 @@
 
 
 {- |
-Module      :  Numeric.LinearAlgebra.Complex
+Module      :  Numeric.HMatrix.Static.Complex
 Copyright   :  (c) Alberto Ruiz 2006-14
 License     :  BSD3
 Stability   :  experimental
 
 -}
 
-module Numeric.LinearAlgebra.Complex(
-    C,
+module Numeric.Complex(
+    C, M,
     vec2, vec3, vec4, (&), (#),
     vect,
-    R
+    Her, her, 𝑖,
 ) where
 
 import GHC.TypeLits
-import Numeric.HMatrix hiding (
-    (<>),(#>),(<·>),Konst(..),diag, disp,(¦),(——),row,col,vect,mat,linspace)
-import qualified Numeric.HMatrix as LA
-import Data.Proxy(Proxy)
+import Numeric.LinearAlgebra.Util(ℂ,iC)
+import qualified Numeric.LinearAlgebra.HMatrix as LA
 import Numeric.LinearAlgebra.Static
 
 
+𝑖 :: Sized ℂ s c => s
+𝑖 = konst iC
 
-instance forall n . KnownNat n => Show (C n)
-  where
-    show (ud1 -> v)
-      | size v == 1 = "("++show (v!0)++" :: C "++show d++")"
-      | otherwise   = "(vect"++ drop 8 (show v)++" :: C "++show d++")"
-      where
-        d = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
+newtype Her n = Her (M n n)
+
+her :: KnownNat n => M n n -> Her n
+her m = Her $ (m + LA.tr m)/2
 
 
-ud1 :: C n -> Vector ℂ
-ud1 (C (Dim v)) = v
-
-mkC :: Vector ℂ -> C n
-mkC = C . Dim
 
 
 infixl 4 &

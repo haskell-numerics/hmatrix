@@ -25,7 +25,7 @@ module Numeric.LinearAlgebra.Static where
 
 
 import GHC.TypeLits
-import Numeric.HMatrix as LA
+import Numeric.LinearAlgebra.HMatrix as LA
 import Data.Packed as D
 import Data.Packed.ST
 import Data.Proxy(Proxy)

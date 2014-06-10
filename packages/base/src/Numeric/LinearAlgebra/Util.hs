@@ -19,7 +19,7 @@ Stability   :  provisional
 module Numeric.LinearAlgebra.Util(
 
     -- * Convenience functions
-    vect, mat,
+    vector, matrix,
     disp,
     zeros, ones,
     diagl,
@@ -79,27 +79,27 @@ iC = 0:+1
 
 {- | create a real vector
 
->>> vect [1..5]
+>>> vector [1..5]
 fromList [1.0,2.0,3.0,4.0,5.0]
 
 -}
-vect :: [ℝ] -> Vector ℝ
-vect = fromList
+vector :: [ℝ] -> Vector ℝ
+vector = fromList
 
 {- | create a real matrix
 
->>> mat 5 [1..15]
+>>> matrix 5 [1..15]
 (3><5)
  [  1.0,  2.0,  3.0,  4.0,  5.0
  ,  6.0,  7.0,  8.0,  9.0, 10.0
  , 11.0, 12.0, 13.0, 14.0, 15.0 ]
 
 -}
-mat
+matrix
   :: Int -- ^ columns
   -> [ℝ] -- ^ elements
   -> Matrix ℝ
-mat c = reshape c . fromList
+matrix c = reshape c . fromList
 
 
 {- | print a real matrix with given number of digits after the decimal point

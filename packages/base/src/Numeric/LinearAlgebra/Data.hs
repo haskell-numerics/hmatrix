@@ -16,11 +16,11 @@ module Numeric.LinearAlgebra.Data(
     -- * Vector
     -- | 1D arrays are storable vectors from the vector package.
     
-    vect, (|>),
+    vector, (|>),
 
     -- * Matrix
     
-    mat, (><), tr,
+    matrix, (><), tr,
     
     -- * Indexing
     

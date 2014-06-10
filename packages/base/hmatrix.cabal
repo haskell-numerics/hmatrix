@@ -47,14 +47,14 @@ library
                         Numeric.HMatrix
                         Numeric.LinearAlgebra.Devel
                         Numeric.LinearAlgebra.Data
-                        Numeric.LinearAlgebra.Real
-             --           Numeric.LinearAlgebra.Complex
+                        Numeric.LinearAlgebra.HMatrix
+                        
 
 
     other-modules:      Data.Packed.Internal,
-                        Data.Packed.Internal.Common,
-                        Data.Packed.Internal.Signatures,
-                        Data.Packed.Internal.Vector,
+                        Data.Packed.Internal.Common
+                        Data.Packed.Internal.Signatures
+                        Data.Packed.Internal.Vector
                         Data.Packed.Internal.Matrix
                         Data.Packed.IO
                         Numeric.Chain
@@ -68,6 +68,7 @@ library
                         Numeric.LinearAlgebra.Random
                         Numeric.Conversion
                         Numeric.Sparse
+                        Numeric.Complex
                         Numeric.LinearAlgebra.Static
 
     C-sources:          src/C/lapack-aux.c

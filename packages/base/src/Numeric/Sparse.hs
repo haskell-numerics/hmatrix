@@ -168,7 +168,7 @@ gmXv Dense{..} v
 {- | general matrix - vector product
 
 >>> let m = mkSparse [((0,999),1.0),((1,1999),2.0)]
->>> m !#> vect[1..2000]
+>>> m !#> vector [1..2000]
 fromList [1000.0,4000.0]
 
 -}
