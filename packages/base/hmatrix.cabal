@@ -68,7 +68,6 @@ library
                         Numeric.LinearAlgebra.Random
                         Numeric.Conversion
                         Numeric.Sparse
-                        Numeric.Complex
                         Numeric.LinearAlgebra.Static
 
     C-sources:          src/C/lapack-aux.c
