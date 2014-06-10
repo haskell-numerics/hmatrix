@@ -11,7 +11,7 @@ import Foreign.C.Types(CInt(..))
 import Numeric.LinearAlgebra.Devel
 import System.IO.Unsafe(unsafePerformIO)
 import Foreign(Ptr)
-import Numeric.HMatrix
+import Numeric.LinearAlgebra.HMatrix
 import Text.Printf
 import Numeric.LinearAlgebra.Util((~!~))
 

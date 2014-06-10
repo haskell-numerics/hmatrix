@@ -27,7 +27,7 @@ Experimental interface with statically checked dimensions.
 
 module Numeric.HMatrix(
     -- * Vector
-    R,
+    ℝ, R,
     vec2, vec3, vec4, (&), (#), split, headTail,
     vector,
     linspace, range, dim,
@@ -35,7 +35,7 @@ module Numeric.HMatrix(
     L, Sq, build,
     row, col, (¦),(——), splitRows, splitCols,
     unrow, uncol,
-
+    tr,
     eye,
     diag,
     blockAt,
@@ -76,7 +76,7 @@ ud1 (R (Dim v)) = v
 
 
 infixl 4 &
-(&) :: forall n . KnownNat n
+(&) :: forall n . (KnownNat n, 1 <= n)
     => R n -> ℝ -> R (n+1)
 u & x = u # (konst x :: R 1)
 

@@ -28,6 +28,8 @@
     * "dot" now conjugates the first input vector.
 
     * Added "udot" (unconjugated dot product).
+    
+    * Added "sortVector"
 
     * Added Monoid instance for Matrix using matrix product.
 

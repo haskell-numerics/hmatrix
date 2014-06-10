@@ -27,8 +27,8 @@ module Numeric.LinearAlgebra.Tests(
 ) where
 
 import Numeric.LinearAlgebra
-import Numeric.HMatrix hiding ((<>),linearSolve)
-import Numeric.LinearAlgebra.Real(L)
+import Numeric.LinearAlgebra.HMatrix hiding ((<>),linearSolve)
+import Numeric.HMatrix(L)
 import Numeric.LinearAlgebra.Util(col,row)
 import Data.Packed
 import Numeric.LinearAlgebra.LAPACK
