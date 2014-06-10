@@ -51,6 +51,8 @@ module Data.Packed.Numeric (
     gaussianSample,
     uniformSample,
     meanCov,
+    -- * sorting
+    sortVector,
     -- * Element conversion
     Convert(..),
     Complexable(),

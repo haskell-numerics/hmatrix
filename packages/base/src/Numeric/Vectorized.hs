@@ -18,7 +18,8 @@ module Numeric.Vectorized (
     FunCodeSV(..), vectorMapValR, vectorMapValC, vectorMapValF, vectorMapValQ,
     FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF, vectorZipQ,
     vectorScan, saveMatrix,
-    Seed, RandDist(..), randomVector
+    Seed, RandDist(..), randomVector,
+    sortVector
 ) where
 
 import Data.Packed.Internal.Common
@@ -343,4 +344,13 @@ randomVector seed dist n = unsafePerformIO $ do
     return r
 
 foreign import ccall unsafe "random_vector" c_random_vector :: CInt -> CInt -> TV
+
+--------------------------------------------------------------------------------
+
+sortVector v = unsafePerformIO $ do
+    r <- createVector (dim v)
+    app2 c_sort_values vec v vec r "sortVector"
+    return r
+
+foreign import ccall unsafe "sort_values" c_sort_values :: TVV
 

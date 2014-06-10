@@ -47,6 +47,7 @@ module Numeric.LinearAlgebra.Data(
     
     -- * Find elements
     find, maxIndex, minIndex, maxElement, minElement, atIndex,
+    sortVector,
 
     -- * Sparse
     AssocMatrix, toDense,

@@ -770,3 +770,16 @@ int smTXv(KDVEC(vals),KIVEC(cols),KIVEC(rows),KDVEC(x),DVEC(r)) {
     OK
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+int
+compare_doubles (const void *a, const void *b) {
+  return *(double*)a > *(double*)b;
+}
+
+int sort_values(KDVEC(v),DVEC(r)) {
+    memcpy(rp,vp,vn*sizeof(double));
+    qsort(rp,rn,sizeof(double),compare_doubles);
+    OK
+}
+

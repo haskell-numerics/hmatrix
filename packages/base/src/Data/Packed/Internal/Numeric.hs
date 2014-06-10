@@ -30,6 +30,8 @@ module Data.Packed.Internal.Numeric (
     Product(..), udot,
     mXm,mXv,vXm,
     outer, kronecker,
+    -- * sorting
+    sortVector,
     -- * Element conversion
     Convert(..),
     Complexable(),
