@@ -36,9 +36,8 @@ module Data.Packed.Internal.Numeric (
     Convert(..),
     Complexable(),
     RealElement(),
-
+    roundVector,
     RealOf, ComplexOf, SingleOf, DoubleOf,
-
     IndexOf,
     module Data.Complex
 ) where

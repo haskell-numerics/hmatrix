@@ -57,9 +57,8 @@ module Data.Packed.Numeric (
     Convert(..),
     Complexable(),
     RealElement(),
-
     RealOf, ComplexOf, SingleOf, DoubleOf,
-
+    roundVector,
     IndexOf,
     module Data.Complex,
     -- * IO

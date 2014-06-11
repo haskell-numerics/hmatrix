@@ -783,3 +783,13 @@ int sort_values(KDVEC(v),DVEC(r)) {
     OK
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+int round_vector(KDVEC(v),DVEC(r)) {
+    int k;
+    for(k=0; k<vn; k++) {
+        rp[k] = round(vp[k]);
+    }
+    OK
+}
+
