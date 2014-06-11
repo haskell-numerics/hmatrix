@@ -402,9 +402,14 @@ compat' m1 m2 = s1 == (1,1) || s2 == (1,1) || s1 == s2
 
 ------------------------------------------------------------
 
-toBlockRows [r] m | r == rows m = [m]
-toBlockRows rs m = map (reshape (cols m)) (takesV szs (flatten m))
-    where szs = map (* cols m) rs
+toBlockRows [r] m
+    | r == rows m = [m]
+toBlockRows rs m
+    | cols m > 0 = map (reshape (cols m)) (takesV szs (flatten m))
+    | otherwise = map g rs
+  where
+    szs = map (* cols m) rs
+    g k = (k><0)[]
 
 toBlockCols [c] m | c == cols m = [m]
 toBlockCols cs m = map trans . toBlockRows cs . trans $ m
@@ -412,7 +417,12 @@ toBlockCols cs m = map trans . toBlockRows cs . trans $ m
 -- | Partition a matrix into blocks with the given numbers of rows and columns.
 -- The remaining rows and columns are discarded.
 toBlocks :: (Element t) => [Int] -> [Int] -> Matrix t -> [[Matrix t]]
-toBlocks rs cs m = map (toBlockCols cs) . toBlockRows rs $ m
+toBlocks rs cs m
+    | ok = map (toBlockCols cs) . toBlockRows rs $ m
+    | otherwise = error $ "toBlocks: bad partition: "++show rs++" "++show cs
+                          ++ " "++shSize m
+  where
+    ok = sum rs <= rows m && sum cs <= cols m && all (>=0) rs && all (>=0) cs
 
 -- | Fully partition a matrix into blocks of the same size. If the dimensions are not
 -- a multiple of the given size the last blocks will be smaller.
