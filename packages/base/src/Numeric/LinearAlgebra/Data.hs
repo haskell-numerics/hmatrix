@@ -58,10 +58,10 @@ module Numeric.LinearAlgebra.Data(
     loadMatrix, saveMatrix,
     latexFormat,
     dispf, disps, dispcf, format,
-
+    dispDots, dispBlanks, dispShort,
 -- * Conversion
     Convert(..),
-    
+    roundVector,
     -- * Misc
     arctan2,
     rows, cols,

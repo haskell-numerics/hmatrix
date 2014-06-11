@@ -26,6 +26,7 @@ library
                         array,
                         deepseq,
                         random,
+                        split,
                         storable-complex,
                         vector >= 0.8
 

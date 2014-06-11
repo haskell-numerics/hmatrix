@@ -3,6 +3,8 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE ViewPatterns #-}
+
 
 -----------------------------------------------------------------------------
 {- |
@@ -21,6 +23,12 @@ module Numeric.LinearAlgebra.Util(
     -- * Convenience functions
     vector, matrix,
     disp,
+    formatSparse,
+    approxInt,
+    dispDots,
+    dispBlanks,
+    formatShort,
+    dispShort,
     zeros, ones,
     diagl,
     row,
@@ -67,6 +75,9 @@ import Numeric.Vector()
 import Numeric.LinearAlgebra.Random
 import Numeric.LinearAlgebra.Util.Convolution
 import Control.Monad(when)
+import Text.Printf
+import Data.List.Split(splitOn)
+import Data.List(intercalate)
 
 type ℝ = Double
 type ℕ = Int
@@ -112,7 +123,7 @@ matrix c = reshape c . fromList
 -}
 disp :: Int -> Matrix Double -> IO ()
 
-disp n = putStrLn . dispf n
+disp n = putStr . dispf n
 
 
 {- | create a real diagonal matrix from a list
@@ -400,4 +411,66 @@ vtrans p m | r == 0 = fromBlocks . map (map asColumn . takesV (replicate q p)) .
 
 infixl 0 ~!~
 c ~!~ msg = when c (error msg)
+
+--------------------------------------------------------------------------------
+
+formatSparse :: String -> String -> String -> Int -> Matrix Double -> String
+
+formatSparse zeroI zeroF sep _ (approxInt -> Just m) = format sep f m
+  where
+    f 0 = zeroI
+    f x = printf "%.0f" x
+
+formatSparse zeroI zeroF sep n m = format sep f m
+  where
+    f x | abs (x::Double) < 2*peps = zeroI++zeroF
+        | abs (fromIntegral (round x) - x) / abs x < 2*peps = printf ("%.0f."++replicate n ' ') x
+        | otherwise = printf ("%."++show n++"f") x
+
+approxInt m
+    | norm_Inf (v - vi) < 2*peps * norm_Inf v = Just (reshape (cols m) vi)
+    | otherwise = Nothing
+  where
+    v = flatten m
+    vi = roundVector v
+
+dispDots n = putStr . formatSparse "." (replicate n ' ') "  " n
+
+dispBlanks n = putStr . formatSparse "" "" "  " n
+
+formatShort sep fmt maxr maxc m = auxm4
+  where
+    (rm,cm) = size m
+    (r1,r2,r3)
+        | rm <= maxr = (rm,0,0)
+        | otherwise  = (maxr-3,rm-maxr+1,2)
+    (c1,c2,c3)
+        | cm <= maxc = (cm,0,0)
+        | otherwise  = (maxc-3,cm-maxc+1,2)
+    [ [a,_,b]
+     ,[_,_,_]
+     ,[c,_,d]] = toBlocks [r1,r2,r3]
+                          [c1,c2,c3] m
+    auxm = fromBlocks [[a,b],[c,d]]
+    auxm2
+        | cm > maxc = format "|" fmt auxm
+        | otherwise = format sep fmt auxm
+    auxm3
+        | cm > maxc = map (f . splitOn "|") (lines auxm2)
+        | otherwise = (lines auxm2)
+    f items = intercalate sep (take (maxc-3) items) ++ "  .. " ++
+              intercalate sep (drop (maxc-3) items)
+    auxm4
+        | rm > maxr = unlines (take (maxr-3) auxm3 ++ vsep : drop (maxr-3) auxm3)
+        | otherwise = unlines auxm3
+    vsep = map g (head auxm3)
+    g '.' = ':'
+    g _ = ' '
+
+
+dispShort :: Int -> Int -> Int -> Matrix Double -> IO ()
+dispShort maxr maxc dec m =
+    printf "%dx%d\n%s" (rows m) (cols m) (formatShort "  " fmt maxr maxc m)
+  where
+    fmt = printf ("%."++show dec ++"f")
 
