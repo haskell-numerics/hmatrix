@@ -7,7 +7,7 @@
       license has been changed to BSD3.
 
     * Added more organized reexport modules:
-        Numeric.HMatrix
+        Numeric.LinearAlgebra.HMatrix
         Numeric.LinearAlgebra.Data
         Numeric.LinearAlgebra.Devel
 
@@ -28,15 +28,19 @@
     * "dot" now conjugates the first input vector.
 
     * Added "udot" (unconjugated dot product).
-    
-    * Added "sortVector"
+
+    * Added "sortVector", "roundVector"
 
     * Added Monoid instance for Matrix using matrix product.
 
     * Added a different operator for the matrix-vector product.
       (available from the new reexport module).
 
-    * Improved "build", "konst", "linspace", "LSDiv", and other small changes.
+    * Added several pretty print functions
+
+    * Improved "build", "konst", "linspace", "LSDiv", loadMatrix', and other small changes.
+
+    * Added L1 linear system solver in hmatrix-glpk
 
     * Improved error messages.
 

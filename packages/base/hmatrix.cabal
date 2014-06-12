@@ -15,7 +15,7 @@ cabal-version:      >=1.8
 
 build-type:         Simple
 
-extra-source-files: THANKS.md INSTALL.md CHANGELOG
+extra-source-files: THANKS.md CHANGELOG
 
 extra-source-files: src/C/lapack-aux.h
 
