@@ -14,7 +14,7 @@
 
 module Data.Packed.IO (
     dispf, disps, dispcf, vecdisp, latexFormat, format,
-    readMatrix, fromArray2D, loadMatrix, saveMatrix
+    readMatrix, fromArray2D, loadMatrix, loadMatrix', saveMatrix
 ) where
 
 import Data.Packed
@@ -155,5 +155,13 @@ loadMatrix :: FilePath -> IO (Matrix Double)
 loadMatrix f = do
     v <- vectorScan f
     c <- apparentCols f
-    return (reshape c v)
+    if (dim v `mod` c /= 0)
+      then
+        error $ printf "loadMatrix: %d elements and %d columns in file %s"
+                       (dim v) c f
+      else
+        return (reshape c v)
+
+
+loadMatrix' name = mbCatch (loadMatrix name)
 

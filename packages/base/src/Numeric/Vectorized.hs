@@ -294,7 +294,7 @@ vectorScan s = do
     cs <- newCString s
     ok <- c_vectorScan cs pn pp
     when (not (ok == 0)) $
-        error ("vectorScan \"" ++ s ++"\"")
+        error ("vectorScan: file \"" ++ s ++"\" not found")
     n <- fromIntegral <$> peek pn
     p <- peek pp
     v <- createVector n

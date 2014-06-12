@@ -654,6 +654,9 @@ int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
 int vectorScan(char * file, int* n, double**pp){
     FILE * fp;
     fp = fopen (file, "r");
+    if(!fp) {
+        ERROR(BAD_FILE);
+    }
     int nbuf = 100*100;
     double * p = (double*)malloc(nbuf*sizeof(double));
     int k=0;
@@ -667,7 +670,7 @@ int vectorScan(char * file, int* n, double**pp){
         if (k==nbuf) {
             nbuf = nbuf * 2;
             p = (double*)realloc(p,nbuf*sizeof(double));
-            //printf("R\n");
+            // printf("R\n");
         }
         p[k++] = d;
     }

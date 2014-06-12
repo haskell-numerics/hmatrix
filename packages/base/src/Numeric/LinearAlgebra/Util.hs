@@ -416,7 +416,7 @@ c ~!~ msg = when c (error msg)
 
 formatSparse :: String -> String -> String -> Int -> Matrix Double -> String
 
-formatSparse zeroI zeroF sep _ (approxInt -> Just m) = format sep f m
+formatSparse zeroI _zeroF sep _ (approxInt -> Just m) = format sep f m
   where
     f 0 = zeroI
     f x = printf "%.0f" x
@@ -424,7 +424,8 @@ formatSparse zeroI zeroF sep _ (approxInt -> Just m) = format sep f m
 formatSparse zeroI zeroF sep n m = format sep f m
   where
     f x | abs (x::Double) < 2*peps = zeroI++zeroF
-        | abs (fromIntegral (round x) - x) / abs x < 2*peps = printf ("%.0f."++replicate n ' ') x
+        | abs (fromIntegral (round x::Int) - x) / abs x < 2*peps
+            = printf ("%.0f."++replicate n ' ') x
         | otherwise = printf ("%."++show n++"f") x
 
 approxInt m

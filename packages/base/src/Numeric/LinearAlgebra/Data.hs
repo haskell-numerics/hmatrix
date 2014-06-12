@@ -55,7 +55,7 @@ module Numeric.LinearAlgebra.Data(
     
     -- * IO
     disp,
-    loadMatrix, saveMatrix,
+    loadMatrix, loadMatrix', saveMatrix,
     latexFormat,
     dispf, disps, dispcf, format,
     dispDots, dispBlanks, dispShort,
