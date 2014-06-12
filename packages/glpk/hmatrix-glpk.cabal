@@ -24,11 +24,12 @@ extra-source-files:     examples/simplex1.hs
 library
     Build-Depends:      base, hmatrix
 
-    hs-source-dirs:     lib
+    hs-source-dirs:     src
 
     Exposed-modules:    Numeric.LinearProgramming
+                        Numeric.LinearProgramming.L1
 
-    c-sources:          lib/Numeric/LinearProgramming/glpk.c
+    c-sources:          src/C/glpk.c
 
     ghc-options:  -Wall
 
