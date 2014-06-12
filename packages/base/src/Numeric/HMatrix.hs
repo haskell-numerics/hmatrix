@@ -47,21 +47,22 @@ module Numeric.HMatrix(
     -- * Linear Systems
     linSolve, (<\>),
     -- * Factorizations
-    svd, svdTall, svdFlat, Eigen(..),
-    withNullspace,
+    svd, withCompactSVD, svdTall, svdFlat, Eigen(..),
+    withNullspace, qr,
     -- * Misc
     mean,
     Disp(..), Domain(..),
     withVector, withMatrix,
     toRows, toColumns,
-    Sized(..), Diag(..), Sym, sym
+    Sized(..), Diag(..), Sym, sym, mTm, unSym
 ) where
 
 
 import GHC.TypeLits
 import Numeric.LinearAlgebra.HMatrix hiding (
     (<>),(#>),(<·>),Konst(..),diag, disp,(¦),(——),row,col,vector,matrix,linspace,toRows,toColumns,
-    (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',eigenvalues,eigenvaluesSH,eigenvaluesSH',build)
+    (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',eigenvalues,eigenvaluesSH,eigenvaluesSH',build,
+    qr)
 import qualified Numeric.LinearAlgebra.HMatrix as LA
 import Data.Proxy(Proxy)
 import Numeric.LinearAlgebra.Static
@@ -280,6 +281,12 @@ newtype Sym n = Sym (Sq n) deriving Show
 sym :: KnownNat n => Sq n -> Sym n
 sym m = Sym $ (m + tr m)/2
 
+mTm :: (KnownNat m, KnownNat n) => L m n -> Sym n
+mTm x = Sym (tr x <> x)
+
+unSym :: Sym n -> Sq n
+unSym (Sym x) = x
+
 
 𝑖 :: Sized ℂ s c => s
 𝑖 = konst iC
@@ -307,7 +314,6 @@ instance KnownNat n => Eigen (Sq n) (C n) (M n n)
 
 --------------------------------------------------------------------------------
 
-
 withNullspace
     :: forall m n z . (KnownNat m, KnownNat n)
     => L m n
@@ -317,6 +323,26 @@ withNullspace (LA.nullspace . extract -> a) f =
     case someNatVal $ fromIntegral $ cols a of
        Nothing -> error "static/dynamic mismatch"
        Just (SomeNat (_ :: Proxy k)) -> f (mkL a :: L n k)
+
+
+withCompactSVD
+    :: forall m n z . (KnownNat m, KnownNat n)
+    => L m n
+    -> (forall k . (KnownNat k) => (L m k, R k, L n k) -> z)
+    -> z
+withCompactSVD (LA.compactSVD . extract -> (u,s,v)) f =
+    case someNatVal $ fromIntegral $ size s of
+       Nothing -> error "static/dynamic mismatch"
+       Just (SomeNat (_ :: Proxy k)) -> f (mkL u :: L m k, mkR s :: R k, mkL v :: L n k)
+
+--------------------------------------------------------------------------------
+
+qr :: (KnownNat m, KnownNat n) => L m n -> (L m m, L m n)
+qr (extract -> x) = (mkL q, mkL r)
+  where
+    (q,r) = LA.qr x
+
+-- use qrRaw?
 
 --------------------------------------------------------------------------------
 
@@ -518,7 +544,7 @@ test :: (Bool, IO ())
 test = (ok,info)
   where
     ok =   extract (eye :: Sq 5) == ident 5
-           && unwrap (mTm sm :: Sq 3) == tr ((3><3)[1..]) LA.<> (3><3)[1..]
+           && (unwrap .unSym) (mTm sm :: Sym 3) == tr ((3><3)[1..]) LA.<> (3><3)[1..]
            && unwrap (tm :: L 3 5) == LA.matrix 5 [1..15]
            && thingS == thingD
            && precS == precD
@@ -545,9 +571,6 @@ test = (ok,info)
     𝕧 x = vector [x] :: R 1
 
     v = 𝕧 2 & 4 & 7
-
---    mTm :: L n m -> Sq m
-    mTm a = tr a <> a
 
     tm :: GL
     tm = lmat 0 [1..]
