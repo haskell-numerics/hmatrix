@@ -13,7 +13,7 @@ Version 0.16 (june 2014) has [new features](changes).
 
 - [Source code and documentation at Hackage][source]
 
-- [Installation help and known problems][installation]
+- [Installation help][installation]
 
 Contributions, suggestions, and bug reports are welcome!
 
