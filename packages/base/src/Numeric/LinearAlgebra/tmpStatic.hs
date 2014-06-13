@@ -16,8 +16,8 @@
 
 
 {- |
-Module      :  Numeric.HMatrix
-Copyright   :  (c) Alberto Ruiz 2006-14
+Module      :  Numeric.LinearAlgebra.Static
+Copyright   :  (c) Alberto Ruiz 2014
 License     :  BSD3
 Stability   :  experimental
 
@@ -25,7 +25,7 @@ Experimental interface with statically checked dimensions.
 
 -}
 
-module Numeric.HMatrix(
+module Numeric.LinearAlgebra.Static(
     -- * Vector
     ℝ, R,
     vec2, vec3, vec4, (&), (#), split, headTail,
@@ -65,7 +65,7 @@ import Numeric.LinearAlgebra.HMatrix hiding (
     qr)
 import qualified Numeric.LinearAlgebra.HMatrix as LA
 import Data.Proxy(Proxy)
-import Numeric.LinearAlgebra.Static
+import Numeric.LinearAlgebra.Static.Internal
 import Control.Arrow((***))
 
 

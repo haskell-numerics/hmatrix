@@ -14,14 +14,14 @@
 
 
 {- |
-Module      :  Numeric.LinearAlgebra.Static
+Module      :  Numeric.LinearAlgebra.Static.Internal
 Copyright   :  (c) Alberto Ruiz 2006-14
 License     :  BSD3
 Stability   :  provisional
 
 -}
 
-module Numeric.LinearAlgebra.Static where
+module Numeric.LinearAlgebra.Static.Internal where
 
 
 import GHC.TypeLits
