@@ -472,7 +472,7 @@ nullspaceSVD hint a (s,v) = vs where
     k = case hint of
         Right t -> t
         _       -> rankSVD tol a s
-    vs = dropColumns k v
+    vs = conj (dropColumns k v)
 
 
 -- | The nullspace of a matrix. See also 'nullspaceSVD'.
