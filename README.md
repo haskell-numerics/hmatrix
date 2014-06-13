@@ -5,13 +5,13 @@ A purely functional interface to linear algebra and other numerical algorithms, 
 
 This package includes matrix decompositions (eigensystems, singular values, Cholesky, QR, etc.), linear solvers, numeric integration, root finding, etc.
 
-Version 0.16 (june 2014) has [new features](changes).
+Version 0.16 (june 2014) has [new features][changes].
 
-- [Code examples][examples] (in construction)
+- [Code examples (in construction)][examples]
 
-- [Tutorial][tutorial] (old version)
+- [Source code and documentation (Hackage)][source]
 
-- [Source code and documentation at Hackage][source]
+- [Tutorial (old version)][tutorial]
 
 - [Installation help][installation]
 
