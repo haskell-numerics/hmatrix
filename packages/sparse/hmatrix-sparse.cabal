@@ -19,7 +19,7 @@ build-type:         Simple
 
 
 library
-    Build-Depends:      base, hmatrix
+    Build-Depends:      base, hmatrix>=0.16
 
     hs-source-dirs:     src
 

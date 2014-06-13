@@ -5,12 +5,10 @@
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Tests
-Copyright   :  (c) Alberto Ruiz 2007-11
-License     :  GPL-style
-
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+Copyright   :  (c) Alberto Ruiz 2007-14
+License     :  BSD3
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
-Portability :  portable
 
 Some tests.
 

@@ -46,7 +46,7 @@ flag debugnan
 
 library
 
-    Build-Depends:      base, hmatrix, array, vector,
+    Build-Depends:      base, hmatrix>=0.16, array, vector,
                         process, random
 
 

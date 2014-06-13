@@ -1,6 +1,6 @@
 Name:               hmatrix-tests
 Version:            0.4
-License:            GPL
+License:            BSD3
 License-file:       LICENSE
 Author:             Alberto Ruiz
 Maintainer:         Alberto Ruiz <aruiz@um.es>
@@ -21,7 +21,7 @@ extra-source-files: CHANGES
 library
 
     Build-Depends:      base >= 4 && < 5,
-                        hmatrix, hmatrix-gsl,
+                        hmatrix >= 0.16, hmatrix-gsl >= 0.16,
                         QuickCheck >= 2, HUnit, random
 
     hs-source-dirs:     src

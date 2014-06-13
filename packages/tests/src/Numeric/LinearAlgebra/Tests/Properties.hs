@@ -4,11 +4,9 @@
 {- |
 Module      :  Numeric.LinearAlgebra.Tests.Properties
 Copyright   :  (c) Alberto Ruiz 2008
-License     :  GPL-style
-
-Maintainer  :  Alberto Ruiz (aruiz at um dot es)
+License     :  BSD3
+Maintainer  :  Alberto Ruiz
 Stability   :  provisional
-Portability :  portable
 
 Testing properties.
 
