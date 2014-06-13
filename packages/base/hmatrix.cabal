@@ -45,10 +45,10 @@ library
                         Numeric.Container
                         Numeric.LinearAlgebra.Util
 
-                        Numeric.HMatrix
                         Numeric.LinearAlgebra.Devel
                         Numeric.LinearAlgebra.Data
                         Numeric.LinearAlgebra.HMatrix
+                        Numeric.LinearAlgebra.Static
                         
 
 
@@ -69,7 +69,7 @@ library
                         Numeric.LinearAlgebra.Random
                         Numeric.Conversion
                         Numeric.Sparse
-                        Numeric.LinearAlgebra.Static
+                        Numeric.LinearAlgebra.Static.Internal
 
     C-sources:          src/C/lapack-aux.c
                         src/C/vector-aux.c

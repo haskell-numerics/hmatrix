@@ -26,7 +26,7 @@ module Numeric.LinearAlgebra.Tests(
 
 import Numeric.LinearAlgebra
 import Numeric.LinearAlgebra.HMatrix hiding ((<>),linearSolve)
-import Numeric.HMatrix(L)
+import Numeric.LinearAlgebra.Static(L)
 import Numeric.LinearAlgebra.Util(col,row)
 import Data.Packed
 import Numeric.LinearAlgebra.LAPACK
