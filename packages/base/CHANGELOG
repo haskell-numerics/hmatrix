@@ -40,7 +40,7 @@
 
     * Improved "build", "konst", "linspace", "LSDiv", loadMatrix', and other small changes.
 
-    * Added L1 linear system solver in hmatrix-glpk
+    * In hmatrix-glpk: (:=>:) change to (:>=:). Added L_1 linear system solvers.
 
     * Improved error messages.
 
