@@ -27,7 +27,8 @@ module Numeric.LinearAlgebra.Static.Internal where
 
 
 import GHC.TypeLits
-import Numeric.LinearAlgebra.HMatrix as LA
+import qualified Numeric.LinearAlgebra.HMatrix as LA
+import Numeric.LinearAlgebra.HMatrix hiding (konst)
 import Data.Packed as D
 import Data.Packed.ST
 import Data.Proxy(Proxy)
@@ -52,10 +53,10 @@ lift2F f (Dim u) (Dim v) = Dim (f u v)
 --------------------------------------------------------------------------------
 
 newtype R n = R (Dim n (Vector ℝ))
-  deriving (Num,Fractional)
+  deriving (Num,Fractional,Floating)
 
 newtype C n = C (Dim n (Vector ℂ))
-  deriving (Num,Fractional)
+  deriving (Num,Fractional,Floating)
 
 newtype L m n = L (Dim m (Dim n (Matrix ℝ)))
 
@@ -313,6 +314,25 @@ instance (Num (Vector t), Num (Matrix t), Numeric t) => Fractional (Dim n (Vecto
     fromRational x = Dim (fromRational x)
     (/) = lift2F (/)
 
+instance (Floating (Vector t), Numeric t) => Floating (Dim n (Vector t)) where
+    sin   = lift1F sin
+    cos   = lift1F cos
+    tan   = lift1F tan
+    asin  = lift1F asin
+    acos  = lift1F acos
+    atan  = lift1F atan
+    sinh  = lift1F sinh
+    cosh  = lift1F cosh
+    tanh  = lift1F tanh
+    asinh = lift1F asinh
+    acosh = lift1F acosh
+    atanh = lift1F atanh
+    exp   = lift1F exp
+    log   = lift1F log
+    sqrt  = lift1F sqrt
+    (**)  = lift2F (**)
+    pi    = Dim pi
+
 
 instance (Num (Matrix t), Numeric t) => Num (Dim m (Dim n (Matrix t)))
   where
@@ -328,6 +348,25 @@ instance (Num (Vector t), Num (Matrix t), Numeric t) => Fractional (Dim m (Dim n
   where
     fromRational x = Dim (Dim (fromRational x))
     (/) = (lift2F.lift2F) (/)
+
+instance (Num (Vector t), Floating (Matrix t), Numeric t) => Floating (Dim m (Dim n (Matrix t))) where
+    sin   = (lift1F . lift1F) sin
+    cos   = (lift1F . lift1F) cos
+    tan   = (lift1F . lift1F) tan
+    asin  = (lift1F . lift1F) asin
+    acos  = (lift1F . lift1F) acos
+    atan  = (lift1F . lift1F) atan
+    sinh  = (lift1F . lift1F) sinh
+    cosh  = (lift1F . lift1F) cosh
+    tanh  = (lift1F . lift1F) tanh
+    asinh = (lift1F . lift1F) asinh
+    acosh = (lift1F . lift1F) acosh
+    atanh = (lift1F . lift1F) atanh
+    exp   = (lift1F . lift1F) exp
+    log   = (lift1F . lift1F) log
+    sqrt  = (lift1F . lift1F) sqrt
+    (**)  = (lift2F . lift2F) (**)
+    pi    = Dim (Dim pi)
 
 --------------------------------------------------------------------------------
 
@@ -359,6 +398,25 @@ instance (KnownNat n, KnownNat m) => Fractional (L n m)
     fromRational = L . Dim . Dim . fromRational
     (/) = lift2LD (/)
 
+instance (KnownNat n, KnownNat m) => Floating (L n m) where
+    sin   = lift1L sin
+    cos   = lift1L cos
+    tan   = lift1L tan
+    asin  = lift1L asin
+    acos  = lift1L acos
+    atan  = lift1L atan
+    sinh  = lift1L sinh
+    cosh  = lift1L cosh
+    tanh  = lift1L tanh
+    asinh = lift1L asinh
+    acosh = lift1L acosh
+    atanh = lift1L atanh
+    exp   = lift1L exp
+    log   = lift1L log
+    sqrt  = lift1L sqrt
+    (**)  = lift2LD (**)
+    pi    = konst pi
+
 --------------------------------------------------------------------------------
 
 adaptDiagC f a@(isDiagC -> Just _) b | isFullC b = f (mkM (extract a)) b
@@ -385,6 +443,25 @@ instance (KnownNat n, KnownNat m) => Fractional (M n m)
   where
     fromRational = M . Dim . Dim . fromRational
     (/) = lift2MD (/)
+
+instance (KnownNat n, KnownNat m) => Floating (M n m) where
+    sin   = lift1M sin
+    cos   = lift1M cos
+    tan   = lift1M tan
+    asin  = lift1M asin
+    acos  = lift1M acos
+    atan  = lift1M atan
+    sinh  = lift1M sinh
+    cosh  = lift1M cosh
+    tanh  = lift1M tanh
+    asinh = lift1M asinh
+    acosh = lift1M acosh
+    atanh = lift1M atanh
+    exp   = lift1M exp
+    log   = lift1M log
+    sqrt  = lift1M sqrt
+    (**)  = lift2MD (**)
+    pi    = M pi
 
 --------------------------------------------------------------------------------
 
