@@ -1,3 +1,5 @@
+#if __GLASGOW_HASKELL__ >= 708
+
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -420,3 +422,10 @@ instance KnownNat n => Disp (C n)
         putStr "C " >> putStr (tail . dropWhile (/='x') $ su)
 
 --------------------------------------------------------------------------------
+
+#else
+
+module Numeric.LinearAlgebra.Static.Internal where
+
+#endif
+

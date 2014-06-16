@@ -1,3 +1,5 @@
+#if __GLASGOW_HASKELL__ >= 708
+
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -616,4 +618,23 @@ instance (KnownNat n', KnownNat m') => Testable (L n' m')
   where
     checkT _ = test
 
+#else
+
+{- |
+Module      :  Numeric.LinearAlgebra.Static
+Copyright   :  (c) Alberto Ruiz 2014
+License     :  BSD3
+Stability   :  experimental
+
+Experimental interface with statically checked dimensions.
+
+This module requires GHC >= 7.8
+
+-}
+
+module Numeric.LinearAlgebra.Static
+{-# WARNING "This module requires GHC >= 7.8" #-}
+where
+
+#endif
 
