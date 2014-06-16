@@ -12,7 +12,8 @@ This module provides an interface to the standard simplex algorithm.
 
 For example, the following LP problem
 
-@maximize 4 x_1 - 3 x_2 + 2 x_3
+
+maximize 4 x_1 - 3 x_2 + 2 x_3
 subject to
 
 2 x_1 +   x_2 <= 10
@@ -20,40 +21,46 @@ subject to
 
 and
 
-x_i >= 0@
+x_i >= 0
+
 
 can be solved as follows:
 
-@import Numeric.LinearProgramming
+@
+import Numeric.LinearProgramming
 
 prob = Maximize [4, -3, 2]
 
 constr1 = Sparse [ [2\#1, 1\#2] :<=: 10
                  , [1\#2, 5\#3] :<=: 20
                  ]
+@
 
-\> simplex prob constr1 []
-Optimal (28.0,[5.0,0.0,4.0])@
+>>> simplex prob constr1 []
+Optimal (28.0,[5.0,0.0,4.0])
+
 
 The coefficients of the constraint matrix can also be given in dense format:
 
-@constr2 = Dense [ [2,1,0] :<=: 10
+@
+constr2 = Dense [ [2,1,0] :<=: 10
                 , [0,1,5] :<=: 20
-                ]@
+                ]
+@
 
 By default all variables are bounded as @x_i >= 0@, but this can be
 changed:
 
-@\> simplex prob constr2 [ 2 :=>: 1, 3 :&: (2,7)]
+>>> simplex prob constr2 [ 2 :>=: 1, 3 :&: (2,7)]
 Optimal (22.6,[4.5,1.0,3.8])
 
-\> simplex prob constr2 [Free 2]
-Unbounded@
+>>> simplex prob constr2 [Free 2]
+Unbounded
 
 The given bound for a variable completely replaces the default,
 so @0 <= x_i <= b@ must be explicitly given as @i :&: (0,b)@.
 Multiple bounds for a variable are not allowed, instead of
-@[i :=>: a, i:<=: b]@ use @i :&: (a,b)@.
+@[i :>=: a, i:<=: b]@ use @i :&: (a,b)@.
 
 -}
 
@@ -86,7 +93,7 @@ infixl 5 #
 (#) = (,)
 
 data Bound x =  x :<=: Double
-             |  x :=>: Double
+             |  x :>=: Double
              |  x :&: (Double,Double)
              |  x :==: Double
              |  Free x
@@ -149,28 +156,28 @@ extract sg sol = r where
 
 obj :: Bound t -> t
 obj (x :<=: _)  = x
-obj (x :=>: _)  = x
+obj (x :>=: _)  = x
 obj (x :&: _)  = x
 obj (x :==: _) = x
 obj (Free x)   = x
 
 tb :: Bound t -> Double
 tb (_ :<=: _)  = glpUP
-tb (_ :=>: _)  = glpLO
+tb (_ :>=: _)  = glpLO
 tb (_ :&: _)  = glpDB
 tb (_ :==: _) = glpFX
 tb (Free _)   = glpFR
 
 lb :: Bound t -> Double
 lb (_ :<=: _)     = 0
-lb (_ :=>: a)     = a
+lb (_ :>=: a)     = a
 lb (_ :&: (a,_)) = a
 lb (_ :==: a)    = a
 lb (Free _)      = 0
 
 ub :: Bound t -> Double
 ub (_ :<=: a)     = a
-ub (_ :=>: _)     = 0
+ub (_ :>=: _)     = 0
 ub (_ :&: (_,a)) = a
 ub (_ :==: a)    = a
 ub (Free _)      = 0
@@ -188,7 +195,7 @@ mkBounds n b1 b2 = fromLists (cb++vb) where
        | otherwise = error $ "simplex: duplicate bounds for vars " ++ show (gv'\\nub gv')
     rv | null gv || minimum gv >= 0 && maximum gv <= n = [1..n] \\ gv
        | otherwise = error $ "simplex: bounds: variables "++show gv++" not in 1.."++show n
-    vb = map snd $ sortBy (compare `on` fst) $ map (mkBound2 . (:=>: 0)) rv ++ map mkBound2 b2
+    vb = map snd $ sortBy (compare `on` fst) $ map (mkBound2 . (:>=: 0)) rv ++ map mkBound2 b2
     cb = map mkBound1 b1
 
 mkConstrD :: Int -> [Double] -> [Bound [Double]] -> Matrix Double
