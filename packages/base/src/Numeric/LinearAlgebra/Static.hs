@@ -64,7 +64,7 @@ import GHC.TypeLits
 import Numeric.LinearAlgebra.HMatrix hiding (
     (<>),(#>),(<·>),Konst(..),diag, disp,(¦),(——),row,col,vector,matrix,linspace,toRows,toColumns,
     (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',eigenvalues,eigenvaluesSH,eigenvaluesSH',build,
-    qr)
+    qr,size)
 import qualified Numeric.LinearAlgebra.HMatrix as LA
 import Data.Proxy(Proxy)
 import Numeric.LinearAlgebra.Static.Internal
@@ -107,20 +107,20 @@ matrix :: (KnownNat m, KnownNat n) => [ℝ] -> L m n
 matrix = fromList
 
 linspace :: forall n . KnownNat n => (ℝ,ℝ) -> R n
-linspace (a,b) = mkR (LA.linspace d (a,b))
+linspace (a,b) = v
   where
-    d = fromIntegral . natVal $ (undefined :: Proxy n)
+    v = mkR (LA.linspace (size v) (a,b))
 
 range :: forall n . KnownNat n => R n
-range = mkR (LA.linspace d (1,fromIntegral d))
+range = v
   where
-    d = fromIntegral . natVal $ (undefined :: Proxy n)
+    v = mkR (LA.linspace d (1,fromIntegral d))
+    d = size v
 
 dim :: forall n . KnownNat n => R n
-dim = mkR (scalar d)
+dim = v
   where
-    d = fromIntegral . natVal $ (undefined :: Proxy n)
-
+    v = mkR (scalar (fromIntegral $ size v))
 
 --------------------------------------------------------------------------------
 
@@ -140,7 +140,7 @@ eye = diag 1
 --------------------------------------------------------------------------------
 
 blockAt :: forall m n . (KnownNat m, KnownNat n) =>  ℝ -> Int -> Int -> Matrix Double -> L m n
-blockAt x r c a = mkL res
+blockAt x r c a = res
   where
     z = scalar x
     z1 = LA.konst x (r,c)
@@ -148,13 +148,8 @@ blockAt x r c a = mkL res
     ra = min (rows a) . max 0 $ m'-r
     ca = min (cols a) . max 0 $ n'-c
     sa = subMatrix (0,0) (ra, ca) a
-    m' = fromIntegral . natVal $ (undefined :: Proxy m)
-    n' = fromIntegral . natVal $ (undefined :: Proxy n)
-    res = fromBlocks [[z1,z,z],[z,sa,z],[z,z,z2]]
-
-
-
-
+    (m',n') = size res
+    res = mkL $ fromBlocks [[z1,z,z],[z,sa,z],[z,z,z2]]
 
 --------------------------------------------------------------------------------
 
@@ -189,22 +184,15 @@ type GL = (KnownNat n, KnownNat m) => L m n
 type GSq = KnownNat n => Sq n
 
 isKonst :: forall m n . (KnownNat m, KnownNat n) => L m n -> Maybe (ℝ,(Int,Int))
-isKonst (unwrap -> x)
-    | singleM x = Just (x `atIndex` (0,0), (m',n'))
+isKonst s@(unwrap -> x)
+    | singleM x = Just (x `atIndex` (0,0), (size s))
     | otherwise = Nothing
-  where
-    m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
-    n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
 
 
 isKonstC :: forall m n . (KnownNat m, KnownNat n) => M m n -> Maybe (ℂ,(Int,Int))
-isKonstC (unwrap -> x)
-    | singleM x = Just (x `atIndex` (0,0), (m',n'))
+isKonstC s@(unwrap -> x)
+    | singleM x = Just (x `atIndex` (0,0), (size s))
     | otherwise = Nothing
-  where
-    m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
-    n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
-
 
 
 infixr 8 <>
@@ -256,7 +244,7 @@ svd (extract -> m) = (mkL u, mkR s', mkL v)
   where
     (u,s,v) = LA.svd m
     s' = vjoin [s, z]
-    z = LA.konst 0 (max 0 (cols m - size s))
+    z = LA.konst 0 (max 0 (cols m - LA.size s))
 
 
 svdTall :: (KnownNat m, KnownNat n, n <= m) => L m n -> (L m n, R n, L n n)
@@ -333,7 +321,7 @@ withCompactSVD
     -> (forall k . (KnownNat k) => (L m k, R k, L n k) -> z)
     -> z
 withCompactSVD (LA.compactSVD . extract -> (u,s,v)) f =
-    case someNatVal $ fromIntegral $ size s of
+    case someNatVal $ fromIntegral $ LA.size s of
        Nothing -> error "static/dynamic mismatch"
        Just (SomeNat (_ :: Proxy k)) -> f (mkL u :: L m k, mkR s :: R k, mkL v :: L n k)
 
@@ -350,7 +338,7 @@ qr (extract -> x) = (mkL q, mkL r)
 
 split :: forall p n . (KnownNat p, KnownNat n, p<=n) => R n -> (R p, R (n-p))
 split (extract -> v) = ( mkR (subVector 0 p' v) ,
-                         mkR (subVector p' (size v - p') v) )
+                         mkR (subVector p' (LA.size v - p') v) )
   where
     p' = fromIntegral . natVal $ (undefined :: Proxy p) :: Int
 
@@ -383,10 +371,9 @@ build
   :: forall m n . (KnownNat n, KnownNat m)
     => (ℝ -> ℝ -> ℝ)
     -> L m n
-build f = mkL $ LA.build (m',n') f
+build f = r
   where
-    m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
-    n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
+    r = mkL $ LA.build (size r) f
 
 --------------------------------------------------------------------------------
 
@@ -396,7 +383,7 @@ withVector
     -> (forall n . (KnownNat n) => R n -> z)
     -> z
 withVector v f =
-    case someNatVal $ fromIntegral $ size v of
+    case someNatVal $ fromIntegral $ LA.size v of
        Nothing -> error "static/dynamic mismatch"
        Just (SomeNat (_ :: Proxy m)) -> f (mkR v :: R m)
 
@@ -451,19 +438,19 @@ mulR (isKonst -> Just (a,(_,k))) (isKonst -> Just (b,_)) = konst (a * b * fromIn
 mulR (isDiag -> Just (0,a,_)) (isDiag -> Just (0,b,_)) = diagR 0 (mkR v :: R k)
   where
     v = a' * b'
-    n = min (size a) (size b)
+    n = min (LA.size a) (LA.size b)
     a' = subVector 0 n a
     b' = subVector 0 n b
 
-mulR (isDiag -> Just (0,a,_)) (extract -> b) = mkL (asColumn a * takeRows (size a) b)
+mulR (isDiag -> Just (0,a,_)) (extract -> b) = mkL (asColumn a * takeRows (LA.size a) b)
 
-mulR (extract -> a) (isDiag -> Just (0,b,_)) = mkL (takeColumns (size b) a * asRow b)
+mulR (extract -> a) (isDiag -> Just (0,b,_)) = mkL (takeColumns (LA.size b) a * asRow b)
 
 mulR a b = mkL (extract a LA.<> extract b)
 
 
 appR :: (KnownNat m, KnownNat n) => L m n -> R n -> R m
-appR (isDiag -> Just (0, w, _)) v = mkR (w * subVector 0 (size w) (extract v))
+appR (isDiag -> Just (0, w, _)) v = mkR (w * subVector 0 (LA.size w) (extract v))
 appR m v = mkR (extract m LA.#> extract v)
 
 
@@ -489,19 +476,19 @@ mulC (isKonstC -> Just (a,(_,k))) (isKonstC -> Just (b,_)) = konst (a * b * from
 mulC (isDiagC -> Just (0,a,_)) (isDiagC -> Just (0,b,_)) = diagR 0 (mkC v :: C k)
   where
     v = a' * b'
-    n = min (size a) (size b)
+    n = min (LA.size a) (LA.size b)
     a' = subVector 0 n a
     b' = subVector 0 n b
 
-mulC (isDiagC -> Just (0,a,_)) (extract -> b) = mkM (asColumn a * takeRows (size a) b)
+mulC (isDiagC -> Just (0,a,_)) (extract -> b) = mkM (asColumn a * takeRows (LA.size a) b)
 
-mulC (extract -> a) (isDiagC -> Just (0,b,_)) = mkM (takeColumns (size b) a * asRow b)
+mulC (extract -> a) (isDiagC -> Just (0,b,_)) = mkM (takeColumns (LA.size b) a * asRow b)
 
 mulC a b = mkM (extract a LA.<> extract b)
 
 
 appC :: (KnownNat m, KnownNat n) => M m n -> C n -> C m
-appC (isDiagC -> Just (0, w, _)) v = mkC (w * subVector 0 (size w) (extract v))
+appC (isDiagC -> Just (0, w, _)) v = mkC (w * subVector 0 (LA.size w) (extract v))
 appC m v = mkC (extract m LA.#> extract v)
 
 
@@ -521,21 +508,21 @@ crossC (extract -> x) (extract -> y) = mkC (LA.fromList [z1, z2, z3])
 --------------------------------------------------------------------------------
 
 diagRectR :: forall m n k . (KnownNat m, KnownNat n, KnownNat k) => ℝ -> R k -> L m n
-diagRectR x v = mkL (asRow (vjoin [scalar x, ev, zeros]))
+diagRectR x v = r
   where
+    r = mkL (asRow (vjoin [scalar x, ev, zeros]))
     ev = extract v
-    zeros = LA.konst x (max 0 ((min m' n') - size ev))
-    m' = fromIntegral . natVal $ (undefined :: Proxy m)
-    n' = fromIntegral . natVal $ (undefined :: Proxy n)
+    zeros = LA.konst x (max 0 ((min m' n') - LA.size ev))
+    (m',n') = size r
 
 
 diagRectC :: forall m n k . (KnownNat m, KnownNat n, KnownNat k) => ℂ -> C k -> M m n
-diagRectC x v = mkM (asRow (vjoin [scalar x, ev, zeros]))
+diagRectC x v = r
   where
+    r = mkM (asRow (vjoin [scalar x, ev, zeros]))
     ev = extract v
-    zeros = LA.konst x (max 0 ((min m' n') - size ev))
-    m' = fromIntegral . natVal $ (undefined :: Proxy m)
-    n' = fromIntegral . natVal $ (undefined :: Proxy n)
+    zeros = LA.konst x (max 0 ((min m' n') - LA.size ev))
+    (m',n') = size r
 
 --------------------------------------------------------------------------------
 
@@ -578,10 +565,10 @@ test = (ok,info)
     tm = lmat 0 [1..]
 
     lmat :: forall m n . (KnownNat m, KnownNat n) => ℝ -> [ℝ] -> L m n
-    lmat z xs = mkL . reshape n' . LA.fromList . take (m'*n') $ xs ++ repeat z
+    lmat z xs = r
       where
-        m' = fromIntegral . natVal $ (undefined :: Proxy m)
-        n' = fromIntegral . natVal $ (undefined :: Proxy n)
+        r = mkL . reshape n' . LA.fromList . take (m'*n') $ xs ++ repeat z
+        (m',n') = size r
 
     sm :: GSq
     sm = lmat 0 [1..]
@@ -595,7 +582,7 @@ test = (ok,info)
         m = LA.matrix 3 [1..30]
 
     precS = (1::Double) + (2::Double) * ((1 :: R 3) * (u & 6)) <·> konst 2 #> v
-    precD = 1 + 2 * vjoin[ud1 u, 6] LA.<·> LA.konst 2 (size (ud1 u) +1, size (ud1 v)) LA.#> ud1 v
+    precD = 1 + 2 * vjoin[ud1 u, 6] LA.<·> LA.konst 2 (LA.size (ud1 u) +1, LA.size (ud1 v)) LA.#> ud1 v
 
 
 splittest

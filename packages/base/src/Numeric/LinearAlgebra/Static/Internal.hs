@@ -7,13 +7,10 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE GADTs #-}
-
 
 {- |
 Module      :  Numeric.LinearAlgebra.Static.Internal
@@ -28,7 +25,7 @@ module Numeric.LinearAlgebra.Static.Internal where
 
 import GHC.TypeLits
 import qualified Numeric.LinearAlgebra.HMatrix as LA
-import Numeric.LinearAlgebra.HMatrix hiding (konst)
+import Numeric.LinearAlgebra.HMatrix hiding (konst,size)
 import Data.Packed as D
 import Data.Packed.ST
 import Data.Proxy(Proxy)
@@ -83,7 +80,7 @@ ud :: Dim n (Vector t) -> Vector t
 ud (Dim v) = v
 
 mkV :: forall (n :: Nat) t . t -> Dim n t
-mkV = Dim 
+mkV = Dim
 
 
 vconcat :: forall n m t . (KnownNat n, KnownNat m, Numeric t)
@@ -92,9 +89,9 @@ vconcat :: forall n m t . (KnownNat n, KnownNat m, Numeric t)
   where
     du = fromIntegral . natVal $ (undefined :: Proxy n)
     dv = fromIntegral . natVal $ (undefined :: Proxy m)
-    u' | du > 1 && size u == 1 = LA.konst (u D.@> 0) du
+    u' | du > 1 && LA.size u == 1 = LA.konst (u D.@> 0) du
        | otherwise = u
-    v' | dv > 1 && size v == 1 = LA.konst (v D.@> 0) dv
+    v' | dv > 1 && LA.size v == 1 = LA.konst (v D.@> 0) dv
        | otherwise = v
 
 
@@ -132,7 +129,7 @@ gvect st xs'
     | otherwise = abort (show xs)
   where
     (xs,rest) = splitAt d xs'
-    ok = size v == d && null rest
+    ok = LA.size v == d && null rest
     v = LA.fromList xs
     d = fromIntegral . natVal $ (undefined :: Proxy n)
     abort info = error $ st++" "++show d++" can't be created from elements "++info
@@ -153,7 +150,7 @@ gmat st xs'
     (xs,rest) = splitAt (m'*n') xs'
     v = LA.fromList xs
     x = reshape n' v
-    ok = rem (size v) n' == 0 && size x == (m',n') && null rest
+    ok = rem (LA.size v) n' == 0 && LA.size x == (m',n') && null rest
     m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
     n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
     abort info = error $ st ++" "++show m' ++ " " ++ show n'++" can't be created from elements " ++ info
@@ -162,66 +159,84 @@ gmat st xs'
 
 class Num t => Sized t s d | s -> t, s -> d
   where
-    konst     ::  t  -> s
-    unwrap    ::  s  -> d
-    fromList  :: [t] -> s
-    extract   ::  s  -> d
+    konst     ::  t   -> s
+    unwrap    ::  s   -> d t
+    fromList  :: [t]  -> s
+    extract   ::  s   -> d t
+    create    ::  d t -> Maybe s
+    size      ::  s   -> IndexOf d
 
-singleV v = size v == 1
+singleV v = LA.size v == 1
 singleM m = rows m == 1 && cols m == 1
 
 
-instance forall n. KnownNat n => Sized ℂ (C n) (Vector ℂ)
+instance forall n. KnownNat n => Sized ℂ (C n) Vector
   where
+    size _ = fromIntegral . natVal $ (undefined :: Proxy n)
     konst x = mkC (LA.scalar x)
     unwrap (C (Dim v)) = v
     fromList xs = C (gvect "C" xs)
-    extract (unwrap -> v)
-      | singleV v = LA.konst (v!0) d
+    extract s@(unwrap -> v)
+      | singleV v = LA.konst (v!0) (size s)
       | otherwise = v
-     where
-       d = fromIntegral . natVal $ (undefined :: Proxy n)
+    create v
+        | LA.size v == size r = Just r
+        | otherwise = Nothing
+      where
+        r = mkC v :: C n
 
 
-instance forall n. KnownNat n => Sized ℝ (R n) (Vector ℝ)
+instance forall n. KnownNat n => Sized ℝ (R n) Vector
   where
+    size _ = fromIntegral . natVal $ (undefined :: Proxy n)
     konst x = mkR (LA.scalar x)
     unwrap (R (Dim v)) = v
     fromList xs = R (gvect "R" xs)
-    extract (unwrap -> v)
-      | singleV v = LA.konst (v!0) d
+    extract s@(unwrap -> v)
+      | singleV v = LA.konst (v!0) (size s)
       | otherwise = v
-     where
-       d = fromIntegral . natVal $ (undefined :: Proxy n)
+    create v
+        | LA.size v == size r = Just r
+        | otherwise = Nothing
+      where
+        r = mkR v :: R n
 
 
 
-instance forall m n . (KnownNat m, KnownNat n) => Sized ℝ (L m n) (Matrix ℝ)
+instance forall m n . (KnownNat m, KnownNat n) => Sized ℝ (L m n) Matrix
   where
+    size _ = ((fromIntegral . natVal) (undefined :: Proxy m)
+             ,(fromIntegral . natVal) (undefined :: Proxy n))
     konst x = mkL (LA.scalar x)
     fromList xs = L (gmat "L" xs)
     unwrap (L (Dim (Dim m))) = m
     extract (isDiag -> Just (z,y,(m',n'))) = diagRect z y m' n'
-    extract (unwrap -> a)
-        | singleM a = LA.konst (a `atIndex` (0,0)) (m',n')
+    extract s@(unwrap -> a)
+        | singleM a = LA.konst (a `atIndex` (0,0)) (size s)
         | otherwise = a
+    create x
+        | LA.size x == size r = Just r
+        | otherwise = Nothing
       where
-        m' = fromIntegral . natVal $ (undefined :: Proxy m)
-        n' = fromIntegral . natVal $ (undefined :: Proxy n)
+        r = mkL x :: L m n
 
 
-instance forall m n . (KnownNat m, KnownNat n) => Sized ℂ (M m n) (Matrix ℂ)
+instance forall m n . (KnownNat m, KnownNat n) => Sized ℂ (M m n) Matrix
   where
+    size _ = ((fromIntegral . natVal) (undefined :: Proxy m)
+             ,(fromIntegral . natVal) (undefined :: Proxy n))
     konst x = mkM (LA.scalar x)
     fromList xs = M (gmat "M" xs)
     unwrap (M (Dim (Dim m))) = m
     extract (isDiagC -> Just (z,y,(m',n'))) = diagRect z y m' n'
-    extract (unwrap -> a)
-        | singleM a = LA.konst (a `atIndex` (0,0)) (m',n')
+    extract s@(unwrap -> a)
+        | singleM a = LA.konst (a `atIndex` (0,0)) (size s)
         | otherwise = a
+    create x
+        | LA.size x == size r = Just r
+        | otherwise = Nothing
       where
-        m' = fromIntegral . natVal $ (undefined :: Proxy m)
-        n' = fromIntegral . natVal $ (undefined :: Proxy n)
+        r = mkM x :: M m n
 
 --------------------------------------------------------------------------------
 
@@ -254,8 +269,8 @@ isDiagg (Dim (Dim x))
     n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
     v = flatten x
     z = v `atIndex` 0
-    y = subVector 1 (size v-1) v
-    ny = size y
+    y = subVector 1 (LA.size v-1) v
+    ny = LA.size y
     zeros = LA.konst 0 (max 0 (min m' n' - ny))
     yz = vjoin [y,zeros]
 
@@ -263,39 +278,37 @@ isDiagg (Dim (Dim x))
 
 instance forall n . KnownNat n => Show (R n)
   where
-    show (R (Dim v))
+    show s@(R (Dim v))
       | singleV v = "("++show (v!0)++" :: R "++show d++")"
       | otherwise   = "(vector"++ drop 8 (show v)++" :: R "++show d++")"
       where
-        d = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
+        d = size s
 
 instance forall n . KnownNat n => Show (C n)
   where
-    show (C (Dim v))
+    show s@(C (Dim v))
       | singleV v = "("++show (v!0)++" :: C "++show d++")"
       | otherwise   = "(vector"++ drop 8 (show v)++" :: C "++show d++")"
       where
-        d = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
+        d = size s
 
 instance forall m n . (KnownNat m, KnownNat n) => Show (L m n)
   where
     show (isDiag -> Just (z,y,(m',n'))) = printf "(diag %s %s :: L %d %d)" (show z) (drop 9 $ show y) m' n'
-    show (L (Dim (Dim x)))
+    show s@(L (Dim (Dim x)))
        | singleM x = printf "(%s :: L %d %d)" (show (x `atIndex` (0,0))) m' n'
        | otherwise = "(matrix"++ dropWhile (/='\n') (show x)++" :: L "++show m'++" "++show n'++")"
       where
-        m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
-        n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
+        (m',n') = size s
 
 instance forall m n . (KnownNat m, KnownNat n) => Show (M m n)
   where
     show (isDiagC -> Just (z,y,(m',n'))) = printf "(diag %s %s :: M %d %d)" (show z) (drop 9 $ show y) m' n'
-    show (M (Dim (Dim x)))
+    show s@(M (Dim (Dim x)))
        | singleM x = printf "(%s :: M %d %d)" (show (x `atIndex` (0,0))) m' n'
        | otherwise = "(matrix"++ dropWhile (/='\n') (show x)++" :: M "++show m'++" "++show n'++")"
       where
-        m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
-        n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
+        (m',n') = size s
 
 --------------------------------------------------------------------------------
 
