@@ -23,18 +23,20 @@
     * Added experimental support for static dimension checking and inference
       using type-level literals.
 
+    * Added a different operator for the matrix-vector product.
+      (available from the new reexport module).
+
     * "join" deprecated (use "vjoin").
 
     * "dot" now conjugates the first input vector.
 
     * Added "udot" (unconjugated dot product).
 
+    * Added to/from ByteString
+
     * Added "sortVector", "roundVector"
 
     * Added Monoid instance for Matrix using matrix product.
-
-    * Added a different operator for the matrix-vector product.
-      (available from the new reexport module).
 
     * Added several pretty print functions
 

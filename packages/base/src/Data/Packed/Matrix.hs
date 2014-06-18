@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE CPP #-}
 
@@ -53,20 +54,15 @@ import Control.Monad(liftM)
 #ifdef BINARY
 
 import Data.Binary
-import Control.Monad(replicateM)
 
-instance (Binary a, Element a, Storable a) => Binary (Matrix a) where
+instance (Binary (Vector a), Element a) => Binary (Matrix a) where
     put m = do
-            let r = rows m
-            let c = cols m
-            put r
-            put c
-            mapM_ (\i -> mapM_ (\j -> put $ m @@> (i,j)) [0..(c-1)]) [0..(r-1)]
+            put (cols m)
+            put (flatten m)
     get = do
-          r <- get
           c <- get
-          xs <- replicateM r $ replicateM c get
-          return $ fromLists xs
+          v <- get
+          return (reshape c v)
 
 #endif
 

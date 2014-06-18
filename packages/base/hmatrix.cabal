@@ -27,6 +27,7 @@ library
                         deepseq,
                         random,
                         split,
+                        bytestring,
                         storable-complex,
                         vector >= 0.8
 

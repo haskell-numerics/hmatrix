@@ -22,7 +22,8 @@ module Data.Packed.Vector (
     subVector, takesV, vjoin, join,
     mapVector, mapVectorWithIndex, zipVector, zipVectorWith, unzipVector, unzipVectorWith,
     mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
-    foldLoop, foldVector, foldVectorG, foldVectorWithIndex
+    foldLoop, foldVector, foldVectorG, foldVectorWithIndex,
+    toByteString, fromByteString
 ) where
 
 import Data.Packed.Internal.Vector
@@ -35,6 +36,12 @@ import Foreign.Storable
 import Data.Binary
 import Control.Monad(replicateM)
 
+import Data.ByteString.Internal as BS
+import Foreign.ForeignPtr(castForeignPtr)
+import Data.Vector.Storable.Internal(updPtr)
+import Foreign.Ptr(plusPtr)
+
+
 -- a 64K cache, with a Double taking 13 bytes in Bytestring,
 -- implies a chunk size of 5041
 chunk :: Int
@@ -43,27 +50,50 @@ chunk = 5000
 chunks :: Int -> [Int]
 chunks d = let c = d `div` chunk
                m = d `mod` chunk
-           in if m /= 0 then reverse (m:(replicate c chunk)) else (replicate c chunk)  
+           in if m /= 0 then reverse (m:(replicate c chunk)) else (replicate c chunk)
 
-putVector v = do
-              let d = dim v
-              mapM_ (\i -> put $ v @> i) [0..(d-1)]
+putVector v = mapM_ put $! toList v
 
 getVector d = do
               xs <- replicateM d get
               return $! fromList xs
 
+--------------------------------------------------------------------------------
+
+toByteString :: Storable t => Vector t -> ByteString
+toByteString v = BS.PS (castForeignPtr fp) (sz*o) (sz * dim v)
+  where
+    (fp,o,_n) = unsafeToForeignPtr v
+    sz = sizeOf (v@>0)
+
+
+fromByteString :: Storable t => ByteString -> Vector t
+fromByteString (BS.PS fp o n) = r
+  where
+    r = unsafeFromForeignPtr (castForeignPtr (updPtr (`plusPtr` o) fp)) 0 n'
+    n' = n `div` sz
+    sz = sizeOf (r@>0)
+
+--------------------------------------------------------------------------------
+
 instance (Binary a, Storable a) => Binary (Vector a) where
+
     put v = do
             let d = dim v
             put d
             mapM_ putVector $! takesV (chunks d) v
+
+    -- put = put . v2bs
+
     get = do
           d <- get
           vs <- mapM getVector $ chunks d
           return $! vjoin vs
 
+    -- get = fmap bs2v get
+
 #endif
+
 
 -------------------------------------------------------------------
 

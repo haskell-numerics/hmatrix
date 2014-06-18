@@ -49,9 +49,12 @@ module Numeric.LinearAlgebra.Devel(
     mapMatrixWithIndex, mapMatrixWithIndexM, mapMatrixWithIndexM_,
     liftMatrix, liftMatrix2, liftMatrix2Auto,
 
-    -- * Misc
+    -- * Sparse representation
     CSR(..), fromCSR, mkCSR,
-    GMatrix(..)
+    GMatrix(..),
+
+    -- * Misc
+    toByteString, fromByteString
 
 ) where
 
