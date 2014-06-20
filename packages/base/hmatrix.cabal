@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.16.0.2
+Version:            0.16.0.3
 License:            BSD3
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -8,6 +8,13 @@ Stability:          provisional
 Homepage:           https://github.com/albertoruiz/hmatrix
 Synopsis:           Numeric Linear Algebra
 Description:        Linear algebra based on BLAS and LAPACK.
+                    .
+                    The package is organized as follows:
+                    .
+                    ["Numeric.LinearAlgebra.HMatrix"] Starting point and recommended import module for most applications.
+                    .
+                    ["Numeric.LinearAlgebra.Static"] Experimental alternative interface.
+
 Category:           Math
 tested-with:        GHC==7.8
 
