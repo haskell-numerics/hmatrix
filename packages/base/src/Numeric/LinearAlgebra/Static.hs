@@ -25,6 +25,8 @@ Stability   :  experimental
 
 Experimental interface with statically checked dimensions.
 
+This module is under active development and the interface is subject to changes.
+
 -}
 
 module Numeric.LinearAlgebra.Static(
@@ -62,9 +64,11 @@ module Numeric.LinearAlgebra.Static(
 
 import GHC.TypeLits
 import Numeric.LinearAlgebra.HMatrix hiding (
-    (<>),(#>),(<·>),Konst(..),diag, disp,(¦),(——),row,col,vector,matrix,linspace,toRows,toColumns,
-    (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',eigenvalues,eigenvaluesSH,eigenvaluesSH',build,
-    qr,size)
+    (<>),(#>),(<·>),Konst(..),diag, disp,(¦),(——),
+    row,col,vector,matrix,linspace,toRows,toColumns,
+    (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',
+    eigenvalues,eigenvaluesSH,eigenvaluesSH',build,
+    qr,size,app,mul,dot)
 import qualified Numeric.LinearAlgebra.HMatrix as LA
 import Data.Proxy(Proxy)
 import Numeric.LinearAlgebra.Static.Internal

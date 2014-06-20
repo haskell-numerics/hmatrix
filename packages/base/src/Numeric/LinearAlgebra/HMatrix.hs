@@ -45,12 +45,12 @@ module Numeric.LinearAlgebra.HMatrix (
 
     -- * Products
     -- ** dot
-    (<·>),
+    dot, (<·>),
     -- ** matrix-vector
-    (#>), (!#>),
+    app, (#>), (!#>),
     -- ** matrix-matrix
-     (<>),
-    -- | The matrix x matrix product is also implemented in the "Data.Monoid" instance, where
+    mul, (<>),
+    -- | The matrix product is also implemented in the "Data.Monoid" instance, where
     -- single-element matrices (created from numeric literals or using 'scalar')
     -- are used for scaling.
     --
@@ -96,7 +96,6 @@ module Numeric.LinearAlgebra.HMatrix (
 
     -- * SVD
     svd,
-    fullSVD,
     thinSVD,
     compactSVD,
     singularValues,
@@ -153,7 +152,7 @@ import Numeric.LinearAlgebra.Data
 
 import Numeric.Matrix()
 import Numeric.Vector()
-import Data.Packed.Numeric hiding ((<>))
+import Data.Packed.Numeric hiding ((<>), mul)
 import Numeric.LinearAlgebra.Algorithms hiding (linearSolve,Normed,orth)
 import qualified Numeric.LinearAlgebra.Algorithms as A
 import Numeric.LinearAlgebra.Util
@@ -161,7 +160,7 @@ import Numeric.LinearAlgebra.Random
 import Numeric.Sparse((!#>))
 import Numeric.LinearAlgebra.Util.CG
 
-{- | dense matrix product
+{- | infix synonym of 'mul'
 
 >>> let a = (3><5) [1..]
 >>> a
@@ -189,6 +188,11 @@ import Numeric.LinearAlgebra.Util.CG
 (<>) :: Numeric t => Matrix t -> Matrix t -> Matrix t
 (<>) = mXm
 infixr 8 <>
+
+-- | dense matrix product
+mul :: Numeric t => Matrix t -> Matrix t -> Matrix t
+mul = mXm
+
 
 -- | Solve a linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, returning Nothing for a singular system. For underconstrained or overconstrained systems use 'linearSolveLS' or 'linearSolveSVD'. 
 linearSolve m b = A.mbLinearSolve m b

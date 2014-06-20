@@ -39,7 +39,7 @@ module Data.Packed.Numeric (
     step, cond, find, assoc, accum,
     Transposable(..), Linear(..),
     -- * Matrix product
-    Product(..), udot, dot, (<·>), (#>),
+    Product(..), udot, dot, (<·>), (#>), app,
     Mul(..),
     (<.>),
     optimiseMult,
@@ -105,7 +105,7 @@ infixl 7 <.>
 
 infixr 8 <·>, #>
 
-{- | dot product
+{- | infix synonym for 'dot'
 
 >>> vector [1,2,3,4] <·> vector [-2,0,1,1]
 5.0
@@ -121,7 +121,7 @@ infixr 8 <·>, #>
 (<·>) = dot
 
 
-{- | dense matrix-vector product
+{- | infix synonym for 'app'
 
 >>> let m = (2><3) [1..]
 >>> m
@@ -137,6 +137,10 @@ fromList [140.0,320.0]
 -}
 (#>) :: Numeric t => Matrix t -> Vector t -> Vector t
 (#>) = mXv
+
+-- | dense matrix-vector product
+app :: Numeric t => Matrix t -> Vector t -> Vector t
+app = (#>)
 
 --------------------------------------------------------------------------------
 
@@ -226,8 +230,8 @@ instance Container Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
 
 --------------------------------------------------------------------------------
 
--- | dot product: @cdot u v = 'udot' ('conj' u) v@
-dot :: (Container Vector t, Product t) => Vector t -> Vector t -> t
+-- @dot u v = 'udot' ('conj' u) v@
+dot :: (Numeric t) => Vector t -> Vector t -> t
 dot u v = udot (conj u) v
 
 --------------------------------------------------------------------------------
