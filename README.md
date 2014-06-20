@@ -13,7 +13,7 @@ Version 0.16 (june 2014) has [new features][changes].
     - linear algebra: [hmatrix](http://hackage.haskell.org/package/hmatrix)
     - numeric algorithms: [hmatrix-gsl](http://hackage.haskell.org/package/hmatrix-gsl)
     - special functions: [hmatrix-special](http://hackage.haskell.org/package/hmatrix-special)
-    - linear programming: [hmatrix-glpk]((http://hackage.haskell.org/package/hmatrix-glpk))
+    - linear programming: [hmatrix-glpk]((http://hackage.haskell.org/package/hmatrix-glpk)
 
 - [Tutorial (old version)][tutorial]
 
@@ -27,7 +27,6 @@ Contributions, suggestions, and bug reports are welcome!
 [blas]: http://www.netlib.org/blas/
 [gsl]: http://www.gnu.org/software/gsl/
 
-[source]:
 [tutorial]: http://dis.um.es/profesores/alberto/material/hmatrix.pdf
 [installation]: https://github.com/AlbertoRuiz/hmatrix/blob/master/INSTALL.md
 [changes]: https://github.com/albertoruiz/hmatrix/tree/master/packages/base/CHANGELOG
