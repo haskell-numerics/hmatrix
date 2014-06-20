@@ -21,7 +21,7 @@ extra-source-files: src/C/lapack-aux.h
 
 library
 
-    Build-Depends:      base,
+    Build-Depends:      base >= 4 && < 5,
                         binary,
                         array,
                         deepseq,

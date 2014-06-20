@@ -7,9 +7,8 @@ Maintainer:         Alberto Ruiz <aruiz@um.es>
 Stability:          provisional
 Homepage:           https://github.com/albertoruiz/hmatrix
 Synopsis:           Numerical computation
-Description:        Purely functional interface to basic linear algebra
-                    and other numerical computations, internally implemented using
-                    GSL, BLAS and LAPACK.
+Description:        Purely functional interface to selected numerical computations,
+                    internally implemented using GSL.
 
 Category:           Math
 tested-with:        GHC ==7.8
@@ -20,33 +19,9 @@ build-type:         Simple
 
 extra-source-files: src/Numeric/GSL/gsl-ode.c
 
-flag dd
-    description:    svd = zgesdd
-    default:        True
-
-flag mkl
-    description:    Link with Intel's MKL optimized libraries.
-    default:        False
-
-flag unsafe
-    description:    Compile the library with bound checking disabled.
-    default:        False
-
-flag finit
-    description:    Force FPU initialization in foreing calls
-    default:        False
-
-flag debugfpu
-    description:    Check FPU stack
-    default:        False
-
-flag debugnan
-    description:    Check NaN
-    default:        False
-
 library
 
-    Build-Depends:      base, hmatrix>=0.16, array, vector,
+    Build-Depends:      base<5, hmatrix>=0.16, array, vector,
                         process, random
 
 
