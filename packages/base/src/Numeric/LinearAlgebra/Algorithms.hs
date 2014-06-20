@@ -180,13 +180,97 @@ exactHermitian m = m `equal` ctrans m
 
 --------------------------------------------------------------
 
--- | Full singular value decomposition.
+{- | Full singular value decomposition.
+
+@
+a = (5><3)
+ [  1.0,  2.0,  3.0
+ ,  4.0,  5.0,  6.0
+ ,  7.0,  8.0,  9.0
+ , 10.0, 11.0, 12.0
+ , 13.0, 14.0, 15.0 ] :: Matrix Double
+@
+
+>>> let (u,s,v) = svd a
+
+>>> disp 3 u
+5x5
+-0.101   0.768   0.614   0.028  -0.149
+-0.249   0.488  -0.503   0.172   0.646
+-0.396   0.208  -0.405  -0.660  -0.449
+-0.543  -0.072  -0.140   0.693  -0.447
+-0.690  -0.352   0.433  -0.233   0.398
+
+>>> s
+fromList [35.18264833189422,1.4769076999800903,1.089145439970417e-15]
+
+>>> disp 3 v
+3x3
+-0.519  -0.751   0.408
+-0.576  -0.046  -0.816
+-0.632   0.659   0.408
+
+>>> let d = diagRect 0 s 5 3
+>>> disp 3 d
+5x3
+35.183  0.000  0.000
+ 0.000  1.477  0.000
+ 0.000  0.000  0.000
+ 0.000  0.000  0.000
+
+>>> disp 3 $ u <> d <> tr v
+5x3
+ 1.000   2.000   3.000
+ 4.000   5.000   6.000
+ 7.000   8.000   9.000
+10.000  11.000  12.000
+13.000  14.000  15.000
+
+-}
 svd :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
 svd = {-# SCC "svd" #-} svd'
 
--- | A version of 'svd' which returns only the @min (rows m) (cols m)@ singular vectors of @m@.
---
--- If @(u,s,v) = thinSVD m@ then @m == u \<> diag s \<> trans v@.
+{- | A version of 'svd' which returns only the @min (rows m) (cols m)@ singular vectors of @m@.
+
+If @(u,s,v) = thinSVD m@ then @m == u \<> diag s \<> tr v@.
+
+@
+a = (5><3)
+ [  1.0,  2.0,  3.0
+ ,  4.0,  5.0,  6.0
+ ,  7.0,  8.0,  9.0
+ , 10.0, 11.0, 12.0
+ , 13.0, 14.0, 15.0 ] :: Matrix Double
+@
+
+>>> let (u,s,v) = thinSVD a
+
+>>> disp 3 u
+5x3
+-0.101   0.768   0.614
+-0.249   0.488  -0.503
+-0.396   0.208  -0.405
+-0.543  -0.072  -0.140
+-0.690  -0.352   0.433
+
+>>> s
+fromList [35.18264833189422,1.4769076999800903,1.089145439970417e-15]
+
+>>> disp 3 v
+3x3
+-0.519  -0.751   0.408
+-0.576  -0.046  -0.816
+-0.632   0.659   0.408
+
+>>> disp 3 $ u <> diag s <> tr v
+5x3
+ 1.000   2.000   3.000
+ 4.000   5.000   6.000
+ 7.000   8.000   9.000
+10.000  11.000  12.000
+13.000  14.000  15.000
+
+-}
 thinSVD :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
 thinSVD = {-# SCC "thinSVD" #-} thinSVD'
 
@@ -196,7 +280,7 @@ singularValues = {-# SCC "singularValues" #-} sv'
 
 -- | A version of 'svd' which returns an appropriate diagonal matrix with the singular values.
 --
--- If @(u,d,v) = fullSVD m@ then @m == u \<> d \<> trans v@.
+-- If @(u,d,v) = fullSVD m@ then @m == u \<> d \<> tr v@.
 fullSVD :: Field t => Matrix t -> (Matrix t, Matrix Double, Matrix t)
 fullSVD m = (u,d,v) where
     (u,s,v) = svd m
@@ -204,7 +288,47 @@ fullSVD m = (u,d,v) where
     r = rows m
     c = cols m
 
--- | Similar to 'thinSVD', returning only the nonzero singular values and the corresponding singular vectors.
+{- | Similar to 'thinSVD', returning only the nonzero singular values and the corresponding singular vectors.
+
+@
+a = (5><3)
+ [  1.0,  2.0,  3.0
+ ,  4.0,  5.0,  6.0
+ ,  7.0,  8.0,  9.0
+ , 10.0, 11.0, 12.0
+ , 13.0, 14.0, 15.0 ] :: Matrix Double
+@
+
+>>> let (u,s,v) = compactSVD a
+
+>>> disp 3 u
+5x2
+-0.101   0.768
+-0.249   0.488
+-0.396   0.208
+-0.543  -0.072
+-0.690  -0.352
+
+>>> s
+fromList [35.18264833189422,1.4769076999800903]
+
+>>> disp 3 u
+5x2
+-0.101   0.768
+-0.249   0.488
+-0.396   0.208
+-0.543  -0.072
+-0.690  -0.352
+
+>>> disp 3 $ u <> diag s <> tr v
+5x3
+ 1.000   2.000   3.000
+ 4.000   5.000   6.000
+ 7.000   8.000   9.000
+10.000  11.000  12.000
+13.000  14.000  15.000
+
+-}
 compactSVD :: Field t  => Matrix t -> (Matrix t, Vector Double, Matrix t)
 compactSVD m = (u', subVector 0 d s, v') where
     (u,s,v) = thinSVD m
@@ -213,12 +337,12 @@ compactSVD m = (u', subVector 0 d s, v') where
     v' = takeColumns d v
 
 
--- | Singular values and all right singular vectors.
+-- | Singular values and all right singular vectors (as columns).
 rightSV :: Field t => Matrix t -> (Vector Double, Matrix t)
 rightSV m | vertical m = let (_,s,v) = thinSVD m in (s,v)
           | otherwise  = let (_,s,v) = svd m     in (s,v)
 
--- | Singular values and all left singular vectors.
+-- | Singular values and all left singular vectors (as columns).
 leftSV :: Field t => Matrix t -> (Matrix t, Vector Double)
 leftSV m  | vertical m = let (u,s,_) = svd m     in (u,s)
           | otherwise  = let (u,s,_) = thinSVD m in (u,s)
@@ -258,13 +382,46 @@ linearSolveLS = {-# SCC "linearSolveLS" #-} linearSolveLS'
 
 --------------------------------------------------------------
 
--- | Eigenvalues and eigenvectors of a general square matrix.
---
--- If @(s,v) = eig m@ then @m \<> v == v \<> diag s@
+{- | Eigenvalues (not ordered) and eigenvectors (as columns) of a general square matrix.
+
+If @(s,v) = eig m@ then @m \<> v == v \<> diag s@
+
+@
+a = (3><3)
+ [ 3, 0, -2
+ , 4, 5, -1
+ , 3, 1,  0 ] :: Matrix Double
+@
+
+>>> let (l, v) = eig a
+
+>>> putStr . dispcf 3 . asRow $ l
+1x3
+1.925+1.523i  1.925-1.523i  4.151
+
+>>> putStr . dispcf 3 $ v
+3x3
+-0.455+0.365i  -0.455-0.365i   0.181
+        0.603          0.603  -0.978
+ 0.033+0.543i   0.033-0.543i  -0.104
+
+>>> putStr . dispcf 3 $ complex a <> v
+3x3
+-1.432+0.010i  -1.432-0.010i   0.753
+ 1.160+0.918i   1.160-0.918i  -4.059
+-0.763+1.096i  -0.763-1.096i  -0.433
+
+>>> putStr . dispcf 3 $ v <> diag l
+3x3
+-1.432+0.010i  -1.432-0.010i   0.753
+ 1.160+0.918i   1.160-0.918i  -4.059
+-0.763+1.096i  -0.763-1.096i  -0.433
+
+-}
 eig :: Field t => Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
 eig = {-# SCC "eig" #-} eig'
 
--- | Eigenvalues of a general square matrix.
+-- | Eigenvalues (not ordered) of a general square matrix.
 eigenvalues :: Field t => Matrix t -> Vector (Complex Double)
 eigenvalues = {-# SCC "eigenvalues" #-} eigOnly
 
@@ -276,14 +433,34 @@ eigSH' = {-# SCC "eigSH'" #-} eigSH''
 eigenvaluesSH' :: Field t => Matrix t -> Vector Double
 eigenvaluesSH' = {-# SCC "eigenvaluesSH'" #-} eigOnlySH
 
--- | Eigenvalues and Eigenvectors of a complex hermitian or real symmetric matrix.
---
--- If @(s,v) = eigSH m@ then @m == v \<> diag s \<> ctrans v@
+{- | Eigenvalues and eigenvectors (as columns) of a complex hermitian or real symmetric matrix, in descending order.
+
+If @(s,v) = eigSH m@ then @m == v \<> diag s \<> tr v@
+
+@
+a = (3><3)
+ [ 1.0, 2.0, 3.0
+ , 2.0, 4.0, 5.0
+ , 3.0, 5.0, 6.0 ]
+@
+
+>>> let (l, v) = eigSH a
+
+>>> l
+fromList [11.344814282762075,0.17091518882717918,-0.5157294715892575]
+
+>>> disp 3 $ v <> diag l <> tr v
+3x3
+1.000  2.000  3.000
+2.000  4.000  5.000
+3.000  5.000  6.000
+
+-}
 eigSH :: Field t => Matrix t -> (Vector Double, Matrix t)
 eigSH m | exactHermitian m = eigSH' m
         | otherwise = error "eigSH requires complex hermitian or real symmetric matrix"
 
--- | Eigenvalues of a complex hermitian or real symmetric matrix.
+-- | Eigenvalues (in descending order) of a complex hermitian or real symmetric matrix.
 eigenvaluesSH :: Field t => Matrix t -> Vector Double
 eigenvaluesSH m | exactHermitian m = eigenvaluesSH' m
                 | otherwise = error "eigenvaluesSH requires complex hermitian or real symmetric matrix"
