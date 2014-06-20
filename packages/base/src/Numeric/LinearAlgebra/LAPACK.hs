@@ -320,7 +320,7 @@ eigOnlyS = vrev . fst. eigSHAux (dsyev 0) "eigS'" . fmat
 -- | Eigenvalues of a hermitian complex matrix, using LAPACK's /zheev/ with jobz == \'N\'.
 -- The eigenvalues are sorted in descending order.
 eigOnlyH :: Matrix (Complex Double) -> Vector Double
-eigOnlyH = vrev . fst. eigSHAux (zheev 1) "eigH'" . fmat
+eigOnlyH = vrev . fst. eigSHAux (zheev 0) "eigH'" . fmat
 
 vrev = flatten . flipud . reshape 1
 
