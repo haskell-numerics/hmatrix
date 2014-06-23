@@ -15,18 +15,28 @@ cabal-version:      >=1.8
 
 build-type:         Simple
 
-extra-source-files: CHANGES
-                    src/tests.hs
+extra-source-files: CHANGES,
+                    src/TestBase.hs,
+                    src/TestGSL.hs,
+                    src/Benchmark.hs
+
+flag gsl
+  description: Enable GSL tests
+  default: True
 
 library
 
     Build-Depends:      base >= 4 && < 5,
-                        hmatrix >= 0.16, hmatrix-gsl >= 0.16,
-                        QuickCheck >= 2, HUnit, random
+                        QuickCheck >= 2, HUnit, random,
+                        hmatrix >= 0.16
+    if flag(gsl)
+      Build-Depends:    hmatrix-gsl >= 0.16
 
     hs-source-dirs:     src
 
     exposed-modules:    Numeric.LinearAlgebra.Tests
+    if flag(gsl)
+      exposed-modules:  Numeric.GSL.Tests
 
     other-modules:      Numeric.LinearAlgebra.Tests.Instances,
                         Numeric.LinearAlgebra.Tests.Properties
@@ -38,8 +48,30 @@ source-repository head
     type:     git
     location: https://github.com/albertoruiz/hmatrix
 
-Test-Suite basic
-    Build-Depends: base, hmatrix-tests
-    type: exitcode-stdio-1.0
-    main-is: src/tests.hs
 
+test-suite hmatrix-base-testsuite
+    type: exitcode-stdio-1.0
+    main-is: src/TestBase.hs
+    build-depends:      base >= 4 && < 5,
+                        hmatrix-tests,
+                        QuickCheck >= 2, HUnit, random
+
+
+test-suite hmatrix-gsl-testsuite
+    type: exitcode-stdio-1.0
+    main-is: src/TestGSL.hs
+    build-depends:      base >= 4 && < 5,
+                        hmatrix-tests,
+                        QuickCheck >= 2, HUnit, random
+    if flag(gsl)
+      buildable:        True
+    else
+      buildable:        False
+
+
+benchmark hmatrix-base-benchmark
+    type:               exitcode-stdio-1.0
+    main-is:            src/Benchmark.hs
+    build-depends:      base >= 4 && < 5,
+                        hmatrix-tests,
+                        QuickCheck >= 2, HUnit, random
