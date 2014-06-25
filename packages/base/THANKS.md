@@ -155,3 +155,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Samium Gromoff reported a build failure caused by a size_t - int mismatch.
 
+- Denis Laxalde separated the gsl tests from the base ones.
+

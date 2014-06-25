@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-unused-imports -fno-warn-incomplete-patterns #-}
 {- |
 Module      :  Numeric.GLS.Tests
 Copyright   :  (c) Alberto Ruiz 2014
@@ -50,7 +51,7 @@ odeTest = utest "ode" (last (toLists sol) ~~ newsol)
     sol = odeSolveV RK8pd 1E-6 1E-6 0 (l2v $ vanderpol 10) (fromList [1,0]) ts
     ts = linspace 101 (0,100)
     l2v f = \t -> fromList  . f t . toList
-    vanderpol mu _t [x,y] = [y, -x + mu * y * (1-x^2) ]
+    vanderpol mu _t [x,y] = [y, -x + mu * y * (1-x**2) ]
     newsol = [-1.758888036617841,  8.364349410519058e-2]
     -- oldsol = [-1.7588880332411019, 8.364348908711941e-2]
 
@@ -61,7 +62,7 @@ rootFindingTest = TestList [ utest "root Hybrids" (fst sol1 ~~ [1,1])
                            ]
     where sol1 = root Hybrids 1E-7 30 (rosenbrock 1 10) [-10,-5]
           sol2 = rootJ Newton 1E-7 30 (rosenbrock 1 10) (jacobian 1 10) [-10,-5]
-          rosenbrock a b [x,y] = [ a*(1-x), b*(y-x^2) ]
+          rosenbrock a b [x,y] = [ a*(1-x), b*(y-x**2) ]
           jacobian a b [x,_y] = [ [-a    , 0]
                                 , [-2*b*x, b] ]
 
@@ -71,7 +72,7 @@ minimizationTest = TestList
     [ utest "minimization conjugatefr" (minim1 f df [5,7] ~~ [1,2])
     , utest "minimization nmsimplex2"  (minim2 f [5,7] `elem` [24,25])
     ]
-    where f [x,y] = 10*(x-1)^2 + 20*(y-2)^2 + 30
+    where f [x,y] = 10*(x-1)**2 + 20*(y-2)**2 + 30
           df [x,y] = [20*(x-1), 40*(y-2)]
           minim1 g dg ini = fst $ minimizeD ConjugateFR 1E-3 30 1E-2 1E-4 g dg ini
           minim2 g ini = rows $ snd $ minimize NMSimplex2 1E-2 30 [1,1] g ini
@@ -123,7 +124,7 @@ runTests n = do
         , rootFindingTest
         , minimizationTest
         , utest "deriv" derivTest
-        , utest "integrate" (abs (volSphere 2.5 - 4/3*pi*2.5^3) < 1E-8)
+        , utest "integrate" (abs (volSphere 2.5 - 4/3*pi*2.5**3) < 1E-8)
         , utest "polySolve" (polySolveProp [1,2,3,4])
         ]
     when (errors c + failures c > 0) exitFailure
