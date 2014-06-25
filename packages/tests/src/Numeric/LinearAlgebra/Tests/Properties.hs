@@ -13,7 +13,7 @@ Testing properties.
 -}
 
 module Numeric.LinearAlgebra.Tests.Properties (
-    dist, (|~|), (~:), Aprox((:~)),
+    dist, (|~|), (~~), (~:), Aprox((:~)),
     zeros, ones,
     square,
     unitary,
@@ -59,6 +59,8 @@ dist = relativeError Infinity
 infixl 4 |~|
 a |~| b = a :~10~: b
 --a |~| b = dist a b < 10^^(-10)
+
+a ~~ b = fromList a |~| fromList b
 
 data Aprox a = (:~) a Int
 -- (~:) :: (Normed a, Num a) => Aprox a -> a -> Bool
