@@ -30,7 +30,7 @@ Contributions, suggestions, and bug reports are welcome!
 [tutorial]: http://dis.um.es/profesores/alberto/material/hmatrix.pdf
 [installation]: https://github.com/AlbertoRuiz/hmatrix/blob/master/INSTALL.md
 [changes]: https://github.com/albertoruiz/hmatrix/tree/master/packages/base/CHANGELOG
-[examples]: http://dis.um.es/~/alberto/hmatrix/hmatrix.html
+[examples]: http://dis.um.es/~alberto/hmatrix/hmatrix.html
 
 
 [hmatrix-static]: http://hackage.haskell.org/package/hmatrix-static
