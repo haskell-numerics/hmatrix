@@ -1,5 +1,5 @@
 Name:               hmatrix-gsl
-Version:            0.16.0.1
+Version:            0.16.0.2
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -76,7 +76,8 @@ library
         if arch(x86_64)
             cc-options: -fPIC
 
-    extra-libraries: gsl
+    pkgconfig-depends: gsl
+
 
 source-repository head
     type:     git
