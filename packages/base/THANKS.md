@@ -157,5 +157,7 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Denis Laxalde separated the gsl tests from the base ones.
 
+- Dylan Thurston reported an error in the glpk documentation.
+
 - Ian Ross reported the max/minIndex bug.
 

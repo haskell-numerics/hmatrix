@@ -17,7 +17,8 @@ maximize 4 x_1 - 3 x_2 + 2 x_3
 subject to
 
 2 x_1 +   x_2 <= 10
-  x_3 + 5 x_4 <= 20
+
+  x_2 + 5 x_3 <= 20
 
 and
 
