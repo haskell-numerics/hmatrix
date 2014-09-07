@@ -172,7 +172,7 @@ double vector_min(KDVEC(x)) {
 double vector_max_index(KDVEC(x)) {
     int k, r = 0;
     for (k = 1; k<xn; k++) {
-        if(xp[k]>xp[0]) {
+        if(xp[k]>xp[r]) {
             r = k;
         }
     }
@@ -182,7 +182,7 @@ double vector_max_index(KDVEC(x)) {
 double vector_min_index(KDVEC(x)) {
     int k, r = 0;
     for (k = 1; k<xn; k++) {
-        if(xp[k]<xp[0]) {
+        if(xp[k]<xp[r]) {
             r = k;
         }
     }
@@ -237,7 +237,7 @@ float vector_min_f(KFVEC(x)) {
 float vector_max_index_f(KFVEC(x)) {
     int k, r = 0;
     for (k = 1; k<xn; k++) {
-        if(xp[k]>xp[0]) {
+        if(xp[k]>xp[r]) {
             r = k;
         }
     }
@@ -247,7 +247,7 @@ float vector_max_index_f(KFVEC(x)) {
 float vector_min_index_f(KFVEC(x)) {
     int k, r = 0;
     for (k = 1; k<xn; k++) {
-        if(xp[k]<xp[0]) {
+        if(xp[k]<xp[r]) {
             r = k;
         }
     }

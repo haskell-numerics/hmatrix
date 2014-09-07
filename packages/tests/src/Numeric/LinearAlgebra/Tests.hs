@@ -398,12 +398,33 @@ staticTest = utest "static" (fst $ checkT (undefined :: L 3 5))
 
 --------------------------------------------------------------------------------
 
+indexProp g f x = a1 == g a2 && a2 == a3 && b1 == g b2 && b2 == b3
+  where
+    l = map g (toList (f x))
+    a1 = maximum l
+    b1 = minimum l
+    a2 = x `atIndex` maxIndex x
+    b2 = x `atIndex` minIndex x
+    a3 = maxElement x
+    b3 = minElement x
+
+--------------------------------------------------------------------------------
+
 -- | All tests must pass with a maximum dimension of about 20
 --  (some tests may fail with bigger sizes due to precision loss).
 runTests :: Int  -- ^ maximum dimension
          -> IO ()
 runTests n = do
     let test p = qCheck n p
+    putStrLn "------ index"
+    test( \m -> indexProp id flatten (single (m :: RM)) )
+    test( \v -> indexProp id id (single (v :: Vector Double)) )
+    test( \m -> indexProp id flatten (m :: RM) )
+    test( \v -> indexProp id id (v :: Vector Double) )
+    test( \m -> indexProp magnitude flatten (single (m :: CM)) )
+    test( \v -> indexProp magnitude id (single (v :: Vector (Complex Double))) )
+    test( \m -> indexProp magnitude flatten (m :: CM) )
+    test( \v -> indexProp magnitude id (v :: Vector (Complex Double)) )
     putStrLn "------ mult Double"
     test (multProp1 10 . rConsist)
     test (multProp1 10 . cConsist)

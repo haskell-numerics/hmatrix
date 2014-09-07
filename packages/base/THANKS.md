@@ -157,3 +157,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Denis Laxalde separated the gsl tests from the base ones.
 
+- Ian Ross reported the max/minIndex bug.
+
