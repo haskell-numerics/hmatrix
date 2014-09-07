@@ -150,7 +150,7 @@ gmat st xs'
     (xs,rest) = splitAt (m'*n') xs'
     v = LA.fromList xs
     x = reshape n' v
-    ok = rem (LA.size v) n' == 0 && LA.size x == (m',n') && null rest
+    ok = null rest && ((n' == 0 && dim v == 0) || n'> 0 && (rem (LA.size v) n' == 0) && LA.size x == (m',n'))
     m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
     n' = fromIntegral . natVal $ (undefined :: Proxy n) :: Int
     abort info = error $ st ++" "++show m' ++ " " ++ show n'++" can't be created from elements " ++ info

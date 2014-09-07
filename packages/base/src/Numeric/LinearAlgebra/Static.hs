@@ -512,7 +512,10 @@ crossC (extract -> x) (extract -> y) = mkC (LA.fromList [z1, z2, z3])
 --------------------------------------------------------------------------------
 
 diagRectR :: forall m n k . (KnownNat m, KnownNat n, KnownNat k) => ℝ -> R k -> L m n
-diagRectR x v = r
+diagRectR x v
+    | m' == 1 = mkL (LA.diagRect x ev m' n')
+    | m'*n' > 0 = r
+    | otherwise = matrix []
   where
     r = mkL (asRow (vjoin [scalar x, ev, zeros]))
     ev = extract v
@@ -521,7 +524,10 @@ diagRectR x v = r
 
 
 diagRectC :: forall m n k . (KnownNat m, KnownNat n, KnownNat k) => ℂ -> C k -> M m n
-diagRectC x v = r
+diagRectC x v
+    | m' == 1 = mkM (LA.diagRect x ev m' n')
+    | m'*n' > 0 = r
+    | otherwise = fromList []
   where
     r = mkM (asRow (vjoin [scalar x, ev, zeros]))
     ev = extract v
