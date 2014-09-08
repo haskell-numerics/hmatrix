@@ -139,7 +139,8 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Clemens Lang updated the MacPort installation instructions.
 
-- Henning Thielemann reported the pinv inefficient implementation.
+- Henning Thielemann reported the pinv inefficient implementation and the need of
+  pkgconfig-depends.
 
 - bdoering reported the problem of zero absolute tolerance in the integration functions.
 
@@ -157,9 +158,13 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Denis Laxalde separated the gsl tests from the base ones.
 
-- "idontgetoutmuch" reported a bug in the static diagonal creation functions.
+- Dominic Steinitz (idontgetoutmuch) reported a bug in the static diagonal creation functions.
 
-- Dylan Thurston reported an error in the glpk documentation.
+- Dylan Thurston reported an error in the glpk documentation and ambiguity in
+  the description of linearSolve.
+
+- Adrian Victor Crisciu developed an installation method for platforms which
+  don't provide shared lapack libraries.
 
 - Ian Ross reported the max/minIndex bug.
 

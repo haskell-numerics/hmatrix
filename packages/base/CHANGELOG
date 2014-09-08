@@ -11,9 +11,11 @@
         Numeric.LinearAlgebra.Data
         Numeric.LinearAlgebra.Devel
 
-      The documentation is now hidden for Data.Packed.*, Numeric.Container, and
+      For normal usage we only need to import Numeric.LinearAlgebra.HMatrix.
+
+      (The documentation is now hidden for Data.Packed.*, Numeric.Container, and
       the other Numeric.LinearAlgebra.* modules, but they continue to be exposed
-      for backwards compatibility.
+      for backwards compatibility.)
 
     * Added support for empty arrays, extending automatic conformability
       (very useful for construction of block matrices).

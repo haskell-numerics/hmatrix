@@ -194,7 +194,37 @@ mul :: Numeric t => Matrix t -> Matrix t -> Matrix t
 mul = mXm
 
 
--- | Solve a linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, returning Nothing for a singular system. For underconstrained or overconstrained systems use 'linearSolveLS' or 'linearSolveSVD'. 
+{- | Solve a linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, returning Nothing for a singular system. For underconstrained or overconstrained systems use 'linearSolveLS' or 'linearSolveSVD'.
+
+@
+a = (2><2)
+ [ 1.0, 2.0
+ , 3.0, 5.0 ]
+@
+
+@
+b = (2><3)
+ [  6.0, 1.0, 10.0
+ , 15.0, 3.0, 26.0 ]
+@
+
+>>> linearSolve a b
+Just (2><3)
+ [ -1.4802973661668753e-15,     0.9999999999999997, 1.999999999999997
+ ,       3.000000000000001, 1.6653345369377348e-16, 4.000000000000002 ]
+
+>>> let Just x = it
+>>> disp 5 x
+2x3
+-0.00000  1.00000  2.00000
+ 3.00000  0.00000  4.00000
+
+>>> a <> x
+(2><3)
+ [  6.0, 1.0, 10.0
+ , 15.0, 3.0, 26.0 ]
+
+-}
 linearSolve m b = A.mbLinearSolve m b
 
 -- | return an orthonormal basis of the null space of a matrix. See also 'nullspaceSVD'.

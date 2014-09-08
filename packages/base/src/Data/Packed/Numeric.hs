@@ -160,7 +160,29 @@ instance Mul Vector Matrix Vector where
 
 --------------------------------------------------------------------------------
 
--- | least squares solution of a linear system, similar to the \\ operator of Matlab\/Octave (based on linearSolveSVD)
+{- | Least squares solution of a linear system, similar to the \\ operator of Matlab\/Octave (based on linearSolveSVD)
+
+@
+a = (3><2)
+ [ 1.0,  2.0
+ , 2.0,  4.0
+ , 2.0, -1.0 ]
+@
+
+@
+v = vector [13.0,27.0,1.0]
+@
+
+>>> let x = a <\> v
+>>> x
+fromList [3.0799999999999996,5.159999999999999]
+
+>>> a #> x
+fromList [13.399999999999999,26.799999999999997,1.0]
+
+It also admits multiple right-hand sides stored as columns in a matrix.
+
+-}
 infixl 7 <\>
 (<\>) :: (LSDiv c, Field t) => Matrix t -> c t -> c t
 (<\>) = linSolve

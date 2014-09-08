@@ -12,6 +12,9 @@ Ubuntu/Debian:
 
 Other distributions may require additional libraries. They can be given in a **--configure-option**.
 
+Adrian Victor Crisciu has developed an [installation method](http://comments.gmane.org/gmane.comp.lang.haskell.glasgow.user/24976) for systems
+which don't provide shared lapack libraries.
+
 ## Mac OS/X ###############################################
 
 GSL must be installed via Homebrew or MacPorts.
