@@ -253,7 +253,8 @@ compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
     operations for selected element types.
     It provides unoptimised defaults for any 'Storable' type,
     so you can create instances simply as:
-    @instance Element Foo@.
+
+    >instance Element Foo
 -}
 class (Storable a) => Element a where
     subMatrixD :: (Int,Int) -- ^ (r0,c0) starting position 
