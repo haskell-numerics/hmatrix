@@ -120,7 +120,8 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Takano Akio fixed off-by-one errors in gsl-aux.c producing segfaults.
 
-- Alex Lang implemented uniRoot and uniRootJ for one-dimensional root-finding.
+- Alex Lang implemented uniRoot and uniRootJ for one-dimensional root-finding, and
+  fixed asRow and asColumn for empty vectors.
 
 - Mike Ledger contributed alternative FFI helpers for matrix interoperation with C
 
@@ -167,4 +168,6 @@ module reorganization, monadic mapVectorM, and many other improvements.
   don't provide shared lapack libraries.
 
 - Ian Ross reported the max/minIndex bug.
+
+- Niklas Hambüchen improved the documentation.
 
