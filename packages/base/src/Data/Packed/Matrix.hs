@@ -284,7 +284,7 @@ fromLists = fromRows . map fromList
 --   [ 1.0, 2.0, 3.0, 4.0, 5.0 ]
 --
 asRow :: Storable a => Vector a -> Matrix a
-asRow v = reshape (dim v) v
+asRow = trans . asColumn
 
 -- | creates a 1-column matrix from a vector
 --
@@ -297,7 +297,7 @@ asRow v = reshape (dim v) v
 --  , 5.0 ]
 --
 asColumn :: Storable a => Vector a -> Matrix a
-asColumn = trans . asRow
+asColumn v = reshape 1 v
 
 
 
