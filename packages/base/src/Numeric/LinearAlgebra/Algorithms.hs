@@ -809,7 +809,7 @@ expGolub m = iterate msq f !! j
 --------------------------------------------------------------
 
 {- | Matrix square root. Currently it uses a simple iterative algorithm described in Wikipedia.
-It only works with invertible matrices that have a real solution. For diagonalizable matrices you can try @matFunc sqrt@.
+It only works with invertible matrices that have a real solution.
 
 @m = (2><2) [4,9
            ,0,4] :: Matrix Double@
@@ -818,6 +818,13 @@ It only works with invertible matrices that have a real solution. For diagonaliz
 (2><2)
  [ 2.0, 2.25
  , 0.0,  2.0 ]
+
+For diagonalizable matrices you can try 'matFunc' @sqrt@:
+
+>>> matFunc sqrt ((2><2) [1,0,0,-1])
+(2><2)
+ [ 1.0 :+ 0.0, 0.0 :+ 0.0
+ , 0.0 :+ 0.0, 0.0 :+ 1.0 ]
 
 -}
 sqrtm ::  Field t => Matrix t -> Matrix t
