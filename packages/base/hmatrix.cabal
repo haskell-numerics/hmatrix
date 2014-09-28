@@ -114,7 +114,7 @@ library
     if os(freebsd)
        extra-lib-dirs: /usr/local/lib
        include-dirs: /usr/local/include
-       extra-libraries: blas lapack
+       extra-libraries: blas lapack gfortran
 
     if os(windows)
         extra-libraries: blas lapack
