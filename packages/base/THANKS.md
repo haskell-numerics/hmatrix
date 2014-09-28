@@ -103,7 +103,7 @@ module reorganization, monadic mapVectorM, and many other improvements.
   deprecation warnings, used more explicit imports, and updated to ghc-7.4.
 
 - Tom Nielsen discovered a problem in Config.hs, exposed by link problems
-  in Ubuntu 11.10 beta.
+  in Ubuntu 11.10 beta, and fixed the link options on freebsd.
 
 - Daniel Fischer reported some Haddock markup errors.
 
