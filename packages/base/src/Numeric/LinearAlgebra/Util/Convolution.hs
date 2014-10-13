@@ -16,6 +16,7 @@ module Numeric.LinearAlgebra.Util.Convolution(
    corr2, conv2, separable
 ) where
 
+import qualified Data.Vector.Storable as SV
 import Data.Packed.Numeric
 
 
@@ -51,7 +52,7 @@ conv ker v
     | dim ker == 0 = konst 0 (dim v)
     | otherwise = corr ker' v'
   where
-    ker' = (flatten.fliprl.asRow) ker
+    ker' = SV.reverse ker
     v' = vjoin [z,v,z]
     z = konst 0 (dim ker -1)
 
