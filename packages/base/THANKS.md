@@ -171,3 +171,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Niklas Hambüchen improved the documentation.
 
+- "erdeszt" optimized "conv" using a direct vector reverse
+
