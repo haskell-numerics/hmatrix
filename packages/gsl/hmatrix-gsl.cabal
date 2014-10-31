@@ -1,5 +1,5 @@
 Name:               hmatrix-gsl
-Version:            0.16.0.2
+Version:            0.16.0.3
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -18,6 +18,10 @@ cabal-version:      >=1.8
 build-type:         Simple
 
 extra-source-files: src/Numeric/GSL/gsl-ode.c
+
+flag onlygsl
+    description:    don't link gslcblas
+    default:        False
 
 library
 
@@ -76,7 +80,10 @@ library
         if arch(x86_64)
             cc-options: -fPIC
 
-    pkgconfig-depends: gsl
+    if flag(onlygsl)
+      extra-libraries: gsl
+    else
+      pkgconfig-depends: gsl
 
 
 source-repository head
