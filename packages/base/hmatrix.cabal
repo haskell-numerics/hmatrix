@@ -32,6 +32,10 @@ extra-source-files: THANKS.md CHANGELOG
 
 extra-source-files: src/C/lapack-aux.h
 
+flag openblas
+    description:    Link with OpenBLAS (https://github.com/xianyi/OpenBLAS) optimized libraries.
+    default:        False
+
 library
 
     Build-Depends:      base >= 4 && < 5,
@@ -100,7 +104,11 @@ library
 
     cpp-options:        -DBINARY
 
-    extra-libraries:    blas lapack
+    if flag(openblas)
+        extra-lib-dirs:     /usr/lib/openblas/lib    
+        extra-libraries:    openblas
+    else 
+        extra-libraries:    blas lapack
 
     if os(OSX)
         extra-lib-dirs: /opt/local/lib/
