@@ -40,7 +40,7 @@ module Numeric.LinearAlgebra.Data(
     takeRows, dropRows, takeColumns, dropColumns, subMatrix, (?), (¿), fliprl, flipud,
   
     -- * Block matrix
-    fromBlocks, (¦), (——), diagBlock, repmat, toBlocks, toBlocksEvery,
+    fromBlocks, (|||), (===), diagBlock, repmat, toBlocks, toBlocksEvery,
 
     -- * Mapping functions
     conj, cmap, step, cond,
@@ -66,7 +66,7 @@ module Numeric.LinearAlgebra.Data(
     arctan2,
     rows, cols,
     separable,
-
+    (¦),(——),
     module Data.Complex,
 
     Vector, Matrix, GMatrix, nRows, nCols

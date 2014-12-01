@@ -134,7 +134,7 @@ module Numeric.LinearAlgebra.HMatrix (
     Seed, RandDist(..), randomVector, rand, randn, gaussianSample, uniformSample,
 
     -- * Misc
-    meanCov, peps, relativeError, haussholder, optimiseMult, udot, nullspaceSVD, orthSVD, ranksv,
+    meanCov, rowOuters, peps, relativeError, haussholder, optimiseMult, udot, nullspaceSVD, orthSVD, ranksv,
     ℝ,ℂ,iC,
     -- * Auxiliary classes
     Element, Container, Product, Numeric, LSDiv,

@@ -33,7 +33,7 @@ module Numeric.LinearAlgebra.Util(
     diagl,
     row,
     col,
-    (&), (¦), (——), (#),
+    (&), (¦), (|||), (——), (===), (#),
     (?), (¿),
     Indexable(..), size,
     Numeric,
@@ -157,25 +157,34 @@ a & b = vjoin [a,b]
 
 {- | horizontal concatenation of real matrices
 
- (unicode 0x00a6, broken bar)
-
->>> ident 3 ¦ konst 7 (3,4)
+>>> ident 3 ||| konst 7 (3,4)
 (3><7)
  [ 1.0, 0.0, 0.0, 7.0, 7.0, 7.0, 7.0
  , 0.0, 1.0, 0.0, 7.0, 7.0, 7.0, 7.0
  , 0.0, 0.0, 1.0, 7.0, 7.0, 7.0, 7.0 ]
 
 -}
+infixl 3 |||
+(|||) :: Matrix Double -> Matrix Double -> Matrix Double
+a ||| b = fromBlocks [[a,b]]
+
+-- | a synonym for ('|||') (unicode 0x00a6, broken bar)
 infixl 3 ¦
 (¦) :: Matrix Double -> Matrix Double -> Matrix Double
-a ¦ b = fromBlocks [[a,b]]
+(¦) = (|||)
+
 
 -- | vertical concatenation of real matrices
 --
--- (unicode 0x2014, em dash)
+(===) :: Matrix Double -> Matrix Double -> Matrix Double
+infixl 2 ===
+a === b = fromBlocks [[a],[b]]
+
+-- | a synonym for ('===') (unicode 0x2014, em dash)
 (——) :: Matrix Double -> Matrix Double -> Matrix Double
 infixl 2 ——
-a —— b = fromBlocks [[a],[b]]
+(——) = (===)
+
 
 (#) :: Matrix Double -> Matrix Double -> Matrix Double
 infixl 2 #
@@ -356,7 +365,26 @@ pairwiseD2 x y | ok = x2 `outer` oy + ox `outer` y2 - 2* x <> trans y
 
 --------------------------------------------------------------------------------
 
--- | outer products of rows
+{- | outer products of rows
+
+>>> a
+(3><2)
+ [   1.0,   2.0
+ ,  10.0,  20.0
+ , 100.0, 200.0 ]
+>>> b
+(3><3)
+ [ 1.0, 2.0, 3.0
+ , 4.0, 5.0, 6.0
+ , 7.0, 8.0, 9.0 ]
+
+>>> rowOuters a (b ||| 1)
+(3><8)
+ [   1.0,   2.0,   3.0,   1.0,    2.0,    4.0,    6.0,   2.0
+ ,  40.0,  50.0,  60.0,  10.0,   80.0,  100.0,  120.0,  20.0
+ , 700.0, 800.0, 900.0, 100.0, 1400.0, 1600.0, 1800.0, 200.0 ]
+
+-}
 rowOuters :: Matrix Double -> Matrix Double -> Matrix Double
 rowOuters a b = a' * b'
   where
