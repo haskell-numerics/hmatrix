@@ -171,5 +171,9 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Niklas Hambüchen improved the documentation.
 
-- "erdeszt" optimized "conv" using a direct vector reverse
+- "erdeszt" optimized "conv" using a direct vector reverse.
+
+- John Shahbazian added support for openBLAS.
+
+- "yongqli" reported the bug in randomVector (rand() is not thread-safe).
 
