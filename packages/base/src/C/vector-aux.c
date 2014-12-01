@@ -708,13 +708,13 @@ inline double urandom(struct drand48_data * buffer) {
 
 
 // http://c-faq.com/lib/gaussian.html
-double gaussrand(struct drand48_data * buffer)
+double gaussrand(struct drand48_data *buffer,
+                 int *phase, double *pV1, double *pV2, double *pS)
 {
-	static double V1, V2, S;
-	static int phase = 0;
+	double V1=*pV1, V2=*pV2, S=*pS;
 	double X;
 
-	if(phase == 0) {
+	if(*phase == 0) {
 		do {
 			double U1 = urandom(buffer);
 			double U2 = urandom(buffer);
@@ -728,7 +728,8 @@ double gaussrand(struct drand48_data * buffer)
 	} else
 		X = V2 * sqrt(-2 * log(S) / S);
 
-	phase = 1 - phase;
+	*phase = 1 - *phase;
+    *pV1=V1; *pV2=V2; *pS=S;
 
 	return X;
 }
@@ -736,6 +737,9 @@ double gaussrand(struct drand48_data * buffer)
 int random_vector(unsigned int seed, int code, DVEC(r)) {
     struct drand48_data buffer;
     srand48_r(seed,&buffer);
+    int phase = 0;
+    double V1,V2,S;
+    
     int k;
     switch (code) {
       case 0: { // uniform
@@ -746,7 +750,7 @@ int random_vector(unsigned int seed, int code, DVEC(r)) {
       }
       case 1: { // gaussian
         for (k=0; k<rn; k++) {
-            rp[k] = gaussrand(&buffer);
+            rp[k] = gaussrand(&buffer,&phase,&V1,&V2,&S);
         }
         OK
       }
