@@ -700,24 +700,16 @@ int saveMatrix(char * file, char * format, KDMAT(a)){
 
 ////////////////////////////////////////////////////////////////////////////////
 
-inline double urandom(struct drand48_data * buffer) {
-    double res;
-    drand48_r(buffer,&res);
-    return res;
-}
-
-
 // http://c-faq.com/lib/gaussian.html
-double gaussrand(struct drand48_data *buffer,
-                 int *phase, double *pV1, double *pV2, double *pS)
+double gaussrand(int *phase, double *pV1, double *pV2, double *pS)
 {
 	double V1=*pV1, V2=*pV2, S=*pS;
 	double X;
 
 	if(*phase == 0) {
 		do {
-			double U1 = urandom(buffer);
-			double U2 = urandom(buffer);
+            double U1 = (double)random() / (double)RAND_MAX;
+			double U2 = (double)random() / (double)RAND_MAX;
 
 			V1 = 2 * U1 - 1;
 			V2 = 2 * U2 - 1;
@@ -732,11 +724,10 @@ double gaussrand(struct drand48_data *buffer,
     *pV1=V1; *pV2=V2; *pS=S;
 
 	return X;
+
 }
 
 int random_vector(unsigned int seed, int code, DVEC(r)) {
-    struct drand48_data buffer;
-    srand48_r(seed,&buffer);
     int phase = 0;
     double V1,V2,S;
     
@@ -744,13 +735,13 @@ int random_vector(unsigned int seed, int code, DVEC(r)) {
     switch (code) {
       case 0: { // uniform
         for (k=0; k<rn; k++) {
-            rp[k] = urandom(&buffer);
+            rp[k] = (double)random() / (double)RAND_MAX;
         }
         OK
       }
       case 1: { // gaussian
         for (k=0; k<rn; k++) {
-            rp[k] = gaussrand(&buffer,&phase,&V1,&V2,&S);
+            rp[k] = gaussrand(&phase,&V1,&V2,&S);
         }
         OK
       }
