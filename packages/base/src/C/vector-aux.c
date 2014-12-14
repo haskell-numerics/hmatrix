@@ -700,15 +700,15 @@ int saveMatrix(char * file, char * format, KDMAT(a)){
 
 ////////////////////////////////////////////////////////////////////////////////
 
-inline double urandom(struct drand48_data * buffer) {
-    double res;
-    drand48_r(buffer,&res);
-    return res;
+inline double urandom(struct random_data * buffer) {
+    int32_t res;
+    random_r(buffer,&res);
+    return (double)res/RAND_MAX;
 }
 
 
 // http://c-faq.com/lib/gaussian.html
-double gaussrand(struct drand48_data *buffer,
+double gaussrand(struct random_data *buffer,
                  int *phase, double *pV1, double *pV2, double *pS)
 {
 	double V1=*pV1, V2=*pV2, S=*pS;
@@ -735,8 +735,15 @@ double gaussrand(struct drand48_data *buffer,
 }
 
 int random_vector(unsigned int seed, int code, DVEC(r)) {
-    struct drand48_data buffer;
-    srand48_r(seed,&buffer);
+    struct random_data buffer;
+    char   random_state[128];
+    memset(&buffer, 0, sizeof(struct random_data));
+    memset(random_state, 0, sizeof(random_state));
+    
+    initstate_r(seed,random_state,sizeof(random_state),&buffer);
+    // setstate_r(random_state,&buffer);
+    // srandom_r(seed,&buffer);
+
     int phase = 0;
     double V1,V2,S;
     
