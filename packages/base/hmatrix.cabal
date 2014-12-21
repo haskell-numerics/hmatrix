@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.16.1.1
+Version:            0.16.1.2
 License:            BSD3
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -118,6 +118,7 @@ library
         if arch(i386)
             cc-options: -arch i386
         frameworks: Accelerate
+        cpp-options: -DOSX
 
     if os(freebsd)
        extra-lib-dirs: /usr/local/lib
