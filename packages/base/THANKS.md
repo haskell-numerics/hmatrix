@@ -175,7 +175,7 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - John Shahbazian added support for openBLAS.
 
-- "yongqli" reported the bug in randomVector (rand() is not thread-safe).
+- "yongqli" reported the bug in randomVector (rand() is not thread-safe and drand48_r() is not portable).
 
-- "yongqli" and Kiwamu Ishikura reported that drand48_r() is not portable.
+- Kiwamu Ishikura improved randomVector for OSX
 
