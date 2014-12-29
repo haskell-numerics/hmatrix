@@ -705,7 +705,7 @@ int saveMatrix(char * file, char * format, KDMAT(a)){
 #pragma message "randomVector is not thread-safe in OSX"
 
 inline double urandom() {
-    const long max_random = 2147483647 // 2**31 - 1
+    const long max_random = 2147483647; // 2**31 - 1
     return (double)random() / (double)max_random;
 }
 
