@@ -700,7 +700,10 @@ int saveMatrix(char * file, char * format, KDMAT(a)){
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// http://c-faq.com/lib/gaussian.html
+#ifdef OSX
+
+#pragma message "randomVector is not thread-safe in OSX"
+
 double gaussrand(int *phase, double *pV1, double *pV2, double *pS)
 {
 	double V1=*pV1, V2=*pV2, S=*pS;
@@ -730,10 +733,8 @@ double gaussrand(int *phase, double *pV1, double *pV2, double *pS)
 int random_vector(unsigned int seed, int code, DVEC(r)) {
     int phase = 0;
     double V1,V2,S;
+    
     int k;
-
-    srandom(seed);
-
     switch (code) {
       case 0: { // uniform
         for (k=0; k<rn; k++) {
@@ -751,6 +752,77 @@ int random_vector(unsigned int seed, int code, DVEC(r)) {
       default: ERROR(BAD_CODE);
     }
 }
+
+#else
+
+inline double urandom(struct random_data * buffer) {
+    int32_t res;
+    random_r(buffer,&res);
+    return (double)res/RAND_MAX;
+}
+
+
+// http://c-faq.com/lib/gaussian.html
+double gaussrand(struct random_data *buffer,
+                 int *phase, double *pV1, double *pV2, double *pS)
+{
+	double V1=*pV1, V2=*pV2, S=*pS;
+	double X;
+
+	if(*phase == 0) {
+		do {
+            double U1 = (double)random() / (double)RAND_MAX;
+			double U2 = (double)random() / (double)RAND_MAX;
+
+			V1 = 2 * U1 - 1;
+			V2 = 2 * U2 - 1;
+			S = V1 * V1 + V2 * V2;
+			} while(S >= 1 || S == 0);
+
+		X = V1 * sqrt(-2 * log(S) / S);
+	} else
+		X = V2 * sqrt(-2 * log(S) / S);
+
+	*phase = 1 - *phase;
+    *pV1=V1; *pV2=V2; *pS=S;
+
+	return X;
+
+}
+
+int random_vector(unsigned int seed, int code, DVEC(r)) {
+    struct random_data buffer;
+    char   random_state[128];
+    memset(&buffer, 0, sizeof(struct random_data));
+    memset(random_state, 0, sizeof(random_state));
+    
+    initstate_r(seed,random_state,sizeof(random_state),&buffer);
+    // setstate_r(random_state,&buffer);
+    // srandom_r(seed,&buffer);
+
+    int phase = 0;
+    double V1,V2,S;
+
+    int k;
+    switch (code) {
+      case 0: { // uniform
+        for (k=0; k<rn; k++) {
+            rp[k] = urandom(&buffer);
+        }
+        OK
+      }
+      case 1: { // gaussian
+        for (k=0; k<rn; k++) {
+            rp[k] = gaussrand(&buffer,&phase,&V1,&V2,&S);
+        }
+        OK
+      }
+
+      default: ERROR(BAD_CODE);
+    }
+}
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 

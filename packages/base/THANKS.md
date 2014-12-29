@@ -177,3 +177,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - "yongqli" reported the bug in randomVector (rand() is not thread-safe).
 
+- "yongqli" and Kiwamu Ishikura reported that drand48_r() is not portable.
+
