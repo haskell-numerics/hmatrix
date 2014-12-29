@@ -730,8 +730,10 @@ double gaussrand(int *phase, double *pV1, double *pV2, double *pS)
 int random_vector(unsigned int seed, int code, DVEC(r)) {
     int phase = 0;
     double V1,V2,S;
-    
     int k;
+
+    srandom(seed);
+
     switch (code) {
       case 0: { // uniform
         for (k=0; k<rn; k++) {
