@@ -704,6 +704,11 @@ int saveMatrix(char * file, char * format, KDMAT(a)){
 
 #pragma message "randomVector is not thread-safe in OSX"
 
+inline double urandom() {
+    const long max_random = 2147483647 // 2**31 - 1
+    return (double)random() / (double)max_random;
+}
+
 double gaussrand(int *phase, double *pV1, double *pV2, double *pS)
 {
 	double V1=*pV1, V2=*pV2, S=*pS;
@@ -711,8 +716,8 @@ double gaussrand(int *phase, double *pV1, double *pV2, double *pS)
 
 	if(*phase == 0) {
 		do {
-            double U1 = (double)random() / (double)RAND_MAX;
-			double U2 = (double)random() / (double)RAND_MAX;
+            double U1 = urandom();
+			double U2 = urandom();
 
 			V1 = 2 * U1 - 1;
 			V2 = 2 * U2 - 1;
@@ -733,12 +738,14 @@ double gaussrand(int *phase, double *pV1, double *pV2, double *pS)
 int random_vector(unsigned int seed, int code, DVEC(r)) {
     int phase = 0;
     double V1,V2,S;
+
+    srandom(seed);
     
     int k;
     switch (code) {
       case 0: { // uniform
         for (k=0; k<rn; k++) {
-            rp[k] = (double)random() / (double)RAND_MAX;
+            rp[k] = urandom();
         }
         OK
       }
@@ -771,8 +778,8 @@ double gaussrand(struct random_data *buffer,
 
 	if(*phase == 0) {
 		do {
-            double U1 = (double)random() / (double)RAND_MAX;
-			double U2 = (double)random() / (double)RAND_MAX;
+            double U1 = urandom(buffer);
+			double U2 = urandom(buffer);
 
 			V1 = 2 * U1 - 1;
 			V2 = 2 * U2 - 1;
