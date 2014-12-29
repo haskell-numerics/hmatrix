@@ -700,7 +700,7 @@ int saveMatrix(char * file, char * format, KDMAT(a)){
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifdef OSX
+#ifdef __APPLE__
 
 #pragma message "randomVector is not thread-safe in OSX"
 
