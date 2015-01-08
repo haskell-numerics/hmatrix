@@ -16,9 +16,8 @@ module Numeric.GSL.Polynomials (
     polySolve
 ) where
 
-import Data.Packed
+import Numeric.LinearAlgebra.HMatrix
 import Numeric.GSL.Internal
-import Data.Complex
 import System.IO.Unsafe (unsafePerformIO)
 
 #if __GLASGOW_HASKELL__ >= 704
@@ -47,8 +46,8 @@ polySolve :: [Double] -> [Complex Double]
 polySolve = toList . polySolve' . fromList
 
 polySolve' :: Vector Double -> Vector (Complex Double)
-polySolve' v | dim v > 1 = unsafePerformIO $ do
-    r <- createVector (dim v-1)
+polySolve' v | size v > 1 = unsafePerformIO $ do
+    r <- createVector (size v-1)
     app2 c_polySolve vec v vec r "polySolve"
     return r
              | otherwise = error "polySolve on a polynomial of degree zero"

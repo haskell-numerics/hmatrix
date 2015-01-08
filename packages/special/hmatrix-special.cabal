@@ -1,5 +1,5 @@
 Name:               hmatrix-special
-Version:            0.3.0.1
+Version:            0.4.0.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -27,7 +27,7 @@ flag safe-cheap
     default:        False
 
 library
-    Build-Depends:  base <5, hmatrix, hmatrix-gsl
+    Build-Depends:  base <5, hmatrix>=0.17, hmatrix-gsl
 
     Extensions:     ForeignFunctionInterface,
                     CPP

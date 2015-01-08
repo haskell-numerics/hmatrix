@@ -21,11 +21,13 @@ module Numeric.GSL.Random (
 ) where
 
 import Numeric.GSL.Vector
-import Numeric.LinearAlgebra(cholSH)
-import Numeric.Container hiding (
+import Numeric.LinearAlgebra.HMatrix hiding (
     randomVector,
     gaussianSample,
-    uniformSample
+    uniformSample,
+    Seed,
+    rand,
+    randn
     )
 import System.Random(randomIO)
 
@@ -40,10 +42,10 @@ gaussianSample :: Seed
                -> Matrix Double -- ^ covariance matrix
                -> Matrix Double -- ^ result
 gaussianSample seed n med cov = m where
-    c = dim med
+    c = size med
     meds = konst 1 n `outer` med
     rs = reshape c $ randomVector seed Gaussian (c * n)
-    m = rs `mXm` cholSH cov `add` meds
+    m = rs <> cholSH cov + meds
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
 -- uniform distribution.
@@ -55,10 +57,10 @@ uniformSample seed n rgs = m where
     (as,bs) = unzip rgs
     a = fromList as
     cs = zipWith subtract as bs
-    d = dim a
+    d = size a
     dat = toRows $ reshape n $ randomVector seed Uniform (n*d)
     am = konst 1 n `outer` a
-    m = fromColumns (zipWith scale cs dat) `add` am
+    m = fromColumns (zipWith scale cs dat) + am
 
 -- | pseudorandom matrix with uniform elements between 0 and 1
 randm :: RandDist

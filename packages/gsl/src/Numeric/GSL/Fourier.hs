@@ -16,14 +16,13 @@ module Numeric.GSL.Fourier (
     ifft
 ) where
 
-import Data.Packed
+import Numeric.LinearAlgebra.HMatrix
 import Numeric.GSL.Internal
-import Data.Complex
 import Foreign.C.Types
 import System.IO.Unsafe (unsafePerformIO)
 
 genfft code v = unsafePerformIO $ do
-    r <- createVector (dim v)
+    r <- createVector (size v)
     app2 (c_fft code) vec v vec r "fft"
     return r
 

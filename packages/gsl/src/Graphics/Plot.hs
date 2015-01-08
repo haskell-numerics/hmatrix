@@ -27,13 +27,13 @@ module Graphics.Plot(
 
 ) where
 
-import Numeric.Container
+import Numeric.LinearAlgebra.HMatrix
 import Data.List(intersperse)
 import System.Process (system)
 
 -- | From vectors x and y, it generates a pair of matrices to be used as x and y arguments for matrix functions.
 meshdom :: Vector Double -> Vector Double -> (Matrix Double , Matrix Double)
-meshdom r1 r2 = (outer r1 (constant 1 (dim r2)), outer (constant 1 (dim r1)) r2)
+meshdom r1 r2 = (outer r1 (konst 1 (size r2)), outer (konst 1 (size r1)) r2)
 
 
 {- | Draws a 3D surface representation of a real matrix.

@@ -15,7 +15,7 @@ module Numeric.GSL.LinearAlgebra (
     fileDimensions, loadMatrix, fromFile
 ) where
 
-import Data.Packed
+import Numeric.LinearAlgebra.HMatrix hiding (RandDist,randomVector,saveMatrix,loadMatrix)
 import Numeric.GSL.Internal hiding (TV,TM,TCV,TCM)
 
 import Foreign.Marshal.Alloc(free)

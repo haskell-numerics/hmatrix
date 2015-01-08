@@ -14,8 +14,7 @@ module Numeric.GSL.Vector (
     fwriteVector, freadVector, fprintfVector, fscanfVector
 ) where
 
-import Data.Packed
-import Numeric.LinearAlgebra(RandDist(..))
+import Numeric.LinearAlgebra.HMatrix hiding(randomVector, saveMatrix)
 import Numeric.GSL.Internal hiding (TV,TM,TCV,TCM)
 
 import Foreign.Marshal.Alloc(free)

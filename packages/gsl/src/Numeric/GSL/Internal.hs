@@ -22,14 +22,13 @@ module Numeric.GSL.Internal(
     aux_vTom,
     createV,
     createMIO,
-    module Data.Packed.Development,
+    module Numeric.LinearAlgebra.Devel,
     check,
     Res,TV,TM,TCV,TCM
 ) where
 
-import Data.Packed
-import Data.Packed.Development hiding (check)
-import Data.Complex
+import Numeric.LinearAlgebra.HMatrix
+import Numeric.LinearAlgebra.Devel hiding (check)
 
 import Foreign.Marshal.Array(copyArray)
 import Foreign.Ptr(Ptr, FunPtr)

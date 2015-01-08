@@ -1,3 +1,6 @@
+{-# LANGUAGE FlexibleContexts #-}
+
+
 {- |
 Module      :  Numeric.GSL.ODE
 Copyright   :  (c) Alberto Ruiz 2010
@@ -32,7 +35,7 @@ module Numeric.GSL.ODE (
     odeSolve, odeSolveV, ODEMethod(..), Jacobian
 ) where
 
-import Data.Packed
+import Numeric.LinearAlgebra.HMatrix
 import Numeric.GSL.Internal
 
 import Foreign.Ptr(FunPtr, nullFunPtr, freeHaskellFunPtr)
@@ -68,7 +71,7 @@ odeSolve
     -> Vector Double   -- ^ desired solution times
     -> Matrix Double   -- ^ solution
 odeSolve xdot xi ts = odeSolveV RKf45 hi epsAbs epsRel (l2v xdot) (fromList xi) ts
-    where hi = (ts@>1 - ts@>0)/100
+    where hi = (ts!1 - ts!0)/100
           epsAbs = 1.49012e-08
           epsRel = 1.49012e-08
           l2v f = \t -> fromList  . f t . toList
@@ -107,14 +110,14 @@ odeSolveV'
     -> Vector Double     -- ^ desired solution times
     -> Matrix Double     -- ^ solution
 odeSolveV' method mbjac h epsAbs epsRel f  xiv ts = unsafePerformIO $ do
-    let n   = dim xiv
+    let n   = size xiv
     fp <- mkDoubleVecVecfun (\t -> aux_vTov (checkdim1 n . f t))
     jp <- case mbjac of
         Just jac -> mkDoubleVecMatfun (\t -> aux_vTom (checkdim2 n . jac t))
         Nothing  -> return nullFunPtr
     sol <- vec xiv $ \xiv' ->
             vec (checkTimes ts) $ \ts' ->
-             createMIO (dim ts) n
+             createMIO (size ts) n
               (ode_c (method) h epsAbs epsRel fp jp // xiv' // ts' )
               "ode"
     freeHaskellFunPtr fp
@@ -126,7 +129,7 @@ foreign import ccall safe "ode"
 -------------------------------------------------------
 
 checkdim1 n v
-    | dim v == n = v
+    | size v == n = v
     | otherwise = error $ "Error: "++ show n
                         ++ " components expected in the result of the function supplied to odeSolve"
 
@@ -135,6 +138,7 @@ checkdim2 n m
     | otherwise = error $ "Error: "++ show n ++ "x" ++ show n
                         ++ " Jacobian expected in odeSolve"
 
-checkTimes ts | dim ts > 1 && all (>0) (zipWith subtract ts' (tail ts')) = ts
+checkTimes ts | size ts > 1 && all (>0) (zipWith subtract ts' (tail ts')) = ts
               | otherwise = error "odeSolve requires increasing times"
     where ts' = toList ts
+
