@@ -935,10 +935,9 @@ relativeError' x y = dig (norm (x `sub` y) / norm x)
           dig r = round $ -logBase 10 (realToFrac r :: Double)
 
 
-relativeError :: (Normed c t, Num (c t)) => NormType -> c t -> c t -> Double
-relativeError t a b = realToFrac r
+relativeError :: Num a => (a -> Double) -> a -> a -> Double
+relativeError norm a b = r
   where
-    norm = pnorm t
     na = norm a
     nb = norm b
     nab = norm (a-b)

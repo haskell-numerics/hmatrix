@@ -71,7 +71,6 @@ import Data.Packed
 import Data.Packed.Internal.Numeric
 import Data.Complex
 import Numeric.LinearAlgebra.Algorithms(Field,linearSolveSVD)
-import Data.Monoid(Monoid(mconcat))
 import Data.Packed.IO
 import Numeric.LinearAlgebra.Random
 

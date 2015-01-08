@@ -9,7 +9,7 @@ module Numeric.LinearAlgebra.Util.CG(
 import Data.Packed.Numeric
 import Numeric.Sparse
 import Numeric.Vector()
-import Numeric.LinearAlgebra.Algorithms(linearSolveLS, relativeError, NormType(..))
+import Numeric.LinearAlgebra.Algorithms(linearSolveLS, relativeError, pnorm, NormType(..))
 import Control.Arrow((***))
 
 {-
@@ -142,13 +142,13 @@ instance Testable GMatrix
             print s3; print d3
             print s4; print d4
             print s5; print d5
-            print $ relativeError Infinity s5 d5
+            print $ relativeError (pnorm Infinity) s5 d5
 
         ok = s1==d1
           && s2==d2
           && s3==d3
           && s4==d4
-          && relativeError Infinity s5 d5 < 1E-10
+          && relativeError (pnorm Infinity) s5 d5 < 1E-10
 
         disp = putStr . dispf 2
 

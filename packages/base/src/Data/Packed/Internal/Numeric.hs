@@ -48,7 +48,6 @@ import Numeric.Conversion
 import Data.Packed.Development
 import Numeric.Vectorized
 import Data.Complex
-import Control.Applicative((<*>))
 
 import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ)
 import Data.Packed.Internal

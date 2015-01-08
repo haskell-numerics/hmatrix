@@ -35,7 +35,6 @@ import Foreign.Ptr(Ptr)
 import Foreign.Storable(Storable, peekElemOff, pokeElemOff, sizeOf)
 import Foreign.C.Types
 import Data.Complex
-import Control.Monad(when)
 import System.IO.Unsafe(unsafePerformIO)
 
 #if __GLASGOW_HASKELL__ >= 605
