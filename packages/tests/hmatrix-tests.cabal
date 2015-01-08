@@ -1,5 +1,5 @@
 Name:               hmatrix-tests
-Version:            0.4.1.0
+Version:            0.5.0.0
 License:            BSD3
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -28,9 +28,9 @@ library
 
     Build-Depends:      base >= 4 && < 5,
                         QuickCheck >= 2, HUnit, random,
-                        hmatrix >= 0.16
+                        hmatrix >= 0.17
     if flag(gsl)
-      Build-Depends:    hmatrix-gsl >= 0.16
+      Build-Depends:    hmatrix-gsl >= 0.17
 
     hs-source-dirs:     src
 

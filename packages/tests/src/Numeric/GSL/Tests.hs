@@ -19,7 +19,7 @@ import System.Exit (exitFailure)
 
 import Test.HUnit (runTestTT, failures, Test(..), errors)
 
-import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra.HMatrix
 import Numeric.GSL
 import Numeric.LinearAlgebra.Tests (qCheck, utest)
 import Numeric.LinearAlgebra.Tests.Properties ((|~|), (~~))

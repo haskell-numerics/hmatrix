@@ -26,9 +26,8 @@ module Numeric.LinearAlgebra.Tests.Instances(
 
 import System.Random
 
-import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra.HMatrix hiding (vector)
 import Numeric.LinearAlgebra.Devel
-import Numeric.Container
 import Control.Monad(replicateM)
 import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
                       ,sized,classify,Testable,Property
@@ -130,7 +129,7 @@ instance (Field a, Arbitrary a, Num (Vector a)) => Arbitrary (Her a) where
     arbitrary = do
         Sq m <- arbitrary
         let m' = m/2
-        return $ Her (m' + ctrans m')
+        return $ Her (m' + tr m')
 
 #if MIN_VERSION_QuickCheck(2,0,0)
 #else
@@ -144,7 +143,7 @@ instance ArbitraryField (Complex Double)
 
 -- a well-conditioned general matrix (the singular values are between 1 and 100)
 newtype (WC a) = WC (Matrix a) deriving Show
-instance (ArbitraryField a) => Arbitrary (WC a) where
+instance (Numeric a, ArbitraryField a) => Arbitrary (WC a) where
     arbitrary = do
         m <- arbitrary
         let (u,_,v) = svd m
@@ -153,7 +152,7 @@ instance (ArbitraryField a) => Arbitrary (WC a) where
             n = min r c
         sv' <- replicateM n (choose (1,100))
         let s = diagRect 0 (fromList sv') r c
-        return $ WC (u `mXm` real s `mXm` trans v)
+        return $ WC (u <> real s <> tr v)
 
 #if MIN_VERSION_QuickCheck(2,0,0)
 #else
@@ -163,14 +162,14 @@ instance (ArbitraryField a) => Arbitrary (WC a) where
 
 -- a well-conditioned square matrix (the singular values are between 1 and 100)
 newtype (SqWC a) = SqWC (Matrix a) deriving Show
-instance (ArbitraryField a) => Arbitrary (SqWC a) where
+instance (ArbitraryField a, Numeric a) => Arbitrary (SqWC a) where
     arbitrary = do
         Sq m <- arbitrary
         let (u,_,v) = svd m
             n = rows m
         sv' <- replicateM n (choose (1,100))
         let s = diag (fromList sv')
-        return $ SqWC (u `mXm` real s `mXm` trans v)
+        return $ SqWC (u <> real s <> tr v)
 
 #if MIN_VERSION_QuickCheck(2,0,0)
 #else
@@ -180,7 +179,7 @@ instance (ArbitraryField a) => Arbitrary (SqWC a) where
 
 -- a positive definite square matrix (the eigenvalues are between 0 and 100)
 newtype (PosDef a) = PosDef (Matrix a) deriving Show
-instance (ArbitraryField a, Num (Vector a)) 
+instance (Numeric a, ArbitraryField a, Num (Vector a)) 
     => Arbitrary (PosDef a) where
     arbitrary = do
         Her m <- arbitrary
@@ -188,8 +187,8 @@ instance (ArbitraryField a, Num (Vector a))
             n = rows m
         l <- replicateM n (choose (0,100))
         let s = diag (fromList l)
-            p = v `mXm` real s `mXm` ctrans v
-        return $ PosDef (0.5 * p + 0.5 * ctrans p)
+            p = v <> real s <> tr v
+        return $ PosDef (0.5 * p + 0.5 * tr p)
 
 #if MIN_VERSION_QuickCheck(2,0,0)
 #else
