@@ -9,9 +9,9 @@ constr = Dense [ [1,1,1]  :<=: 100
                , [2,2,6]  :<=: 300 ]
 
 -- default bounds
-bnds = [ 1 :=>: 0
-       , 2 :=>: 0
-       , 3 :=>: 0 ]
+bnds = [ 1 :>=: 0
+       , 2 :>=: 0
+       , 3 :>=: 0 ]
 
 main = do
     print $ simplex objFun constr []
