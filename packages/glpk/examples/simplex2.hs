@@ -13,6 +13,6 @@ constr2 = Dense [ [2,1,0] :<=: 10
 main = do
     print $ simplex prob constr1 []
     print $ simplex prob constr2 []
-    print $ simplex prob constr2 [ 2 :=>: 1, 3 :&: (2,7)]
+    print $ simplex prob constr2 [ 2 :>=: 1, 3 :&: (2,7)]
     print $ simplex prob constr2 [ Free 2 ]
 
