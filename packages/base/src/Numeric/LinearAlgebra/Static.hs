@@ -184,8 +184,8 @@ a ¦ b = tr (tr a —— tr b)
 type Sq n  = L n n
 --type CSq n = CL n n
 
-type GL = (KnownNat n, KnownNat m) => L m n
-type GSq = KnownNat n => Sq n
+type GL = forall n m. (KnownNat n, KnownNat m) => L m n
+type GSq = forall n. KnownNat n => Sq n
 
 isKonst :: forall m n . (KnownNat m, KnownNat n) => L m n -> Maybe (ℝ,(Int,Int))
 isKonst s@(unwrap -> x)
