@@ -179,3 +179,7 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Kiwamu Ishikura improved randomVector for OSX
 
+- C.J. East fixed the examples for simplex.
+
+- Ben Gamari contributed fixes for ghc 7.10
+
