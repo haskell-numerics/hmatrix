@@ -92,7 +92,7 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Carter Schonwald helped with the configuration for Homebrew OS X and
   found a tolerance problem in test "1E5 rots". He also discovered
-  a bug in the signature of cmap.
+  a bug in the signature of cmap and fixed the cabal file.
 
 - Duncan Coutts reported a problem with configure.hs and contributed
   a solution and a simplified Setup.lhs.
