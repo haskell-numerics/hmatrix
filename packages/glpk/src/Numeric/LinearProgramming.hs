@@ -75,6 +75,7 @@ Multiple bounds for a variable are not allowed, instead of
 
 module Numeric.LinearProgramming(
     simplex,
+    exact,
     sparseOfGeneral,
     Optimization(..),
     Constraints(..),
@@ -132,8 +133,8 @@ sparseOfGeneral :: Constraints -> Constraints
 sparseOfGeneral (General cs) =
     Sparse $ map (\bl -> 
                       let cl = obj bl in
-                      let m = foldr (\(c,t) m -> Map.insertWith (+) t c m) Map.empty cl in
-                      withObj bl (Map.foldrWithKey' (\t c l -> (c#t) : l) [] m)) cs
+                      let cl_unique = foldr (\(c,t) m -> Map.insertWith (+) t c m) Map.empty cl in
+                      withObj bl (Map.foldrWithKey' (\t c l -> (c#t) : l) [] cl_unique)) cs
 sparseOfGeneral _ = error "sparseOfGeneral: a general system of constraints was expected"
 
 simplex :: Optimization -> Constraints -> Bounds -> Solution
@@ -155,6 +156,27 @@ simplex opt (Sparse constr) bnds = extract sg sol where
     (sz, sg, objfun) = adapt opt
 
 simplex opt constr@(General _) bnds = simplex opt (sparseOfGeneral constr) bnds
+
+-- | Simplex method with exact internal arithmetic. See glp_exact in glpk documentation for more information.
+exact :: Optimization -> Constraints -> Bounds -> Solution
+
+exact opt (Dense   []) bnds = exact opt (Sparse []) bnds
+exact opt (Sparse  []) bnds = exact opt (Sparse [Free [0#1]]) bnds
+exact opt (General []) bnds = exact opt (Sparse [Free [0#1]]) bnds
+
+exact opt (Dense constr) bnds = extract sg sol where
+    sol = exactSparse m n (mkConstrD sz objfun constr) (mkBounds sz constr bnds)
+    n = length objfun
+    m = length constr
+    (sz, sg, objfun) = adapt opt
+
+exact opt (Sparse constr) bnds = extract sg sol where
+    sol = exactSparse m n (mkConstrS sz objfun constr) (mkBounds sz constr bnds)
+    n = length objfun
+    m = length constr
+    (sz, sg, objfun) = adapt opt
+
+exact opt constr@(General _) bnds = exact opt (sparseOfGeneral constr) bnds
 
 adapt :: Optimization -> (Int, Double, [Double])
 adapt opt = case opt of
@@ -263,6 +285,19 @@ simplexSparse :: Int -> Int -> Matrix Double -> Matrix Double -> Vector Double
 simplexSparse m n c b = unsafePerformIO $ do
     s <- createVector (2+n)
     app3 (c_simplex_sparse (fi m) (fi n)) mat (cmat c) mat (cmat b) vec s "c_simplex_sparse"
+    return s
+
+foreign import ccall unsafe "c_exact_sparse" c_exact_sparse
+    :: CInt -> CInt                  -- rows and cols
+    -> CInt -> CInt -> Ptr Double    -- coeffs
+    -> CInt -> CInt -> Ptr Double    -- bounds
+    -> CInt -> Ptr Double            -- result
+    -> IO CInt                       -- exit code
+
+exactSparse :: Int -> Int -> Matrix Double -> Matrix Double -> Vector Double
+exactSparse m n c b = unsafePerformIO $ do
+    s <- createVector (2+n)
+    app3 (c_exact_sparse (fi m) (fi n)) mat (cmat c) mat (cmat b) vec s "c_exact_sparse"
     return s
 
 glpFR, glpLO, glpUP, glpDB, glpFX :: Double
