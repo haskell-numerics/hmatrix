@@ -49,6 +49,14 @@ constr2 = Dense [ [2,1,0] :<=: 10
                 ]
 @
 
+Note that when using sparse constraints, coefficients cannot appear more than once in each constraint. You can alternatively use General which will automatically sum any duplicate coefficients when necessary.
+
+@
+constr3 = General [ [1\#1, 1\#1, 1\#2] :<=: 10
+                  , [1\#2, 5\#3] :<=: 20
+                  ]
+@
+
 By default all variables are bounded as @x_i >= 0@, but this can be
 changed:
 
@@ -67,6 +75,7 @@ Multiple bounds for a variable are not allowed, instead of
 
 module Numeric.LinearProgramming(
     simplex,
+    sparseOfGeneral,
     Optimization(..),
     Constraints(..),
     Bounds,
@@ -82,13 +91,14 @@ import System.IO.Unsafe(unsafePerformIO)
 import Foreign.C.Types
 import Data.List((\\),sortBy,nub)
 import Data.Function(on)
+import qualified Data.Map.Strict as Map
 
 --import Debug.Trace
 --debug x = trace (show x) x
 
 -----------------------------------------------------
 
--- | Coefficient of a variable for a sparse representation of constraints.
+-- | Coefficient of a variable for a sparse and general representations of constraints.
 (#) :: Double -> Int -> (Double,Int)
 infixl 5 #
 (#) = (,)
@@ -108,18 +118,29 @@ data Solution = Undefined
               | Unbounded
               deriving Show
 
-data Constraints = Dense  [ Bound [Double] ]
-                 | Sparse [ Bound [(Double,Int)] ]
+data Constraints = Dense   [ Bound [Double] ]
+                 | Sparse  [ Bound [(Double,Int)] ]
+                 | General [ Bound [(Double,Int)] ]
 
 data Optimization = Maximize [Double]
                   | Minimize [Double]
 
 type Bounds = [Bound Int]
 
+-- | Convert a system of General constraints to one with unique coefficients. 
+sparseOfGeneral :: Constraints -> Constraints
+sparseOfGeneral (General cs) =
+    Sparse $ map (\bl -> 
+                      let cl = obj bl in
+                      let m = foldr (\(c,t) m -> Map.insertWith (+) t c m) Map.empty cl in
+                      withObj bl (Map.foldrWithKey' (\t c l -> (c#t) : l) [] m)) cs
+sparseOfGeneral _ = error "sparseOfGeneral: a general system of constraints was expected"
+
 simplex :: Optimization -> Constraints -> Bounds -> Solution
 
-simplex opt (Dense  []) bnds = simplex opt (Sparse []) bnds
-simplex opt (Sparse []) bnds = simplex opt (Sparse [Free [0#1]]) bnds
+simplex opt (Dense   []) bnds = simplex opt (Sparse []) bnds
+simplex opt (Sparse  []) bnds = simplex opt (Sparse [Free [0#1]]) bnds
+simplex opt (General []) bnds = simplex opt (Sparse [Free [0#1]]) bnds
 
 simplex opt (Dense constr) bnds = extract sg sol where
     sol = simplexSparse m n (mkConstrD sz objfun constr) (mkBounds sz constr bnds)
@@ -132,6 +153,8 @@ simplex opt (Sparse constr) bnds = extract sg sol where
     n = length objfun
     m = length constr
     (sz, sg, objfun) = adapt opt
+
+simplex opt constr@(General _) bnds = simplex opt (sparseOfGeneral constr) bnds
 
 adapt :: Optimization -> (Int, Double, [Double])
 adapt opt = case opt of
@@ -161,6 +184,13 @@ obj (x :>=: _)  = x
 obj (x :&: _)  = x
 obj (x :==: _) = x
 obj (Free x)   = x
+
+withObj :: Bound t -> t -> Bound t
+withObj (_ :<=: b) x = (x :<=: b)
+withObj (_ :>=: b) x = (x :>=: b)
+withObj (_ :&: b) x = (x :&: b)
+withObj (_ :==: b) x = (x :==: b)
+withObj (Free _) x = Free x
 
 tb :: Bound t -> Double
 tb (_ :<=: _)  = glpUP
