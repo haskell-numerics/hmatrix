@@ -13,6 +13,7 @@ typedef float  complex TCF;
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #define MACRO(B) do {B} while (0)
 #define ERROR(CODE) MACRO(return CODE;)
