@@ -52,7 +52,7 @@ module Numeric.LinearAlgebra.Static(
     linSolve, (<\>),
     -- * Factorizations
     svd, withCompactSVD, svdTall, svdFlat, Eigen(..),
-    withNullspace, qr,
+    withNullspace, qr, chol,
     -- * Misc
     mean,
     Disp(..), Domain(..),
@@ -68,7 +68,7 @@ import Numeric.LinearAlgebra.HMatrix hiding (
     row,col,vector,matrix,linspace,toRows,toColumns,
     (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',
     eigenvalues,eigenvaluesSH,eigenvaluesSH',build,
-    qr,size,app,mul,dot)
+    qr,size,app,mul,dot,chol)
 import qualified Numeric.LinearAlgebra.HMatrix as LA
 import Data.Proxy(Proxy)
 import Numeric.LinearAlgebra.Static.Internal
@@ -305,6 +305,9 @@ instance KnownNat n => Eigen (Sq n) (C n) (M n n)
     eigensystem (extract -> m) = (mkC l, mkM v)
       where
         (l,v) = LA.eig m
+
+chol :: KnownNat n => Sym n -> Sq n
+chol (extract . unSym -> m) = mkL $ LA.cholSH m
 
 --------------------------------------------------------------------------------
 
