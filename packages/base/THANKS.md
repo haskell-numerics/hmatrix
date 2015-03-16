@@ -159,7 +159,8 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Denis Laxalde separated the gsl tests from the base ones.
 
-- Dominic Steinitz (idontgetoutmuch) reported a bug in the static diagonal creation functions.
+- Dominic Steinitz (idontgetoutmuch) reported a bug in the static diagonal creation functions and
+  added Cholesky to Static.
 
 - Dylan Thurston reported an error in the glpk documentation and ambiguity in
   the description of linearSolve.
@@ -182,4 +183,10 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - C.J. East fixed the examples for simplex.
 
 - Ben Gamari contributed fixes for ghc 7.10
+
+- Piotr Mardziel added general sparse constraints to simplex and the interface to glp_exact
+
+- Maxim Baz fixed an instance declaration for ghc 7.11
+
+- Thomas M. DuBuisson fixed a C include file.
 
