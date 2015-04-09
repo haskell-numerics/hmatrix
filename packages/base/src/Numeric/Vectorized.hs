@@ -37,7 +37,6 @@ import Foreign.C.String
 import System.IO.Unsafe(unsafePerformIO)
 
 import Control.Monad(when)
-import Control.Applicative((<$>))
 
 
 
