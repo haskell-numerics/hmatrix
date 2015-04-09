@@ -92,7 +92,7 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Carter Schonwald helped with the configuration for Homebrew OS X and
   found a tolerance problem in test "1E5 rots". He also discovered
-  a bug in the signature of cmap.
+  a bug in the signature of cmap and fixed the cabal file.
 
 - Duncan Coutts reported a problem with configure.hs and contributed
   a solution and a simplified Setup.lhs.
@@ -159,7 +159,8 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Denis Laxalde separated the gsl tests from the base ones.
 
-- Dominic Steinitz (idontgetoutmuch) reported a bug in the static diagonal creation functions.
+- Dominic Steinitz (idontgetoutmuch) reported a bug in the static diagonal creation functions and
+  added Cholesky to Static.
 
 - Dylan Thurston reported an error in the glpk documentation and ambiguity in
   the description of linearSolve.
@@ -178,4 +179,14 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - "yongqli" reported the bug in randomVector (rand() is not thread-safe and drand48_r() is not portable).
 
 - Kiwamu Ishikura improved randomVector for OSX
+
+- C.J. East fixed the examples for simplex.
+
+- Ben Gamari contributed fixes for ghc 7.10
+
+- Piotr Mardziel added general sparse constraints to simplex and the interface to glp_exact
+
+- Maxim Baz fixed an instance declaration for ghc 7.11
+
+- Thomas M. DuBuisson fixed a C include file.
 
