@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP, FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# LANGUAGE TypeFamilies #-}
+
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Tests.Properties

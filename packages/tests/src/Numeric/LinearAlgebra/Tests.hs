@@ -1,6 +1,9 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports -fno-warn-incomplete-patterns #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes #-}
 
 -----------------------------------------------------------------------------
 {- |
@@ -54,6 +57,7 @@ import Data.Packed.ST
 import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
                       ,sized,classify,Testable,Property
                       ,quickCheckWithResult,maxSize,stdArgs,shrink)
+import qualified Test.QuickCheck as T
 
 import Test.QuickCheck.Test(isSuccess)
 
@@ -415,7 +419,8 @@ indexProp g f x = a1 == g a2 && a2 == a3 && b1 == g b2 && b2 == b3
 runTests :: Int  -- ^ maximum dimension
          -> IO ()
 runTests n = do
-    let test p = qCheck n p
+    let test :: forall t . T.Testable t => t -> IO ()
+        test p = qCheck n p
     putStrLn "------ index"
     test( \m -> indexProp id flatten (single (m :: RM)) )
     test( \v -> indexProp id id (single (v :: Vector Double)) )
