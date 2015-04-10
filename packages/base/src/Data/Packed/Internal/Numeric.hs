@@ -240,7 +240,7 @@ instance Container Vector (Complex Float)
 
 ---------------------------------------------------------------
 
-instance (Container Vector a) => Container Matrix a
+instance (Fractional a, Element a, Container Vector a) => Container Matrix a
   where
     size' = size
     scale' x = liftMatrix (scale' x)

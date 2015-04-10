@@ -1,5 +1,3 @@
-#if __GLASGOW_HASKELL__ >= 708
-
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -51,7 +49,7 @@ module Numeric.LinearAlgebra.Static(
     linSolve, (<\>),
     -- * Factorizations
     svd, withCompactSVD, svdTall, svdFlat, Eigen(..),
-    withNullspace, qr,
+    withNullspace, qr, chol,
     -- * Misc
     mean,
     Disp(..), Domain(..),
@@ -67,7 +65,7 @@ import Numeric.LinearAlgebra.HMatrix hiding (
     row,col,vector,matrix,linspace,toRows,toColumns,
     (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',
     eigenvalues,eigenvaluesSH,eigenvaluesSH',build,
-    qr,size,app,mul,dot)
+    qr,size,app,mul,dot,chol)
 import qualified Numeric.LinearAlgebra.HMatrix as LA
 import Data.Proxy(Proxy)
 import Numeric.LinearAlgebra.Static.Internal
@@ -182,6 +180,7 @@ a ¦ b = tr (tr a —— tr b)
 
 type Sq n  = L n n
 --type CSq n = CL n n
+
 
 type GL = forall n m . (KnownNat n, KnownNat m) => L m n
 type GSq = forall n . KnownNat n => Sq n
@@ -304,6 +303,9 @@ instance KnownNat n => Eigen (Sq n) (C n) (M n n)
     eigensystem (extract -> m) = (mkC l, mkM v)
       where
         (l,v) = LA.eig m
+
+chol :: KnownNat n => Sym n -> Sq n
+chol (extract . unSym -> m) = mkL $ LA.cholSH m
 
 --------------------------------------------------------------------------------
 
@@ -613,24 +615,4 @@ splittest
 instance (KnownNat n', KnownNat m') => Testable (L n' m')
   where
     checkT _ = test
-
-#else
-
-{- |
-Module      :  Numeric.LinearAlgebra.Static
-Copyright   :  (c) Alberto Ruiz 2014
-License     :  BSD3
-Stability   :  experimental
-
-Experimental interface with statically checked dimensions.
-
-This module requires GHC >= 7.8
-
--}
-
-module Numeric.LinearAlgebra.Static
-{-# WARNING "This module requires GHC >= 7.8" #-}
-where
-
-#endif
 
