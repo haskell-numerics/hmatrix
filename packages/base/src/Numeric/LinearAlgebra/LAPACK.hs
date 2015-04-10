@@ -115,7 +115,7 @@ svdAux f st x = unsafePerformIO $ do
     s <- createVector (min r c)
     v <- createMatrix ColumnMajor c c
     app4 f mat x mat u vec s mat v st
-    return (u,s,trans v)
+    return (u,s,v)
   where r = rows x
         c = cols x
 
@@ -141,7 +141,7 @@ thinSVDAux f st x = unsafePerformIO $ do
     s <- createVector q
     v <- createMatrix ColumnMajor q c
     app4 f mat x mat u vec s mat v st
-    return (u,s,trans v)
+    return (u,s,v)
   where r = rows x
         c = cols x
         q = min r c
@@ -185,7 +185,7 @@ rightSVAux f st x = unsafePerformIO $ do
     s <- createVector q
     v <- createMatrix ColumnMajor c c
     app3 g mat x vec s mat v st
-    return (s,trans v)
+    return (s,v)
   where r = rows x
         c = cols x
         q = min r c

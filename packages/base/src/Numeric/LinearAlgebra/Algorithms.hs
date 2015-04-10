@@ -228,7 +228,9 @@ fromList [35.18264833189422,1.4769076999800903,1.089145439970417e-15]
 
 -}
 svd :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
-svd = {-# SCC "svd" #-} svd'
+svd = {-# SCC "svd" #-} g . svd'
+  where
+    g (u,s,v) = (u,s,tr v)
 
 {- | A version of 'svd' which returns only the @min (rows m) (cols m)@ singular vectors of @m@.
 
@@ -272,7 +274,10 @@ fromList [35.18264833189422,1.4769076999800903,1.089145439970417e-15]
 
 -}
 thinSVD :: Field t => Matrix t -> (Matrix t, Vector Double, Matrix t)
-thinSVD = {-# SCC "thinSVD" #-} thinSVD'
+thinSVD = {-# SCC "thinSVD" #-} g . thinSVD'
+  where
+    g (u,s,v) = (u,s,tr v)
+
 
 -- | Singular values only.
 singularValues :: Field t => Matrix t -> Vector Double
@@ -587,7 +592,7 @@ m = (3><3) [ 1, 0,    0
 -}
 
 pinvTol :: Field t => Double -> Matrix t -> Matrix t
-pinvTol t m = conj v' `mXm` diag s' `mXm` ctrans u' where
+pinvTol t m = v' `mXm` diag s' `mXm` ctrans u' where
     (u,s,v) = thinSVD m
     sl@(g:_) = toList s
     s' = real . fromList . map rec $ sl
@@ -649,7 +654,7 @@ nullspaceSVD hint a (s,v) = vs where
     k = case hint of
         Right t -> t
         _       -> rankSVD tol a s
-    vs = conj (dropColumns k v)
+    vs = dropColumns k v
 
 
 -- | The nullspace of a matrix. See also 'nullspaceSVD'.
