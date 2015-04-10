@@ -55,7 +55,7 @@ library
                         Numeric.LinearAlgebra.Data
                         Numeric.LinearAlgebra.HMatrix
                         Numeric.LinearAlgebra.Static
-                        Numeric.LinearAlgebra.Util
+                        Numeric.LinearAlgebra.HMatrix.Util
 
     other-modules:      Data.Packed,
                         Data.Packed.Vector
@@ -85,6 +85,7 @@ library
                         Numeric.Conversion
                         Numeric.Sparse
                         Numeric.LinearAlgebra.Static.Internal
+                        Numeric.LinearAlgebra.Util
 
     C-sources:          src/C/lapack-aux.c
                         src/C/vector-aux.c
