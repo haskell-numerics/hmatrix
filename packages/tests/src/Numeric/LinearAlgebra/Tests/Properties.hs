@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP, FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -----------------------------------------------------------------------------
 {- |
@@ -272,5 +272,5 @@ linearSolveProp2 f (a,x) = not wc `trivial` (not wc || a <> f a b |~| b)
           b = a <> x
           wc = rank a == q
 
-subProp m = m == (tr . fromColumns . toRows) m
+subProp m = m == (conj . tr . fromColumns . toRows) m
 

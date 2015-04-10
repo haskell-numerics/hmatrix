@@ -1,9 +1,9 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports -fno-warn-incomplete-patterns #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs #-}
-
+{-# LANGUAGE RankNTypes #-}
 
 -----------------------------------------------------------------------------
 {- |
@@ -30,7 +30,7 @@ module Numeric.LinearAlgebra.Tests(
 
 import Numeric.LinearAlgebra.HMatrix
 import Numeric.LinearAlgebra.Devel hiding (vec)
-import Numeric.LinearAlgebra.Util hiding (ones)
+import Numeric.LinearAlgebra.HMatrix.Util
 import Numeric.LinearAlgebra.Static(L)
 import Numeric.LinearAlgebra.Tests.Instances
 import Numeric.LinearAlgebra.Tests.Properties
@@ -52,6 +52,7 @@ import Control.Monad(ap)
 import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
                       ,sized,classify,Testable,Property
                       ,quickCheckWithResult,maxSize,stdArgs,shrink)
+import qualified Test.QuickCheck as T
 
 import Test.QuickCheck.Test(isSuccess)
 
@@ -413,7 +414,8 @@ indexProp g f x = a1 == g a2 && a2 == a3 && b1 == g b2 && b2 == b3
 runTests :: Int  -- ^ maximum dimension
          -> IO ()
 runTests n = do
-    let test p = qCheck n p
+    let test :: forall t . T.Testable t => t -> IO ()
+        test p = qCheck n p
     putStrLn "------ index"
     test( \m -> indexProp id flatten (single (m :: RM)) )
     test( \v -> indexProp id id (single (v :: Vector Double)) )
@@ -485,7 +487,7 @@ runTests n = do
     test (svdProp6b)
     test (svdProp7  . rM)
     test (svdProp7  . cM)
-    putStrLn "------ svdCd"
+--    putStrLn "------ svdCd"
 #ifdef NOZGESDD
 --    putStrLn "Omitted"
 #else
@@ -532,7 +534,7 @@ runTests n = do
     test (\u -> sin u ** 2 + cos u ** 2 |~| (1::RM))
     test (\u -> cos u * tan u |~| sin (u::RM))
     test $ (\u -> cos u * tan u |~| sin (u::CM)) . liftMatrix makeUnitary
-    putStrLn "------ vector operations - Float"
+--    putStrLn "------ vector operations - Float"
 --    test (\u -> sin u ^ 2 + cos u ^ 2 |~~| (1::FM))
 --    test $ (\u -> sin u ^ 2 + cos u ^ 2 |~~| (1::ZM)) . liftMatrix makeUnitary
 --    test (\u -> sin u ** 2 + cos u ** 2 |~~| (1::FM))

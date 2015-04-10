@@ -42,7 +42,7 @@ fittingTest = utest "levmar" (ok1 && ok2)
     sol = fst $ fitModel 1E-4 1E-4 20 (expModel, expModelDer) dat [1,0,0]
 
     ok1 = and (zipWith f sols [5,0.1,1]) where f (x,d) r = abs (x-r)<2*d
-    ok2 = norm2 (fromList (map fst sols) - fromList sol) < 1E-5
+    ok2 = norm_2 (fromList (map fst sols) - fromList sol) < 1E-5
 
 ---------------------------------------------------------------------
 
