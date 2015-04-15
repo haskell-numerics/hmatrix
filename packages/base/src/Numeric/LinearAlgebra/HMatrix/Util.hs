@@ -10,6 +10,8 @@ Stability   :  provisional
 -----------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.HMatrix.Util(
+    unitary,
+    pairwiseD2,
     -- * Tools for the Kronecker product
     --
     -- | (see A. Fusiello, A matter of notation: Several uses of the Kronecker product in

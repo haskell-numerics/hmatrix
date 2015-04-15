@@ -227,16 +227,20 @@ infixl 9 ¿
 (¿)= flip extractColumns
 
 
-cross :: Vector Double -> Vector Double -> Vector Double
--- ^ cross product (for three-element real vectors)
+cross :: Product t => Vector t -> Vector t -> Vector t
+-- ^ cross product (for three-element vectors)
 cross x y | dim x == 3 && dim y == 3 = fromList [z1,z2,z3]
-          | otherwise = error $ "cross ("++show x++") ("++show y++")"
+          | otherwise = error $ "the cross product requires 3-element vectors (sizes given: "
+                                ++show (dim x)++" and "++show (dim y)++")"
   where
     [x1,x2,x3] = toList x
     [y1,y2,y3] = toList y
     z1 = x2*y3-x3*y2
     z2 = x3*y1-x1*y3
     z3 = x1*y2-x2*y1
+
+{-# SPECIALIZE cross :: Vector Double -> Vector Double -> Vector Double #-}
+{-# SPECIALIZE cross :: Vector (Complex Double) -> Vector (Complex Double) -> Vector (Complex Double) #-}
 
 norm :: Vector Double -> Double
 -- ^ 2-norm of real vector
