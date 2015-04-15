@@ -216,7 +216,7 @@ normsMTest = TestList [
  ] where v = (2><2) [1,-2*iC,3:+4,7] :: Matrix (Complex Double)
          x = (2><2) [1,2,-3,5] :: Matrix Double
          a =~= b = fromList [a] :~10~: fromList [b]
-         a =~~= b = fromList [a] :~5~: fromList [b]
+--       a =~~= b = fromList [a] :~5~: fromList [b]
 
 ---------------------------------------------------------------------
 
@@ -592,8 +592,8 @@ runTests n = do
 
 
 -- single precision approximate equality
-infixl 4 |~~|
-a |~~| b = a :~6~: b
+-- infixl 4 |~~|
+-- a |~~| b = a :~6~: b
 
 makeUnitary v | realPart n > 1    = v / scalar n
               | otherwise = v

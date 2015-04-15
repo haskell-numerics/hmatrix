@@ -1,22 +1,17 @@
-pkgs=base gsl special glpk tests ../../hTensor ../../easyVision/packages/base
+pkgs=base gsl special glpk tests ../../hTensor ../../easyVision/packages/tools ../../easyVision/packages/base
+
+cabalcmd =                         \
+      for p in $(1); do            \
+	  if [ -e $$p ]; then          \
+	    cd $$p; cabal $(2) ; cd -; \
+	  fi;                          \
+	done                           \
+	cd sparse;                     \
+	cabal install --extra-include-dirs=$(MKL) --extra-lib-dirs=$(MKL) $(2); cd -;
 
 all:
-	for p in $(pkgs); do \
-	  if [ -e $$p ]; then \
-	    cd $$p; cabal install --force-reinstall --enable-documentation ; cd -; \
-	  fi; \
-	done
-	cd sparse; \
-	cabal install --extra-include-dirs=$(MKL) --extra-lib-dirs=$(MKL) \
-                  --force-reinstall --enable-documentation ; cd -;
+	$(call cabalcmd, $(pkgs), install --force-reinstall --enable-documentation)
 
 fast:
-	for p in $(pkgs); do \
-	  if [ -e $$p ]; then \
-	    cd $$p; cabal install --force-reinstall ; cd -; \
-	  fi; \
-	done
-	cd sparse; \
-	cabal install --extra-include-dirs=$(MKL) --extra-lib-dirs=$(MKL) \
-                  --force-reinstall; cd -;
+	$(call cabalcmd, $(pkgs), install --force-reinstall)
 
