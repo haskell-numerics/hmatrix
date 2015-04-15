@@ -1,5 +1,4 @@
-{-# LANGUAGE CPP, FlexibleContexts #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
 
 -----------------------------------------------------------------------------
@@ -44,10 +43,7 @@ module Numeric.LinearAlgebra.Tests.Properties (
 ) where
 
 import Numeric.LinearAlgebra.HMatrix hiding (Testable)--hiding (real,complex)
-import Debug.Trace
-import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
-                      ,sized,classify,Testable,Property
-                      ,quickCheckWith,maxSize,stdArgs,shrink)
+import Test.QuickCheck
 
 trivial :: Testable a => Bool -> a -> Property
 trivial = (`classify` "trivial")
