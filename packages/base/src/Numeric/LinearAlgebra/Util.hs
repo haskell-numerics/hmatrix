@@ -16,7 +16,6 @@ Stability   :  provisional
 
 -}
 -----------------------------------------------------------------------------
-{-# OPTIONS_HADDOCK hide #-}
 
 module Numeric.LinearAlgebra.Util(
 
@@ -53,18 +52,7 @@ module Numeric.LinearAlgebra.Util(
     -- ** 1D
     corr, conv, corrMin,
     -- ** 2D
-    corr2, conv2, separable,
-    -- * Tools for the Kronecker product
-    --
-    -- | (see A. Fusiello, A matter of notation: Several uses of the Kronecker product in
-    --  3d computer vision, Pattern Recognition Letters 28 (15) (2007) 2127-2132)
-
-    --
-    -- | @`vec` (a \<> x \<> b) == ('trans' b ` 'kronecker' ` a) \<> 'vec' x@
-    vec,
-    vech,
-    dup,
-    vtrans
+    corr2, conv2, separable
 ) where
 
 import Data.Packed.Numeric
@@ -404,40 +392,6 @@ null1 = last . toColumns . snd . rightSV
 -- | solution of overconstrained homogeneous symmetric linear system
 null1sym :: Matrix Double -> Vector Double
 null1sym = last . toColumns . snd . eigSH'
-
---------------------------------------------------------------------------------
-
-vec :: Element t => Matrix t -> Vector t
--- ^ stacking of columns
-vec = flatten . trans
-
-
-vech :: Element t => Matrix t -> Vector t
--- ^ half-vectorization (of the lower triangular part)
-vech m = vjoin . zipWith f [0..] . toColumns $ m
-  where
-    f k v = subVector k (dim v - k) v
-
-
-dup :: (Num t, Num (Vector t), Element t) => Int -> Matrix t
--- ^ duplication matrix (@'dup' k \<> 'vech' m == 'vec' m@, for symmetric m of 'dim' k)
-dup k = trans $ fromRows $ map f es
-  where
-    rs = zip [0..] (toRows (ident (k^(2::Int))))
-    es = [(i,j) | j <- [0..k-1], i <- [0..k-1], i>=j ]
-    f (i,j) | i == j = g (k*j + i)
-            | otherwise = g (k*j + i) + g (k*i + j)
-    g j = v
-      where
-        Just v = lookup j rs
-
-
-vtrans :: Element t => Int -> Matrix t -> Matrix t
--- ^ generalized \"vector\" transposition: @'vtrans' 1 == 'trans'@, and @'vtrans' ('rows' m) m == 'asColumn' ('vec' m)@
-vtrans p m | r == 0 = fromBlocks . map (map asColumn . takesV (replicate q p)) . toColumns $ m
-           | otherwise = error $ "vtrans " ++ show p ++ " of matrix with " ++ show (rows m) ++ " rows"
-  where
-    (q,r) = divMod (rows m) p
 
 --------------------------------------------------------------------------------
 

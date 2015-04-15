@@ -42,7 +42,7 @@ module Numeric.LinearAlgebra.Tests.Properties (
     linearSolveProp, linearSolveProp2
 ) where
 
-import Numeric.LinearAlgebra.HMatrix hiding (Testable)--hiding (real,complex)
+import Numeric.LinearAlgebra.HMatrix hiding (Testable,unitary)
 import Test.QuickCheck
 
 trivial :: Testable a => Bool -> a -> Property

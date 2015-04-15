@@ -9,16 +9,6 @@ Homepage:           https://github.com/albertoruiz/hmatrix
 Synopsis:           Numeric Linear Algebra
 Description:        Linear algebra based on BLAS and LAPACK.
                     .
-                    The package is organized as follows:
-                    .
-                    ["Numeric.LinearAlgebra.HMatrix"] Starting point and recommended import module for most applications.
-                    .
-                    ["Numeric.LinearAlgebra.Static"] Experimental alternative interface.
-                    .
-                    ["Numeric.LinearAlgebra.Devel"] Tools for extending the library.
-                    .
-                    (Other modules are exposed with hidden documentation for backwards compatibility.)
-                    .
                     Code examples: <http://dis.um.es/~alberto/hmatrix/hmatrix.html>
 
 Category:           Math
@@ -51,11 +41,11 @@ library
 
     hs-source-dirs:     src
 
-    exposed-modules:    Numeric.LinearAlgebra.Devel
+    exposed-modules:    Numeric.LinearAlgebra
+                        Numeric.LinearAlgebra.Devel
                         Numeric.LinearAlgebra.Data
                         Numeric.LinearAlgebra.HMatrix
                         Numeric.LinearAlgebra.Static
-                        Numeric.LinearAlgebra.HMatrix.Util
 
     other-modules:      Data.Packed,
                         Data.Packed.Vector
@@ -75,7 +65,6 @@ library
                         Numeric.Matrix
                         Data.Packed.Internal.Numeric
                         Data.Packed.Numeric
-                        Numeric.LinearAlgebra
                         Numeric.LinearAlgebra.LAPACK
                         Numeric.LinearAlgebra.Algorithms
                         Numeric.Container

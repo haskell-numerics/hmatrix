@@ -28,9 +28,8 @@ module Numeric.LinearAlgebra.Tests(
 --, runBigTests
 ) where
 
-import Numeric.LinearAlgebra.HMatrix
+import Numeric.LinearAlgebra hiding (unitary)
 import Numeric.LinearAlgebra.Devel hiding (vec)
-import Numeric.LinearAlgebra.HMatrix.Util
 import Numeric.LinearAlgebra.Static(L)
 import Numeric.LinearAlgebra.Tests.Instances
 import Numeric.LinearAlgebra.Tests.Properties
@@ -372,23 +371,6 @@ convolutionTest = utest "convolution" ok
 
 --------------------------------------------------------------------------------
 
-kroneckerTest = utest "kronecker" ok
-  where
-    a,x,b :: Matrix Double
-    a = (3><4) [1..]
-    x = (4><2) [3,5..]
-    b = (2><5) [0,5..]
-    v1 = vec (a <> x <> b)
-    v2 = (tr b `kronecker` a) #> vec x
-    s = tr b <> b
-    v3 = vec s
-    v4 = (dup 5 :: Matrix Double) #> vech s
-    ok = v1 == v2 && v3 == v4
-      && vtrans 1 a == tr a
-      && vtrans (rows a) a == asColumn (vec a)
-
---------------------------------------------------------------------------------
-
 sparseTest = utest "sparse" (fst $ checkT (undefined :: GMatrix))
 
 --------------------------------------------------------------------------------
@@ -583,7 +565,6 @@ runTests n = do
         , conformTest
         , accumTest
         , convolutionTest
-        , kroneckerTest
         , sparseTest
         , staticTest
         ]

@@ -60,13 +60,13 @@ module Numeric.LinearAlgebra.Static(
 
 
 import GHC.TypeLits
-import Numeric.LinearAlgebra.HMatrix hiding (
+import Numeric.LinearAlgebra hiding (
     (<>),(#>),(<·>),Konst(..),diag, disp,(¦),(——),
     row,col,vector,matrix,linspace,toRows,toColumns,
     (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',
     eigenvalues,eigenvaluesSH,eigenvaluesSH',build,
     qr,size,app,mul,dot,chol)
-import qualified Numeric.LinearAlgebra.HMatrix as LA
+import qualified Numeric.LinearAlgebra as LA
 import Data.Proxy(Proxy)
 import Numeric.LinearAlgebra.Static.Internal
 import Control.Arrow((***))

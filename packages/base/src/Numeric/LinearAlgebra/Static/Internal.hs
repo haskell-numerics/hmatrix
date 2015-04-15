@@ -24,8 +24,8 @@ module Numeric.LinearAlgebra.Static.Internal where
 
 
 import GHC.TypeLits
-import qualified Numeric.LinearAlgebra.HMatrix as LA
-import Numeric.LinearAlgebra.HMatrix hiding (konst,size)
+import qualified Numeric.LinearAlgebra as LA
+import Numeric.LinearAlgebra hiding (konst,size)
 import Data.Packed as D
 import Data.Packed.ST
 import Data.Proxy(Proxy)
