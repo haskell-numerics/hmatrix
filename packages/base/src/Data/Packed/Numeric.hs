@@ -39,7 +39,7 @@ module Data.Packed.Numeric (
     step, cond, find, assoc, accum,
     Transposable(..), Linear(..),
     -- * Matrix product
-    Product(..), udot, dot, (<·>), (#>), app,
+    Product(..), udot, dot, (<·>), (#>), (<#), app,
     Mul(..),
     (<.>),
     optimiseMult,
@@ -140,6 +140,11 @@ fromList [140.0,320.0]
 -- | dense matrix-vector product
 app :: Numeric t => Matrix t -> Vector t -> Vector t
 app = (#>)
+
+infixl 8 <#
+-- | dense vector-matrix product
+(<#) :: Numeric t => Vector t -> Matrix t -> Vector t
+(<#) = vXm
 
 --------------------------------------------------------------------------------
 

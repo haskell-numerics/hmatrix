@@ -47,7 +47,7 @@ module Numeric.LinearAlgebra.HMatrix (
     -- ** dot
     dot, (<·>),
     -- ** matrix-vector
-    app, (#>), (!#>),
+    app, (#>), (<#), (!#>),
     -- ** matrix-matrix
     mul, (<>),
     -- | The matrix product is also implemented in the "Data.Monoid" instance, where
