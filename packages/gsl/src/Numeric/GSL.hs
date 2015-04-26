@@ -22,6 +22,7 @@ module Numeric.GSL (
 , module Numeric.GSL.Root
 , module Numeric.GSL.ODE
 , module Numeric.GSL.Fitting
+, module Numeric.GSL.Interpolation
 , module Data.Complex
 , setErrorHandlerOff
 ) where
@@ -34,6 +35,7 @@ import Numeric.GSL.Minimization
 import Numeric.GSL.Root
 import Numeric.GSL.ODE
 import Numeric.GSL.Fitting
+import Numeric.GSL.Interpolation
 import Data.Complex
 
 
