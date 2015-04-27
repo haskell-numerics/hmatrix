@@ -1,0 +1,10 @@
+0.17.0.0
+--------
+
+    * Added interpolation modules
+
+0.16.0.0
+--------
+
+    * The modules Numeric.GSL.* have been moved from hmatrix to the new package hmatrix-gsl.
+
