@@ -43,6 +43,7 @@ library
                         Numeric.GSL.ODE,
                         Numeric.GSL,
                         Numeric.GSL.LinearAlgebra,
+                        Numeric.GSL.Interpolation,
                         Graphics.Plot
     other-modules:      Numeric.GSL.Internal,
                         Numeric.GSL.Vector,
