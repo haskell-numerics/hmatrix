@@ -34,6 +34,7 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_roots.h>
+#include <gsl/gsl_spline.h>
 #include <gsl/gsl_multifit_nlin.h>
 #include <string.h>
 #include <stdio.h>
@@ -140,6 +141,117 @@ int deriv(int code, double f(double, void*), double x, double h, double * result
     return 0;
 }
 
+int spline_eval(const double xa[], const double ya[], unsigned int size,
+                double x, int method, double *y) {
+  DEBUGMSG("spline_eval");
+  const gsl_interp_type *T;
+  switch (method) {
+    case 0: { T = gsl_interp_linear; break; }
+    case 1: { T = gsl_interp_polynomial; break; }
+    case 2: { T = gsl_interp_cspline; break; }
+    case 3: { T = gsl_interp_cspline_periodic; break; }
+    case 4: { T = gsl_interp_akima; break; }
+    case 5: { T = gsl_interp_akima_periodic; break; }
+    default: ERROR(BAD_CODE);
+  }
+
+  gsl_spline *spline = gsl_spline_alloc(T, size);
+  if (NULL == spline) ERROR(MEM);
+  const int initres = gsl_spline_init(spline, xa, ya, size);
+  CHECK(initres,initres);
+  gsl_interp_accel *acc = gsl_interp_accel_alloc();
+  if (NULL == acc) { gsl_spline_free(spline); ERROR(MEM); };
+
+  const int res = gsl_spline_eval_e(spline, x, acc, y);
+  CHECK(res,res);
+  gsl_interp_accel_free(acc);
+  gsl_spline_free(spline);
+  OK
+}
+
+int spline_eval_deriv(const double xa[], const double ya[], unsigned int size,
+                      double x, int method, double *y) {
+  DEBUGMSG("spline_eval_deriv");
+  const gsl_interp_type *T;
+  switch (method) {
+    case 0: { T = gsl_interp_linear; break; }
+    case 1: { T = gsl_interp_polynomial; break; }
+    case 2: { T = gsl_interp_cspline; break; }
+    case 3: { T = gsl_interp_cspline_periodic; break; }
+    case 4: { T = gsl_interp_akima; break; }
+    case 5: { T = gsl_interp_akima_periodic; break; }
+    default: ERROR(BAD_CODE);
+  }
+
+  gsl_spline *spline = gsl_spline_alloc(T, size);
+  if (NULL == spline) ERROR(MEM);
+  const int initres = gsl_spline_init(spline, xa, ya, size);
+  CHECK(initres,initres);
+  gsl_interp_accel *acc = gsl_interp_accel_alloc();
+  if (NULL == acc) { gsl_spline_free(spline); ERROR(MEM); };
+
+  const int res = gsl_spline_eval_deriv_e(spline, x, acc, y);
+  CHECK(res,res);
+  gsl_interp_accel_free(acc);
+  gsl_spline_free(spline);
+  OK
+}
+
+int spline_eval_deriv2(const double xa[], const double ya[], unsigned int size,
+                       double x, int method, double *y) {
+  DEBUGMSG("spline_eval_deriv2");
+  const gsl_interp_type *T;
+  switch (method) {
+    case 0: { T = gsl_interp_linear; break; }
+    case 1: { T = gsl_interp_polynomial; break; }
+    case 2: { T = gsl_interp_cspline; break; }
+    case 3: { T = gsl_interp_cspline_periodic; break; }
+    case 4: { T = gsl_interp_akima; break; }
+    case 5: { T = gsl_interp_akima_periodic; break; }
+    default: ERROR(BAD_CODE);
+  }
+
+  gsl_spline *spline = gsl_spline_alloc(T, size);
+  if (NULL == spline) ERROR(MEM);
+  const int initres = gsl_spline_init(spline, xa, ya, size);
+  CHECK(initres,initres);
+  gsl_interp_accel *acc = gsl_interp_accel_alloc();
+  if (NULL == acc) { gsl_spline_free(spline); ERROR(MEM); };
+
+  const int res = gsl_spline_eval_deriv2_e(spline, x, acc, y);
+  CHECK(res,res);
+  gsl_interp_accel_free(acc);
+  gsl_spline_free(spline);
+  OK
+}
+
+int spline_eval_integ(const double xa[], const double ya[], unsigned int size,
+                      double a, double b, int method, double *y) {
+  DEBUGMSG("spline_eval_integ");
+  const gsl_interp_type *T;
+  switch (method) {
+    case 0: { T = gsl_interp_linear; break; }
+    case 1: { T = gsl_interp_polynomial; break; }
+    case 2: { T = gsl_interp_cspline; break; }
+    case 3: { T = gsl_interp_cspline_periodic; break; }
+    case 4: { T = gsl_interp_akima; break; }
+    case 5: { T = gsl_interp_akima_periodic; break; }
+    default: ERROR(BAD_CODE);
+  }
+
+  gsl_spline *spline = gsl_spline_alloc(T, size);
+  if (NULL == spline) ERROR(MEM);
+  const int initres = gsl_spline_init(spline, xa, ya, size);
+  CHECK(initres,initres);
+  gsl_interp_accel *acc = gsl_interp_accel_alloc();
+  if (NULL == acc) { gsl_spline_free(spline); ERROR(MEM); };
+
+  const int res = gsl_spline_eval_integ_e(spline, a, b, acc, y);
+  CHECK(res,res);
+  gsl_interp_accel_free(acc);
+  gsl_spline_free(spline);
+  OK
+}
 
 int integrate_qng(double f(double, void*), double a, double b, double aprec, double prec,
                    double *result, double*error) {
