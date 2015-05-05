@@ -53,7 +53,12 @@ library
 
     C-sources:          src/Numeric/GSL/gsl-aux.c
 
-    cc-options:         -O4 -msse2 -Wall
+    cc-options:         -O4 -Wall
+
+    if arch(x86_64)
+        cc-options:     -msse2
+    if arch(i386)
+        cc-options:     -msse2
 
     ghc-options:  -Wall -fno-warn-missing-signatures
                         -fno-warn-orphans
