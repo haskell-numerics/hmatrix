@@ -32,8 +32,7 @@ module Numeric.GSL.Interpolation (
   , evaluateIntegralV
 ) where
 
-import Data.Packed.Vector(Vector, fromList, dim)
-import Data.Packed.Foreign(appVector)
+import Numeric.LinearAlgebra(Vector, fromList, size, Numeric)
 import Foreign.C.Types
 import Foreign.Marshal.Alloc(alloca)
 import Foreign.Ptr(Ptr)
@@ -56,6 +55,9 @@ methodToInt CSpline = 2
 methodToInt CSplinePeriodic = 3
 methodToInt Akima = 4
 methodToInt AkimaPeriodic = 5
+
+dim :: Numeric t => Vector t -> Int
+dim = size
 
 applyCFun hsname cname fun mth xs ys x
   | dim xs /= dim ys = error $
