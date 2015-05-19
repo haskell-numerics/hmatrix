@@ -701,13 +701,26 @@ int saveMatrix(char * file, char * format, KDMAT(a)){
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifdef __APPLE__
-
-#pragma message "randomVector is not thread-safe in OSX"
+#if defined (__APPLE__) || (__FreeBSD__)
+/* FreeBSD and Mac OS X do not provide random_r(), thread safety cannot be
+   guaranteed.
+   For FreeBSD and Mac OS X, nrand48() is much better than random().
+   See: http://www.evanjones.ca/random-thread-safe.html
+*/
+#pragma message "randomVector is not thread-safe in OSX and FreeBSD"
 
 inline double urandom() {
+    /* the probalility of matching will be theoretically p^3(in fact, it is not)
+       p is matching probalility of random().
+       using the test there, only 3 matches, using random(), 13783 matches
+    */
+    unsigned short state[3];
+    state[0] = random();
+    state[1] = random();
+    state[2] = random();
+
     const long max_random = 2147483647; // 2**31 - 1
-    return (double)random() / (double)max_random;
+    return (double)nrand48(state) / (double)max_random;
 }
 
 double gaussrand(int *phase, double *pV1, double *pV2, double *pS)
