@@ -190,3 +190,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Thomas M. DuBuisson fixed a C include file.
 
+- "maxc01" solved uninstallability in FreeBSD and improved urandom
+
