@@ -24,7 +24,8 @@ module Data.Packed.Internal.Vector (
     cloneVector,
     unsafeToForeignPtr,
     unsafeFromForeignPtr,
-    unsafeWith
+    unsafeWith,
+    Idxs
 ) where
 
 import Data.Packed.Internal.Common
@@ -55,6 +56,8 @@ import Data.Vector.Storable(Vector,
                             unsafeFromForeignPtr,
                             unsafeWith)
 
+
+type Idxs = Vector CInt
 
 -- | Number of elements
 dim :: (Storable t) => Vector t -> Int
@@ -242,6 +245,7 @@ double2FloatV v = unsafePerformIO $ do
 
 foreign import ccall unsafe "float2double" c_float2double:: TFV
 foreign import ccall unsafe "double2float" c_double2float:: TVF
+
 
 ---------------------------------------------------------------
 

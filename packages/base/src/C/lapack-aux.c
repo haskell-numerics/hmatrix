@@ -1287,6 +1287,29 @@ int multiplyQ(int ta, int tb, KQMAT(a),KQMAT(b),QMAT(r)) {
     OK
 }
 
+int multiplyI(int ta, int tb, KIMAT(a), KIMAT(b), IMAT(r)) {
+    int i,j,k;
+    int n;
+    int u, v;
+    if (ta==0) {
+        n = ac;
+    } else {
+        n = ar;
+    }
+    for (i=0;i<rr;i++) {
+        for (j=0;j<rc;j++) {
+            rp[i*rc+j] = 0;
+            for (k=0; k<n; k++) {
+                u = ta==0 ? ap[i*ac+k] : ap[k*ac+i];
+                v = tb==0 ? bp[k*bc+j] : bp[j*bc+k];
+                rp[i*rc+j] += u*v;
+            }
+        }
+    }
+    OK
+}
+
+
 //////////////////// transpose /////////////////////////
 
 int transF(KFMAT(x),FMAT(t)) {
@@ -1350,6 +1373,19 @@ int transP(KPMAT(x), PMAT(t)) {
     OK
 }
 
+int transI(KIMAT(x),IMAT(t)) {
+    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
+    DEBUGMSG("transI");
+    int i,j;
+    for (i=0; i<tr; i++) {
+        for (j=0; j<tc; j++) {
+            tp[i*tc+j] = xp[j*xc+i];
+        }
+    }
+    OK
+}
+
+
 //////////////////// constant /////////////////////////
 
 int constantF(float * pval, FVEC(r)) {
@@ -1401,6 +1437,18 @@ int constantP(void* pval, PVEC(r)) {
     OK
 }
 
+
+int constantI(int * pval, IVEC(r)) {
+    DEBUGMSG("constantI")
+    int k;
+    int val = *pval;
+    for(k=0;k<rn;k++) {
+        rp[k]=val;
+    }
+    OK
+}
+
+
 //////////////////// float-double conversion /////////////////////////
 
 int float2double(FVEC(x),DVEC(y)) {
@@ -1412,6 +1460,16 @@ int float2double(FVEC(x),DVEC(y)) {
     OK
 }
 
+int float2int(KFVEC(x),IVEC(y)) {
+    DEBUGMSG("float2int")
+    int k;
+    for(k=0;k<xn;k++) {
+        yp[k]=xp[k];
+    }
+    OK
+}
+
+
 int double2float(DVEC(x),FVEC(y)) {
     DEBUGMSG("double2float")
     int k;
@@ -1420,6 +1478,37 @@ int double2float(DVEC(x),FVEC(y)) {
     }
     OK
 }
+
+
+int double2int(KDVEC(x),IVEC(y)) {
+    DEBUGMSG("double2int")
+    int k;
+    for(k=0;k<xn;k++) {
+        yp[k]=xp[k];
+    }
+    OK
+}
+
+
+int int2float(KIVEC(x),FVEC(y)) {
+    DEBUGMSG("int2float")
+    int k;
+    for(k=0;k<xn;k++) {
+        yp[k]=xp[k];
+    }
+    OK
+}
+
+
+int int2double(KIVEC(x),DVEC(y)) {
+    DEBUGMSG("int2double")
+    int k;
+    for(k=0;k<xn;k++) {
+        yp[k]=xp[k];
+    }
+    OK
+}
+
 
 //////////////////// conjugate /////////////////////////
 
@@ -1465,7 +1554,29 @@ int stepD(DVEC(x),DVEC(y)) {
     OK
 }
 
+
 //////////////////// cond /////////////////////////
+
+int compareF(KFVEC(x),KFVEC(y),IVEC(r)) {
+    REQUIRES(xn==yn && xn==rn ,BAD_SIZE);
+    DEBUGMSG("compareF")
+    int k;
+    for(k=0;k<xn;k++) {
+        rp[k] = xp[k]<yp[k]?-1:(xp[k]>yp[k]?1:0);
+    }
+    OK
+}
+
+int compareD(KDVEC(x),KDVEC(y),IVEC(r)) {
+    REQUIRES(xn==yn && xn==rn ,BAD_SIZE);
+    DEBUGMSG("compareD")
+    int k;
+    for(k=0;k<xn;k++) {
+        rp[k] = xp[k]<yp[k]?-1:(xp[k]>yp[k]?1:0);
+    }
+    OK
+}
+
 
 int condF(FVEC(x),FVEC(y),FVEC(lt),FVEC(eq),FVEC(gt),FVEC(r)) {
     REQUIRES(xn==yn && xn==ltn && xn==eqn && xn==gtn && xn==rn ,BAD_SIZE);
@@ -1485,5 +1596,71 @@ int condD(DVEC(x),DVEC(y),DVEC(lt),DVEC(eq),DVEC(gt),DVEC(r)) {
         rp[k] = xp[k]<yp[k]?ltp[k]:(xp[k]>yp[k]?gtp[k]:eqp[k]);
     }
     OK
+}
+
+
+int chooseF(KIVEC(cond),KFVEC(lt),KFVEC(eq),KFVEC(gt),FVEC(r)) {
+    REQUIRES(condn==ltn && ltn==eqn && ltn==gtn && ltn==rn ,BAD_SIZE);
+    DEBUGMSG("chooseF")
+    int k;
+    for(k=0;k<condn;k++) {
+        rp[k] = condp[k]<0?ltp[k]:(condp[k]>0?gtp[k]:eqp[k]);
+    }
+    OK
+}
+
+
+int chooseD(KIVEC(cond),KDVEC(lt),KDVEC(eq),KDVEC(gt),DVEC(r)) {
+    REQUIRES(condn==ltn && ltn==eqn && ltn==gtn && ltn==rn ,BAD_SIZE);
+    DEBUGMSG("chooseD")
+    int k;
+    for(k=0;k<condn;k++) {
+        rp[k] = condp[k]<0?ltp[k]:(condp[k]>0?gtp[k]:eqp[k]);
+    }
+    OK
+}
+
+//////////////////////// extract /////////////////////////////////
+
+#define EXTRACT_IMP \
+    REQUIRES((tm == 0 && jn==rr && mc==rc) || (jn==rr && mr==rc) ,BAD_SIZE);   \
+    DEBUGMSG("extractRD")                                                      \
+    int k,i,s;                                                                 \
+    if (tm==0) {                                                               \
+        for (k=0;k<jn;k++) {                                                   \
+            s = jp[k];                                                         \
+            for (i=0; i<mc; i++) {                                             \
+                rp[rc*k+i] = mp[mc*s+i];                                       \
+            }                                                                  \
+        }                                                                      \
+    } else {                                                                   \
+        for (k=0;k<jn;k++) {                                                   \
+            s = jp[k];                                                         \
+            for (i=0; i<mr; i++) {                                             \
+                rp[rc*k+i] = mp[mc*i+s];                                       \
+            }                                                                  \
+        }                                                                      \
+    }                                                                          \
+    OK
+
+
+int extractRD(int tm, KIVEC(j), KDMAT(m), DMAT(r)) {
+    EXTRACT_IMP
+}
+
+int extractRF(int tm, KIVEC(j), KFMAT(m), FMAT(r)) {
+    EXTRACT_IMP
+}
+
+int extractRC(int tm, KIVEC(j), KCMAT(m), CMAT(r)) {
+    EXTRACT_IMP
+}
+
+int extractRQ(int tm, KIVEC(j), KQMAT(m), QMAT(r)) {
+    EXTRACT_IMP
+}
+
+int extractRI(int tm, KIVEC(j), KIMAT(m), IMAT(r)) {
+    EXTRACT_IMP
 }
 

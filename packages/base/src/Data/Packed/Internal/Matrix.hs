@@ -265,23 +265,33 @@ class (Storable a) => Element a where
     transdata = transdataP -- transdata'
     constantD  :: a -> Int -> Vector a
     constantD = constantP -- constant'
-
+    extractR :: Matrix a -> Idxs -> Matrix a
 
 instance Element Float where
     transdata  = transdataAux ctransF
     constantD  = constantAux cconstantF
+    extractR   = extractAux c_extractRF
 
 instance Element Double where
     transdata  = transdataAux ctransR
     constantD  = constantAux cconstantR
+    extractR   = extractAux c_extractRD
 
 instance Element (Complex Float) where
     transdata  = transdataAux ctransQ
     constantD  = constantAux cconstantQ
+    extractR   = extractAux c_extractRQ
 
 instance Element (Complex Double) where
     transdata  = transdataAux ctransC
     constantD  = constantAux cconstantC
+    extractR   = extractAux c_extractRC
+    
+instance Element (CInt) where
+    transdata  = transdataAux ctransI
+    constantD  = constantAux cconstantI
+    extractR   = extractAux c_extractRI
+
 
 -------------------------------------------------------------------
 
@@ -289,6 +299,7 @@ transdataAux fun c1 d c2 =
     if noneed
         then d
         else unsafePerformIO $ do
+            -- putStrLn "T"
             v <- createVector (dim d)
             unsafeWith d $ \pd ->
                 unsafeWith v $ \pv ->
@@ -317,6 +328,7 @@ foreign import ccall unsafe "transF" ctransF :: TFMFM
 foreign import ccall unsafe "transR" ctransR :: TMM
 foreign import ccall unsafe "transQ" ctransQ :: TQMQM
 foreign import ccall unsafe "transC" ctransC :: TCMCM
+foreign import ccall unsafe "transI" ctransI :: CM CInt (CM CInt (IO CInt))
 foreign import ccall unsafe "transP" ctransP :: CInt -> CInt -> Ptr () -> CInt -> CInt -> CInt -> Ptr () -> CInt -> IO CInt
 
 ----------------------------------------------------------------------
@@ -335,6 +347,8 @@ foreign import ccall unsafe "constantR" cconstantR :: Ptr Double -> TV
 foreign import ccall unsafe "constantQ" cconstantQ :: Ptr (Complex Float) -> TQV
 
 foreign import ccall unsafe "constantC" cconstantC :: Ptr (Complex Double) -> TCV
+
+foreign import ccall unsafe "constantI" cconstantI :: Ptr CInt -> CV CInt (IO CInt)
 
 constantP :: Storable a => a -> Int -> Vector a
 constantP a n = unsafePerformIO $ do
@@ -420,4 +434,33 @@ instance (Storable t, NFData t) => NFData (Matrix t)
       where
         d = dim v
         v = xdat m
+
+---------------------------------------------------------------
+
+isT Matrix{order = ColumnMajor} = 1
+isT Matrix{order = RowMajor} = 0
+
+tt x@Matrix{order = ColumnMajor} = trans x
+tt x@Matrix{order = RowMajor} = x
+
+--extractAux :: Matrix Double -> Idxs -> Matrix Double
+extractAux f m v = unsafePerformIO $ do
+    r <- createMatrix RowMajor (dim v) (cols m)
+    app3 (f (isT m)) vec v mat (tt m) mat r "extractAux"
+    return r
+
+foreign import ccall unsafe "extractRD" c_extractRD
+    :: CInt -> CIdxs (CM Double (CM Double (IO CInt)))
+
+foreign import ccall unsafe "extractRF" c_extractRF
+    :: CInt -> CIdxs (CM Float (CM Float (IO CInt)))
+
+foreign import ccall unsafe "extractRC" c_extractRC
+    :: CInt -> CIdxs (CM (Complex Double) (CM (Complex Double) (IO CInt)))
+
+foreign import ccall unsafe "extractRQ" c_extractRQ
+    :: CInt -> CIdxs (CM (Complex Float) (CM (Complex Float) (IO CInt)))
+
+foreign import ccall unsafe "extractRI" c_extractRI
+    :: CInt -> CIdxs (CM CInt (CM CInt (IO CInt)))
 

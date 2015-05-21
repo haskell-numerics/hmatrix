@@ -894,3 +894,30 @@ int round_vector(KDVEC(v),DVEC(r)) {
     OK
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+int round_vector_i(KDVEC(v),IVEC(r)) {
+    int k;
+    for(k=0; k<vn; k++) {
+        rp[k] = round(vp[k]);
+    }
+    OK
+}
+
+
+int mod_vector(int m, KIVEC(v), IVEC(r)) {
+    int k;
+    for(k=0; k<vn; k++) {
+        rp[k] = vp[k] % m;
+    }
+    OK
+}
+
+int div_vector(int m, KIVEC(v), IVEC(r)) {
+    int k;
+    for(k=0; k<vn; k++) {
+        rp[k] = vp[k] / m;
+    }
+    OK
+}
+

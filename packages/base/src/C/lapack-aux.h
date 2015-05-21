@@ -42,6 +42,7 @@ typedef short ftnlen;
 #define QVEC(A) int A##n, complex*A##p
 #define CVEC(A) int A##n, doublecomplex*A##p
 #define PVEC(A) int A##n, void* A##p, int A##s
+#define IMAT(A) int A##r, int A##c, int* A##p
 #define FMAT(A) int A##r, int A##c, float* A##p
 #define DMAT(A) int A##r, int A##c, double* A##p
 #define QMAT(A) int A##r, int A##c, complex* A##p
@@ -54,6 +55,7 @@ typedef short ftnlen;
 #define KQVEC(A) int A##n, const complex*A##p
 #define KCVEC(A) int A##n, const doublecomplex*A##p
 #define KPVEC(A) int A##n, const void* A##p, int A##s
+#define KIMAT(A) int A##r, int A##c, const int* A##p
 #define KFMAT(A) int A##r, int A##c, const float* A##p
 #define KDMAT(A) int A##r, int A##c, const double* A##p
 #define KQMAT(A) int A##r, int A##c, const complex* A##p
