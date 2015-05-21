@@ -31,7 +31,7 @@ module Data.Packed.Numeric (
     diag, ident,
     ctrans,
     -- * Generic operations
-    Container(..), Numeric,
+    SContainer(..), Container(..), Numeric,
     -- add, mul, sub, divide, equal, scaleRecip, addConstant,
     scalar, conj, scale, arctan2, cmap,
     atIndex, minIndex, maxIndex, minElement, maxElement,

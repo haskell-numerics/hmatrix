@@ -20,7 +20,7 @@ module Data.Packed.Internal.Numeric (
     -- * Basic functions
     ident, diag, ctrans,
     -- * Generic operations
-    Container(..),
+    SContainer(..), Container(..),
     scalar, conj, scale, arctan2, cmap,
     atIndex, minIndex, maxIndex, minElement, maxElement,
     sumElements, prodElements,
@@ -67,27 +67,17 @@ type instance ArgOf Matrix a = a -> a -> a
 -------------------------------------------------------------------
 
 -- | Basic element-by-element functions for numeric containers
-class (Complexable c, Fractional e, Element e) => Container c e
+class Element e => SContainer c e
   where
     size'        :: c e -> IndexOf c
     scalar'      :: e -> c e
-    conj'        :: c e -> c e
     scale'       :: e -> c e -> c e
-    -- | scale the element by element reciprocal of the object:
-    --
-    -- @scaleRecip 2 (fromList [5,i]) == 2 |> [0.4 :+ 0.0,0.0 :+ (-2.0)]@
-    scaleRecip  :: e -> c e -> c e
     addConstant :: e -> c e -> c e
     add         :: c e -> c e -> c e
     sub         :: c e -> c e -> c e
     -- | element by element multiplication
     mul         :: c e -> c e -> c e
-    -- | element by element division
-    divide      :: c e -> c e -> c e
     equal       :: c e -> c e -> Bool
-    --
-    -- element by element inverse tangent
-    arctan2'     :: c e -> c e -> c e
     cmap'        :: (Element b) => (e -> b) -> c e -> c b
     konst'      :: e -> IndexOf c -> c e
     build'       :: IndexOf c -> (ArgOf c e) -> c e
@@ -116,24 +106,35 @@ class (Complexable c, Fractional e, Element e) => Container c e
           -> [(IndexOf c, e)] -- ^ association list
           -> c e              -- ^ result
 
+
+-- | Basic element-by-element functions for numeric containers
+class (Complexable c, Fractional e, SContainer c e) => Container c e
+  where
+    conj'        :: c e -> c e
+    -- | scale the element by element reciprocal of the object:
+    --
+    -- @scaleRecip 2 (fromList [5,i]) == 2 |> [0.4 :+ 0.0,0.0 :+ (-2.0)]@
+    scaleRecip  :: e -> c e -> c e
+    -- | element by element division
+    divide      :: c e -> c e -> c e
+    --
+    -- element by element inverse tangent
+    arctan2'     :: c e -> c e -> c e
+
 --------------------------------------------------------------------------
 
-instance Container Vector Float
+instance SContainer Vector Float
   where
     size' = dim
     scale' = vectorMapValF Scale
-    scaleRecip = vectorMapValF Recip
     addConstant = vectorMapValF AddConstant
     add = vectorZipF Add
     sub = vectorZipF Sub
     mul = vectorZipF Mul
-    divide = vectorZipF Div
     equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
-    arctan2' = vectorZipF ATan2
     scalar' x = fromList [x]
     konst' = constantD
     build' = buildV
-    conj' = id
     cmap' = mapVector
     atIndex' = (@>)
     minIndex'     = emptyErrorV "minIndex"   (round . toScalarF MinIdx)
@@ -148,22 +149,26 @@ instance Container Vector Float
     accum' = accumV
     cond' = condV condF
 
-instance Container Vector Double
+instance Container Vector Float
+  where
+    scaleRecip = vectorMapValF Recip
+    divide = vectorZipF Div
+    arctan2' = vectorZipF ATan2
+    conj' = id
+
+
+instance SContainer Vector Double
   where
     size' = dim
     scale' = vectorMapValR Scale
-    scaleRecip = vectorMapValR Recip
     addConstant = vectorMapValR AddConstant
     add = vectorZipR Add
     sub = vectorZipR Sub
     mul = vectorZipR Mul
-    divide = vectorZipR Div
     equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
-    arctan2' = vectorZipR ATan2
     scalar' x = fromList [x]
     konst' = constantD
     build' = buildV
-    conj' = id
     cmap' = mapVector
     atIndex' = (@>)
     minIndex'     = emptyErrorV "minIndex"   (round . toScalarR MinIdx)
@@ -178,22 +183,25 @@ instance Container Vector Double
     accum' = accumV
     cond' = condV condD
 
-instance Container Vector (Complex Double)
+instance Container Vector Double
+  where
+    scaleRecip = vectorMapValR Recip
+    divide = vectorZipR Div
+    arctan2' = vectorZipR ATan2
+    conj' = id
+
+instance SContainer Vector (Complex Double)
   where
     size' = dim
     scale' = vectorMapValC Scale
-    scaleRecip = vectorMapValC Recip
     addConstant = vectorMapValC AddConstant
     add = vectorZipC Add
     sub = vectorZipC Sub
     mul = vectorZipC Mul
-    divide = vectorZipC Div
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
-    arctan2' = vectorZipC ATan2
     scalar' x = fromList [x]
     konst' = constantD
     build' = buildV
-    conj' = conjugateC
     cmap' = mapVector
     atIndex' = (@>)
     minIndex'     = emptyErrorV "minIndex" (minIndex' . fst . fromComplex . (mul <*> conj'))
@@ -208,22 +216,27 @@ instance Container Vector (Complex Double)
     accum' = accumV
     cond' = undefined -- cannot match
 
-instance Container Vector (Complex Float)
+    
+instance Container Vector (Complex Double)
+  where
+    scaleRecip = vectorMapValC Recip
+    divide = vectorZipC Div
+    arctan2' = vectorZipC ATan2
+    conj' = conjugateC
+    
+
+instance SContainer Vector (Complex Float)
   where
     size' = dim
     scale' = vectorMapValQ Scale
-    scaleRecip = vectorMapValQ Recip
     addConstant = vectorMapValQ AddConstant
     add = vectorZipQ Add
     sub = vectorZipQ Sub
     mul = vectorZipQ Mul
-    divide = vectorZipQ Div
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
-    arctan2' = vectorZipQ ATan2
     scalar' x = fromList [x]
     konst' = constantD
     build' = buildV
-    conj' = conjugateQ
     cmap' = mapVector
     atIndex' = (@>)
     minIndex'     = emptyErrorV "minIndex" (minIndex' . fst . fromComplex . (mul <*> conj'))
@@ -238,24 +251,28 @@ instance Container Vector (Complex Float)
     accum' = accumV
     cond' = undefined -- cannot match
 
+instance Container Vector (Complex Float)
+  where
+    scaleRecip = vectorMapValQ Recip
+    divide = vectorZipQ Div
+    arctan2' = vectorZipQ ATan2
+    conj' = conjugateQ
+
+
 ---------------------------------------------------------------
 
-instance (Fractional a, Element a, Container Vector a) => Container Matrix a
+instance (Num a, Element a, SContainer Vector a) => SContainer Matrix a
   where
     size' = size
     scale' x = liftMatrix (scale' x)
-    scaleRecip x = liftMatrix (scaleRecip x)
     addConstant x = liftMatrix (addConstant x)
     add = liftMatrix2 add
     sub = liftMatrix2 sub
     mul = liftMatrix2 mul
-    divide = liftMatrix2 divide
     equal a b = cols a == cols b && flatten a `equal` flatten b
-    arctan2' = liftMatrix2 arctan2'
     scalar' x = (1><1) [x]
     konst' v (r,c) = matrixFromVector RowMajor r c (konst' v (r*c))
     build' = buildM
-    conj' = liftMatrix conj'
     cmap' f = liftMatrix (mapVector f)
     atIndex' = (@@>)
     minIndex' = emptyErrorM "minIndex of Matrix" $
@@ -264,13 +281,21 @@ instance (Fractional a, Element a, Container Vector a) => Container Matrix a
                 \m -> divMod (maxIndex' $ flatten m) (cols m)
     minElement' = emptyErrorM "minElement of Matrix" (atIndex' <*> minIndex')
     maxElement' = emptyErrorM "maxElement of Matrix" (atIndex' <*> maxIndex')
-    sumElements' = sumElements . flatten
-    prodElements' = prodElements . flatten
-    step' = liftMatrix step
+    sumElements' = sumElements' . flatten
+    prodElements' = prodElements' . flatten
+    step' = liftMatrix step'
     find' = findM
     assoc' = assocM
     accum' = accumM
     cond' = condM
+
+
+instance (Fractional a, Container Vector a) => Container Matrix a
+  where
+    scaleRecip x = liftMatrix (scaleRecip x)
+    divide = liftMatrix2 divide
+    arctan2' = liftMatrix2 arctan2'
+    conj' = liftMatrix conj'
 
 
 emptyErrorV msg f v =
@@ -682,7 +707,7 @@ accumM m0 f xs = ST.runSTMatrix $ do
 
 ----------------------------------------------------------------------
 
-condM a b l e t = matrixFromVector RowMajor (rows a'') (cols a'') $ cond a' b' l' e' t'
+condM a b l e t = matrixFromVector RowMajor (rows a'') (cols a'') $ cond' a' b' l' e' t'
   where
     args@(a'':_) = conformMs [a,b,l,e,t]
     [a', b', l', e', t'] = map flatten args
