@@ -117,6 +117,7 @@ m ¿¿ ec = trans (trans m ?? ec)
 -- | Basic element-by-element functions for numeric containers
 class Element e => SContainer c e
   where
+    conj'        :: c e -> c e
     size'        :: c e -> IndexOf c
     scalar'      :: e -> c e
     scale'       :: e -> c e -> c e
@@ -156,9 +157,8 @@ class Element e => SContainer c e
 
 
 -- | Basic element-by-element functions for numeric containers
-class (Complexable c, Fractional e, SContainer c e) => Container c e
+class (Fractional e, SContainer c e) => Container c e
   where
-    conj'        :: c e -> c e
     -- | scale the element by element reciprocal of the object:
     --
     -- @scaleRecip 2 (fromList [5,i]) == 2 |> [0.4 :+ 0.0,0.0 :+ (-2.0)]@
@@ -174,6 +174,7 @@ class (Complexable c, Fractional e, SContainer c e) => Container c e
 
 instance SContainer Vector CInt
   where
+    conj' = id
     size' = dim
 --    scale' = vectorMapValF Scale
 --    addConstant = vectorMapValF AddConstant
@@ -201,6 +202,7 @@ instance SContainer Vector CInt
 
 instance SContainer Vector Float
   where
+    conj' = id
     size' = dim
     scale' = vectorMapValF Scale
     addConstant = vectorMapValF AddConstant
@@ -230,11 +232,12 @@ instance Container Vector Float
     scaleRecip = vectorMapValF Recip
     divide = vectorZipF Div
     arctan2' = vectorZipF ATan2
-    conj' = id
+
 
 
 instance SContainer Vector Double
   where
+    conj' = id
     size' = dim
     scale' = vectorMapValR Scale
     addConstant = vectorMapValR AddConstant
@@ -264,10 +267,11 @@ instance Container Vector Double
     scaleRecip = vectorMapValR Recip
     divide = vectorZipR Div
     arctan2' = vectorZipR ATan2
-    conj' = id
+
 
 instance SContainer Vector (Complex Double)
   where
+    conj' = conjugateC
     size' = dim
     scale' = vectorMapValC Scale
     addConstant = vectorMapValC AddConstant
@@ -298,11 +302,10 @@ instance Container Vector (Complex Double)
     scaleRecip = vectorMapValC Recip
     divide = vectorZipC Div
     arctan2' = vectorZipC ATan2
-    conj' = conjugateC
-
 
 instance SContainer Vector (Complex Float)
   where
+    conj' = conjugateQ
     size' = dim
     scale' = vectorMapValQ Scale
     addConstant = vectorMapValQ AddConstant
@@ -332,13 +335,12 @@ instance Container Vector (Complex Float)
     scaleRecip = vectorMapValQ Recip
     divide = vectorZipQ Div
     arctan2' = vectorZipQ ATan2
-    conj' = conjugateQ
-
 
 ---------------------------------------------------------------
 
 instance (Num a, Element a, SContainer Vector a) => SContainer Matrix a
   where
+    conj' = liftMatrix conj'
     size' = size
     scale' x = liftMatrix (scale' x)
     addConstant x = liftMatrix (addConstant x)
@@ -371,7 +373,6 @@ instance (Fractional a, Container Vector a) => Container Matrix a
     scaleRecip x = liftMatrix (scaleRecip x)
     divide = liftMatrix2 divide
     arctan2' = liftMatrix2 arctan2'
-    conj' = liftMatrix conj'
 
 
 emptyErrorV msg f v =
@@ -655,12 +656,12 @@ kronecker a b = fromBlocks
 
 
 class Convert t where
-    real    :: Container c t => c (RealOf t) -> c t
-    complex :: Container c t => c t -> c (ComplexOf t)
-    single  :: Container c t => c t -> c (SingleOf t)
-    double  :: Container c t => c t -> c (DoubleOf t)
-    toComplex   :: (Container c t, RealElement t) => (c t, c t) -> c (Complex t)
-    fromComplex :: (Container c t, RealElement t) => c (Complex t) -> (c t, c t)
+    real    :: Complexable c => c (RealOf t) -> c t
+    complex :: Complexable c => c t -> c (ComplexOf t)
+    single  :: Complexable c => c t -> c (SingleOf t)
+    double  :: Complexable c => c t -> c (DoubleOf t)
+    toComplex   :: (Complexable c, RealElement t) => (c t, c t) -> c (Complex t)
+    fromComplex :: (Complexable c, RealElement t) => c (Complex t) -> (c t, c t)
 
 
 instance Convert Double where
@@ -743,7 +744,7 @@ buildV n f = fromList [f k | k <- ks]
 
 --------------------------------------------------------
 -- | conjugate transpose
-ctrans :: (Container Vector e, Element e) => Matrix e -> Matrix e
+ctrans :: (SContainer Vector e, Element e) => Matrix e -> Matrix e
 ctrans = liftMatrix conj' . trans
 
 -- | Creates a square matrix with a given diagonal.
@@ -799,7 +800,7 @@ class Transposable m mt | m -> mt, mt -> m
     -- | (conjugate) transpose
     tr :: m -> mt
 
-instance (Container Vector t) => Transposable (Matrix t) (Matrix t)
+instance (SContainer Vector t) => Transposable (Matrix t) (Matrix t)
   where
     tr = ctrans
 
