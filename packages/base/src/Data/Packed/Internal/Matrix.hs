@@ -265,7 +265,7 @@ class (Storable a) => Element a where
     transdata = transdataP -- transdata'
     constantD  :: a -> Int -> Vector a
     constantD = constantP -- constant'
-    extractR :: Matrix a -> Idxs -> Matrix a
+    extractR :: Matrix a -> CInt -> Idxs -> Matrix a
 
 instance Element Float where
     transdata  = transdataAux ctransF
@@ -444,23 +444,25 @@ tt x@Matrix{order = ColumnMajor} = trans x
 tt x@Matrix{order = RowMajor} = x
 
 --extractAux :: Matrix Double -> Idxs -> Matrix Double
-extractAux f m v = unsafePerformIO $ do
-    r <- createMatrix RowMajor (dim v) (cols m)
-    app3 (f (isT m)) vec v mat (tt m) mat r "extractAux"
+extractAux f m mode v = unsafePerformIO $ do
+    let nr | mode == 0 = fromIntegral $ max 0 (v@>1 - v@>0 + 1)
+           | otherwise = dim v
+    r <- createMatrix RowMajor nr (cols m)
+    app3 (f mode (isT m)) vec v mat (tt m) mat r "extractAux"
     return r
 
 foreign import ccall unsafe "extractRD" c_extractRD
-    :: CInt -> CIdxs (CM Double (CM Double (IO CInt)))
+    :: CInt -> CInt -> CIdxs (CM Double (CM Double (IO CInt)))
 
 foreign import ccall unsafe "extractRF" c_extractRF
-    :: CInt -> CIdxs (CM Float (CM Float (IO CInt)))
+    :: CInt -> CInt -> CIdxs (CM Float (CM Float (IO CInt)))
 
 foreign import ccall unsafe "extractRC" c_extractRC
-    :: CInt -> CIdxs (CM (Complex Double) (CM (Complex Double) (IO CInt)))
+    :: CInt -> CInt -> CIdxs (CM (Complex Double) (CM (Complex Double) (IO CInt)))
 
 foreign import ccall unsafe "extractRQ" c_extractRQ
-    :: CInt -> CIdxs (CM (Complex Float) (CM (Complex Float) (IO CInt)))
+    :: CInt -> CInt -> CIdxs (CM (Complex Float) (CM (Complex Float) (IO CInt)))
 
 foreign import ccall unsafe "extractRI" c_extractRI
-    :: CInt -> CIdxs (CM CInt (CM CInt (IO CInt)))
+    :: CInt -> CInt -> CIdxs (CM CInt (CM CInt (IO CInt)))
 

@@ -39,7 +39,7 @@ module Data.Packed.Internal.Numeric (
     roundVector,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
-    CInt,
+    CInt, Extractor(..), (??),(¿¿),
     module Data.Complex
 ) where
 
@@ -53,6 +53,7 @@ import Data.Complex
 import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ)
 import Data.Packed.Internal
 import Foreign.C.Types(CInt)
+import Text.Printf(printf)
 
 -------------------------------------------------------------------
 
@@ -66,7 +67,52 @@ type family ArgOf (c :: * -> *) a
 type instance ArgOf Vector a = a -> a
 type instance ArgOf Matrix a = a -> a -> a
 
+--------------------------------------------------------------------------
+
+data Extractor = All | Range Int Int | At [Int] | AtCyc [Int] | Take Int | Drop Int
+
+idxs js = fromList (map fromIntegral js) :: Idxs
+
+infixl 9 ??, ¿¿
+(??),(¿¿) :: Element t => Matrix t -> Extractor -> Matrix t
+
+m ?? All = m
+m ?? Take 0 = (0><cols m) []
+m ?? Take n | abs n >= rows m = m
+m ?? Drop 0 = m
+m ?? Drop n | abs n >= rows m = (0><cols m) []
+m ?? Range a b | a > b = m ?? Take 0
+m ?? Range a b | a < 0 || b >= cols m = error $
+    printf "can't extract rows %d to %d from matrix %dx%d" a b (rows m) (cols m)
+m ?? At ps | minimum ps < 0 || maximum ps >= rows m = error $
+    printf "can't extract rows %s from matrix %dx%d" (show ps) (rows m) (cols m)
+
+m ?? er = extractR m mode js
+  where
+    (mode,js) = mkExt (rows m) er
+    ran a b = (0, idxs [a,b])
+    pos ks  = (1, idxs ks)
+    mkExt _ (At ks)       = pos ks
+    mkExt n (AtCyc ks)    = pos (map (`mod` n) ks)
+    mkExt n All           = ran 0 (n-1)
+    mkExt _ (Range mn mx) = ran mn mx
+    mkExt n (Take k)
+        | k >= 0          = ran 0 (k-1)
+        | otherwise       = mkExt n (Drop (n+k))
+    mkExt n (Drop k)
+        | k >= 0          = ran k (n-1)
+        | otherwise       = mkExt n (Take (n+k))
+
+
+m ¿¿ Range a b | a < 0 || b > cols m -1 = error $
+    printf "can't extract columns %d to %d from matrix %dx%d" a b (rows m) (cols m)
+
+m ¿¿ At ps | minimum ps < 0 || maximum ps >= cols m = error $
+    printf "can't extract columns %s from matrix %dx%d" (show ps) (rows m) (cols m)
+m ¿¿ ec = trans (trans m ?? ec)
+
 -------------------------------------------------------------------
+
 
 -- | Basic element-by-element functions for numeric containers
 class Element e => SContainer c e
@@ -122,6 +168,7 @@ class (Complexable c, Fractional e, SContainer c e) => Container c e
     --
     -- element by element inverse tangent
     arctan2'     :: c e -> c e -> c e
+
 
 --------------------------------------------------------------------------
 
@@ -245,14 +292,14 @@ instance SContainer Vector (Complex Double)
     accum' = accumV
     cond' = undefined -- cannot match
 
-    
+
 instance Container Vector (Complex Double)
   where
     scaleRecip = vectorMapValC Recip
     divide = vectorZipC Div
     arctan2' = vectorZipC ATan2
     conj' = conjugateC
-    
+
 
 instance SContainer Vector (Complex Float)
   where

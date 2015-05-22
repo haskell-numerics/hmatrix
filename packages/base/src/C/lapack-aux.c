@@ -1623,44 +1623,64 @@ int chooseD(KIVEC(cond),KDVEC(lt),KDVEC(eq),KDVEC(gt),DVEC(r)) {
 //////////////////////// extract /////////////////////////////////
 
 #define EXTRACT_IMP \
-    REQUIRES((tm == 0 && jn==rr && mc==rc) || (jn==rr && mr==rc) ,BAD_SIZE);   \
+    /*REQUIRES((tm == 0 && jn==rr && mc==rc) || (jn==rr && mr==rc) ,BAD_SIZE); */  \
     DEBUGMSG("extractRD")                                                      \
     int k,i,s;                                                                 \
     if (tm==0) {                                                               \
-        for (k=0;k<jn;k++) {                                                   \
-            s = jp[k];                                                         \
-            for (i=0; i<mc; i++) {                                             \
-                rp[rc*k+i] = mp[mc*s+i];                                       \
-            }                                                                  \
-        }                                                                      \
+        if (mode==0) {                           \
+            for (k=0; k<jp[1]-jp[0]+1; k++) {                                                   \
+                s = k + jp[0];                                                         \
+                printf("%d\n",s); \
+                for (i=0; i<mc; i++) {                                             \
+                    rp[rc*k+i] = mp[mc*s+i];                                       \
+                }                                                                  \
+            }                                                                      \
+        } else {        \
+            for (k=0;k<jn;k++) {                                                   \
+                s = jp[k];                                                         \
+                for (i=0; i<mc; i++) {                                             \
+                    rp[rc*k+i] = mp[mc*s+i];                                       \
+                }                                                                  \
+            }  \
+        }                                                               \
     } else {                                                                   \
-        for (k=0;k<jn;k++) {                                                   \
-            s = jp[k];                                                         \
-            for (i=0; i<mr; i++) {                                             \
-                rp[rc*k+i] = mp[mc*i+s];                                       \
-            }                                                                  \
-        }                                                                      \
+        if (mode==0) {                           \
+            for (k=0; k<jp[1]-jp[0]+1; k++) {                                                   \
+                s = k + jp[0];                                                         \
+                printf("%d\n",s); \
+                for (i=0; i<mr; i++) {                                             \
+                    rp[rc*k+i] = mp[mc*i+s];                                       \
+                }                                                                  \
+            }                           \
+        } else {        \
+            for (k=0;k<jn;k++) {                                                   \
+                s = jp[k];                                                         \
+                for (i=0; i<mr; i++) {                                             \
+                    rp[rc*k+i] = mp[mc*i+s];                                       \
+                }                                                                  \
+            }                                                                      \
+        }  \
     }                                                                          \
     OK
 
 
-int extractRD(int tm, KIVEC(j), KDMAT(m), DMAT(r)) {
+int extractRD(int mode, int tm, KIVEC(j), KDMAT(m), DMAT(r)) {
     EXTRACT_IMP
 }
 
-int extractRF(int tm, KIVEC(j), KFMAT(m), FMAT(r)) {
+int extractRF(int mode, int tm, KIVEC(j), KFMAT(m), FMAT(r)) {
     EXTRACT_IMP
 }
 
-int extractRC(int tm, KIVEC(j), KCMAT(m), CMAT(r)) {
+int extractRC(int mode, int tm, KIVEC(j), KCMAT(m), CMAT(r)) {
     EXTRACT_IMP
 }
 
-int extractRQ(int tm, KIVEC(j), KQMAT(m), QMAT(r)) {
+int extractRQ(int mode, int tm, KIVEC(j), KQMAT(m), QMAT(r)) {
     EXTRACT_IMP
 }
 
-int extractRI(int tm, KIVEC(j), KIMAT(m), IMAT(r)) {
+int extractRI(int mode, int tm, KIVEC(j), KIMAT(m), IMAT(r)) {
     EXTRACT_IMP
 }
 
