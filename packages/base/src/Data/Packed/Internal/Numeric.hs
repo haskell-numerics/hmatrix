@@ -39,6 +39,7 @@ module Data.Packed.Internal.Numeric (
     roundVector,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
+    CInt,
     module Data.Complex
 ) where
 
@@ -51,6 +52,7 @@ import Data.Complex
 
 import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ)
 import Data.Packed.Internal
+import Foreign.C.Types(CInt)
 
 -------------------------------------------------------------------
 
@@ -122,6 +124,33 @@ class (Complexable c, Fractional e, SContainer c e) => Container c e
     arctan2'     :: c e -> c e -> c e
 
 --------------------------------------------------------------------------
+
+instance SContainer Vector CInt
+  where
+    size' = dim
+--    scale' = vectorMapValF Scale
+--    addConstant = vectorMapValF AddConstant
+--    add = vectorZipF Add
+--    sub = vectorZipF Sub
+--    mul = vectorZipF Mul
+--    equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
+    scalar' x = fromList [x]
+    konst' = constantD
+    build' = buildV
+    cmap' = mapVector
+    atIndex' = (@>)
+--    minIndex'     = emptyErrorV "minIndex"   (round . toScalarF MinIdx)
+--    maxIndex'     = emptyErrorV "maxIndex"   (round . toScalarF MaxIdx)
+--    minElement'   = emptyErrorV "minElement" (toScalarF Min)
+--    maxElement'   = emptyErrorV "maxElement" (toScalarF Max)
+--    sumElements'  = sumF
+--    prodElements' = prodF
+--    step' = stepF
+    find' = findV
+    assoc' = assocV
+    accum' = accumV
+--    cond' = condV condI
+
 
 instance SContainer Vector Float
   where

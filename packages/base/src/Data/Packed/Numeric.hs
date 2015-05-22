@@ -219,11 +219,11 @@ class Konst e d c | d -> c, c -> d
     --
     konst :: e -> d -> c e
 
-instance Container Vector e => Konst e Int Vector
+instance SContainer Vector e => Konst e Int Vector
   where
     konst = konst'
 
-instance Container Vector e => Konst e (Int,Int) Matrix
+instance (Num e, SContainer Vector e) => Konst e (Int,Int) Matrix
   where
     konst = konst'
 
@@ -246,11 +246,11 @@ class Build d f c e | d -> c, c -> d, f -> e, f -> d, f -> c, c e -> f, d e -> f
     --
     build :: d -> f -> c e
 
-instance Container Vector e => Build Int (e -> e) Vector e
+instance SContainer Vector e => Build Int (e -> e) Vector e
   where
     build = build'
 
-instance Container Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
+instance SContainer Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
   where
     build = build'
 
