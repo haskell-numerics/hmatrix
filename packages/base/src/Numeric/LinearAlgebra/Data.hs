@@ -37,6 +37,7 @@ module Numeric.LinearAlgebra.Data(
     fromList, toList, subVector, takesV, vjoin,
     flatten, reshape, asRow, asColumn, row, col,
     fromRows, toRows, fromColumns, toColumns, fromLists, toLists, fromArray2D,
+    Extractor(..), (??), (¿¿),
     takeRows, dropRows, takeColumns, dropColumns, subMatrix, (?), (¿), fliprl, flipud,
   
     -- * Block matrix
@@ -68,7 +69,7 @@ module Numeric.LinearAlgebra.Data(
     separable,
     (¦),(——),
     module Data.Complex,
-
+    CInt, Idxs,
     Vector, Matrix, GMatrix, nRows, nCols
 
 ) where
@@ -79,5 +80,7 @@ import Data.Packed.Numeric
 import Numeric.LinearAlgebra.Util hiding ((&),(#))
 import Data.Complex
 import Numeric.Sparse
+import Data.Packed.Internal.Vector(Idxs)
+import Data.Packed.Internal.Numeric(CInt,Extractor(..),(??),(¿¿))
 
 
