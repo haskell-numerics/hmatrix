@@ -14,7 +14,7 @@
 
 module Numeric.LinearAlgebra.LAPACK (
     -- * Matrix product
-    multiplyR, multiplyC, multiplyF, multiplyQ,
+    multiplyR, multiplyC, multiplyF, multiplyQ, multiplyI,
     -- * Linear systems
     linearSolveR, linearSolveC,
     mbLinearSolveR, mbLinearSolveC,
@@ -58,6 +58,7 @@ foreign import ccall unsafe "multiplyR" dgemmc :: CInt -> CInt -> TMMM
 foreign import ccall unsafe "multiplyC" zgemmc :: CInt -> CInt -> TCMCMCM
 foreign import ccall unsafe "multiplyF" sgemmc :: CInt -> CInt -> TFMFMFM
 foreign import ccall unsafe "multiplyQ" cgemmc :: CInt -> CInt -> TQMQMQM
+foreign import ccall unsafe "multiplyI" c_multiplyI :: CInt -> CInt -> (CM CInt (CM CInt (CM CInt (IO CInt))))
 
 isT Matrix{order = ColumnMajor} = 0
 isT Matrix{order = RowMajor} = 1
@@ -87,6 +88,10 @@ multiplyF a b = multiplyAux sgemmc "sgemmc" a b
 -- | Matrix product based on BLAS's /cgemm/.
 multiplyQ :: Matrix (Complex Float) -> Matrix (Complex Float) -> Matrix (Complex Float)
 multiplyQ a b = multiplyAux cgemmc "cgemmc" a b
+
+multiplyI :: Matrix CInt -> Matrix CInt -> Matrix CInt
+multiplyI = multiplyAux c_multiplyI "c_multiplyI"
+
 
 -----------------------------------------------------------------------------
 foreign import ccall unsafe "svd_l_R" dgesvd :: TMMVM

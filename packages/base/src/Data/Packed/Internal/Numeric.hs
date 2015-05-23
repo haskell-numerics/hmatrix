@@ -50,7 +50,7 @@ import Data.Packed.Development
 import Numeric.Vectorized
 import Data.Complex
 
-import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ)
+import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ,multiplyI)
 import Data.Packed.Internal
 import Foreign.C.Types(CInt)
 import Text.Printf(printf)
@@ -540,7 +540,7 @@ class (Num e, Element e) => Product e where
     -- | sum of absolute value of elements
     norm1      :: Vector e -> RealOf e
     -- | euclidean norm
-    norm2      :: Vector e -> RealOf e
+    norm2      :: Floating e => Vector e -> RealOf e
     -- | element of maximum magnitude
     normInf    :: Vector e -> RealOf e
 
@@ -571,6 +571,14 @@ instance Product (Complex Double) where
     norm1      = emptyVal (sumElements . fst . fromComplex . vectorMapC Abs)
     normInf    = emptyVal (maxElement . fst . fromComplex . vectorMapC Abs)
     multiply   = emptyMul multiplyC
+
+instance Product CInt where
+    norm2      = undefined
+--    absSum     = emptyVal (toScalarF AbsSum)
+--    norm1      = emptyVal (toScalarF AbsSum)
+--    normInf    = emptyVal (maxElement . vectorMapF Abs)
+    multiply   = emptyMul multiplyI
+
 
 emptyMul m a b
     | x1 == 0 && x2 == 0 || r == 0 || c == 0 = konst' 0 (r,c)
@@ -705,6 +713,8 @@ type instance RealOf (Complex Double) = Double
 
 type instance RealOf Float = Float
 type instance RealOf (Complex Float) = Float
+
+type instance RealOf CInt = CInt
 
 type family ComplexOf x
 
