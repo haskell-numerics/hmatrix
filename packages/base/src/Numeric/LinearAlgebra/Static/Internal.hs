@@ -322,12 +322,12 @@ instance forall n t . (Num (Vector t), Numeric t )=> Num (Dim n (Vector t))
     negate = lift1F negate
     fromInteger x = Dim (fromInteger x)
 
-instance (Num (Vector t), Num (Matrix t), Numeric t) => Fractional (Dim n (Vector t))
+instance (Num (Vector t), Num (Matrix t), Fractional t, Numeric t) => Fractional (Dim n (Vector t))
   where
     fromRational x = Dim (fromRational x)
     (/) = lift2F (/)
 
-instance (Floating (Vector t), Numeric t) => Floating (Dim n (Vector t)) where
+instance (Fractional t, Floating (Vector t), Numeric t) => Floating (Dim n (Vector t)) where
     sin   = lift1F sin
     cos   = lift1F cos
     tan   = lift1F tan
@@ -357,12 +357,12 @@ instance (Num (Matrix t), Numeric t) => Num (Dim m (Dim n (Matrix t)))
     negate = (lift1F . lift1F) negate
     fromInteger x = Dim (Dim (fromInteger x))
 
-instance (Num (Vector t), Num (Matrix t), Numeric t) => Fractional (Dim m (Dim n (Matrix t)))
+instance (Num (Vector t), Num (Matrix t), Fractional t, Numeric t) => Fractional (Dim m (Dim n (Matrix t)))
   where
     fromRational x = Dim (Dim (fromRational x))
     (/) = (lift2F.lift2F) (/)
 
-instance (Num (Vector t), Floating (Matrix t), Numeric t) => Floating (Dim m (Dim n (Matrix t))) where
+instance (Num (Vector t), Floating (Matrix t), Fractional t, Numeric t) => Floating (Dim m (Dim n (Matrix t))) where
     sin   = (lift1F . lift1F) sin
     cos   = (lift1F . lift1F) cos
     tan   = (lift1F . lift1F) tan

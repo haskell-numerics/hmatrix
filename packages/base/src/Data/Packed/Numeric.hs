@@ -31,7 +31,7 @@ module Data.Packed.Numeric (
     diag, ident,
     ctrans,
     -- * Generic operations
-    SContainer(..), Container(..), Numeric,
+    Container(..), Numeric,
     -- add, mul, sub, divide, equal, scaleRecip, addConstant,
     scalar, conj, scale, arctan2, cmap,
     atIndex, minIndex, maxIndex, minElement, maxElement,
@@ -88,7 +88,7 @@ Logarithmic spacing can be defined as follows:
 
 @logspace n (a,b) = 10 ** linspace n (a,b)@
 -}
-linspace :: (Container Vector e) => Int -> (e, e) -> Vector e
+linspace :: (Fractional e, Container Vector e) => Int -> (e, e) -> Vector e
 linspace 0 _     = fromList[]
 linspace 1 (a,b) = fromList[(a+b)/2]
 linspace n (a,b) = addConstant a $ scale s $ fromList $ map fromIntegral [0 .. n-1]
@@ -219,11 +219,11 @@ class Konst e d c | d -> c, c -> d
     --
     konst :: e -> d -> c e
 
-instance SContainer Vector e => Konst e Int Vector
+instance Container Vector e => Konst e Int Vector
   where
     konst = konst'
 
-instance (Num e, SContainer Vector e) => Konst e (Int,Int) Matrix
+instance (Num e, Container Vector e) => Konst e (Int,Int) Matrix
   where
     konst = konst'
 
@@ -246,11 +246,11 @@ class Build d f c e | d -> c, c -> d, f -> e, f -> d, f -> c, c e -> f, d e -> f
     --
     build :: d -> f -> c e
 
-instance SContainer Vector e => Build Int (e -> e) Vector e
+instance Container Vector e => Build Int (e -> e) Vector e
   where
     build = build'
 
-instance SContainer Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
+instance Container Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
   where
     build = build'
 
@@ -299,5 +299,6 @@ instance Numeric Double
 instance Numeric (Complex Double)
 instance Numeric Float
 instance Numeric (Complex Float)
+instance Numeric CInt
 
 

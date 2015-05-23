@@ -20,7 +20,7 @@ module Data.Packed.Internal.Numeric (
     -- * Basic functions
     ident, diag, ctrans,
     -- * Generic operations
-    SContainer(..), Container(..),
+    Container(..),
     scalar, conj, scale, arctan2, cmap,
     atIndex, minIndex, maxIndex, minElement, maxElement,
     sumElements, prodElements,
@@ -115,7 +115,7 @@ m ¿¿ ec = trans (trans m ?? ec)
 
 
 -- | Basic element-by-element functions for numeric containers
-class Element e => SContainer c e
+class Element e => Container c e
   where
     conj'        :: c e -> c e
     size'        :: c e -> IndexOf c
@@ -155,24 +155,20 @@ class Element e => SContainer c e
           -> [(IndexOf c, e)] -- ^ association list
           -> c e              -- ^ result
 
-
--- | Basic element-by-element functions for numeric containers
-class (Fractional e, SContainer c e) => Container c e
-  where
     -- | scale the element by element reciprocal of the object:
     --
     -- @scaleRecip 2 (fromList [5,i]) == 2 |> [0.4 :+ 0.0,0.0 :+ (-2.0)]@
-    scaleRecip  :: e -> c e -> c e
+    scaleRecip  :: Fractional e => e -> c e -> c e
     -- | element by element division
-    divide      :: c e -> c e -> c e
+    divide      :: Fractional e => c e -> c e -> c e
     --
     -- element by element inverse tangent
-    arctan2'     :: c e -> c e -> c e
+    arctan2'     :: Fractional e => c e -> c e -> c e
 
 
 --------------------------------------------------------------------------
 
-instance SContainer Vector CInt
+instance Container Vector CInt
   where
     conj' = id
     size' = dim
@@ -198,9 +194,11 @@ instance SContainer Vector CInt
     assoc' = assocV
     accum' = accumV
 --    cond' = condV condI
+    scaleRecip = undefined -- cannot match
+    divide = undefined
+    arctan2' = undefined
 
-
-instance SContainer Vector Float
+instance Container Vector Float
   where
     conj' = id
     size' = dim
@@ -226,16 +224,13 @@ instance SContainer Vector Float
     assoc' = assocV
     accum' = accumV
     cond' = condV condF
-
-instance Container Vector Float
-  where
     scaleRecip = vectorMapValF Recip
     divide = vectorZipF Div
     arctan2' = vectorZipF ATan2
 
 
 
-instance SContainer Vector Double
+instance Container Vector Double
   where
     conj' = id
     size' = dim
@@ -261,15 +256,12 @@ instance SContainer Vector Double
     assoc' = assocV
     accum' = accumV
     cond' = condV condD
-
-instance Container Vector Double
-  where
     scaleRecip = vectorMapValR Recip
     divide = vectorZipR Div
     arctan2' = vectorZipR ATan2
 
 
-instance SContainer Vector (Complex Double)
+instance Container Vector (Complex Double)
   where
     conj' = conjugateC
     size' = dim
@@ -295,15 +287,11 @@ instance SContainer Vector (Complex Double)
     assoc' = assocV
     accum' = accumV
     cond' = undefined -- cannot match
-
-
-instance Container Vector (Complex Double)
-  where
     scaleRecip = vectorMapValC Recip
     divide = vectorZipC Div
     arctan2' = vectorZipC ATan2
 
-instance SContainer Vector (Complex Float)
+instance Container Vector (Complex Float)
   where
     conj' = conjugateQ
     size' = dim
@@ -329,16 +317,13 @@ instance SContainer Vector (Complex Float)
     assoc' = assocV
     accum' = accumV
     cond' = undefined -- cannot match
-
-instance Container Vector (Complex Float)
-  where
     scaleRecip = vectorMapValQ Recip
     divide = vectorZipQ Div
     arctan2' = vectorZipQ ATan2
 
 ---------------------------------------------------------------
 
-instance (Num a, Element a, SContainer Vector a) => SContainer Matrix a
+instance (Num a, Element a, Container Vector a) => Container Matrix a
   where
     conj' = liftMatrix conj'
     size' = size
@@ -366,10 +351,6 @@ instance (Num a, Element a, SContainer Vector a) => SContainer Matrix a
     assoc' = assocM
     accum' = accumM
     cond' = condM
-
-
-instance (Fractional a, Container Vector a) => Container Matrix a
-  where
     scaleRecip x = liftMatrix (scaleRecip x)
     divide = liftMatrix2 divide
     arctan2' = liftMatrix2 arctan2'
@@ -404,7 +385,7 @@ conj = conj'
 scale :: Container c e => e -> c e -> c e
 scale = scale'
 
-arctan2 :: Container c e => c e -> c e -> c e
+arctan2 :: (Fractional e, Container c e) => c e -> c e -> c e
 arctan2 = arctan2'
 
 -- | like 'fmap' (cannot implement instance Functor because of Element class constraint)
@@ -754,7 +735,7 @@ buildV n f = fromList [f k | k <- ks]
 
 --------------------------------------------------------
 -- | conjugate transpose
-ctrans :: (SContainer Vector e, Element e) => Matrix e -> Matrix e
+ctrans :: (Container Vector e, Element e) => Matrix e -> Matrix e
 ctrans = liftMatrix conj' . trans
 
 -- | Creates a square matrix with a given diagonal.
@@ -810,7 +791,7 @@ class Transposable m mt | m -> mt, mt -> m
     -- | (conjugate) transpose
     tr :: m -> mt
 
-instance (SContainer Vector t) => Transposable (Matrix t) (Matrix t)
+instance (Container Vector t) => Transposable (Matrix t) (Matrix t)
   where
     tr = ctrans
 

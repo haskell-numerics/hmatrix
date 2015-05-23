@@ -66,7 +66,7 @@ instance Num (Vector (Complex Float)) where
 
 ---------------------------------------------------
 
-instance (Container Vector a, Num (Vector a)) => Fractional (Vector a) where
+instance (Container Vector a, Num (Vector a), Fractional a) => Fractional (Vector a) where
     fromRational n = fromList [fromRational n]
     (/) = adaptScalar f divide g where
         r `f` v = scaleRecip r v
