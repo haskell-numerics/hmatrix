@@ -21,7 +21,7 @@ module Data.Packed.Internal.Numeric (
     ident, diag, ctrans,
     -- * Generic operations
     Container(..),
-    scalar, conj, scale, arctan2, cmap,
+    scalar, conj, scale, arctan2, cmap, cmod,
     atIndex, minIndex, maxIndex, minElement, maxElement,
     sumElements, prodElements,
     step, cond, find, assoc, accum,
@@ -178,6 +178,7 @@ class Element e => Container c e
     --
     -- element by element inverse tangent
     arctan2'     :: Fractional e => c e -> c e -> c e
+    cmod'        :: Integral   e => e -> c e -> c e
 
 
 --------------------------------------------------------------------------
@@ -211,6 +212,9 @@ instance Container Vector CInt
     scaleRecip = undefined -- cannot match
     divide = undefined
     arctan2' = undefined
+    cmod' m x
+        | m /= 0    = vectorMapValI ModVS m x
+        | otherwise = error $ "cmod 0 on vector of size "++(show $ dim x)
 
 instance Container Vector Float
   where
@@ -241,6 +245,7 @@ instance Container Vector Float
     scaleRecip = vectorMapValF Recip
     divide = vectorZipF Div
     arctan2' = vectorZipF ATan2
+    cmod' = undefined
 
 
 
@@ -273,6 +278,7 @@ instance Container Vector Double
     scaleRecip = vectorMapValR Recip
     divide = vectorZipR Div
     arctan2' = vectorZipR ATan2
+    cmod' = undefined
 
 
 instance Container Vector (Complex Double)
@@ -304,6 +310,7 @@ instance Container Vector (Complex Double)
     scaleRecip = vectorMapValC Recip
     divide = vectorZipC Div
     arctan2' = vectorZipC ATan2
+    cmod' = undefined
 
 instance Container Vector (Complex Float)
   where
@@ -334,6 +341,7 @@ instance Container Vector (Complex Float)
     scaleRecip = vectorMapValQ Recip
     divide = vectorZipQ Div
     arctan2' = vectorZipQ ATan2
+    cmod' = undefined
 
 ---------------------------------------------------------------
 
@@ -368,12 +376,15 @@ instance (Num a, Element a, Container Vector a) => Container Matrix a
     scaleRecip x = liftMatrix (scaleRecip x)
     divide = liftMatrix2 divide
     arctan2' = liftMatrix2 arctan2'
+    cmod' m x
+        | m /= 0    = liftMatrix (cmod' m) x
+        | otherwise = error $ "cmod 0 on matrix "++shSize x
 
 
 emptyErrorV msg f v =
     if dim v > 0
         then f v
-        else error $ msg ++ " of Vector with dim = 0"
+        else error $ msg ++ " of empty Vector"
 
 emptyErrorM msg f m =
     if rows m > 0 && cols m > 0
@@ -401,6 +412,10 @@ scale = scale'
 
 arctan2 :: (Fractional e, Container c e) => c e -> c e -> c e
 arctan2 = arctan2'
+
+cmod :: (Integral e, Container c e) => e -> c e -> c e
+cmod = cmod'
+
 
 -- | like 'fmap' (cannot implement instance Functor because of Element class constraint)
 cmap :: (Element b, Container c e) => (e -> b) -> c e -> c b

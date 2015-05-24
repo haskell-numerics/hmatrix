@@ -44,7 +44,7 @@ module Numeric.LinearAlgebra.Data(
     fromBlocks, (|||), (===), diagBlock, repmat, toBlocks, toBlocksEvery,
 
     -- * Mapping functions
-    conj, cmap, step, cond,
+    conj, cmap, cmod, step, cond,
     
     -- * Find elements
     find, maxIndex, minIndex, maxElement, minElement, atIndex,

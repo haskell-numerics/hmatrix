@@ -33,7 +33,7 @@ module Data.Packed.Numeric (
     -- * Generic operations
     Container(..), Numeric,
     -- add, mul, sub, divide, equal, scaleRecip, addConstant,
-    scalar, conj, scale, arctan2, cmap,
+    scalar, conj, scale, arctan2, cmap, cmod,
     atIndex, minIndex, maxIndex, minElement, maxElement,
     sumElements, prodElements,
     step, cond, find, assoc, accum,
