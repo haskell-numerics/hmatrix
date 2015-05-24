@@ -46,12 +46,21 @@ int sumF(KFVEC(x),FVEC(r)) {
     rp[0] = res;
     OK
 }
-    
+
 int sumR(KDVEC(x),DVEC(r)) {
     DEBUGMSG("sumR");
     REQUIRES(rn==1,BAD_SIZE);
     int i;
     double res = 0;
+    for (i = 0; i < xn; i++) res += xp[i];
+    rp[0] = res;
+    OK
+}
+
+int sumI(KIVEC(x),IVEC(r)) {
+    REQUIRES(rn==1,BAD_SIZE);
+    int i;
+    int res = 0;
     for (i = 0; i < xn; i++) res += xp[i];
     rp[0] = res;
     OK
@@ -72,7 +81,7 @@ int sumQ(KQVEC(x),QVEC(r)) {
     rp[0] = res;
     OK
 }
-    
+
 int sumC(KCVEC(x),CVEC(r)) {
     DEBUGMSG("sumC");
     REQUIRES(rn==1,BAD_SIZE);
@@ -98,7 +107,7 @@ int prodF(KFVEC(x),FVEC(r)) {
     rp[0] = res;
     OK
 }
-    
+
 int prodR(KDVEC(x),DVEC(r)) {
     DEBUGMSG("prodR");
     REQUIRES(rn==1,BAD_SIZE);
@@ -108,6 +117,16 @@ int prodR(KDVEC(x),DVEC(r)) {
     rp[0] = res;
     OK
 }
+
+int prodI(KIVEC(x),IVEC(r)) {
+    REQUIRES(rn==1,BAD_SIZE);
+    int i;
+    int res = 1;
+    for (i = 0; i < xn; i++) res *= xp[i];
+    rp[0] = res;
+    OK
+}
+
 
 
 int prodQ(KQVEC(x),QVEC(r)) {
@@ -126,7 +145,7 @@ int prodQ(KQVEC(x),QVEC(r)) {
     rp[0] = res;
     OK
 }
-    
+
 int prodC(KCVEC(x),CVEC(r)) {
     DEBUGMSG("prodC");
     REQUIRES(rn==1,BAD_SIZE);
@@ -144,7 +163,7 @@ int prodC(KCVEC(x),CVEC(r)) {
     OK
 }
 
-    
+
 double dnrm2_(integer*, const double*, integer*);
 double dasum_(integer*, const double*, integer*);
 
@@ -189,8 +208,8 @@ double vector_min_index(KDVEC(x)) {
     }
     return r;
 }
-   
-int toScalarR(int code, KDVEC(x), DVEC(r)) { 
+
+int toScalarR(int code, KDVEC(x), DVEC(r)) {
     REQUIRES(rn==1,BAD_SIZE);
     DEBUGMSG("toScalarR");
     double res;
@@ -256,7 +275,7 @@ float vector_min_index_f(KFVEC(x)) {
 }
 
 
-int toScalarF(int code, KFVEC(x), FVEC(r)) { 
+int toScalarF(int code, KFVEC(x), FVEC(r)) {
     REQUIRES(rn==1,BAD_SIZE);
     DEBUGMSG("toScalarF");
     float res;
@@ -275,10 +294,68 @@ int toScalarF(int code, KFVEC(x), FVEC(r)) {
     OK
 }
 
+int vector_max_i(KIVEC(x)) {
+    int r = xp[0];
+    int k;
+    for (k = 1; k<xn; k++) {
+        if(xp[k]>r) {
+            r = xp[k];
+        }
+    }
+    return r;
+}
+
+int vector_min_i(KIVEC(x)) {
+    float r = xp[0];
+    int k;
+    for (k = 1; k<xn; k++) {
+        if(xp[k]<r) {
+            r = xp[k];
+        }
+    }
+    return r;
+}
+
+int vector_max_index_i(KIVEC(x)) {
+    int k, r = 0;
+    for (k = 1; k<xn; k++) {
+        if(xp[k]>xp[r]) {
+            r = k;
+        }
+    }
+    return r;
+}
+
+int vector_min_index_i(KIVEC(x)) {
+    int k, r = 0;
+    for (k = 1; k<xn; k++) {
+        if(xp[k]<xp[r]) {
+            r = k;
+        }
+    }
+    return r;
+}
+
+
+int toScalarI(int code, KIVEC(x), IVEC(r)) {
+    REQUIRES(rn==1,BAD_SIZE);
+    int res;
+    switch(code) {
+        case 2: { res = vector_max_index_i(V(x));  break; }
+        case 3: { res = vector_max_i(V(x));  break; }
+        case 4: { res = vector_min_index_i(V(x)); break; }
+        case 5: { res = vector_min_i(V(x)); break; }
+        default: ERROR(BAD_CODE);
+    }
+    rp[0] = res;
+    OK
+}
+
+
 double dznrm2_(integer*, const doublecomplex*, integer*);
 double dzasum_(integer*, const doublecomplex*, integer*);
 
-int toScalarC(int code, KCVEC(x), DVEC(r)) { 
+int toScalarC(int code, KCVEC(x), DVEC(r)) {
     REQUIRES(rn==1,BAD_SIZE);
     DEBUGMSG("toScalarC");
     double res;
@@ -297,7 +374,7 @@ int toScalarC(int code, KCVEC(x), DVEC(r)) {
 double scnrm2_(integer*, const complex*, integer*);
 double scasum_(integer*, const complex*, integer*);
 
-int toScalarQ(int code, KQVEC(x), FVEC(r)) { 
+int toScalarQ(int code, KQVEC(x), FVEC(r)) {
     REQUIRES(rn==1,BAD_SIZE);
     DEBUGMSG("toScalarQ");
     float res;
@@ -387,6 +464,18 @@ int mapF(int code, KFVEC(x), FVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
+
+
+int mapI(int code, KIVEC(x), IVEC(r)) {
+    int k;
+    REQUIRES(xn == rn,BAD_SIZE);
+    switch (code) {
+        OP(3,abs)
+        OP(15,sign)
+        default: ERROR(BAD_CODE);
+    }
+}
+
 
 
 inline double abs_complex(doublecomplex z) {
@@ -526,6 +615,22 @@ int mapValF(int code, float* pval, KFVEC(x), FVEC(r)) {
     }
 }
 
+int mapValI(int code, int* pval, KIVEC(x), IVEC(r)) {
+    int k;
+    int val = *pval;
+    REQUIRES(xn == rn,BAD_SIZE);
+    DEBUGMSG("mapValI");
+    switch (code) {
+        OPV(0,val*xp[k])
+        OPV(1,val/xp[k])
+        OPV(2,val+xp[k])
+        OPV(3,val-xp[k])
+        OPV(6,val%xp[k])
+        OPV(7,xp[k]%val)
+        default: ERROR(BAD_CODE);
+    }
+}
+
 
 
 inline doublecomplex complex_add(doublecomplex a, doublecomplex b) {
@@ -608,6 +713,20 @@ REQUIRES(an == bn && an == rn, BAD_SIZE);
 }
 
 
+int zipI(int code, KIVEC(a), KIVEC(b), IVEC(r)) {
+REQUIRES(an == bn && an == rn, BAD_SIZE);
+    int k;
+    switch(code) {
+        OPZO(0,"zipI Add",+)
+        OPZO(1,"zipI Sub",-)
+        OPZO(2,"zipI Mul",*)
+        OPZO(3,"zipI Div",/)
+        OPZO(6,"zipI Mod",%)
+        default: ERROR(BAD_CODE);
+    }
+}
+
+
 
 #define OPZOb(C,msg,O) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) r2p[k] = a2p[k] O b2p[k]; OK }
 #define OPZEb(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) r2p[k] = E(a2p[k],b2p[k]); OK }
@@ -679,7 +798,7 @@ int vectorScan(char * file, int* n, double**pp){
     *pp = p;
     fclose(fp);
     OK
-}    
+}
 
 int saveMatrix(char * file, char * format, KDMAT(a)){
     FILE * fp;
@@ -754,7 +873,7 @@ int random_vector(unsigned int seed, int code, DVEC(r)) {
     double V1,V2,S;
 
     srandom(seed);
-    
+
     int k;
     switch (code) {
       case 0: { // uniform
@@ -816,7 +935,7 @@ int random_vector(unsigned int seed, int code, DVEC(r)) {
     char   random_state[128];
     memset(&buffer, 0, sizeof(struct random_data));
     memset(random_state, 0, sizeof(random_state));
-    
+
     initstate_r(seed,random_state,sizeof(random_state),&buffer);
     // setstate_r(random_state,&buffer);
     // srandom_r(seed,&buffer);

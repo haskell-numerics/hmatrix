@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Vectorized
--- Copyright   :  (c) Alberto Ruiz 2007-14
+-- Copyright   :  (c) Alberto Ruiz 2007-15
 -- License     :  BSD3
 -- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
@@ -11,12 +11,12 @@
 -----------------------------------------------------------------------------
 
 module Numeric.Vectorized (
-    sumF, sumR, sumQ, sumC,
-    prodF, prodR, prodQ, prodC,
-    FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ,
-    FunCodeV(..), vectorMapR, vectorMapC, vectorMapF, vectorMapQ,
-    FunCodeSV(..), vectorMapValR, vectorMapValC, vectorMapValF, vectorMapValQ,
-    FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF, vectorZipQ,
+    sumF, sumR, sumQ, sumC, sumI,
+    prodF, prodR, prodQ, prodC, prodI,
+    FunCodeS(..), toScalarR, toScalarF, toScalarC, toScalarQ, toScalarI,
+    FunCodeV(..), vectorMapR, vectorMapC, vectorMapF, vectorMapQ, vectorMapI,
+    FunCodeSV(..), vectorMapValR, vectorMapValC, vectorMapValF, vectorMapValQ, vectorMapValI,
+    FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF, vectorZipQ, vectorZipI,
     vectorScan, saveMatrix,
     Seed, RandDist(..), randomVector,
     sortVector, roundVector
@@ -67,6 +67,8 @@ data FunCodeSV = Scale
                | Negate
                | PowSV
                | PowVS
+               | ModSV
+               | ModVS
                deriving Enum
 
 data FunCodeVV = Add
@@ -75,6 +77,7 @@ data FunCodeVV = Add
                | Div
                | Pow
                | ATan2
+               | Mod
                deriving Enum
 
 data FunCodeS = Norm2
@@ -89,69 +92,67 @@ data FunCodeS = Norm2
 
 -- | sum of elements
 sumF :: Vector Float -> Float
-sumF x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_sumF vec x vec r "sumF"
-           return $ r @> 0
+sumF = sumg c_sumF
 
 -- | sum of elements
 sumR :: Vector Double -> Double
-sumR x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_sumR vec x vec r "sumR"
-           return $ r @> 0
+sumR = sumg c_sumR
 
 -- | sum of elements
 sumQ :: Vector (Complex Float) -> Complex Float
-sumQ x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_sumQ vec x vec r "sumQ"
-           return $ r @> 0
+sumQ = sumg c_sumQ
 
 -- | sum of elements
 sumC :: Vector (Complex Double) -> Complex Double
-sumC x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_sumC vec x vec r "sumC"
-           return $ r @> 0
+sumC = sumg c_sumC
+
+-- | sum of elements
+sumI :: Vector CInt -> CInt
+sumI = sumg c_sumI
+
+sumg f x = unsafePerformIO $ do
+    r <- createVector 1
+    app2 f vec x vec r "sum"
+    return $ r @> 0
 
 foreign import ccall unsafe "sumF" c_sumF :: TFF
 foreign import ccall unsafe "sumR" c_sumR :: TVV
 foreign import ccall unsafe "sumQ" c_sumQ :: TQVQV
 foreign import ccall unsafe "sumC" c_sumC :: TCVCV
+foreign import ccall unsafe "sumC" c_sumI :: CV CInt (CV CInt (IO CInt))
 
 -- | product of elements
 prodF :: Vector Float -> Float
-prodF x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_prodF vec x vec r "prodF"
-           return $ r @> 0
+prodF = prodg c_prodF
 
 -- | product of elements
 prodR :: Vector Double -> Double
-prodR x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_prodR vec x vec r "prodR"
-           return $ r @> 0
+prodR = prodg c_prodR
 
 -- | product of elements
 prodQ :: Vector (Complex Float) -> Complex Float
-prodQ x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_prodQ vec x vec r "prodQ"
-           return $ r @> 0
+prodQ = prodg c_prodQ
 
 -- | product of elements
 prodC :: Vector (Complex Double) -> Complex Double
-prodC x = unsafePerformIO $ do
-           r <- createVector 1
-           app2 c_prodC vec x vec r "prodC"
-           return $ r @> 0
+prodC = prodg c_prodC
+
+-- | product of elements
+prodI :: Vector CInt -> CInt
+prodI = prodg c_prodI
+
+
+prodg f x = unsafePerformIO $ do
+    r <- createVector 1
+    app2 f vec x vec r "prod"
+    return $ r @> 0
+
 
 foreign import ccall unsafe "prodF" c_prodF :: TFF
 foreign import ccall unsafe "prodR" c_prodR :: TVV
 foreign import ccall unsafe "prodQ" c_prodQ :: TQVQV
 foreign import ccall unsafe "prodC" c_prodC :: TCVCV
+foreign import ccall unsafe "prodI" c_prodI :: CV CInt (CV CInt (IO CInt))
 
 ------------------------------------------------------------------
 
@@ -203,6 +204,12 @@ toScalarQ oper =  toScalarAux c_toScalarQ (fromei oper)
 
 foreign import ccall unsafe "toScalarQ" c_toScalarQ :: CInt -> TQVF
 
+-- | obtains different functions of a vector: norm1, norm2, max, min, posmax, posmin, etc.
+toScalarI :: FunCodeS -> Vector CInt -> CInt
+toScalarI oper =  toScalarAux c_toScalarI (fromei oper)
+
+foreign import ccall unsafe "toScalarI" c_toScalarI :: CInt -> CV CInt (CV CInt (IO CInt))
+
 ------------------------------------------------------------------
 
 -- | map of real vectors with given function
@@ -228,6 +235,12 @@ vectorMapQ :: FunCodeV -> Vector (Complex Float) -> Vector (Complex Float)
 vectorMapQ = vectorMapAux c_vectorMapQ
 
 foreign import ccall unsafe "mapQ" c_vectorMapQ :: CInt -> TQVQV
+
+-- | map of real vectors with given function
+vectorMapI :: FunCodeV -> Vector CInt -> Vector CInt
+vectorMapI = vectorMapAux c_vectorMapI
+
+foreign import ccall unsafe "mapI" c_vectorMapI :: CInt -> CV CInt (CV CInt (IO CInt))
 
 -------------------------------------------------------------------
 
@@ -255,6 +268,13 @@ vectorMapValQ oper = vectorMapValAux c_vectorMapValQ (fromei oper)
 
 foreign import ccall unsafe "mapValQ" c_vectorMapValQ :: CInt -> Ptr (Complex Float) -> TQVQV
 
+-- | map of real vectors with given function
+vectorMapValI :: FunCodeSV -> CInt -> Vector CInt -> Vector CInt
+vectorMapValI oper = vectorMapValAux c_vectorMapValI (fromei oper)
+
+foreign import ccall unsafe "mapValI" c_vectorMapValI :: CInt -> Ptr CInt -> CV CInt (CV CInt (IO CInt))
+
+
 -------------------------------------------------------------------
 
 -- | elementwise operation on real vectors
@@ -280,6 +300,13 @@ vectorZipQ :: FunCodeVV -> Vector (Complex Float) -> Vector (Complex Float) -> V
 vectorZipQ = vectorZipAux c_vectorZipQ
 
 foreign import ccall unsafe "zipQ" c_vectorZipQ :: CInt -> TQVQVQV
+
+-- | elementwise operation on CInt vectors
+vectorZipI :: FunCodeVV -> Vector CInt -> Vector CInt -> Vector CInt
+vectorZipI = vectorZipAux c_vectorZipI
+
+foreign import ccall unsafe "zipI" c_vectorZipI :: CInt -> CV CInt (CV CInt (CV CInt (IO CInt)))
+
 
 --------------------------------------------------------------------------------
 

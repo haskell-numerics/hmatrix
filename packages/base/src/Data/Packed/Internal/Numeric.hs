@@ -186,23 +186,23 @@ instance Container Vector CInt
   where
     conj' = id
     size' = dim
---    scale' = vectorMapValF Scale
---    addConstant = vectorMapValF AddConstant
---    add = vectorZipF Add
---    sub = vectorZipF Sub
---    mul = vectorZipF Mul
---    equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
+    scale' = vectorMapValI Scale
+    addConstant = vectorMapValI AddConstant
+    add = vectorZipI Add
+    sub = vectorZipI Sub
+    mul = vectorZipI Mul
+    equal u v = dim u == dim v && maxElement' (vectorMapI Abs (sub u v)) == 0
     scalar' x = fromList [x]
     konst' = constantD
     build' = buildV
     cmap' = mapVector
     atIndex' = (@>)
---    minIndex'     = emptyErrorV "minIndex"   (round . toScalarF MinIdx)
---    maxIndex'     = emptyErrorV "maxIndex"   (round . toScalarF MaxIdx)
---    minElement'   = emptyErrorV "minElement" (toScalarF Min)
---    maxElement'   = emptyErrorV "maxElement" (toScalarF Max)
---    sumElements'  = sumF
---    prodElements' = prodF
+    minIndex'     = emptyErrorV "minIndex"   (fromIntegral . toScalarI MinIdx)
+    maxIndex'     = emptyErrorV "maxIndex"   (fromIntegral . toScalarI MaxIdx)
+    minElement'   = emptyErrorV "minElement" (toScalarI Min)
+    maxElement'   = emptyErrorV "maxElement" (toScalarI Max)
+    sumElements'  = sumI
+    prodElements' = prodI
     step' = stepI
     find' = findV
     assoc' = assocV
@@ -569,9 +569,9 @@ instance Product (Complex Double) where
 
 instance Product CInt where
     norm2      = undefined
---    absSum     = emptyVal (toScalarF AbsSum)
---    norm1      = emptyVal (toScalarF AbsSum)
---    normInf    = emptyVal (maxElement . vectorMapF Abs)
+    absSum     = emptyVal (sumElements . vectorMapI Abs)
+    norm1      = absSum
+    normInf    = emptyVal (maxElement . vectorMapI Abs)
     multiply   = emptyMul multiplyI
 
 

@@ -32,6 +32,14 @@ adaptScalar f1 f2 f3 x y
 
 ------------------------------------------------------------------
 
+instance Num (Vector CInt) where
+    (+) = adaptScalar addConstant add (flip addConstant)
+    negate = scale (-1)
+    (*) = adaptScalar scale mul (flip scale)
+    signum = vectorMapI Sign
+    abs = vectorMapI Abs
+    fromInteger = fromList . return . fromInteger
+
 instance Num (Vector Float) where
     (+) = adaptScalar addConstant add (flip addConstant)
     negate = scale (-1)
