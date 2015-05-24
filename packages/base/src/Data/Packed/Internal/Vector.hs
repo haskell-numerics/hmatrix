@@ -18,7 +18,7 @@ module Data.Packed.Internal.Vector (
     mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
     foldVector, foldVectorG, foldLoop, foldVectorWithIndex,
     createVector, vec,
-    asComplex, asReal, float2DoubleV, double2FloatV,
+    asComplex, asReal, float2DoubleV, double2FloatV, double2IntV, int2DoubleV, float2IntV, int2floatV,
     stepF, stepD, stepI, condF, condD, condI,
     conjugateQ, conjugateC,
     cloneVector,
@@ -231,20 +231,35 @@ asComplex v = unsafeFromForeignPtr (castForeignPtr fp) (i `div` 2) (n `div` 2)
 ---------------------------------------------------------------
 
 float2DoubleV :: Vector Float -> Vector Double
-float2DoubleV v = unsafePerformIO $ do
-    r <- createVector (dim v)
-    app2 c_float2double vec v vec r "float2double"
-    return r
+float2DoubleV = tog c_float2double
 
 double2FloatV :: Vector Double -> Vector Float
-double2FloatV v = unsafePerformIO $ do
+double2FloatV = tog c_double2float
+
+double2IntV :: Vector Double -> Vector CInt
+double2IntV = tog c_double2int
+
+int2DoubleV :: Vector CInt -> Vector Double
+int2DoubleV = tog c_int2double
+
+float2IntV :: Vector Float -> Vector CInt
+float2IntV = tog c_float2int
+
+int2floatV :: Vector CInt -> Vector Float
+int2floatV = tog c_int2float
+
+
+tog f v = unsafePerformIO $ do
     r <- createVector (dim v)
-    app2 c_double2float vec v vec r "double2float2"
+    app2 f vec v vec r "tog"
     return r
 
-
-foreign import ccall unsafe "float2double" c_float2double:: TFV
-foreign import ccall unsafe "double2float" c_double2float:: TVF
+foreign import ccall unsafe "float2double" c_float2double :: TFV
+foreign import ccall unsafe "double2float" c_double2float :: TVF
+foreign import ccall unsafe "int2double"   c_int2double   :: CV CInt (CV Double (IO CInt))
+foreign import ccall unsafe "double2int"   c_double2int   :: CV Double (CV CInt (IO CInt))
+foreign import ccall unsafe "int2float"    c_int2float    :: CV CInt (CV Float (IO CInt))
+foreign import ccall unsafe "float2int"    c_float2int    :: CV Float (CV CInt (IO CInt))
 
 
 ---------------------------------------------------------------

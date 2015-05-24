@@ -63,6 +63,7 @@ module Numeric.LinearAlgebra.Data(
 -- * Conversion
     Convert(..),
     roundVector,
+    fromInt,
     -- * Misc
     arctan2,
     rows, cols,
@@ -81,6 +82,6 @@ import Numeric.LinearAlgebra.Util hiding ((&),(#))
 import Data.Complex
 import Numeric.Sparse
 import Data.Packed.Internal.Vector(Idxs)
-import Data.Packed.Internal.Numeric(CInt,Extractor(..),(??))
+import Data.Packed.Internal.Numeric(CInt,Extractor(..),(??),fromInt)
 
 

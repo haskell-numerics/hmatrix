@@ -36,7 +36,7 @@ module Data.Packed.Internal.Numeric (
     Convert(..),
     Complexable(),
     RealElement(),
-    roundVector,
+    roundVector, fromInt,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
     CInt, Extractor(..), (??),
@@ -179,6 +179,7 @@ class Element e => Container c e
     -- element by element inverse tangent
     arctan2'     :: Fractional e => c e -> c e -> c e
     cmod'        :: Integral   e => e -> c e -> c e
+    fromInt'     :: c CInt -> c e
 
 
 --------------------------------------------------------------------------
@@ -215,6 +216,7 @@ instance Container Vector CInt
     cmod' m x
         | m /= 0    = vectorMapValI ModVS m x
         | otherwise = error $ "cmod 0 on vector of size "++(show $ dim x)
+    fromInt' = id
 
 instance Container Vector Float
   where
@@ -246,6 +248,7 @@ instance Container Vector Float
     divide = vectorZipF Div
     arctan2' = vectorZipF ATan2
     cmod' = undefined
+    fromInt' = int2floatV
 
 
 
@@ -279,6 +282,7 @@ instance Container Vector Double
     divide = vectorZipR Div
     arctan2' = vectorZipR ATan2
     cmod' = undefined
+    fromInt' = int2DoubleV
 
 
 instance Container Vector (Complex Double)
@@ -311,6 +315,7 @@ instance Container Vector (Complex Double)
     divide = vectorZipC Div
     arctan2' = vectorZipC ATan2
     cmod' = undefined
+    fromInt' = complex . int2DoubleV
 
 instance Container Vector (Complex Float)
   where
@@ -342,6 +347,7 @@ instance Container Vector (Complex Float)
     divide = vectorZipQ Div
     arctan2' = vectorZipQ ATan2
     cmod' = undefined
+    fromInt' = complex . int2floatV
 
 ---------------------------------------------------------------
 
@@ -379,6 +385,7 @@ instance (Num a, Element a, Container Vector a) => Container Matrix a
     cmod' m x
         | m /= 0    = liftMatrix (cmod' m) x
         | otherwise = error $ "cmod 0 on matrix "++shSize x
+    fromInt' = liftMatrix fromInt'
 
 
 emptyErrorV msg f v =
@@ -415,6 +422,9 @@ arctan2 = arctan2'
 
 cmod :: (Integral e, Container c e) => e -> c e -> c e
 cmod = cmod'
+
+fromInt :: (Container c e) => c CInt -> c e
+fromInt = fromInt'
 
 
 -- | like 'fmap' (cannot implement instance Functor because of Element class constraint)
