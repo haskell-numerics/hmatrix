@@ -39,7 +39,7 @@ module Data.Packed.Internal.Numeric (
     roundVector,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
-    CInt, Extractor(..), (??),(¿¿),
+    CInt, Extractor(..), (??),
     module Data.Complex
 ) where
 
@@ -69,27 +69,50 @@ type instance ArgOf Matrix a = a -> a -> a
 
 --------------------------------------------------------------------------
 
-data Extractor = All | Range Int Int | At [Int] | AtCyc [Int] | Take Int | Drop Int
+data Extractor
+    = All
+    | Range Int Int
+    | At [Int]
+    | AtCyc [Int]
+    | Take Int
+    | Drop Int
+   deriving Show
 
 idxs js = fromList (map fromIntegral js) :: Idxs
 
-infixl 9 ??, ¿¿
-(??),(¿¿) :: Element t => Matrix t -> Extractor -> Matrix t
+infixl 9 ??
+(??)  :: Element t => Matrix t -> (Extractor,Extractor) -> Matrix t
 
-m ?? All = m
-m ?? Take 0 = (0><cols m) []
-m ?? Take n | abs n >= rows m = m
-m ?? Drop 0 = m
-m ?? Drop n | abs n >= rows m = (0><cols m) []
-m ?? Range a b | a > b = m ?? Take 0
-m ?? Range a b | a < 0 || b >= cols m = error $
-    printf "can't extract rows %d to %d from matrix %dx%d" a b (rows m) (cols m)
-m ?? At ps | minimum ps < 0 || maximum ps >= rows m = error $
-    printf "can't extract rows %s from matrix %dx%d" (show ps) (rows m) (cols m)
 
-m ?? er = extractR m mode js
+extractError m e = error $ printf "can't extract %s from matrix %dx%d" (show e) (rows m) (cols m)
+
+m ?? e@(Range a b,_) | a < 0 || b >= rows m = extractError m e
+m ?? e@(_,Range a b) | a < 0 || b >= cols m = extractError m e
+m ?? e@(At ps,_) | minimum ps < 0 || maximum ps >= rows m = extractError m e
+m ?? e@(_,At ps) | minimum ps < 0 || maximum ps >= cols m = extractError m e
+
+m ?? (All,All) = m
+
+m ?? (Range a b,e) | a > b = m ?? (Take 0,e)
+m ?? (e,Range a b) | a > b = m ?? (e,Take 0)
+
+m ?? (Take 0,e) = (0><cols m) [] ?? (All,e)
+m ?? (e,Take 0) = (rows m><0) [] ?? (e,All)
+
+m ?? (Take n,e) | abs n > rows m = m ?? (All,e)
+m ?? (e,Take n) | abs n > cols m = m ?? (e,All)
+
+m ?? (Drop 0,e) = m ?? (All,e)
+m ?? (e,Drop 0) = m ?? (e,All)
+
+m ?? (Drop n,e) | abs n > rows m = m ?? (Take 0,e)
+m ?? (e,Drop n) | abs n > cols m = m ?? (e,Take 0)
+
+
+m ?? (er,ec) = extractR m moder rs modec cs
   where
-    (mode,js) = mkExt (rows m) er
+    (moder,rs) = mkExt (rows m) er
+    (modec,cs) = mkExt (cols m) ec
     ran a b = (0, idxs [a,b])
     pos ks  = (1, idxs ks)
     mkExt _ (At ks)       = pos ks
@@ -103,13 +126,6 @@ m ?? er = extractR m mode js
         | k >= 0          = ran k (n-1)
         | otherwise       = mkExt n (Take (n+k))
 
-
-m ¿¿ Range a b | a < 0 || b > cols m -1 = error $
-    printf "can't extract columns %d to %d from matrix %dx%d" a b (rows m) (cols m)
-
-m ¿¿ At ps | minimum ps < 0 || maximum ps >= cols m = error $
-    printf "can't extract columns %s from matrix %dx%d" (show ps) (rows m) (cols m)
-m ¿¿ ec = trans (trans m ?? ec)
 
 -------------------------------------------------------------------
 

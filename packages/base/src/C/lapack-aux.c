@@ -1290,19 +1290,18 @@ int multiplyQ(int ta, int tb, KQMAT(a),KQMAT(b),QMAT(r)) {
 int multiplyI(int ta, int tb, KIMAT(a), KIMAT(b), IMAT(r)) {
     int i,j,k;
     int n;
-    int u, v;
-    if (ta==0) {
-        n = ac;
-    } else {
-        n = ar;
-    }
+    int ai,ak,bk,bj;
+
+    n = ta ? ar : ac;
+    
+    if (ta==0) { ai =  1; ak = ar; } else { ai = ar; ak =  1; }
+    if (tb==0) { bk =  1; bj = br; } else { bk = br; bj =  1; }
+    
     for (i=0;i<rr;i++) {
         for (j=0;j<rc;j++) {
-            rp[i*rc+j] = 0;
+            rp[i+rr*j] = 0;
             for (k=0; k<n; k++) {
-                u = ta==0 ? ap[i*ac+k] : ap[k*ac+i];
-                v = tb==0 ? bp[k*bc+j] : bp[j*bc+k];
-                rp[i*rc+j] += u*v;
+                rp[i+rr*j] += ap[ai*i+ak*k] * bp[bk*k+bj*j];
             }
         }
     }
@@ -1622,65 +1621,44 @@ int chooseD(KIVEC(cond),KDVEC(lt),KDVEC(eq),KDVEC(gt),DVEC(r)) {
 
 //////////////////////// extract /////////////////////////////////
 
-#define EXTRACT_IMP \
-    /*REQUIRES((tm == 0 && jn==rr && mc==rc) || (jn==rr && mr==rc) ,BAD_SIZE); */  \
-    DEBUGMSG("extractRD")                                                      \
-    int k,i,s;                                                                 \
-    if (tm==0) {                                                               \
-        if (mode==0) {                           \
-            for (k=0; k<jp[1]-jp[0]+1; k++) {                                                   \
-                s = k + jp[0];                                                         \
-                printf("%d\n",s); \
-                for (i=0; i<mc; i++) {                                             \
-                    rp[rc*k+i] = mp[mc*s+i];                                       \
-                }                                                                  \
-            }                                                                      \
-        } else {        \
-            for (k=0;k<jn;k++) {                                                   \
-                s = jp[k];                                                         \
-                for (i=0; i<mc; i++) {                                             \
-                    rp[rc*k+i] = mp[mc*s+i];                                       \
-                }                                                                  \
-            }  \
-        }                                                               \
-    } else {                                                                   \
-        if (mode==0) {                           \
-            for (k=0; k<jp[1]-jp[0]+1; k++) {                                                   \
-                s = k + jp[0];                                                         \
-                printf("%d\n",s); \
-                for (i=0; i<mr; i++) {                                             \
-                    rp[rc*k+i] = mp[mc*i+s];                                       \
-                }                                                                  \
-            }                           \
-        } else {        \
-            for (k=0;k<jn;k++) {                                                   \
-                s = jp[k];                                                         \
-                for (i=0; i<mr; i++) {                                             \
-                    rp[rc*k+i] = mp[mc*i+s];                                       \
-                }                                                                  \
-            }                                                                      \
-        }  \
-    }                                                                          \
+#define EXTRACT_IMP                        \
+    int i,j,si,sj,ni,nj,ai,aj;             \
+    if (tm==0) {                           \
+        ai=mc; aj=1;                       \
+    } else {                               \
+        ai=1, aj=mc;                       \
+    }                                      \
+    ni = modei ? in : ip[1]-ip[0]+1;       \
+    nj = modej ? jn : jp[1]-jp[0]+1;       \
+                                           \
+    for (i=0; i<ni; i++) {                 \
+        si = modei ? ip[i] : i+ip[0];      \
+                                           \
+        for (j=0; j<nj; j++) {             \
+            sj = modej ? jp[j] : j+jp[0];  \
+                                           \
+            rp[rc*i+j] = mp[ai*si+aj*sj];  \
+        }                                  \
+    }                                      \
     OK
 
-
-int extractRD(int mode, int tm, KIVEC(j), KDMAT(m), DMAT(r)) {
+int extractD(int modei, int modej, int tm, KIVEC(i), KIVEC(j), KDMAT(m), DMAT(r)) {
     EXTRACT_IMP
 }
 
-int extractRF(int mode, int tm, KIVEC(j), KFMAT(m), FMAT(r)) {
+int extractF(int modei, int modej, int tm, KIVEC(i), KIVEC(j), KFMAT(m), FMAT(r)) {
     EXTRACT_IMP
 }
 
-int extractRC(int mode, int tm, KIVEC(j), KCMAT(m), CMAT(r)) {
+int extractC(int modei, int modej, int tm, KIVEC(i), KIVEC(j), KCMAT(m), CMAT(r)) {
     EXTRACT_IMP
 }
 
-int extractRQ(int mode, int tm, KIVEC(j), KQMAT(m), QMAT(r)) {
+int extractQ(int modei, int modej, int tm, KIVEC(i), KIVEC(j), KQMAT(m), QMAT(r)) {
     EXTRACT_IMP
 }
 
-int extractRI(int mode, int tm, KIVEC(j), KIMAT(m), IMAT(r)) {
+int extractI(int modei, int modej, int tm, KIVEC(i), KIVEC(j), KIMAT(m), IMAT(r)) {
     EXTRACT_IMP
 }
 

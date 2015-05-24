@@ -265,32 +265,32 @@ class (Storable a) => Element a where
     transdata = transdataP -- transdata'
     constantD  :: a -> Int -> Vector a
     constantD = constantP -- constant'
-    extractR :: Matrix a -> CInt -> Idxs -> Matrix a
+    extractR :: Matrix a -> CInt -> Idxs -> CInt -> Idxs -> Matrix a
 
 instance Element Float where
     transdata  = transdataAux ctransF
     constantD  = constantAux cconstantF
-    extractR   = extractAux c_extractRF
+    extractR   = extractAux c_extractF
 
 instance Element Double where
     transdata  = transdataAux ctransR
     constantD  = constantAux cconstantR
-    extractR   = extractAux c_extractRD
+    extractR   = extractAux c_extractD
 
 instance Element (Complex Float) where
     transdata  = transdataAux ctransQ
     constantD  = constantAux cconstantQ
-    extractR   = extractAux c_extractRQ
+    extractR   = extractAux c_extractQ
 
 instance Element (Complex Double) where
     transdata  = transdataAux ctransC
     constantD  = constantAux cconstantC
-    extractR   = extractAux c_extractRC
+    extractR   = extractAux c_extractC
     
 instance Element (CInt) where
     transdata  = transdataAux ctransI
     constantD  = constantAux cconstantI
-    extractR   = extractAux c_extractRI
+    extractR   = extractAux c_extractI
 
 
 -------------------------------------------------------------------
@@ -443,26 +443,26 @@ isT Matrix{order = RowMajor} = 0
 tt x@Matrix{order = ColumnMajor} = trans x
 tt x@Matrix{order = RowMajor} = x
 
---extractAux :: Matrix Double -> Idxs -> Matrix Double
-extractAux f m mode v = unsafePerformIO $ do
-    let nr | mode == 0 = fromIntegral $ max 0 (v@>1 - v@>0 + 1)
-           | otherwise = dim v
-    r <- createMatrix RowMajor nr (cols m)
-    app3 (f mode (isT m)) vec v mat (tt m) mat r "extractAux"
+
+extractAux f m moder vr modec vc = unsafePerformIO $ do
+    let nr = if moder == 0 then fromIntegral $ vr@>1 - vr@>0 + 1 else dim vr
+        nc = if modec == 0 then fromIntegral $ vc@>1 - vc@>0 + 1 else dim vc
+    r <- createMatrix RowMajor nr nc
+    app4 (f moder modec (isT m)) vec vr vec vc mat (tt m) mat r "extractAux"
     return r
 
-foreign import ccall unsafe "extractRD" c_extractRD
-    :: CInt -> CInt -> CIdxs (CM Double (CM Double (IO CInt)))
+foreign import ccall unsafe "extractD" c_extractD
+    :: CInt -> CInt -> CInt -> CIdxs (CIdxs (CM Double (CM Double (IO CInt))))
 
-foreign import ccall unsafe "extractRF" c_extractRF
-    :: CInt -> CInt -> CIdxs (CM Float (CM Float (IO CInt)))
+foreign import ccall unsafe "extractF" c_extractF
+    :: CInt -> CInt -> CInt -> CIdxs (CIdxs (CM Float (CM Float (IO CInt))))
 
-foreign import ccall unsafe "extractRC" c_extractRC
-    :: CInt -> CInt -> CIdxs (CM (Complex Double) (CM (Complex Double) (IO CInt)))
+foreign import ccall unsafe "extractC" c_extractC
+    :: CInt -> CInt -> CInt -> CIdxs (CIdxs (CM (Complex Double) (CM (Complex Double) (IO CInt))))
 
-foreign import ccall unsafe "extractRQ" c_extractRQ
-    :: CInt -> CInt -> CIdxs (CM (Complex Float) (CM (Complex Float) (IO CInt)))
+foreign import ccall unsafe "extractQ" c_extractQ
+    :: CInt -> CInt -> CInt -> CIdxs (CIdxs (CM (Complex Float) (CM (Complex Float) (IO CInt))))
 
-foreign import ccall unsafe "extractRI" c_extractRI
-    :: CInt -> CInt -> CIdxs (CM CInt (CM CInt (IO CInt)))
+foreign import ccall unsafe "extractI" c_extractI
+    :: CInt -> CInt -> CInt -> CIdxs (CIdxs (CM CInt (CM CInt (IO CInt))))
 
