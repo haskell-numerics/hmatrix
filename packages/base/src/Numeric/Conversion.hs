@@ -45,9 +45,7 @@ instance Precision (Complex Float) (Complex Double) where
     float2DoubleG = asComplex . float2DoubleV . asReal
 
 -- | Supported real types
-class (Element t, Element (Complex t), RealFloat t
---       , RealOf t ~ t, RealOf (Complex t) ~ t
-       )
+class (Element t, Element (Complex t), RealFloat t)
     => RealElement t
 
 instance RealElement Double

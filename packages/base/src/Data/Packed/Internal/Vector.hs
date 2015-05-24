@@ -19,13 +19,13 @@ module Data.Packed.Internal.Vector (
     foldVector, foldVectorG, foldLoop, foldVectorWithIndex,
     createVector, vec,
     asComplex, asReal, float2DoubleV, double2FloatV,
-    stepF, stepD, condF, condD,
+    stepF, stepD, stepI, condF, condD, condI,
     conjugateQ, conjugateC,
     cloneVector,
     unsafeToForeignPtr,
     unsafeFromForeignPtr,
     unsafeWith,
-    Idxs
+    CInt,Idxs
 ) where
 
 import Data.Packed.Internal.Common
@@ -249,37 +249,45 @@ foreign import ccall unsafe "double2float" c_double2float:: TVF
 
 ---------------------------------------------------------------
 
-stepF :: Vector Float -> Vector Float
-stepF v = unsafePerformIO $ do
+step f v = unsafePerformIO $ do
     r <- createVector (dim v)
-    app2 c_stepF vec v vec r "stepF"
+    app2 f vec v vec r "step"
     return r
 
 stepD :: Vector Double -> Vector Double
-stepD v = unsafePerformIO $ do
-    r <- createVector (dim v)
-    app2 c_stepD vec v vec r "stepD"
-    return r
+stepD = step c_stepD
+
+stepF :: Vector Float -> Vector Float
+stepF = step c_stepF
+
+stepI :: Vector CInt -> Vector CInt
+stepI = step c_stepI
 
 foreign import ccall unsafe "stepF" c_stepF :: TFF
 foreign import ccall unsafe "stepD" c_stepD :: TVV
+foreign import ccall unsafe "stepI" c_stepI :: CV CInt (CV CInt (IO CInt))
 
 ---------------------------------------------------------------
 
 condF :: Vector Float -> Vector Float -> Vector Float -> Vector Float -> Vector Float -> Vector Float
-condF x y l e g = unsafePerformIO $ do
-    r <- createVector (dim x)
-    app6 c_condF vec x vec y vec l vec e vec g vec r "condF"
-    return r
+condF = condg c_condF
 
 condD :: Vector Double -> Vector Double -> Vector Double -> Vector Double -> Vector Double -> Vector Double
-condD x y l e g = unsafePerformIO $ do
+condD = condg c_condD
+
+condI :: Vector CInt -> Vector CInt -> Vector CInt -> Vector CInt -> Vector CInt -> Vector CInt
+condI = condg c_condI
+
+
+condg f x y l e g = unsafePerformIO $ do
     r <- createVector (dim x)
-    app6 c_condD vec x vec y vec l vec e vec g vec r "condD"
+    app6 f vec x vec y vec l vec e vec g vec r "cond"
     return r
+
 
 foreign import ccall unsafe "condF" c_condF :: CInt -> PF -> CInt -> PF -> CInt -> PF -> TFFF
 foreign import ccall unsafe "condD" c_condD :: CInt -> PD -> CInt -> PD -> CInt -> PD -> TVVV
+foreign import ccall unsafe "condI" c_condI :: CV CInt (CV CInt (CV CInt (CV CInt (CV CInt (CV CInt (IO CInt))))))
 
 --------------------------------------------------------------------------------
 

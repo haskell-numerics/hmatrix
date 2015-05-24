@@ -1535,24 +1535,24 @@ int conjugateC(KCVEC(x),CVEC(t)) {
 
 //////////////////// step /////////////////////////
 
-int stepF(FVEC(x),FVEC(y)) {
-    DEBUGMSG("stepF")
-    int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k]>0;
-    }
+#define STEP_IMP         \
+    int k;               \
+    for(k=0;k<xn;k++) {  \
+        yp[k]=xp[k]>0;   \
+    }                    \
     OK
+
+int stepF(KFVEC(x),FVEC(y)) {
+    STEP_IMP
 }
 
-int stepD(DVEC(x),DVEC(y)) {
-    DEBUGMSG("stepD")
-    int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k]>0;
-    }
-    OK
+int stepD(KDVEC(x),DVEC(y)) {
+    STEP_IMP
 }
 
+int stepI(KIVEC(x),IVEC(y)) {
+    STEP_IMP
+}
 
 //////////////////// cond /////////////////////////
 
@@ -1576,25 +1576,24 @@ int compareD(KDVEC(x),KDVEC(y),IVEC(r)) {
     OK
 }
 
+#define COND_IMP                                                            \
+    REQUIRES(xn==yn && xn==ltn && xn==eqn && xn==gtn && xn==rn ,BAD_SIZE);  \
+    int k;                                                                  \
+    for(k=0;k<xn;k++) {                                                     \
+        rp[k] = xp[k]<yp[k]?ltp[k]:(xp[k]>yp[k]?gtp[k]:eqp[k]);             \
+    }                                                                       \
+    OK
 
 int condF(FVEC(x),FVEC(y),FVEC(lt),FVEC(eq),FVEC(gt),FVEC(r)) {
-    REQUIRES(xn==yn && xn==ltn && xn==eqn && xn==gtn && xn==rn ,BAD_SIZE);
-    DEBUGMSG("condF")
-    int k;
-    for(k=0;k<xn;k++) {
-        rp[k] = xp[k]<yp[k]?ltp[k]:(xp[k]>yp[k]?gtp[k]:eqp[k]);
-    }
-    OK
+    COND_IMP
 }
 
 int condD(DVEC(x),DVEC(y),DVEC(lt),DVEC(eq),DVEC(gt),DVEC(r)) {
-    REQUIRES(xn==yn && xn==ltn && xn==eqn && xn==gtn && xn==rn ,BAD_SIZE);
-    DEBUGMSG("condD")
-    int k;
-    for(k=0;k<xn;k++) {
-        rp[k] = xp[k]<yp[k]?ltp[k]:(xp[k]>yp[k]?gtp[k]:eqp[k]);
-    }
-    OK
+    COND_IMP
+}
+
+int condI(KIVEC(x),KIVEC(y),KIVEC(lt),KIVEC(eq),KIVEC(gt),IVEC(r)) {
+    COND_IMP
 }
 
 

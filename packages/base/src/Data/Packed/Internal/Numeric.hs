@@ -49,10 +49,8 @@ import Numeric.Conversion
 import Data.Packed.Development
 import Numeric.Vectorized
 import Data.Complex
-
 import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ,multiplyI)
 import Data.Packed.Internal
-import Foreign.C.Types(CInt)
 import Text.Printf(printf)
 
 -------------------------------------------------------------------
@@ -153,8 +151,8 @@ class Element e => Container c e
     maxElement'  :: c e -> e
     sumElements' :: c e -> e
     prodElements' :: c e -> e
-    step' :: RealElement e => c e -> c e
-    cond' :: RealElement e
+    step' :: Ord e => c e -> c e
+    cond' :: Ord e
          => c e -- ^ a
          -> c e -- ^ b
          -> c e -- ^ l
@@ -205,11 +203,11 @@ instance Container Vector CInt
 --    maxElement'   = emptyErrorV "maxElement" (toScalarF Max)
 --    sumElements'  = sumF
 --    prodElements' = prodF
---    step' = stepF
+    step' = stepI
     find' = findV
     assoc' = assocV
     accum' = accumV
---    cond' = condV condI
+    cond' = condV condI
     scaleRecip = undefined -- cannot match
     divide = undefined
     arctan2' = undefined
@@ -443,7 +441,7 @@ prodElements = prodElements'
 -- 5 |> [0.0,0.0,0.0,1.0,1.0]
 --
 step
-  :: (RealElement e, Container c e)
+  :: (Ord e, Container c e)
     => c e
     -> c e
 step = step'
@@ -460,7 +458,7 @@ step = step'
 -- ,   0.0,   0.0, 100.0, 12.0 ]
 --
 cond
-    :: (RealElement e, Container c e)
+    :: (Ord e, Container c e)
     => c e -- ^ a
     -> c e -- ^ b
     -> c e -- ^ l
