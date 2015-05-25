@@ -28,7 +28,7 @@ module Numeric.LinearAlgebra.Data(
     Indexable(..),
     
     -- * Construction
-    scalar, Konst(..), Build(..), assoc, accum, linspace, range,-- ones, zeros,
+    scalar, Konst(..), Build(..), assoc, accum, linspace, range, idxs, -- ones, zeros,
 
     -- * Diagonal
     ident, diag, diagl, diagRect, takeDiag,
@@ -82,6 +82,6 @@ import Numeric.LinearAlgebra.Util hiding ((&),(#))
 import Data.Complex
 import Numeric.Sparse
 import Data.Packed.Internal.Vector(Idxs)
-import Data.Packed.Internal.Numeric(CInt,Extractor(..),(??),fromInt,range)
+import Data.Packed.Internal.Numeric(CInt,Extractor(..),(??),fromInt,range,idxs)
 
 

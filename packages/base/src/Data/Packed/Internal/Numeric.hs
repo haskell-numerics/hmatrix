@@ -39,7 +39,7 @@ module Data.Packed.Internal.Numeric (
     roundVector, fromInt,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
-    CInt, Extractor(..), (??), range,
+    CInt, Extractor(..), (??), range, idxs,
     module Data.Complex
 ) where
 
@@ -70,12 +70,13 @@ type instance ArgOf Matrix a = a -> a -> a
 data Extractor
     = All
     | Range Int Int
-    | At [Int]
-    | AtCyc [Int]
+    | At Idxs
+    | AtCyc Idxs
     | Take Int
     | Drop Int
    deriving Show
 
+idxs :: [Int] -> Idxs
 idxs js = fromList (map fromIntegral js) :: Idxs
 
 infixl 9 ??
@@ -86,8 +87,9 @@ extractError m e = error $ printf "can't extract %s from matrix %dx%d" (show e) 
 
 m ?? e@(Range a b,_) | a < 0 || b >= rows m = extractError m e
 m ?? e@(_,Range a b) | a < 0 || b >= cols m = extractError m e
-m ?? e@(At ps,_) | minimum ps < 0 || maximum ps >= rows m = extractError m e
-m ?? e@(_,At ps) | minimum ps < 0 || maximum ps >= cols m = extractError m e
+
+m ?? e@(At vs,_) | minElement vs < 0 || maxElement vs >= fromIntegral (rows m) = extractError m e
+m ?? e@(_,At vs) | minElement vs < 0 || maxElement vs >= fromIntegral (cols m) = extractError m e
 
 m ?? (All,All) = m
 
@@ -112,9 +114,11 @@ m ?? (er,ec) = extractR m moder rs modec cs
     (moder,rs) = mkExt (rows m) er
     (modec,cs) = mkExt (cols m) ec
     ran a b = (0, idxs [a,b])
-    pos ks  = (1, idxs ks)
-    mkExt _ (At ks)       = pos ks
-    mkExt n (AtCyc ks)    = pos (map (`mod` n) ks)
+    pos ks  = (1, ks)
+    mkExt _ (At  ks)      = pos ks
+    mkExt n (AtCyc ks)
+        | n == 0          = mkExt n (Take 0)
+        | otherwise       = pos (cmod n ks)
     mkExt n All           = ran 0 (n-1)
     mkExt _ (Range mn mx) = ran mn mx
     mkExt n (Take k)
@@ -420,8 +424,8 @@ scale = scale'
 arctan2 :: (Fractional e, Container c e) => c e -> c e -> c e
 arctan2 = arctan2'
 
-cmod :: (Integral e, Container c e) => e -> c e -> c e
-cmod = cmod'
+cmod :: (Integral e, Container c e) => Int -> c e -> c e
+cmod m = cmod' (fromIntegral m)
 
 fromInt :: (Container c e) => c CInt -> c e
 fromInt = fromInt'
