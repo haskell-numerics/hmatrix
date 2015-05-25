@@ -19,7 +19,8 @@ module Numeric.Vectorized (
     FunCodeVV(..), vectorZipR, vectorZipC, vectorZipF, vectorZipQ, vectorZipI,
     vectorScan, saveMatrix,
     Seed, RandDist(..), randomVector,
-    sortVector, roundVector
+    sortVector, roundVector,
+    range
 ) where
 
 import Data.Packed.Internal.Common
@@ -388,4 +389,14 @@ roundVector v = unsafePerformIO $ do
     return r
 
 foreign import ccall unsafe "round_vector" c_round_vector :: TVV
+
+--------------------------------------------------------------------------------
+
+range :: Int -> Idxs
+range n = unsafePerformIO $ do
+    r <- createVector n
+    app1 c_range_vector vec r "range"
+    return r
+
+foreign import ccall unsafe "range_vector" c_range_vector :: CV CInt (IO CInt)
 

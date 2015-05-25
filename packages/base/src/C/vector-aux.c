@@ -1040,3 +1040,11 @@ int div_vector(int m, KIVEC(v), IVEC(r)) {
     OK
 }
 
+int range_vector(IVEC(r)) {
+    int k;
+    for(k=0; k<rn; k++) {
+        rp[k] = k;
+    }
+    OK
+}
+

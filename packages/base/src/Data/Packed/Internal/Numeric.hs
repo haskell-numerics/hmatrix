@@ -39,7 +39,7 @@ module Data.Packed.Internal.Numeric (
     roundVector, fromInt,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
-    CInt, Extractor(..), (??),
+    CInt, Extractor(..), (??), range,
     module Data.Complex
 ) where
 
