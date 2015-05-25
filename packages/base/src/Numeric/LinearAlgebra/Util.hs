@@ -66,6 +66,7 @@ import Control.Monad(when)
 import Text.Printf
 import Data.List.Split(splitOn)
 import Data.List(intercalate)
+import Foreign.C.Types(CInt)
 
 type ℝ = Double
 type ℕ = Int
@@ -270,6 +271,14 @@ instance Normed (Matrix ℂ)
     norm_2 = pnorm PNorm2
     norm_Inf = pnorm Infinity
 
+instance Normed (Vector CInt)
+  where
+    norm_0 = fromIntegral . sumElements . step . abs
+    norm_1 = fromIntegral . norm1
+    norm_2 v = sqrt . fromIntegral $ dot v v
+    norm_Inf = fromIntegral . normInf
+
+
 
 norm_Frob :: (Normed (Vector t), Element t) => Matrix t -> ℝ
 norm_Frob = norm_2 . flatten
@@ -321,6 +330,10 @@ instance Indexable (Vector Double) Double
     (!) = (@>)
 
 instance Indexable (Vector Float) Float
+  where
+    (!) = (@>)
+
+instance Indexable (Vector CInt) CInt
   where
     (!) = (@>)
 
