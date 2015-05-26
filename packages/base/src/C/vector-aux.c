@@ -615,6 +615,15 @@ int mapValF(int code, float* pval, KFVEC(x), FVEC(r)) {
     }
 }
 
+int mod (int a, int b) {
+    int m = a % b;
+    if (b>0) {
+        return m >=0 ? m : m+b;
+    } else {
+        return m <=0 ? m : m+b;
+    }
+}
+
 int mapValI(int code, int* pval, KIVEC(x), IVEC(r)) {
     int k;
     int val = *pval;
@@ -625,8 +634,8 @@ int mapValI(int code, int* pval, KIVEC(x), IVEC(r)) {
         OPV(1,val/xp[k])
         OPV(2,val+xp[k])
         OPV(3,val-xp[k])
-        OPV(6,val%xp[k])
-        OPV(7,xp[k]%val)
+        OPV(6,mod(val,xp[k]))
+        OPV(7,mod(xp[k],val))
         default: ERROR(BAD_CODE);
     }
 }
@@ -997,11 +1006,86 @@ compare_doubles (const void *a, const void *b) {
   return *(double*)a > *(double*)b;
 }
 
-int sort_values(KDVEC(v),DVEC(r)) {
+int sort_valuesD(KDVEC(v),DVEC(r)) {
     memcpy(rp,vp,vn*sizeof(double));
     qsort(rp,rn,sizeof(double),compare_doubles);
     OK
 }
+
+int
+compare_floats (const void *a, const void *b) {
+  return *(float*)a > *(float*)b;
+}
+
+int sort_valuesF(KFVEC(v),FVEC(r)) {
+    memcpy(rp,vp,vn*sizeof(float));
+    qsort(rp,rn,sizeof(float),compare_floats);
+    OK
+}
+
+int
+compare_ints(const void *a, const void *b) {
+  return *(int*)a > *(int*)b;
+}
+
+int sort_valuesI(KIVEC(v),IVEC(r)) {
+    memcpy(rp,vp,vn*sizeof(int));
+    qsort(rp,rn,sizeof(int),compare_ints);
+    OK
+}
+
+////////////////////////////////////////
+
+
+#define SORTIDX_IMP(T,C)                   \
+    T* x = (T*)malloc(sizeof(T)*vn);       \
+    int k;                                 \
+    for (k=0;k<vn;k++) {                   \
+        x[k].pos = k;                      \
+        x[k].val = vp[k];                  \
+    }                                      \
+                                           \
+    qsort(x,vn,sizeof(T),C);               \
+                                           \
+    for (k=0;k<vn;k++) {                   \
+        rp[k] = x[k].pos;                  \
+    }                                      \
+    free(x);                               \
+    OK
+
+
+typedef struct SDI { int pos; double val;} DI;
+
+int compare_doubles_i (const void *a, const void *b) {
+  return ((DI*)a)->val > ((DI*)b)->val;
+}
+
+int sort_indexD(KDVEC(v),IVEC(r)) {
+    SORTIDX_IMP(DI,compare_doubles_i)
+}
+
+
+typedef struct FI { int pos; float  val;} FI;
+
+int compare_floats_i (const void *a, const void *b) {
+  return ((FI*)a)->val > ((FI*)b)->val;
+}
+
+int sort_indexF(KFVEC(v),IVEC(r)) {
+    SORTIDX_IMP(FI,compare_floats_i)
+}
+
+
+typedef struct II { int pos; int    val;} II;
+
+int compare_ints_i (const void *a, const void *b) {
+  return ((II*)a)->val > ((II*)b)->val;
+}
+
+int sort_indexI(KIVEC(v),IVEC(r)) {
+    SORTIDX_IMP(II,compare_ints_i)
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 

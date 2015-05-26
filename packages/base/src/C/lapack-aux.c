@@ -1556,25 +1556,27 @@ int stepI(KIVEC(x),IVEC(y)) {
 
 //////////////////// cond /////////////////////////
 
-int compareF(KFVEC(x),KFVEC(y),IVEC(r)) {
-    REQUIRES(xn==yn && xn==rn ,BAD_SIZE);
-    DEBUGMSG("compareF")
-    int k;
-    for(k=0;k<xn;k++) {
-        rp[k] = xp[k]<yp[k]?-1:(xp[k]>yp[k]?1:0);
-    }
+#define COMPARE_IMP                               \
+    REQUIRES(xn==yn && xn==rn ,BAD_SIZE);         \
+    int k;                                        \
+    for(k=0;k<xn;k++) {                           \
+        rp[k] = xp[k]<yp[k]?-1:(xp[k]>yp[k]?1:0); \
+    }                                             \
     OK
+
+
+int compareF(KFVEC(x),KFVEC(y),IVEC(r)) {
+    COMPARE_IMP
 }
 
 int compareD(KDVEC(x),KDVEC(y),IVEC(r)) {
-    REQUIRES(xn==yn && xn==rn ,BAD_SIZE);
-    DEBUGMSG("compareD")
-    int k;
-    for(k=0;k<xn;k++) {
-        rp[k] = xp[k]<yp[k]?-1:(xp[k]>yp[k]?1:0);
-    }
-    OK
+    COMPARE_IMP
 }
+
+int compareI(KIVEC(x),KIVEC(y),IVEC(r)) {
+    COMPARE_IMP
+}
+
 
 #define COND_IMP                                                            \
     REQUIRES(xn==yn && xn==ltn && xn==eqn && xn==gtn && xn==rn ,BAD_SIZE);  \
@@ -1597,26 +1599,26 @@ int condI(KIVEC(x),KIVEC(y),KIVEC(lt),KIVEC(eq),KIVEC(gt),IVEC(r)) {
 }
 
 
-int chooseF(KIVEC(cond),KFVEC(lt),KFVEC(eq),KFVEC(gt),FVEC(r)) {
-    REQUIRES(condn==ltn && ltn==eqn && ltn==gtn && ltn==rn ,BAD_SIZE);
-    DEBUGMSG("chooseF")
-    int k;
-    for(k=0;k<condn;k++) {
-        rp[k] = condp[k]<0?ltp[k]:(condp[k]>0?gtp[k]:eqp[k]);
-    }
+#define CHOOSE_IMP                                                      \
+    REQUIRES(condn==ltn && ltn==eqn && ltn==gtn && ltn==rn ,BAD_SIZE);  \
+    int k;                                                              \
+    for(k=0;k<condn;k++) {                                              \
+        rp[k] = condp[k]<0?ltp[k]:(condp[k]>0?gtp[k]:eqp[k]);           \
+    }                                                                   \
     OK
-}
 
+int chooseF(KIVEC(cond),KFVEC(lt),KFVEC(eq),KFVEC(gt),FVEC(r)) {
+    CHOOSE_IMP
+}
 
 int chooseD(KIVEC(cond),KDVEC(lt),KDVEC(eq),KDVEC(gt),DVEC(r)) {
-    REQUIRES(condn==ltn && ltn==eqn && ltn==gtn && ltn==rn ,BAD_SIZE);
-    DEBUGMSG("chooseD")
-    int k;
-    for(k=0;k<condn;k++) {
-        rp[k] = condp[k]<0?ltp[k]:(condp[k]>0?gtp[k]:eqp[k]);
-    }
-    OK
+    CHOOSE_IMP
 }
+
+int chooseI(KIVEC(cond),KIVEC(lt),KIVEC(eq),KIVEC(gt),IVEC(r)) {
+    CHOOSE_IMP
+}
+
 
 //////////////////////// extract /////////////////////////////////
 
