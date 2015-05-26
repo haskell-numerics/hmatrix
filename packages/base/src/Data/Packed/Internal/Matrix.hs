@@ -265,33 +265,44 @@ class (Storable a) => Element a where
     transdata = transdataP -- transdata'
     constantD  :: a -> Int -> Vector a
     constantD = constantP -- constant'
-    extractR :: Matrix a -> CInt -> Idxs -> CInt -> Idxs -> Matrix a
+    extractR :: Matrix a -> CInt -> Vector CInt -> CInt -> Vector CInt -> Matrix a
+    sortI    :: Ord a => Vector a -> Vector CInt
+    sortV    :: Ord a => Vector a -> Vector a
 
 instance Element Float where
     transdata  = transdataAux ctransF
     constantD  = constantAux cconstantF
     extractR   = extractAux c_extractF
+    sortI      = sortIdxF
+    sortV      = sortValF
 
 instance Element Double where
     transdata  = transdataAux ctransR
     constantD  = constantAux cconstantR
     extractR   = extractAux c_extractD
+    sortI      = sortIdxD
+    sortV      = sortValD
 
 instance Element (Complex Float) where
     transdata  = transdataAux ctransQ
     constantD  = constantAux cconstantQ
     extractR   = extractAux c_extractQ
+    sortI      = undefined
+    sortV      = undefined
 
 instance Element (Complex Double) where
     transdata  = transdataAux ctransC
     constantD  = constantAux cconstantC
     extractR   = extractAux c_extractC
+    sortI      = undefined
+    sortV      = undefined
     
 instance Element (CInt) where
     transdata  = transdataAux ctransI
     constantD  = constantAux cconstantI
     extractR   = extractAux c_extractI
-
+    sortI      = sortIdxI
+    sortV      = sortValI
 
 -------------------------------------------------------------------
 
@@ -465,4 +476,29 @@ foreign import ccall unsafe "extractQ" c_extractQ
 
 foreign import ccall unsafe "extractI" c_extractI
     :: CInt -> CInt -> CInt -> CIdxs (CIdxs (CM CInt (CM CInt (IO CInt))))
+
+--------------------------------------------------------------------------------
+
+sortG f v = unsafePerformIO $ do
+    r <- createVector (dim v)
+    app2 f vec v vec r "sortG"
+    return r
+
+sortIdxD = sortG c_sort_indexD
+sortIdxF = sortG c_sort_indexF
+sortIdxI = sortG c_sort_indexI
+
+sortValD = sortG c_sort_valD
+sortValF = sortG c_sort_valF
+sortValI = sortG c_sort_valI
+
+foreign import ccall unsafe "sort_indexD" c_sort_indexD :: CV Double (CV CInt (IO CInt))
+foreign import ccall unsafe "sort_indexF" c_sort_indexF :: CV Float  (CV CInt (IO CInt))
+foreign import ccall unsafe "sort_indexI" c_sort_indexI :: CV CInt   (CV CInt (IO CInt))
+
+foreign import ccall unsafe "sort_valuesD" c_sort_valD :: CV Double (CV Double (IO CInt))
+foreign import ccall unsafe "sort_valuesF" c_sort_valF :: CV Float  (CV Float (IO CInt))
+foreign import ccall unsafe "sort_valuesI" c_sort_valI :: CV CInt   (CV CInt (IO CInt))
+
+--------------------------------------------------------------------------------
 

@@ -52,7 +52,7 @@ module Data.Packed.Numeric (
     uniformSample,
     meanCov,
     -- * sorting
-    sortVector,
+    sortVector, sortIndex,
     -- * Element conversion
     Convert(..),
     Complexable(),
@@ -299,6 +299,14 @@ instance Numeric Double
 instance Numeric (Complex Double)
 instance Numeric Float
 instance Numeric (Complex Float)
-instance Numeric CInt
+instance Numeric I
+
+--------------------------------------------------------------------------------
+
+sortVector :: (Ord t, Element t) => Vector t -> Vector t
+sortVector = sortV
+
+sortIndex :: (Ord t, Element t) => Vector t -> Vector I
+sortIndex = sortI
 
 
