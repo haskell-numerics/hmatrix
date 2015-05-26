@@ -31,7 +31,7 @@ module Data.Packed.Internal.Numeric (
     mXm,mXv,vXm,
     outer, kronecker,
     -- * sorting
-    sortVector,
+    sortV, sortI,
     -- * Element conversion
     Convert(..),
     Complexable(),
@@ -39,7 +39,7 @@ module Data.Packed.Internal.Numeric (
     roundVector, fromInt,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
-    CInt, Extractor(..), (??), range, idxs,
+    I, Extractor(..), (??), range, idxs,
     module Data.Complex
 ) where
 
@@ -70,15 +70,19 @@ type instance ArgOf Matrix a = a -> a -> a
 data Extractor
     = All
     | Range Int Int
-    | At Idxs
-    | AtCyc Idxs
+    | Pos (Vector I)
+    | PosCyc (Vector I)
     | Take Int
+    | TakeLast Int
     | Drop Int
+    | DropLast Int
    deriving Show
 
-idxs :: [Int] -> Idxs
-idxs js = fromList (map fromIntegral js) :: Idxs
+-- | Create a vector of indexes, useful for matrix extraction using '??'
+idxs :: [Int] -> Vector I
+idxs js = fromList (map fromIntegral js) :: Vector I
 
+--
 infixl 9 ??
 (??)  :: Element t => Matrix t -> (Extractor,Extractor) -> Matrix t
 
@@ -88,26 +92,35 @@ extractError m e = error $ printf "can't extract %s from matrix %dx%d" (show e) 
 m ?? e@(Range a b,_) | a < 0 || b >= rows m = extractError m e
 m ?? e@(_,Range a b) | a < 0 || b >= cols m = extractError m e
 
-m ?? e@(At vs,_) | minElement vs < 0 || maxElement vs >= fromIntegral (rows m) = extractError m e
-m ?? e@(_,At vs) | minElement vs < 0 || maxElement vs >= fromIntegral (cols m) = extractError m e
+m ?? e@(Pos vs,_) | minElement vs < 0 || maxElement vs >= fromIntegral (rows m) = extractError m e
+m ?? e@(_,Pos vs) | minElement vs < 0 || maxElement vs >= fromIntegral (cols m) = extractError m e
 
 m ?? (All,All) = m
 
 m ?? (Range a b,e) | a > b = m ?? (Take 0,e)
 m ?? (e,Range a b) | a > b = m ?? (e,Take 0)
 
-m ?? (Take 0,e) = (0><cols m) [] ?? (All,e)
-m ?? (e,Take 0) = (rows m><0) [] ?? (e,All)
+m ?? (Take n,e)
+    | n <= 0      = (0><cols m) [] ?? (All,e)
+    | n >= rows m =              m ?? (All,e)
 
-m ?? (Take n,e) | abs n > rows m = m ?? (All,e)
-m ?? (e,Take n) | abs n > cols m = m ?? (e,All)
+m ?? (e,Take n)
+    | n <= 0      = (rows m><0) [] ?? (e,All)
+    | n >= cols m =              m ?? (e,All)
 
-m ?? (Drop 0,e) = m ?? (All,e)
-m ?? (e,Drop 0) = m ?? (e,All)
+m ?? (Drop n,e)
+    | n <= 0      =              m ?? (All,e)
+    | n >= rows m = (0><cols m) [] ?? (All,e)
 
-m ?? (Drop n,e) | abs n > rows m = m ?? (Take 0,e)
-m ?? (e,Drop n) | abs n > cols m = m ?? (e,Take 0)
+m ?? (e,Drop n)
+    | n <= 0      =              m ?? (e,All)
+    | n >= cols m = (rows m><0) [] ?? (e,All)
 
+m ?? (TakeLast n, e) = m ?? (Drop (rows m - n), e)
+m ?? (e, TakeLast n) = m ?? (e, Drop (cols m - n))
+
+m ?? (DropLast n, e) = m ?? (Take (rows m - n), e)
+m ?? (e, DropLast n) = m ?? (e, Take (cols m - n))
 
 m ?? (er,ec) = extractR m moder rs modec cs
   where
@@ -115,19 +128,14 @@ m ?? (er,ec) = extractR m moder rs modec cs
     (modec,cs) = mkExt (cols m) ec
     ran a b = (0, idxs [a,b])
     pos ks  = (1, ks)
-    mkExt _ (At  ks)      = pos ks
-    mkExt n (AtCyc ks)
+    mkExt _ (Pos  ks)     = pos ks
+    mkExt n (PosCyc ks)
         | n == 0          = mkExt n (Take 0)
         | otherwise       = pos (cmod n ks)
-    mkExt n All           = ran 0 (n-1)
     mkExt _ (Range mn mx) = ran mn mx
-    mkExt n (Take k)
-        | k >= 0          = ran 0 (k-1)
-        | otherwise       = mkExt n (Drop (n+k))
-    mkExt n (Drop k)
-        | k >= 0          = ran k (n-1)
-        | otherwise       = mkExt n (Take (n+k))
-
+    mkExt _ (Take k)      = ran 0 (k-1)
+    mkExt n (Drop k)      = ran k (n-1)
+    mkExt n _             = ran 0 (n-1) -- All
 
 -------------------------------------------------------------------
 
@@ -183,12 +191,12 @@ class Element e => Container c e
     -- element by element inverse tangent
     arctan2'     :: Fractional e => c e -> c e -> c e
     cmod'        :: Integral   e => e -> c e -> c e
-    fromInt'     :: c CInt -> c e
+    fromInt'     :: c I -> c e
 
 
 --------------------------------------------------------------------------
 
-instance Container Vector CInt
+instance Container Vector I
   where
     conj' = id
     size' = dim
@@ -424,10 +432,20 @@ scale = scale'
 arctan2 :: (Fractional e, Container c e) => c e -> c e -> c e
 arctan2 = arctan2'
 
+-- | 'mod' for integer arrays
+--
+-- >>> cmod 3 (range 5)
+-- fromList [0,1,2,0,1]
 cmod :: (Integral e, Container c e) => Int -> c e -> c e
 cmod m = cmod' (fromIntegral m)
 
-fromInt :: (Container c e) => c CInt -> c e
+-- |
+-- >>>fromInt ((2><2) [0..3]) :: Matrix (Complex Double)
+-- (2><2)
+-- [ 0.0 :+ 0.0, 1.0 :+ 0.0
+-- , 2.0 :+ 0.0, 3.0 :+ 0.0 ]
+--
+fromInt :: (Container c e) => c I -> c e
 fromInt = fromInt'
 
 
@@ -435,7 +453,14 @@ fromInt = fromInt'
 cmap :: (Element b, Container c e) => (e -> b) -> c e -> c b
 cmap = cmap'
 
--- | indexing function
+-- | generic indexing function
+--
+-- >>> vector [1,2,3] `atIndex` 1
+-- 2.0
+--
+-- >>> matrix 3 [0..8] `atIndex` (2,0)
+-- 6.0
+--
 atIndex :: Container c e => c e -> IndexOf c -> e
 atIndex = atIndex'
 
@@ -596,7 +621,7 @@ instance Product (Complex Double) where
     normInf    = emptyVal (maxElement . fst . fromComplex . vectorMapC Abs)
     multiply   = emptyMul multiplyC
 
-instance Product CInt where
+instance Product I where
     norm2      = undefined
     absSum     = emptyVal (sumElements . vectorMapI Abs)
     norm1      = absSum
@@ -738,7 +763,7 @@ type instance RealOf (Complex Double) = Double
 type instance RealOf Float = Float
 type instance RealOf (Complex Float) = Float
 
-type instance RealOf CInt = CInt
+type instance RealOf I = I
 
 type family ComplexOf x
 
@@ -831,12 +856,15 @@ condV f a b l e t = f a' b' l' e' t'
 
 class Transposable m mt | m -> mt, mt -> m
   where
-    -- | (conjugate) transpose
-    tr :: m -> mt
+    -- | conjugate transpose
+    tr  :: m -> mt
+    -- | transpose
+    tr' :: m -> mt
 
 instance (Container Vector t) => Transposable (Matrix t) (Matrix t)
   where
-    tr = ctrans
+    tr  = ctrans
+    tr' = trans
 
 class Linear t v
   where
