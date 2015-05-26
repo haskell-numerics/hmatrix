@@ -16,7 +16,6 @@ module Data.Packed.Foreign
 import Data.Packed.Internal
 import qualified Data.Vector.Storable as S
 import Foreign (Ptr, ForeignPtr, Storable)
-import Foreign.C.Types (CInt)
 import GHC.Base (IO(..), realWorld#)
 
 {-# INLINE unsafeInlinePerformIO #-}

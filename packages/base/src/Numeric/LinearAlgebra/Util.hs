@@ -66,7 +66,7 @@ import Control.Monad(when)
 import Text.Printf
 import Data.List.Split(splitOn)
 import Data.List(intercalate)
-import Foreign.C.Types(CInt)
+import Data.Packed.Internal.Numeric(I)
 
 type ℝ = Double
 type ℕ = Int
@@ -271,7 +271,7 @@ instance Normed (Matrix ℂ)
     norm_2 = pnorm PNorm2
     norm_Inf = pnorm Infinity
 
-instance Normed (Vector CInt)
+instance Normed (Vector I)
   where
     norm_0 = fromIntegral . sumElements . step . abs
     norm_1 = fromIntegral . norm1
@@ -299,7 +299,7 @@ mt = trans . inv
 --------------------------------------------------------------------------------
 {- |
 
->>> size $ fromList[1..10::Double]
+>>> size $ vector [1..10]
 10
 >>> size $ (2><5)[1..10::Double]
 (2,5)
@@ -308,15 +308,15 @@ mt = trans . inv
 size :: Container c t => c t -> IndexOf c
 size = size'
 
-{- |
+{- | Alternative indexing function.
 
->>> vect [1..10] ! 3
+>>> vector [1..10] ! 3
 4.0
 
->>> mat 5 [1..15] ! 1
+>>> matrix 5 [1..15] ! 1
 fromList [6.0,7.0,8.0,9.0,10.0]
 
->>> mat 5 [1..15] ! 1 ! 3
+>>> matrix 5 [1..15] ! 1 ! 3
 9.0
 
 -}
@@ -333,7 +333,7 @@ instance Indexable (Vector Float) Float
   where
     (!) = (@>)
 
-instance Indexable (Vector CInt) CInt
+instance Indexable (Vector I) I
   where
     (!) = (@>)
 

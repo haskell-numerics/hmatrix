@@ -32,7 +32,7 @@ adaptScalar f1 f2 f3 x y
 
 ------------------------------------------------------------------
 
-instance Num (Vector CInt) where
+instance Num (Vector I) where
     (+) = adaptScalar addConstant add (flip addConstant)
     negate = scale (-1)
     (*) = adaptScalar scale mul (flip scale)

@@ -10,8 +10,11 @@ Stability   :  provisional
 --------------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.HMatrix (
-    module Numeric.LinearAlgebra
+    module Numeric.LinearAlgebra,
+     (¦),(——)
 ) where
 
 import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra.Util
 
+   

@@ -195,10 +195,12 @@ toDense asm = assoc (r+1,c+1) 0 asm
 instance Transposable CSR CSC
   where
     tr (CSR vs cs rs n m) = CSC vs cs rs m n
+    tr' = tr
 
 instance Transposable CSC CSR
   where
     tr (CSC vs rs cs n m) = CSR vs rs cs m n
+    tr' = tr
 
 instance Transposable GMatrix GMatrix
   where
@@ -206,5 +208,5 @@ instance Transposable GMatrix GMatrix
     tr (SparseC s n m) = SparseR (tr s) m n
     tr (Diag v n m) = Diag v m n
     tr (Dense a n m) = Dense (tr a) m n
-
+    tr' = tr
 

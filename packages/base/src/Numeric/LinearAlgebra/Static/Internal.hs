@@ -244,11 +244,14 @@ instance (KnownNat n, KnownNat m) => Transposable (L m n) (L n m)
   where
     tr a@(isDiag -> Just _) = mkL (extract a)
     tr (extract -> a) = mkL (tr a)
+    tr' = tr
 
 instance (KnownNat n, KnownNat m) => Transposable (M m n) (M n m)
   where
     tr a@(isDiagC -> Just _) = mkM (extract a)
     tr (extract -> a) = mkM (tr a)
+    tr' a@(isDiagC -> Just _) = mkM (extract a)
+    tr' (extract -> a) = mkM (tr' a)
 
 --------------------------------------------------------------------------------
 

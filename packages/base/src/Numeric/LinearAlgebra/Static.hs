@@ -34,7 +34,7 @@ module Numeric.LinearAlgebra.Static(
     linspace, range, dim,
     -- * Matrix
     L, Sq, build,
-    row, col, (¦),(——), splitRows, splitCols,
+    row, col, (|||),(===), splitRows, splitCols,
     unrow, uncol,
     tr,
     eye,
@@ -61,7 +61,7 @@ module Numeric.LinearAlgebra.Static(
 
 import GHC.TypeLits
 import Numeric.LinearAlgebra hiding (
-    (<>),(#>),(<·>),Konst(..),diag, disp,(¦),(——),
+    (<>),(#>),(<·>),Konst(..),diag, disp,(===),(|||),
     row,col,vector,matrix,linspace,toRows,toColumns,
     (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',
     eigenvalues,eigenvaluesSH,eigenvaluesSH',build,
@@ -168,14 +168,14 @@ unrow = mkR . head . LA.toRows . ud2
 uncol v = unrow . tr $ v
 
 
-infixl 2 ——
-(——) :: (KnownNat r1, KnownNat r2, KnownNat c) => L r1 c -> L r2 c -> L (r1+r2) c
-a —— b = mkL (extract a LA.—— extract b)
+infixl 2 ===
+(===) :: (KnownNat r1, KnownNat r2, KnownNat c) => L r1 c -> L r2 c -> L (r1+r2) c
+a === b = mkL (extract a LA.=== extract b)
 
 
-infixl 3 ¦
--- (¦) :: (KnownNat r, KnownNat c1, KnownNat c2) => L r c1 -> L r c2 -> L r (c1+c2)
-a ¦ b = tr (tr a —— tr b)
+infixl 3 |||
+-- (|||) :: (KnownNat r, KnownNat c1, KnownNat c2) => L r c1 -> L r c2 -> L r (c1+c2)
+a ||| b = tr (tr a === tr b)
 
 
 type Sq n  = L n n

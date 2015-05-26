@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Data
-Copyright   :  (c) Alberto Ruiz 2014
+Copyright   :  (c) Alberto Ruiz 2015
 License     :  BSD3
 Maintainer  :  Alberto Ruiz
 Stability   :  provisional
@@ -15,62 +15,76 @@ module Numeric.LinearAlgebra.Data(
 
     -- * Vector
     -- | 1D arrays are storable vectors from the vector package.
-    
+
     vector, (|>),
 
     -- * Matrix
-    
-    matrix, (><), tr,
-    
+
+    matrix, (><), tr, tr',
+
+    -- * Dimensions
+
+    size, rows, cols,
+
+    -- * conversion from\/to lists
+    fromList, toList,
+    fromLists, toLists,
+    row, col,
+
+    -- * conversions vector\/matrix
+
+    flatten, reshape, asRow, asColumn,
+    fromRows, toRows, fromColumns, toColumns,
+
     -- * Indexing
-    
-    size,
+
+    atIndex,
     Indexable(..),
-    
+
     -- * Construction
     scalar, Konst(..), Build(..), assoc, accum, linspace, range, idxs, -- ones, zeros,
 
     -- * Diagonal
     ident, diag, diagl, diagRect, takeDiag,
 
-    -- * Data manipulation
-    fromList, toList, subVector, takesV, vjoin,
-    flatten, reshape, asRow, asColumn, row, col,
-    fromRows, toRows, fromColumns, toColumns, fromLists, toLists, fromArray2D,
+    -- * Vector extraction
+    subVector, takesV, vjoin,
+
+    -- * Matrix extraction
     Extractor(..), (??),
     takeRows, dropRows, takeColumns, dropColumns, subMatrix, (?), (¿), fliprl, flipud,
-  
+
+
     -- * Block matrix
     fromBlocks, (|||), (===), diagBlock, repmat, toBlocks, toBlocksEvery,
 
     -- * Mapping functions
     conj, cmap, cmod, step, cond,
-    
+
     -- * Find elements
-    find, maxIndex, minIndex, maxElement, minElement, atIndex,
-    sortVector,
+    find, maxIndex, minIndex, maxElement, minElement,
+    sortVector, sortIndex,
 
     -- * Sparse
     AssocMatrix, toDense,
     mkSparse, mkDiagR, mkDense,
-    
+
     -- * IO
     disp,
     loadMatrix, loadMatrix', saveMatrix,
     latexFormat,
     dispf, disps, dispcf, format,
     dispDots, dispBlanks, dispShort,
--- * Conversion
+-- * Element conversion
     Convert(..),
     roundVector,
     fromInt,
     -- * Misc
     arctan2,
-    rows, cols,
     separable,
-    (¦),(——),
+    fromArray2D,
     module Data.Complex,
-    CInt, Idxs,
+    I,
     Vector, Matrix, GMatrix, nRows, nCols
 
 ) where
@@ -81,7 +95,6 @@ import Data.Packed.Numeric
 import Numeric.LinearAlgebra.Util hiding ((&),(#))
 import Data.Complex
 import Numeric.Sparse
-import Data.Packed.Internal.Vector(Idxs)
-import Data.Packed.Internal.Numeric(CInt,Extractor(..),(??),fromInt,range,idxs)
+import Data.Packed.Internal.Numeric(I,Extractor(..),(??),fromInt,range,idxs)
 
 

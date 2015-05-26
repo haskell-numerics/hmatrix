@@ -25,7 +25,7 @@ module Data.Packed.Internal.Vector (
     unsafeToForeignPtr,
     unsafeFromForeignPtr,
     unsafeWith,
-    CInt,Idxs
+    CInt, I
 ) where
 
 import Data.Packed.Internal.Common
@@ -56,8 +56,7 @@ import Data.Vector.Storable(Vector,
                             unsafeFromForeignPtr,
                             unsafeWith)
 
-
-type Idxs = Vector CInt
+type I = CInt
 
 -- | Number of elements
 dim :: (Storable t) => Vector t -> Int
