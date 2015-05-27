@@ -36,7 +36,7 @@ module Data.Packed.Internal.Numeric (
     Convert(..),
     Complexable(),
     RealElement(),
-    roundVector, fromInt,
+    roundVector, fromInt, toInt,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
     I, Extractor(..), (??), range, idxs,
@@ -171,6 +171,8 @@ class Element e => Container c e
          -> c e -- ^ e
          -> c e -- ^ g
          -> c e -- ^ result
+    ccompare' :: Ord e => c e -> c e -> c I
+    cselect'  :: c I -> c e -> c e -> c e -> c e
     find' :: (e -> Bool) -> c e -> [IndexOf c]
     assoc' :: IndexOf c       -- ^ size
           -> e                -- ^ default value
@@ -192,6 +194,7 @@ class Element e => Container c e
     arctan2'     :: Fractional e => c e -> c e -> c e
     cmod'        :: Integral   e => e -> c e -> c e
     fromInt'     :: c I -> c e
+    toInt'       :: c e -> c I
 
 
 --------------------------------------------------------------------------
@@ -222,6 +225,8 @@ instance Container Vector I
     assoc' = assocV
     accum' = accumV
     cond' = condV condI
+    ccompare' = compareCV compareV
+    cselect' = selectCV selectV
     scaleRecip = undefined -- cannot match
     divide = undefined
     arctan2' = undefined
@@ -229,6 +234,7 @@ instance Container Vector I
         | m /= 0    = vectorMapValI ModVS m x
         | otherwise = error $ "cmod 0 on vector of size "++(show $ dim x)
     fromInt' = id
+    toInt'   = id
 
 instance Container Vector Float
   where
@@ -256,11 +262,14 @@ instance Container Vector Float
     assoc' = assocV
     accum' = accumV
     cond' = condV condF
+    ccompare' = compareCV compareV
+    cselect' = selectCV selectV
     scaleRecip = vectorMapValF Recip
     divide = vectorZipF Div
     arctan2' = vectorZipF ATan2
     cmod' = undefined
     fromInt' = int2floatV
+    toInt'   = float2IntV
 
 
 
@@ -290,11 +299,14 @@ instance Container Vector Double
     assoc' = assocV
     accum' = accumV
     cond' = condV condD
+    ccompare' = compareCV compareV
+    cselect' = selectCV selectV
     scaleRecip = vectorMapValR Recip
     divide = vectorZipR Div
     arctan2' = vectorZipR ATan2
     cmod' = undefined
     fromInt' = int2DoubleV
+    toInt'   = double2IntV
 
 
 instance Container Vector (Complex Double)
@@ -323,11 +335,14 @@ instance Container Vector (Complex Double)
     assoc' = assocV
     accum' = accumV
     cond' = undefined -- cannot match
+    ccompare' = undefined
+    cselect' = selectCV selectV
     scaleRecip = vectorMapValC Recip
     divide = vectorZipC Div
     arctan2' = vectorZipC ATan2
     cmod' = undefined
     fromInt' = complex . int2DoubleV
+    toInt'   = toInt' . fst . fromComplex
 
 instance Container Vector (Complex Float)
   where
@@ -355,11 +370,14 @@ instance Container Vector (Complex Float)
     assoc' = assocV
     accum' = accumV
     cond' = undefined -- cannot match
+    ccompare' = undefined
+    cselect' = selectCV selectV
     scaleRecip = vectorMapValQ Recip
     divide = vectorZipQ Div
     arctan2' = vectorZipQ ATan2
     cmod' = undefined
     fromInt' = complex . int2floatV
+    toInt'   = toInt' . fst . fromComplex
 
 ---------------------------------------------------------------
 
@@ -391,6 +409,8 @@ instance (Num a, Element a, Container Vector a) => Container Matrix a
     assoc' = assocM
     accum' = accumM
     cond' = condM
+    ccompare' = compareM
+    cselect' = selectM
     scaleRecip x = liftMatrix (scaleRecip x)
     divide = liftMatrix2 divide
     arctan2' = liftMatrix2 arctan2'
@@ -398,6 +418,7 @@ instance (Num a, Element a, Container Vector a) => Container Matrix a
         | m /= 0    = liftMatrix (cmod' m) x
         | otherwise = error $ "cmod 0 on matrix "++shSize x
     fromInt' = liftMatrix fromInt'
+    toInt' = liftMatrix toInt'
 
 
 emptyErrorV msg f v =
@@ -447,6 +468,9 @@ cmod m = cmod' (fromIntegral m)
 --
 fromInt :: (Container c e) => c I -> c e
 fromInt = fromInt'
+
+toInt :: (Container c e) => c e -> c I
+toInt = toInt'
 
 
 -- | like 'fmap' (cannot implement instance Functor because of Element class constraint)
@@ -851,6 +875,24 @@ condM a b l e t = matrixFromVector RowMajor (rows a'') (cols a'') $ cond' a' b' 
 condV f a b l e t = f a' b' l' e' t'
   where
     [a', b', l', e', t'] = conformVs [a,b,l,e,t]
+
+compareM a b = matrixFromVector RowMajor (rows a'') (cols a'') $ ccompare' a' b'
+  where
+    args@(a'':_) = conformMs [a,b]
+    [a', b'] = map flatten args
+
+compareCV f a b = f a' b'
+  where
+    [a', b'] = conformVs [a,b]
+
+selectM c l e t = matrixFromVector RowMajor (rows a'') (cols a'') $ cselect' (toInt c') l' e' t'
+  where
+    args@(a'':_) = conformMs [fromInt c,l,e,t]
+    [c', l', e', t'] = map flatten args
+
+selectCV f c l e t = f (toInt c') l' e' t'
+  where
+    [c', l', e', t'] = conformVs [fromInt c,l,e,t]
 
 --------------------------------------------------------------------------------
 

@@ -66,7 +66,6 @@ import Control.Monad(when)
 import Text.Printf
 import Data.List.Split(splitOn)
 import Data.List(intercalate)
-import Data.Packed.Internal.Numeric(I)
 
 type ℝ = Double
 type ℕ = Int

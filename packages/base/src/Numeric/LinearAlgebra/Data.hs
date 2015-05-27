@@ -59,7 +59,9 @@ module Numeric.LinearAlgebra.Data(
     fromBlocks, (|||), (===), diagBlock, repmat, toBlocks, toBlocksEvery,
 
     -- * Mapping functions
-    conj, cmap, cmod, step, cond,
+    conj, cmap, cmod,
+    
+    step, cond, ccompare, cselect,
 
     -- * Find elements
     find, maxIndex, minIndex, maxElement, minElement,
@@ -78,7 +80,7 @@ module Numeric.LinearAlgebra.Data(
 -- * Element conversion
     Convert(..),
     roundVector,
-    fromInt,
+    fromInt,toInt,
     -- * Misc
     arctan2,
     separable,
@@ -95,6 +97,5 @@ import Data.Packed.Numeric
 import Numeric.LinearAlgebra.Util hiding ((&),(#))
 import Data.Complex
 import Numeric.Sparse
-import Data.Packed.Internal.Numeric(I,Extractor(..),(??),fromInt,range,idxs)
 
 

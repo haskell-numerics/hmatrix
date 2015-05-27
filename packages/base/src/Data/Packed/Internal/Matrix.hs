@@ -268,6 +268,9 @@ class (Storable a) => Element a where
     extractR :: Matrix a -> CInt -> Vector CInt -> CInt -> Vector CInt -> Matrix a
     sortI    :: Ord a => Vector a -> Vector CInt
     sortV    :: Ord a => Vector a -> Vector a
+    compareV :: Ord a => Vector a -> Vector a -> Vector CInt
+    selectV  :: Vector CInt -> Vector a -> Vector a -> Vector a -> Vector a
+
 
 instance Element Float where
     transdata  = transdataAux ctransF
@@ -275,6 +278,9 @@ instance Element Float where
     extractR   = extractAux c_extractF
     sortI      = sortIdxF
     sortV      = sortValF
+    compareV   = compareF
+    selectV    = selectF
+    
 
 instance Element Double where
     transdata  = transdataAux ctransR
@@ -282,6 +288,9 @@ instance Element Double where
     extractR   = extractAux c_extractD
     sortI      = sortIdxD
     sortV      = sortValD
+    compareV   = compareD
+    selectV    = selectD
+
 
 instance Element (Complex Float) where
     transdata  = transdataAux ctransQ
@@ -289,6 +298,9 @@ instance Element (Complex Float) where
     extractR   = extractAux c_extractQ
     sortI      = undefined
     sortV      = undefined
+    compareV   = undefined
+    selectV    = selectQ
+
 
 instance Element (Complex Double) where
     transdata  = transdataAux ctransC
@@ -296,6 +308,9 @@ instance Element (Complex Double) where
     extractR   = extractAux c_extractC
     sortI      = undefined
     sortV      = undefined
+    compareV   = undefined
+    selectV    = selectC
+
     
 instance Element (CInt) where
     transdata  = transdataAux ctransI
@@ -303,6 +318,9 @@ instance Element (CInt) where
     extractR   = extractAux c_extractI
     sortI      = sortIdxI
     sortV      = sortValI
+    compareV   = compareI
+    selectV    = selectI
+
 
 -------------------------------------------------------------------
 
@@ -501,4 +519,39 @@ foreign import ccall unsafe "sort_valuesF" c_sort_valF :: CV Float  (CV Float (I
 foreign import ccall unsafe "sort_valuesI" c_sort_valI :: CV CInt   (CV CInt (IO CInt))
 
 --------------------------------------------------------------------------------
+
+compareG f u v = unsafePerformIO $ do
+    r <- createVector (dim v)
+    app3 f vec u vec v vec r "compareG"
+    return r
+
+compareD = compareG c_compareD
+compareF = compareG c_compareF
+compareI = compareG c_compareI
+
+foreign import ccall unsafe "compareD" c_compareD :: CV Double (CV Double (CV CInt (IO CInt)))
+foreign import ccall unsafe "compareF" c_compareF :: CV Float (CV Float  (CV CInt (IO CInt)))
+foreign import ccall unsafe "compareI" c_compareI :: CV CInt (CV CInt   (CV CInt (IO CInt)))
+
+--------------------------------------------------------------------------------
+
+selectG f c u v w = unsafePerformIO $ do
+    r <- createVector (dim v)
+    app5 f vec c vec u vec v vec w vec r "selectG"
+    return r
+
+selectD = selectG c_selectD
+selectF = selectG c_selectF
+selectI = selectG c_selectI
+selectC = selectG c_selectC
+selectQ = selectG c_selectQ
+
+type Sel x = CV CInt (CV x (CV x (CV x (CV x (IO CInt)))))
+
+foreign import ccall unsafe "chooseD" c_selectD :: Sel Double
+foreign import ccall unsafe "chooseF" c_selectF :: Sel Float
+foreign import ccall unsafe "chooseI" c_selectI :: Sel CInt
+foreign import ccall unsafe "chooseC" c_selectC :: Sel (Complex Double)
+foreign import ccall unsafe "chooseQ" c_selectQ :: Sel (Complex Float)
+
 

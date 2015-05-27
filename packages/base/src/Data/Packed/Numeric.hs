@@ -31,12 +31,12 @@ module Data.Packed.Numeric (
     diag, ident,
     ctrans,
     -- * Generic operations
-    Container(..), Numeric,
+    Container(..), Numeric, Extractor(..), (??), range, idxs, I,
     -- add, mul, sub, divide, equal, scaleRecip, addConstant,
     scalar, conj, scale, arctan2, cmap, cmod,
     atIndex, minIndex, maxIndex, minElement, maxElement,
     sumElements, prodElements,
-    step, cond, find, assoc, accum,
+    step, cond, find, assoc, accum, ccompare, cselect,
     Transposable(..), Linear(..),
     -- * Matrix product
     Product(..), udot, dot, (<·>), (#>), (<#), app,
@@ -58,7 +58,7 @@ module Data.Packed.Numeric (
     Complexable(),
     RealElement(),
     RealOf, ComplexOf, SingleOf, DoubleOf,
-    roundVector,
+    roundVector,fromInt,toInt,
     IndexOf,
     module Data.Complex,
     -- * IO
@@ -309,4 +309,9 @@ sortVector = sortV
 sortIndex :: (Ord t, Element t) => Vector t -> Vector I
 sortIndex = sortI
 
+ccompare :: (Ord t, Container c t) => c t -> c t -> c I
+ccompare = ccompare'
+
+cselect :: (Container c t) => c I -> c t -> c t -> c t -> c t
+cselect = cselect'
 

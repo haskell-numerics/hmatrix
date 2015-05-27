@@ -1619,6 +1619,13 @@ int chooseI(KIVEC(cond),KIVEC(lt),KIVEC(eq),KIVEC(gt),IVEC(r)) {
     CHOOSE_IMP
 }
 
+int chooseC(KIVEC(cond),KCVEC(lt),KCVEC(eq),KCVEC(gt),CVEC(r)) {
+    CHOOSE_IMP
+}
+
+int chooseQ(KIVEC(cond),KQVEC(lt),KQVEC(eq),KQVEC(gt),QVEC(r)) {
+    CHOOSE_IMP
+}
 
 //////////////////////// extract /////////////////////////////////
 
