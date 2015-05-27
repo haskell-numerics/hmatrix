@@ -42,6 +42,7 @@ typedef short ftnlen;
 #define QVEC(A) int A##n, complex*A##p
 #define CVEC(A) int A##n, doublecomplex*A##p
 #define PVEC(A) int A##n, void* A##p, int A##s
+
 #define IMAT(A) int A##r, int A##c, int* A##p
 #define FMAT(A) int A##r, int A##c, float* A##p
 #define DMAT(A) int A##r, int A##c, double* A##p
@@ -49,16 +50,33 @@ typedef short ftnlen;
 #define CMAT(A) int A##r, int A##c, doublecomplex* A##p
 #define PMAT(A) int A##r, int A##c, void* A##p, int A##s
 
+#define OIMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, int* A##p
+#define OFMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, float* A##p
+#define ODMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, double* A##p
+#define OQMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, complex* A##p
+#define OCMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, doublecomplex* A##p
+
+
 #define KIVEC(A) int A##n, const int*A##p
 #define KFVEC(A) int A##n, const float*A##p
 #define KDVEC(A) int A##n, const double*A##p
 #define KQVEC(A) int A##n, const complex*A##p
 #define KCVEC(A) int A##n, const doublecomplex*A##p
 #define KPVEC(A) int A##n, const void* A##p, int A##s
+
 #define KIMAT(A) int A##r, int A##c, const int* A##p
 #define KFMAT(A) int A##r, int A##c, const float* A##p
 #define KDMAT(A) int A##r, int A##c, const double* A##p
 #define KQMAT(A) int A##r, int A##c, const complex* A##p
 #define KCMAT(A) int A##r, int A##c, const doublecomplex* A##p
 #define KPMAT(A) int A##r, int A##c, const void* A##p, int A##s
+
+#define KOIMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const int* A##p
+#define KOFMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const float* A##p
+#define KODMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const double* A##p
+#define KOQMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const complex* A##p
+#define KOCMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const doublecomplex* A##p
+
+#define AT(m,i,j) (m##p[(i)*m##Xr + (j)*m##Xc])
+#define TRAV(m,i,j) int i,j; for (i=0;i<m##r;i++) for (j=0;j<m##c;j++)
 

@@ -31,7 +31,7 @@ module Data.Packed.Numeric (
     diag, ident,
     ctrans,
     -- * Generic operations
-    Container(..), Numeric, Extractor(..), (??), range, idxs, I,
+    Container(..), Numeric, Extractor(..), (??), range, idxs, I, remap,
     -- add, mul, sub, divide, equal, scaleRecip, addConstant,
     scalar, conj, scale, arctan2, cmap, cmod,
     atIndex, minIndex, maxIndex, minElement, maxElement,
@@ -314,4 +314,10 @@ ccompare = ccompare'
 
 cselect :: (Container c t) => c I -> c t -> c t -> c t -> c t
 cselect = cselect'
+
+remap :: Element t => Matrix I -> Matrix I -> Matrix t -> Matrix t
+remap i j m
+    | minElement i >= 0 && maxElement i < fromIntegral (rows m) &&
+      minElement j >= 0 && maxElement j < fromIntegral (cols m) = remapM i j m
+    | otherwise = error $ "out of range index in rmap"
 

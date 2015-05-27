@@ -71,5 +71,7 @@ type TMMCVM = CInt -> CInt -> PD -> TMCVM       --
 type CM b r = CInt -> CInt -> Ptr b -> r
 type CV b r = CInt -> Ptr b -> r
 
+type OM b r = CInt -> CInt -> CInt -> CInt -> Ptr b -> r
+
 type CIdxs r = CV CInt r
 

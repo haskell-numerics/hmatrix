@@ -1670,3 +1670,31 @@ int extractI(int modei, int modej, int tm, KIVEC(i), KIVEC(j), KIMAT(m), IMAT(r)
     EXTRACT_IMP
 }
 
+//////////////////////// remap /////////////////////////////////
+
+#define REMAP_IMP                                               \
+    REQUIRES(ir==jr && ic==jc && ir==rr && ic==rc ,BAD_SIZE);   \
+    { TRAV(r,a,b) { AT(r,a,b) = AT(m,AT(i,a,b),AT(j,a,b)); }    \
+    }                                                           \
+    OK
+
+int remapD(KOIMAT(i), KOIMAT(j), KODMAT(m), ODMAT(r)) {
+    REMAP_IMP
+}
+
+int remapF(KOIMAT(i), KOIMAT(j), KOFMAT(m), OFMAT(r)) {
+    REMAP_IMP
+}
+
+int remapI(KOIMAT(i), KOIMAT(j), KOIMAT(m), OIMAT(r)) {
+    REMAP_IMP
+}
+
+int remapC(KOIMAT(i), KOIMAT(j), KOCMAT(m), OCMAT(r)) {
+    REMAP_IMP
+}
+
+int remapQ(KOIMAT(i), KOIMAT(j), KOQMAT(m), OQMAT(r)) {
+    REMAP_IMP
+}
+
