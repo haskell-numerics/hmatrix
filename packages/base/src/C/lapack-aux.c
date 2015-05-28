@@ -1621,12 +1621,7 @@ int chooseQ(KIVEC(cond),KQVEC(lt),KQVEC(eq),KQVEC(gt),QVEC(r)) {
 //////////////////////// extract /////////////////////////////////
 
 #define EXTRACT_IMP                        \
-    int i,j,si,sj,ni,nj,ai,aj;             \
-    if (tm==0) {                           \
-        ai=mc; aj=1;                       \
-    } else {                               \
-        ai=1, aj=mc;                       \
-    }                                      \
+    int i,j,si,sj,ni,nj;                   \
     ni = modei ? in : ip[1]-ip[0]+1;       \
     nj = modej ? jn : jp[1]-jp[0]+1;       \
                                            \
@@ -1636,28 +1631,28 @@ int chooseQ(KIVEC(cond),KQVEC(lt),KQVEC(eq),KQVEC(gt),QVEC(r)) {
         for (j=0; j<nj; j++) {             \
             sj = modej ? jp[j] : j+jp[0];  \
                                            \
-            rp[rc*i+j] = mp[ai*si+aj*sj];  \
+            AT(r,i,j) = AT(m,si,sj);       \
         }                                  \
     }                                      \
     OK
 
-int extractD(int modei, int modej, int tm, KIVEC(i), KIVEC(j), KDMAT(m), DMAT(r)) {
+int extractD(int modei, int modej, KIVEC(i), KIVEC(j), KODMAT(m), ODMAT(r)) {
     EXTRACT_IMP
 }
 
-int extractF(int modei, int modej, int tm, KIVEC(i), KIVEC(j), KFMAT(m), FMAT(r)) {
+int extractF(int modei, int modej, KIVEC(i), KIVEC(j), KOFMAT(m), OFMAT(r)) {
     EXTRACT_IMP
 }
 
-int extractC(int modei, int modej, int tm, KIVEC(i), KIVEC(j), KCMAT(m), CMAT(r)) {
+int extractC(int modei, int modej, KIVEC(i), KIVEC(j), KOCMAT(m), OCMAT(r)) {
     EXTRACT_IMP
 }
 
-int extractQ(int modei, int modej, int tm, KIVEC(i), KIVEC(j), KQMAT(m), QMAT(r)) {
+int extractQ(int modei, int modej, KIVEC(i), KIVEC(j), KOQMAT(m), OQMAT(r)) {
     EXTRACT_IMP
 }
 
-int extractI(int modei, int modej, int tm, KIVEC(i), KIVEC(j), KIMAT(m), IMAT(r)) {
+int extractI(int modei, int modej, KIVEC(i), KIVEC(j), KOIMAT(m), OIMAT(r)) {
     EXTRACT_IMP
 }
 

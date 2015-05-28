@@ -485,34 +485,20 @@ instance (Storable t, NFData t) => NFData (Matrix t)
 
 ---------------------------------------------------------------
 
-isT Matrix{order = ColumnMajor} = 1
-isT Matrix{order = RowMajor} = 0
-
-tt x@Matrix{order = ColumnMajor} = trans x
-tt x@Matrix{order = RowMajor} = x
-
-
 extractAux f m moder vr modec vc = unsafePerformIO $ do
     let nr = if moder == 0 then fromIntegral $ vr@>1 - vr@>0 + 1 else dim vr
         nc = if modec == 0 then fromIntegral $ vc@>1 - vc@>0 + 1 else dim vc
     r <- createMatrix RowMajor nr nc
-    app4 (f moder modec (isT m)) vec vr vec vc mat (tt m) mat r "extractAux"
+    app4 (f moder modec) vec vr vec vc omat m omat r "extractAux"
     return r
 
-foreign import ccall unsafe "extractD" c_extractD
-    :: CInt -> CInt -> CInt -> CIdxs (CIdxs (CM Double (CM Double (IO CInt))))
+type Extr x = CInt -> CInt -> CIdxs (CIdxs (OM x (OM x (IO CInt))))
 
-foreign import ccall unsafe "extractF" c_extractF
-    :: CInt -> CInt -> CInt -> CIdxs (CIdxs (CM Float (CM Float (IO CInt))))
-
-foreign import ccall unsafe "extractC" c_extractC
-    :: CInt -> CInt -> CInt -> CIdxs (CIdxs (CM (Complex Double) (CM (Complex Double) (IO CInt))))
-
-foreign import ccall unsafe "extractQ" c_extractQ
-    :: CInt -> CInt -> CInt -> CIdxs (CIdxs (CM (Complex Float) (CM (Complex Float) (IO CInt))))
-
-foreign import ccall unsafe "extractI" c_extractI
-    :: CInt -> CInt -> CInt -> CIdxs (CIdxs (CM CInt (CM CInt (IO CInt))))
+foreign import ccall unsafe "extractD" c_extractD :: Extr Double
+foreign import ccall unsafe "extractF" c_extractF :: Extr Float
+foreign import ccall unsafe "extractC" c_extractC :: Extr (Complex Double)
+foreign import ccall unsafe "extractQ" c_extractQ :: Extr (Complex Float)
+foreign import ccall unsafe "extractI" c_extractI :: Extr CInt
 
 --------------------------------------------------------------------------------
 
