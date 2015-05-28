@@ -485,5 +485,6 @@ test = (and ok, print ok)
     md = fromInt m      :: Matrix Double
     ok = [ tr m <> m == toInt (tr md <> md)
          , m <> tr m == toInt (md <> tr md)
+         , m ?? (Take 2, Take 3) == remap (asColumn (range 2)) (asRow (range 3)) m
          ]
 
