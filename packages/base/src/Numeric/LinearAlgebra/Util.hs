@@ -312,6 +312,8 @@ size = size'
 >>> vector [1..10] ! 3
 4.0
 
+On a matrix it gets the k-th row as a vector:
+
 >>> matrix 5 [1..15] ! 1
 fromList [6.0,7.0,8.0,9.0,10.0]
 
@@ -479,12 +481,18 @@ instance Testable (Matrix I) where
    checkT _ = test
 
 test :: (Bool, IO())
-test = (and ok, print ok)
+test = (and ok, return ())
   where
     m  = (3><4) [1..12] :: Matrix I
+    r  = (2><3) [1,2,3,4,3,2]
+    c  = (3><2) [0,4,4,1,2,3]
+    p  = (9><10) [0..89] :: Matrix I
+    ep = (2><3) [10,24,32,44,31,23]
     md = fromInt m      :: Matrix Double
     ok = [ tr m <> m == toInt (tr md <> md)
          , m <> tr m == toInt (md <> tr md)
          , m ?? (Take 2, Take 3) == remap (asColumn (range 2)) (asRow (range 3)) m
+         , remap r (tr c) p == ep
+         , tr p ?? (PosCyc (idxs[-5,13]), Pos (idxs[3,7,1])) == (2><3) [35,75,15,33,73,13]
          ]
 

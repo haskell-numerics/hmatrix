@@ -69,7 +69,7 @@ type instance ArgOf Matrix a = a -> a -> a
 
 data Extractor
     = All
-    | Range Int Int
+    | Range Int Int Int
     | Pos (Vector I)
     | PosCyc (Vector I)
     | Take Int
@@ -89,16 +89,19 @@ infixl 9 ??
 
 extractError m e = error $ printf "can't extract %s from matrix %dx%d" (show e) (rows m) (cols m)
 
-m ?? e@(Range a b,_) | a < 0 || b >= rows m = extractError m e
-m ?? e@(_,Range a b) | a < 0 || b >= cols m = extractError m e
+m ?? (Range a s b,e) | s /= 1 = m ?? (Pos (idxs [a,a+s .. b]), e)
+m ?? (e,Range a s b) | s /= 1 = m ?? (e, Pos (idxs [a,a+s .. b]))
+
+m ?? e@(Range a _ b,_) | a < 0 || b >= rows m = extractError m e
+m ?? e@(_,Range a _ b) | a < 0 || b >= cols m = extractError m e
 
 m ?? e@(Pos vs,_) | minElement vs < 0 || maxElement vs >= fromIntegral (rows m) = extractError m e
 m ?? e@(_,Pos vs) | minElement vs < 0 || maxElement vs >= fromIntegral (cols m) = extractError m e
 
 m ?? (All,All) = m
 
-m ?? (Range a b,e) | a > b = m ?? (Take 0,e)
-m ?? (e,Range a b) | a > b = m ?? (e,Take 0)
+m ?? (Range a _ b,e) | a > b = m ?? (Take 0,e)
+m ?? (e,Range a _ b) | a > b = m ?? (e,Take 0)
 
 m ?? (Take n,e)
     | n <= 0      = (0><cols m) [] ?? (All,e)
@@ -132,7 +135,7 @@ m ?? (er,ec) = extractR m moder rs modec cs
     mkExt n (PosCyc ks)
         | n == 0          = mkExt n (Take 0)
         | otherwise       = pos (cmod n ks)
-    mkExt _ (Range mn mx) = ran mn mx
+    mkExt _ (Range mn _ mx) = ran mn mx
     mkExt _ (Take k)      = ran 0 (k-1)
     mkExt n (Drop k)      = ran k (n-1)
     mkExt n _             = ran 0 (n-1) -- All
