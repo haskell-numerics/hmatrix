@@ -16,7 +16,7 @@
 module Data.Packed.Internal.Matrix(
     Matrix(..), rows, cols, cdat, fdat,
     MatrixOrder(..), orderOf,
-    createMatrix, mat,
+    createMatrix, mat, omat,
     cmat, fmat,
     toLists, flatten, reshape,
     Element(..),
