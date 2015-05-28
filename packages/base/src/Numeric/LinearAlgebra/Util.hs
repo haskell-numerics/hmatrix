@@ -473,3 +473,17 @@ dispShort maxr maxc dec m =
   where
     fmt = printf ("%."++show dec ++"f")
 
+--------------------------------------------------------------------------------
+
+instance Testable (Matrix I) where
+   checkT _ = test
+
+test :: (Bool, IO())
+test = (and ok, print ok)
+  where
+    m  = (3><4) [1..12] :: Matrix I
+    md = fromInt m      :: Matrix Double
+    ok = [ tr m <> m == toInt (tr md <> md)
+         , m <> tr m == toInt (md <> tr md)
+         ]
+
