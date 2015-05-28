@@ -58,7 +58,7 @@ foreign import ccall unsafe "multiplyR" dgemmc :: CInt -> CInt -> TMMM
 foreign import ccall unsafe "multiplyC" zgemmc :: CInt -> CInt -> TCMCMCM
 foreign import ccall unsafe "multiplyF" sgemmc :: CInt -> CInt -> TFMFMFM
 foreign import ccall unsafe "multiplyQ" cgemmc :: CInt -> CInt -> TQMQMQM
-foreign import ccall unsafe "multiplyI" c_multiplyI :: CInt -> CInt -> (CM CInt (CM CInt (CM CInt (IO CInt))))
+foreign import ccall unsafe "multiplyI" c_multiplyI :: OM CInt (OM CInt (OM CInt (IO CInt)))
 
 isT Matrix{order = ColumnMajor} = 0
 isT Matrix{order = RowMajor} = 1
@@ -90,8 +90,12 @@ multiplyQ :: Matrix (Complex Float) -> Matrix (Complex Float) -> Matrix (Complex
 multiplyQ a b = multiplyAux cgemmc "cgemmc" a b
 
 multiplyI :: Matrix CInt -> Matrix CInt -> Matrix CInt
-multiplyI = multiplyAux c_multiplyI "c_multiplyI"
-
+multiplyI a b = unsafePerformIO $ do
+    when (cols a /= rows b) $ error $
+        "inconsistent dimensions in matrix product "++ shSize a ++ " x " ++ shSize b
+    s <- createMatrix ColumnMajor (rows a) (cols b)
+    app3 c_multiplyI omat a omat b omat s "c_multiplyI"
+    return s
 
 -----------------------------------------------------------------------------
 foreign import ccall unsafe "svd_l_R" dgesvd :: TMMVM

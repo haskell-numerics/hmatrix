@@ -1287,27 +1287,18 @@ int multiplyQ(int ta, int tb, KQMAT(a),KQMAT(b),QMAT(r)) {
     OK
 }
 
-int multiplyI(int ta, int tb, KIMAT(a), KIMAT(b), IMAT(r)) {
-    int i,j,k;
-    int n;
-    int ai,ak,bk,bj;
 
-    n = ta ? ar : ac;
-    
-    if (ta==0) { ai =  1; ak = ar; } else { ai = ar; ak =  1; }
-    if (tb==0) { bk =  1; bj = br; } else { bk = br; bj =  1; }
-    
-    for (i=0;i<rr;i++) {
-        for (j=0;j<rc;j++) {
-            rp[i+rr*j] = 0;
-            for (k=0; k<n; k++) {
-                rp[i+rr*j] += ap[ai*i+ak*k] * bp[bk*k+bj*j];
-            }
+int multiplyI(KOIMAT(a), KOIMAT(b), OIMAT(r)) {
+    { TRAV(r,i,j) {
+        int k;
+        AT(r,i,j) = 0;
+        for (k=0;k<ac;k++) {
+            AT(r,i,j) += AT(a,i,k) * AT(b,k,j);
         }
+      }
     }
     OK
 }
-
 
 //////////////////// transpose /////////////////////////
 
