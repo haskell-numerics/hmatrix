@@ -14,9 +14,10 @@ Basic data processing.
 module Numeric.LinearAlgebra.Data(
 
     -- * Vector
-    -- | 1D arrays are storable vectors from the vector package.
+    -- | 1D arrays are storable vectors from the vector package. There is no distinction
+    --   between row and column vectors.
 
-    vector, (|>),
+    fromList, toList, vector, (|>),
 
     -- * Matrix
 
@@ -26,12 +27,12 @@ module Numeric.LinearAlgebra.Data(
 
     size, rows, cols,
 
-    -- * conversion from\/to lists
-    fromList, toList,
+    -- * Conversion from\/to lists
+
     fromLists, toLists,
     row, col,
 
-    -- * conversions vector\/matrix
+    -- * Conversions vector\/matrix
 
     flatten, reshape, asRow, asColumn,
     fromRows, toRows, fromColumns, toColumns,
@@ -86,7 +87,7 @@ module Numeric.LinearAlgebra.Data(
     separable,
     fromArray2D,
     module Data.Complex,
-    I,
+    I,F,
     Vector, Matrix, GMatrix, nRows, nCols
 
 ) where
@@ -97,5 +98,6 @@ import Data.Packed.Numeric
 import Numeric.LinearAlgebra.Util hiding ((&),(#))
 import Data.Complex
 import Numeric.Sparse
+import Numeric.LinearAlgebra.Util.Modular
 
 

@@ -75,6 +75,7 @@ library
                         Numeric.Sparse
                         Numeric.LinearAlgebra.Static.Internal
                         Numeric.LinearAlgebra.Util
+                        Numeric.LinearAlgebra.Util.Modular
 
     C-sources:          src/C/lapack-aux.c
                         src/C/vector-aux.c

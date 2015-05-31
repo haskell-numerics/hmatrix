@@ -24,7 +24,7 @@ module Data.Packed.Internal.Numeric (
     scalar, conj, scale, arctan2, cmap, cmod,
     atIndex, minIndex, maxIndex, minElement, maxElement,
     sumElements, prodElements,
-    step, cond, find, assoc, accum,
+    step, cond, find, assoc, accum, findV, assocV, accumV,
     Transposable(..), Linear(..), Testable(..),
     -- * Matrix product and related functions
     Product(..), udot,
