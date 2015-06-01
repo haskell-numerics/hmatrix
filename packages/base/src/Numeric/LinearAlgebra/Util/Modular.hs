@@ -26,7 +26,7 @@ module Numeric.LinearAlgebra.Util.Modular(
 ) where
 
 import Data.Packed.Numeric
-import Numeric.LinearAlgebra.Util(Indexable(..),size)
+import Numeric.LinearAlgebra.Util(Indexable(..),gaussElim)
 import GHC.TypeLits
 import Data.Proxy(Proxy)
 import Foreign.ForeignPtr(castForeignPtr)
@@ -65,11 +65,14 @@ instance KnownNat m => Integral (F m)
       where
          (q,r) = quotRem (unMod a) (unMod b)
 
--- | this instance is only valid for prime m (not checked)
+-- | this instance is only valid for prime m
 instance KnownNat m => Fractional (F m)
   where
-    recip x = x^(m'-2)
+    recip x
+        | x*r == 1  = r
+        | otherwise = error $ show x ++" does not have a multiplicative inverse mod "++show m'
       where
+        r = x^(m'-2)
         m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
     fromRational x = fromInteger (numerator x) / fromInteger (denominator x)
 
@@ -124,7 +127,7 @@ instance Element (F n)
 instance forall m . KnownNat m => Container Vector (F m)
   where
     conj' = id
-    size' = size
+    size' = dim
     scale' s x = fromInt (scale (unMod s) (toInt x))
     addConstant c x = fromInt (addConstant (unMod c) (toInt x))
     add a b = fromInt (add (toInt a) (toInt b))
@@ -216,6 +219,18 @@ test = (ok, info)
   where
     v = fromList [3,-5,75] :: V 11
     m = (3><3) [1..]   :: M 11
+    
+    a = (3><3) [1,2 , 3
+               ,4,5 , 6
+               ,0,10,-3] :: Matrix I
+
+    b = (3><2) [0..] :: Matrix I
+    
+    am = fromInt a :: Matrix (F 13)
+    bm = fromInt b :: Matrix (F 13)
+    ad = fromInt a :: Matrix Double
+    bd = fromInt b :: Matrix Double
+    
     info = do
         print v
         print m
@@ -225,9 +240,12 @@ test = (ok, info)
         print $ m <> m
         print $ m #> v
 
+        print $ am <> gaussElim am bm - bm
+        print $ ad <> gaussElim ad bd - bd
 
     ok = and
       [ toInt (m #> v) == cmod 11 (toInt m #> toInt v )
+      , am <> gaussElim am bm == bm
       ]
 
 

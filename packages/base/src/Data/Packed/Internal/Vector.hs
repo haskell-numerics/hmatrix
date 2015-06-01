@@ -106,7 +106,7 @@ inlinePerformIO :: IO a -> a
 inlinePerformIO (IO m) = case m realWorld# of (# _, r #) -> r
 {-# INLINE inlinePerformIO #-}
 
-{- | extracts the Vector elements to a list
+{- extracts the Vector elements to a list
 
 >>> toList (linspace 5 (1,10))
 [1.0,3.25,5.5,7.75,10.0]

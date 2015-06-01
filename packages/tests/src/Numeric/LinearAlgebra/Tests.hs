@@ -383,6 +383,10 @@ intTest = utest "int ops" (fst $ checkT (undefined :: Matrix I))
 
 --------------------------------------------------------------------------------
 
+modularTest = utest "modular ops" (fst $ checkT (undefined :: Matrix (F 13)))
+
+--------------------------------------------------------------------------------
+
 indexProp g f x = a1 == g a2 && a2 == a3 && b1 == g b2 && b2 == b3
   where
     l = map g (toList (f x))
@@ -572,6 +576,7 @@ runTests n = do
         , sparseTest
         , staticTest
         , intTest
+        , modularTest
         ]
     when (errors c + failures c > 0) exitFailure
     return ()

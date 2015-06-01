@@ -52,7 +52,8 @@ module Numeric.LinearAlgebra.Util(
     -- ** 1D
     corr, conv, corrMin,
     -- ** 2D
-    corr2, conv2, separable
+    corr2, conv2, separable,
+    gaussElim
 ) where
 
 import Data.Packed.Numeric
@@ -65,7 +66,9 @@ import Numeric.LinearAlgebra.Util.Convolution
 import Control.Monad(when)
 import Text.Printf
 import Data.List.Split(splitOn)
-import Data.List(intercalate)
+import Data.List(intercalate,sortBy)
+import Data.Function(on)
+import Control.Arrow((&&&))
 
 type ℝ = Double
 type ℕ = Int
@@ -76,7 +79,7 @@ type ℂ = Complex Double
 iC :: ℂ
 iC = 0:+1
 
-{- | create a real vector
+{- | Create a real vector.
 
 >>> vector [1..5]
 fromList [1.0,2.0,3.0,4.0,5.0]
@@ -85,7 +88,7 @@ fromList [1.0,2.0,3.0,4.0,5.0]
 vector :: [ℝ] -> Vector ℝ
 vector = fromList
 
-{- | create a real matrix
+{- | Create a real matrix.
 
 >>> matrix 5 [1..15]
 (3><5)
@@ -95,8 +98,8 @@ vector = fromList
 
 -}
 matrix
-  :: Int -- ^ columns
-  -> [ℝ] -- ^ elements
+  :: Int -- ^ number of columns
+  -> [ℝ] -- ^ elements in row order
   -> Matrix ℝ
 matrix c = reshape c . fromList
 
@@ -179,10 +182,22 @@ infixl 2 #
 a # b = fromBlocks [[a],[b]]
 
 -- | create a single row real matrix from a list
+--
+-- >>> row [2,3,1,8]
+-- (1><4)
+--  [ 2.0, 3.0, 1.0, 8.0 ]
+--
 row :: [Double] -> Matrix Double
 row = asRow . fromList
 
 -- | create a single column real matrix from a list
+--
+-- >>> col [7,-2,4]
+-- (3><1)
+--  [  7.0
+--  , -2.0
+--  ,  4.0 ]
+--
 col :: [Double] -> Matrix Double
 col = asColumn . fromList
 
@@ -474,6 +489,53 @@ dispShort maxr maxc dec m =
     printf "%dx%d\n%s" (rows m) (cols m) (formatShort "  " fmt maxr maxc m)
   where
     fmt = printf ("%."++show dec ++"f")
+
+--------------------------------------------------------------------------------
+
+-- | generic reference implementation of gaussian elimination
+--
+-- @a <> gauss a b = b@
+--
+gaussElim
+  :: (Fractional t, Num (Vector t), Ord t, Indexable (Vector t) t, Numeric t)
+  => Matrix t -> Matrix t -> Matrix t
+
+gaussElim x y = dropColumns (rows x) (flipud $ fromRows s2)
+  where
+    rs = toRows $ fromBlocks [[x , y]]
+    s1 = pivotDown (rows x) 0 rs
+    s2 = pivotUp (rows x-1) (reverse s1)
+
+pivotDown t n xs
+    | t == n    = []
+    | otherwise = y : pivotDown t (n+1) ys
+  where
+    y:ys = redu (pivot n xs)
+
+    pivot k = (const k &&& id)
+            . reverse . sortBy (compare `on` (abs. (!k)))  -- FIXME
+
+    redu (k,x:zs)
+        | p == 0 = error "gauss: singular!"  -- FIXME
+        | otherwise = u : map f zs
+      where
+        p = x!k
+        u = scale (recip (x!k)) x
+        f z = z - scale (z!k) u
+    redu (_,[]) = []
+
+
+pivotUp n xs
+    | n == -1 = []
+    | otherwise = y : pivotUp (n-1) ys
+  where
+    y:ys = redu' (n,xs)
+
+    redu' (k,x:zs) = u : map f zs
+      where
+        u = x
+        f z = z - scale (z!k) u
+    redu' (_,[]) = []
 
 --------------------------------------------------------------------------------
 

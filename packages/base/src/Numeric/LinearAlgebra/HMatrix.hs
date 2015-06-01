@@ -6,6 +6,8 @@ License     :  BSD3
 Maintainer  :  Alberto Ruiz
 Stability   :  provisional
 
+compatibility with previous version, to be removed
+
 -}
 --------------------------------------------------------------------------------
 
