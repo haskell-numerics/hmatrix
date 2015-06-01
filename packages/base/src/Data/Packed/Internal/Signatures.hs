@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeOperators            #-}
+
 -- |
 -- Module      :  Data.Packed.Internal.Signatures
 -- Copyright   :  (c) Alberto Ruiz 2009-15
@@ -70,8 +72,13 @@ type TMMCVM = CInt -> CInt -> PD -> TMCVM       --
 
 type CM b r = CInt -> CInt -> Ptr b -> r
 type CV b r = CInt -> Ptr b -> r
-
 type OM b r = CInt -> CInt -> CInt -> CInt -> Ptr b -> r
 
 type CIdxs r = CV CInt r
+type Ok = IO CInt
+
+infixr 5 :>, ::>, ..>
+type (:>)  t r = CV t r
+type (::>) t r = OM t r
+type (..>) t r = CM t r
 
