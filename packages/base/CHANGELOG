@@ -2,12 +2,14 @@
 --------
 
     * initial support of (C)Int elements
-    
-    * improved matrix extraction using vectors of indexes
+
+    * improved matrix extraction using vectors of indexes (??)
+
+    * experimental support of type safe modular arithmetic
 
     * old compatibility modules removed
 
-    * added "unitary" and "pairwiseD2"
+    * unitary, pairwiseD2, tr'
 
 0.16.1.0
 --------

@@ -192,3 +192,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - "maxc01" solved uninstallability in FreeBSD and improved urandom
 
+- "ntfrgl" added {take,drop}Last{Rows,Columns}
+
