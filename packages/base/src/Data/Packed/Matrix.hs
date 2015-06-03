@@ -33,8 +33,9 @@ module Data.Packed.Matrix (
     fromRows, toRows, fromColumns, toColumns,
     fromBlocks, diagBlock, toBlocks, toBlocksEvery,
     repmat,
-    flipud, fliprl,
-    subMatrix, takeRows, dropRows, takeColumns, dropColumns,
+    flipud, fliprl, subMatrix,
+    takeRows, takeLastRows, dropRows, dropLastRows,
+    takeColumns, takeLastColumns, dropColumns, dropLastColumns,
     extractRows, extractColumns,
     diagRect, takeDiag,
     mapMatrix, mapMatrixWithIndex, mapMatrixWithIndexM, mapMatrixWithIndexM_,
@@ -253,15 +254,27 @@ r >< c = f where
 -- | Creates a matrix with the first n rows of another matrix
 takeRows :: Element t => Int -> Matrix t -> Matrix t
 takeRows n mt = subMatrix (0,0) (n, cols mt) mt
+-- | Creates a matrix with the last n rows of another matrix
+takeLastRows :: Element t => Int -> Matrix t -> Matrix t
+takeLastRows n mt = subMatrix (rows mt - n, 0) (n, cols mt) mt
 -- | Creates a copy of a matrix without the first n rows
 dropRows :: Element t => Int -> Matrix t -> Matrix t
 dropRows n mt = subMatrix (n,0) (rows mt - n, cols mt) mt
+-- | Creates a copy of a matrix without the last n rows
+dropLastRows :: Element t => Int -> Matrix t -> Matrix t
+dropLastRows n mt = subMatrix (0,0) (rows mt - n, cols mt) mt
 -- |Creates a matrix with the first n columns of another matrix
 takeColumns :: Element t => Int -> Matrix t -> Matrix t
 takeColumns n mt = subMatrix (0,0) (rows mt, n) mt
+-- |Creates a matrix with the last n columns of another matrix
+takeLastColumns :: Element t => Int -> Matrix t -> Matrix t
+takeLastColumns n mt = subMatrix (0, cols mt - n) (rows mt, n) mt
 -- | Creates a copy of a matrix without the first n columns
 dropColumns :: Element t => Int -> Matrix t -> Matrix t
 dropColumns n mt = subMatrix (0,n) (rows mt, cols mt - n) mt
+-- | Creates a copy of a matrix without the last n columns
+dropLastColumns :: Element t => Int -> Matrix t -> Matrix t
+dropLastColumns n mt = subMatrix (0,0) (rows mt, cols mt - n) mt
 
 ----------------------------------------------------------------
 
