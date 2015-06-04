@@ -1300,6 +1300,35 @@ int multiplyI(KOIMAT(a), KOIMAT(b), OIMAT(r)) {
     OK
 }
 
+
+////////////////// sparse matrix-product ///////////////////////////////////////
+
+
+int smXv(KDVEC(vals),KIVEC(cols),KIVEC(rows),KDVEC(x),DVEC(r)) {
+    int r, c;
+    for (r = 0; r < rowsn - 1; r++) {
+        rp[r] = 0;
+        for (c = rowsp[r]; c < rowsp[r+1]; c++) {
+            rp[r] += valsp[c-1] * xp[colsp[c-1]-1];
+        }
+    }
+    OK
+}
+
+int smTXv(KDVEC(vals),KIVEC(cols),KIVEC(rows),KDVEC(x),DVEC(r)) {
+    int r,c;
+    for (c = 0; c < rn; c++) {
+        rp[c] = 0;
+    }
+    for (r = 0; r < rowsn - 1; r++) {
+        for (c = rowsp[r]; c < rowsp[r+1]; c++) {
+            rp[colsp[c-1]-1] += valsp[c-1] * xp[r];
+        }
+    }
+    OK
+}
+
+
 //////////////////// transpose /////////////////////////
 
 int transF(KFMAT(x),FMAT(t)) {
@@ -1376,248 +1405,6 @@ int transI(KIMAT(x),IMAT(t)) {
 }
 
 
-//////////////////// constant /////////////////////////
-
-int constantF(float * pval, FVEC(r)) {
-    DEBUGMSG("constantF")
-    int k;
-    double val = *pval;
-    for(k=0;k<rn;k++) {
-        rp[k]=val;
-    }
-    OK
-}
-
-int constantR(double * pval, DVEC(r)) {
-    DEBUGMSG("constantR")
-    int k;
-    double val = *pval;
-    for(k=0;k<rn;k++) {
-        rp[k]=val;
-    }
-    OK
-}
-
-int constantQ(complex* pval, QVEC(r)) {
-    DEBUGMSG("constantQ")
-    int k;
-    complex val = *pval;
-    for(k=0;k<rn;k++) {
-        rp[k]=val;
-    }
-    OK
-}
-
-int constantC(doublecomplex* pval, CVEC(r)) {
-    DEBUGMSG("constantC")
-    int k;
-    doublecomplex val = *pval;
-    for(k=0;k<rn;k++) {
-        rp[k]=val;
-    }
-    OK
-}
-
-int constantP(void* pval, PVEC(r)) {
-    DEBUGMSG("constantP")
-    int k;
-    for(k=0;k<rn;k++) {
-      memcpy(rp+k*rs,pval,rs);
-    }
-    OK
-}
-
-
-int constantI(int * pval, IVEC(r)) {
-    DEBUGMSG("constantI")
-    int k;
-    int val = *pval;
-    for(k=0;k<rn;k++) {
-        rp[k]=val;
-    }
-    OK
-}
-
-
-//////////////////// float-double conversion /////////////////////////
-
-int float2double(FVEC(x),DVEC(y)) {
-    DEBUGMSG("float2double")
-    int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k];
-    }
-    OK
-}
-
-int float2int(KFVEC(x),IVEC(y)) {
-    DEBUGMSG("float2int")
-    int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k];
-    }
-    OK
-}
-
-
-int double2float(DVEC(x),FVEC(y)) {
-    DEBUGMSG("double2float")
-    int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k];
-    }
-    OK
-}
-
-
-int double2int(KDVEC(x),IVEC(y)) {
-    DEBUGMSG("double2int")
-    int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k];
-    }
-    OK
-}
-
-
-int int2float(KIVEC(x),FVEC(y)) {
-    DEBUGMSG("int2float")
-    int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k];
-    }
-    OK
-}
-
-
-int int2double(KIVEC(x),DVEC(y)) {
-    DEBUGMSG("int2double")
-    int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k];
-    }
-    OK
-}
-
-
-//////////////////// conjugate /////////////////////////
-
-int conjugateQ(KQVEC(x),QVEC(t)) {
-    REQUIRES(xn==tn,BAD_SIZE);
-    DEBUGMSG("conjugateQ");
-    int k;
-    for(k=0;k<xn;k++) {
-        tp[k].r =  xp[k].r;
-        tp[k].i = -xp[k].i;
-    }
-    OK
-}
-
-int conjugateC(KCVEC(x),CVEC(t)) {
-    REQUIRES(xn==tn,BAD_SIZE);
-    DEBUGMSG("conjugateC");
-    int k;
-    for(k=0;k<xn;k++) {
-        tp[k].r =  xp[k].r;
-        tp[k].i = -xp[k].i;
-    }
-    OK
-}
-
-//////////////////// step /////////////////////////
-
-#define STEP_IMP         \
-    int k;               \
-    for(k=0;k<xn;k++) {  \
-        yp[k]=xp[k]>0;   \
-    }                    \
-    OK
-
-int stepF(KFVEC(x),FVEC(y)) {
-    STEP_IMP
-}
-
-int stepD(KDVEC(x),DVEC(y)) {
-    STEP_IMP
-}
-
-int stepI(KIVEC(x),IVEC(y)) {
-    STEP_IMP
-}
-
-//////////////////// cond /////////////////////////
-
-#define COMPARE_IMP                               \
-    REQUIRES(xn==yn && xn==rn ,BAD_SIZE);         \
-    int k;                                        \
-    for(k=0;k<xn;k++) {                           \
-        rp[k] = xp[k]<yp[k]?-1:(xp[k]>yp[k]?1:0); \
-    }                                             \
-    OK
-
-
-int compareF(KFVEC(x),KFVEC(y),IVEC(r)) {
-    COMPARE_IMP
-}
-
-int compareD(KDVEC(x),KDVEC(y),IVEC(r)) {
-    COMPARE_IMP
-}
-
-int compareI(KIVEC(x),KIVEC(y),IVEC(r)) {
-    COMPARE_IMP
-}
-
-
-#define COND_IMP                                                            \
-    REQUIRES(xn==yn && xn==ltn && xn==eqn && xn==gtn && xn==rn ,BAD_SIZE);  \
-    int k;                                                                  \
-    for(k=0;k<xn;k++) {                                                     \
-        rp[k] = xp[k]<yp[k]?ltp[k]:(xp[k]>yp[k]?gtp[k]:eqp[k]);             \
-    }                                                                       \
-    OK
-
-int condF(FVEC(x),FVEC(y),FVEC(lt),FVEC(eq),FVEC(gt),FVEC(r)) {
-    COND_IMP
-}
-
-int condD(DVEC(x),DVEC(y),DVEC(lt),DVEC(eq),DVEC(gt),DVEC(r)) {
-    COND_IMP
-}
-
-int condI(KIVEC(x),KIVEC(y),KIVEC(lt),KIVEC(eq),KIVEC(gt),IVEC(r)) {
-    COND_IMP
-}
-
-
-#define CHOOSE_IMP                                                      \
-    REQUIRES(condn==ltn && ltn==eqn && ltn==gtn && ltn==rn ,BAD_SIZE);  \
-    int k;                                                              \
-    for(k=0;k<condn;k++) {                                              \
-        rp[k] = condp[k]<0?ltp[k]:(condp[k]>0?gtp[k]:eqp[k]);           \
-    }                                                                   \
-    OK
-
-int chooseF(KIVEC(cond),KFVEC(lt),KFVEC(eq),KFVEC(gt),FVEC(r)) {
-    CHOOSE_IMP
-}
-
-int chooseD(KIVEC(cond),KDVEC(lt),KDVEC(eq),KDVEC(gt),DVEC(r)) {
-    CHOOSE_IMP
-}
-
-int chooseI(KIVEC(cond),KIVEC(lt),KIVEC(eq),KIVEC(gt),IVEC(r)) {
-    CHOOSE_IMP
-}
-
-int chooseC(KIVEC(cond),KCVEC(lt),KCVEC(eq),KCVEC(gt),CVEC(r)) {
-    CHOOSE_IMP
-}
-
-int chooseQ(KIVEC(cond),KQVEC(lt),KQVEC(eq),KQVEC(gt),QVEC(r)) {
-    CHOOSE_IMP
-}
-
 //////////////////////// extract /////////////////////////////////
 
 #define EXTRACT_IMP                        \
@@ -1682,5 +1469,25 @@ int remapC(KOIMAT(i), KOIMAT(j), KOCMAT(m), OCMAT(r)) {
 
 int remapQ(KOIMAT(i), KOIMAT(j), KOQMAT(m), OQMAT(r)) {
     REMAP_IMP
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+int saveMatrix(char * file, char * format, KDMAT(a)){
+    FILE * fp;
+    fp = fopen (file, "w");
+    int r, c;
+    for (r=0;r<ar; r++) {
+        for (c=0; c<ac; c++) {
+            fprintf(fp,format,ap[r*ac+c]);
+            if (c<ac-1) {
+                fprintf(fp," ");
+            } else {
+                fprintf(fp,"\n");
+            }
+        }
+    }
+    fclose(fp);
+    OK
 }
 
