@@ -4,6 +4,8 @@
     * initial support of (C)Int elements
 
     * improved matrix extraction using vectors of indexes (??)
+    
+    * remap, ccompare
 
     * experimental support of type safe modular arithmetic
 

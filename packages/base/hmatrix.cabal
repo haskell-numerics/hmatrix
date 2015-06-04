@@ -20,7 +20,7 @@ build-type:         Simple
 
 extra-source-files: THANKS.md CHANGELOG
 
-extra-source-files: src/C/lapack-aux.h
+extra-source-files: src/Internal/C/lapack-aux.h
 
 flag openblas
     description:    Link with OpenBLAS (https://github.com/xianyi/OpenBLAS) optimized libraries.
@@ -77,8 +77,8 @@ library
                         Numeric.LinearAlgebra.Util
                         Numeric.LinearAlgebra.Util.Modular
 
-    C-sources:          src/C/lapack-aux.c
-                        src/C/vector-aux.c
+    C-sources:          src/Internal/C/lapack-aux.c
+                        src/Internal/C/vector-aux.c
 
 
     extensions:         ForeignFunctionInterface,
