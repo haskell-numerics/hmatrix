@@ -6,7 +6,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Packed.Numeric
+-- Module      :  Internal.Container
 -- Copyright   :  (c) Alberto Ruiz 2010-14
 -- License     :  BSD3
 -- Maintainer  :  Alberto Ruiz
@@ -21,59 +21,17 @@
 -- numeric Haskell classes provided by "Numeric.LinearAlgebra".
 --
 -----------------------------------------------------------------------------
-{-# OPTIONS_HADDOCK hide #-}
 
-module Data.Packed.Numeric (
-    -- * Basic functions
-    module Data.Packed,
-    Konst(..), Build(..),
-    linspace,
-    diag, ident,
-    ctrans,
-    -- * Generic operations
-    Container(..), Numeric, Extractor(..), (??), range, idxs, I, remap,
-    -- add, mul, sub, divide, equal, scaleRecip, addConstant,
-    scalar, conj, scale, arctan2, cmap, cmod,
-    atIndex, minIndex, maxIndex, minElement, maxElement,
-    sumElements, prodElements,
-    step, cond, find, assoc, accum, ccompare, cselect,
-    Transposable(..), Linear(..),
-    -- * Matrix product
-    Product(..), udot, dot, (<·>), (#>), (<#), app,
-    Mul(..),
-    (<.>),
-    optimiseMult,
-    mXm,mXv,vXm,LSDiv,(<\>),
-    outer, kronecker,
-    -- * Random numbers
-    RandDist(..),
-    randomVector,
-    gaussianSample,
-    uniformSample,
-    meanCov,
-    -- * sorting
-    sortVector, sortIndex,
-    -- * Element conversion
-    Convert(..),
-    Complexable(),
-    RealElement(),
-    RealOf, ComplexOf, SingleOf, DoubleOf,
-    roundVector,fromInt,toInt,
-    IndexOf,
-    module Data.Complex,
-    -- * IO
-    module Data.Packed.IO,
-    -- * Misc
-    Testable(..)
-) where
+module Internal.Container where
 
-import Data.Packed
-import Data.Packed.Internal(conformMs)
-import Data.Packed.Internal.Numeric
+import Internal.Tools
+import Internal.Vector
+import Internal.Matrix
+import Internal.Element
+import Internal.Numeric
 import Data.Complex
-import Numeric.LinearAlgebra.Algorithms(Field,linearSolveSVD)
-import Data.Packed.IO
-import Numeric.LinearAlgebra.Random
+import Internal.Algorithms(Field,linearSolveSVD)
+import Data.Vector.Storable(fromList)
 
 ------------------------------------------------------------------
 
