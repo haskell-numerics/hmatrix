@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module Numeric.Sparse(
+module Internal.Sparse(
     GMatrix(..), CSR(..), mkCSR, fromCSR,
     mkSparse, mkDiagR, mkDense,
     AssocMatrix,
@@ -10,15 +10,20 @@ module Numeric.Sparse(
     gmXv, (!#>)
 )where
 
-import Data.Packed.Numeric
+import Internal.Vector
+import Internal.Matrix
+import Internal.Numeric
+import Internal.Container
+import Internal.Tools
 import qualified Data.Vector.Storable as V
+import Data.Vector.Storable(fromList)
 import Data.Function(on)
 import Control.Arrow((***))
 import Control.Monad(when)
 import Data.List(groupBy, sort)
 import Foreign.C.Types(CInt(..))
 
-import Data.Packed.Development
+import Internal.Devel
 import System.IO.Unsafe(unsafePerformIO)
 import Foreign(Ptr)
 import Text.Printf(printf)
