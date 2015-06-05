@@ -10,7 +10,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Numeric.LinearAlgebra.Random (
+module Internal.Random (
     Seed,
     RandDist(..),
     randomVector,
@@ -19,11 +19,13 @@ module Numeric.LinearAlgebra.Random (
     rand, randn
 ) where
 
-import Numeric.Vectorized
-import Data.Packed
-import Data.Packed.Internal.Numeric
-import Numeric.LinearAlgebra.Algorithms
+import Internal.Vectorized
+import Internal.Vector
+import Internal.Matrix
+import Internal.Numeric
+import Internal.Algorithms
 import System.Random(randomIO)
+import Data.Vector.Storable(fromList)
 
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
