@@ -16,41 +16,17 @@
 --
 -----------------------------------------------------------------------------
 
-module Data.Packed.Internal.Numeric (
-    -- * Basic functions
-    ident, diag, ctrans,
-    -- * Generic operations
-    Container(..),
-    scalar, conj, scale, arctan2, cmap, cmod,
-    atIndex, minIndex, maxIndex, minElement, maxElement,
-    sumElements, prodElements,
-    step, cond, find, assoc, accum, findV, assocV, accumV,
-    Transposable(..), Linear(..), Testable(..),
-    -- * Matrix product and related functions
-    Product(..), udot,
-    mXm,mXv,vXm,
-    outer, kronecker,
-    -- * sorting
-    sortV, sortI,
-    -- * Element conversion
-    Convert(..),
-    Complexable(),
-    RealElement(),
-    roundVector, fromInt, toInt,
-    RealOf, ComplexOf, SingleOf, DoubleOf,
-    IndexOf,
-    I, Extractor(..), (??), range, idxs, remapM,
-    module Data.Complex
-) where
+module Internal.Numeric where
 
-import Data.Packed
-import Data.Packed.ST as ST
-import Numeric.Conversion
-import Data.Packed.Development
-import Numeric.Vectorized
-import Data.Complex
-import Numeric.LinearAlgebra.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ,multiplyI)
-import Data.Packed.Internal
+import Internal.Tools
+import Internal.Vector
+import Internal.Matrix
+import Internal.Element
+import Internal.ST as ST
+import Internal.Conversion
+import Internal.Vectorized
+import Internal.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ,multiplyI)
+import Data.Vector.Storable(fromList)
 import Text.Printf(printf)
 
 -------------------------------------------------------------------
@@ -78,9 +54,6 @@ data Extractor
     | DropLast Int
    deriving Show
 
--- | Create a vector of indexes, useful for matrix extraction using '??'
-idxs :: [Int] -> Vector I
-idxs js = fromList (map fromIntegral js) :: Vector I
 
 --
 infixl 9 ??
@@ -167,13 +140,6 @@ class Element e => Container c e
     sumElements' :: c e -> e
     prodElements' :: c e -> e
     step' :: Ord e => c e -> c e
-    cond' :: Ord e
-         => c e -- ^ a
-         -> c e -- ^ b
-         -> c e -- ^ l
-         -> c e -- ^ e
-         -> c e -- ^ g
-         -> c e -- ^ result
     ccompare' :: Ord e => c e -> c e -> c I
     cselect'  :: c I -> c e -> c e -> c e -> c e
     find' :: (e -> Bool) -> c e -> [IndexOf c]
@@ -227,7 +193,6 @@ instance Container Vector I
     find' = findV
     assoc' = assocV
     accum' = accumV
-    cond' = condV condI
     ccompare' = compareCV compareV
     cselect' = selectCV selectV
     scaleRecip = undefined -- cannot match
@@ -264,7 +229,6 @@ instance Container Vector Float
     find' = findV
     assoc' = assocV
     accum' = accumV
-    cond' = condV condF
     ccompare' = compareCV compareV
     cselect' = selectCV selectV
     scaleRecip = vectorMapValF Recip
@@ -301,7 +265,6 @@ instance Container Vector Double
     find' = findV
     assoc' = assocV
     accum' = accumV
-    cond' = condV condD
     ccompare' = compareCV compareV
     cselect' = selectCV selectV
     scaleRecip = vectorMapValR Recip
@@ -337,8 +300,7 @@ instance Container Vector (Complex Double)
     find' = findV
     assoc' = assocV
     accum' = accumV
-    cond' = undefined -- cannot match
-    ccompare' = undefined
+    ccompare' = undefined -- cannot match
     cselect' = selectCV selectV
     scaleRecip = vectorMapValC Recip
     divide = vectorZipC Div
@@ -372,8 +334,7 @@ instance Container Vector (Complex Float)
     find' = findV
     assoc' = assocV
     accum' = accumV
-    cond' = undefined -- cannot match
-    ccompare' = undefined
+    ccompare' = undefined -- cannot match
     cselect' = selectCV selectV
     scaleRecip = vectorMapValQ Recip
     divide = vectorZipQ Div
@@ -411,7 +372,6 @@ instance (Num a, Element a, Container Vector a) => Container Matrix a
     find' = findM
     assoc' = assocM
     accum' = accumM
-    cond' = condM
     ccompare' = compareM
     cselect' = selectM
     scaleRecip x = liftMatrix (scaleRecip x)
@@ -546,7 +506,7 @@ cond
     -> c e -- ^ e
     -> c e -- ^ g
     -> c e -- ^ result
-cond = cond'
+cond a b l e g = cselect' (ccompare' a b) l e g
 
 
 -- | Find index of elements which satisfy a predicate
@@ -869,15 +829,6 @@ accumM m0 f xs = ST.runSTMatrix $ do
         return m
 
 ----------------------------------------------------------------------
-
-condM a b l e t = matrixFromVector RowMajor (rows a'') (cols a'') $ cond' a' b' l' e' t'
-  where
-    args@(a'':_) = conformMs [a,b,l,e,t]
-    [a', b', l', e', t'] = map flatten args
-
-condV f a b l e t = f a' b' l' e' t'
-  where
-    [a', b', l', e', t'] = conformVs [a,b,l,e,t]
 
 compareM a b = matrixFromVector RowMajor (rows a'') (cols a'') $ ccompare' a' b'
   where
