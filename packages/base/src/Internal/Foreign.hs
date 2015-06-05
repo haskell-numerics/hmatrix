@@ -6,14 +6,17 @@
 -- @ glUniformMatrix4fv 0 1 (fromIntegral gl_TRUE) \`appMatrix\` perspective 0.01 100 (pi\/2) (4\/3) 
 -- @
 --
-{-# OPTIONS_HADDOCK hide #-}
-module Data.Packed.Foreign 
+
+module Internal.Foreign 
     ( app
     , appVector, appVectorLen
     , appMatrix, appMatrixLen, appMatrixRaw, appMatrixRawLen
     , unsafeMatrixToVector, unsafeMatrixToForeignPtr
     ) where
-import Data.Packed.Internal
+
+import Foreign.C.Types(CInt)
+import Internal.Vector
+import Internal.Matrix
 import qualified Data.Vector.Storable as S
 import Foreign (Ptr, ForeignPtr, Storable)
 import GHC.Base (IO(..), realWorld#)
