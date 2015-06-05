@@ -16,16 +16,16 @@
 -- Conversion routines
 --
 -----------------------------------------------------------------------------
-{-# OPTIONS_HADDOCK hide #-}
 
 
-module Numeric.Conversion (
+module Internal.Conversion (
     Complexable(..), RealElement,
     module Data.Complex
 ) where
 
-import Data.Packed.Internal.Vector
-import Data.Packed.Internal.Matrix
+import Internal.Vector
+import Internal.Matrix
+import Internal.Vectorized
 import Data.Complex
 import Control.Arrow((***))
 
