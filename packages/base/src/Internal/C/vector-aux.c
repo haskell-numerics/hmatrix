@@ -1130,14 +1130,6 @@ int constantC(doublecomplex* pval, CVEC(r)) {
     OK
 }
 
-int constantP(void* pval, PVEC(r)) {
-    DEBUGMSG("constantP")
-    int k;
-    for(k=0;k<rn;k++) {
-      memcpy(rp+k*rs,pval,rs);
-    }
-    OK
-}
 
 
 int constantI(int * pval, IVEC(r)) {
