@@ -1,16 +1,22 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Numeric.LinearAlgebra.Util.CG(
+module Internal.CG(
     cgSolve, cgSolve',
     CGState(..), R, V
 ) where
 
-import Data.Packed.Numeric
-import Numeric.Sparse
+import Internal.Vector
+import Internal.Matrix hiding (mat)
+import Internal.Numeric
+import Internal.Element
+import Internal.IO
+import Internal.Container
+import Internal.Sparse
 import Numeric.Vector()
-import Numeric.LinearAlgebra.Algorithms(linearSolveLS, relativeError, pnorm, NormType(..))
+import Internal.Algorithms(linearSolveLS, relativeError, pnorm, NormType(..))
 import Control.Arrow((***))
+import Data.Vector.Storable(fromList)
 
 {-
 import Util.Misc(debug, debugMat)
