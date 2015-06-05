@@ -1,73 +1,23 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE TypeOperators            #-}
+
 -- |
--- Module      :  Data.Packed.Internal.Common
--- Copyright   :  (c) Alberto Ruiz 2007
+-- Module      :  Internal.Devel
+-- Copyright   :  (c) Alberto Ruiz 2007-15
 -- License     :  BSD3
 -- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
 --
---
--- Development utilities.
---
+
+module Internal.Devel where
 
 
-module Data.Packed.Internal.Common(
-  Adapt,
-  app1, app2, app3, app4,
-  app5, app6, app7, app8, app9, app10,
-  (//), check, mbCatch,
-  splitEvery, common, compatdim,
-  fi,
-  table,
-  finit
-) where
+import Internal.Tools ( (//) )
+import Control.Monad ( when )
+import Foreign.C.Types ( CInt )
+--import Foreign.Storable.Complex ()
+import Foreign.Ptr(Ptr)
+import Control.Exception as E ( SomeException, catch )
 
-import Control.Monad(when)
-import Foreign.C.Types
-import Foreign.Storable.Complex()
-import Data.List(transpose,intersperse)
-import Control.Exception as E
-
--- | @splitEvery 3 [1..9] == [[1,2,3],[4,5,6],[7,8,9]]@
-splitEvery :: Int -> [a] -> [[a]]
-splitEvery _ [] = []
-splitEvery k l = take k l : splitEvery k (drop k l)
-
--- | obtains the common value of a property of a list
-common :: (Eq a) => (b->a) -> [b] -> Maybe a
-common f = commonval . map f where
-    commonval :: (Eq a) => [a] -> Maybe a
-    commonval [] = Nothing
-    commonval [a] = Just a
-    commonval (a:b:xs) = if a==b then commonval (b:xs) else Nothing
-
--- | common value with \"adaptable\" 1
-compatdim :: [Int] -> Maybe Int
-compatdim [] = Nothing
-compatdim [a] = Just a
-compatdim (a:b:xs)
-    | a==b = compatdim (b:xs)
-    | a==1 = compatdim (b:xs)
-    | b==1 = compatdim (a:xs)
-    | otherwise = Nothing
-
--- | Formatting tool
-table :: String -> [[String]] -> String
-table sep as = unlines . map unwords' $ transpose mtp where 
-    mt = transpose as
-    longs = map (maximum . map length) mt
-    mtp = zipWith (\a b -> map (pad a) b) longs mt
-    pad n str = replicate (n - length str) ' ' ++ str
-    unwords' = concat . intersperse sep
-
--- | postfix function application (@flip ($)@)
-(//) :: x -> (x -> y) -> y
-infixl 0 //
-(//) = flip ($)
-
--- | specialized fromIntegral
-fi :: Int -> CInt
-fi = fromIntegral
 
 -- hmm..
 ww2 w1 o1 w2 o2 f = w1 o1 $ w2 o2 . f
@@ -145,9 +95,7 @@ foreign import ccall unsafe "asm_finit" finit :: IO ()
 -- | check the error code
 check :: String -> IO CInt -> IO ()
 check msg f = do
-#if FINIT
-    finit
-#endif
+--  finit
     err <- f
     when (err/=0) $ error (msg++": "++errorCode err)
     return ()
@@ -157,4 +105,19 @@ mbCatch :: IO x -> IO (Maybe x)
 mbCatch act = E.catch (Just `fmap` act) f
     where f :: SomeException -> IO (Maybe x)
           f _ = return Nothing
+
+--------------------------------------------------------------------------------
+
+type CM b r = CInt -> CInt -> Ptr b -> r
+type CV b r = CInt -> Ptr b -> r
+type OM b r = CInt -> CInt -> CInt -> CInt -> Ptr b -> r
+
+type CIdxs r = CV CInt r
+type Ok = IO CInt
+
+infixr 5 :>, ::>, ..>
+type (:>)  t r = CV t r
+type (::>) t r = OM t r
+type (..>) t r = CM t r
+
 
