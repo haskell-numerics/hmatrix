@@ -27,9 +27,8 @@ import Internal.Conversion
 import Internal.Vectorized
 import Internal.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ,multiplyI)
 import Data.Vector.Storable(fromList)
-import Text.Printf(printf)
 
--------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 type family IndexOf (c :: * -> *)
 
@@ -41,80 +40,7 @@ type family ArgOf (c :: * -> *) a
 type instance ArgOf Vector a = a -> a
 type instance ArgOf Matrix a = a -> a -> a
 
---------------------------------------------------------------------------
-
-data Extractor
-    = All
-    | Range Int Int Int
-    | Pos (Vector I)
-    | PosCyc (Vector I)
-    | Take Int
-    | TakeLast Int
-    | Drop Int
-    | DropLast Int
-   deriving Show
-
-
---
-infixl 9 ??
-(??)  :: Element t => Matrix t -> (Extractor,Extractor) -> Matrix t
-
-
-extractError m e = error $ printf "can't extract %s from matrix %dx%d" (show e) (rows m) (cols m)
-
-m ?? (Range a s b,e) | s /= 1 = m ?? (Pos (idxs [a,a+s .. b]), e)
-m ?? (e,Range a s b) | s /= 1 = m ?? (e, Pos (idxs [a,a+s .. b]))
-
-m ?? e@(Range a _ b,_) | a < 0 || b >= rows m = extractError m e
-m ?? e@(_,Range a _ b) | a < 0 || b >= cols m = extractError m e
-
-m ?? e@(Pos vs,_) | minElement vs < 0 || maxElement vs >= fromIntegral (rows m) = extractError m e
-m ?? e@(_,Pos vs) | minElement vs < 0 || maxElement vs >= fromIntegral (cols m) = extractError m e
-
-m ?? (All,All) = m
-
-m ?? (Range a _ b,e) | a > b = m ?? (Take 0,e)
-m ?? (e,Range a _ b) | a > b = m ?? (e,Take 0)
-
-m ?? (Take n,e)
-    | n <= 0      = (0><cols m) [] ?? (All,e)
-    | n >= rows m =              m ?? (All,e)
-
-m ?? (e,Take n)
-    | n <= 0      = (rows m><0) [] ?? (e,All)
-    | n >= cols m =              m ?? (e,All)
-
-m ?? (Drop n,e)
-    | n <= 0      =              m ?? (All,e)
-    | n >= rows m = (0><cols m) [] ?? (All,e)
-
-m ?? (e,Drop n)
-    | n <= 0      =              m ?? (e,All)
-    | n >= cols m = (rows m><0) [] ?? (e,All)
-
-m ?? (TakeLast n, e) = m ?? (Drop (rows m - n), e)
-m ?? (e, TakeLast n) = m ?? (e, Drop (cols m - n))
-
-m ?? (DropLast n, e) = m ?? (Take (rows m - n), e)
-m ?? (e, DropLast n) = m ?? (e, Take (cols m - n))
-
-m ?? (er,ec) = extractR m moder rs modec cs
-  where
-    (moder,rs) = mkExt (rows m) er
-    (modec,cs) = mkExt (cols m) ec
-    ran a b = (0, idxs [a,b])
-    pos ks  = (1, ks)
-    mkExt _ (Pos  ks)     = pos ks
-    mkExt n (PosCyc ks)
-        | n == 0          = mkExt n (Take 0)
-        | otherwise       = pos (cmod n ks)
-    mkExt _ (Range mn _ mx) = ran mn mx
-    mkExt _ (Take k)      = ran 0 (k-1)
-    mkExt n (Drop k)      = ran k (n-1)
-    mkExt n _             = ran 0 (n-1) -- All
-
--------------------------------------------------------------------
-
+--------------------------------------------------------------------------------
 
 -- | Basic element-by-element functions for numeric containers
 class Element e => Container c e

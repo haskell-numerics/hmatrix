@@ -41,15 +41,13 @@ library
 
     hs-source-dirs:     src
 
-    exposed-modules:
-                        Numeric.LinearAlgebra
+    exposed-modules:    Numeric.LinearAlgebra
                         Numeric.LinearAlgebra.Devel
                         Numeric.LinearAlgebra.Data
                         Numeric.LinearAlgebra.HMatrix
                         Numeric.LinearAlgebra.Static
 
-    other-modules:
-                        Internal.Tools
+    other-modules:      Internal.Tools
                         Internal.Vector
                         Internal.Devel
                         Internal.Vectorized
@@ -67,14 +65,13 @@ library
                         Internal.Sparse
                         Internal.Convolution
                         Internal.Chain
+                        Numeric.Vector
                         Internal.CG
+                        Numeric.Matrix
                         Internal.Util
                         Internal.Modular
                         Internal.Static
-                        Numeric.Vector
-                        Numeric.Matrix
-
-
+                        
     C-sources:          src/Internal/C/lapack-aux.c
                         src/Internal/C/vector-aux.c
 
