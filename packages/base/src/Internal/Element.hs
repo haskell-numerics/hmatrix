@@ -90,10 +90,19 @@ data Extractor
     | TakeLast Int
     | Drop Int
     | DropLast Int
-   deriving Show
+  deriving Show
+  
+ppext All = ":"
+ppext (Range a 1 c) = printf "%d:%d" a c
+ppext (Range a b c) = printf "%d:%d:%d" a b c
+ppext (Pos v) = show (toList v)
+ppext (PosCyc v) = "Cyclic"++show (toList v)
+ppext (Take n) = printf "Take %d" n
+ppext (Drop n) = printf "Drop %d" n
+ppext (TakeLast n) = printf "TakeLast %d" n
+ppext (DropLast n) = printf "DropLast %d" n
 
 
---
 infixl 9 ??
 (??)  :: Element t => Matrix t -> (Extractor,Extractor) -> Matrix t
 
@@ -101,7 +110,7 @@ minEl = toScalarI Min
 maxEl = toScalarI Max
 cmodi = vectorMapValI ModVS
 
-extractError m e = error $ printf "can't extract %s from matrix %dx%d" (show e) (rows m) (cols m)
+extractError m (e1,e2)= error $ printf "can't extract (%s,%s) from matrix %dx%d" (ppext e1::String) (ppext e2::String) (rows m) (cols m)
 
 m ?? (Range a s b,e) | s /= 1 = m ?? (Pos (idxs [a,a+s .. b]), e)
 m ?? (e,Range a s b) | s /= 1 = m ?? (e, Pos (idxs [a,a+s .. b]))
@@ -403,24 +412,11 @@ fromArray2D m = (r><c) (elems m)
 
 -- | rearranges the rows of a matrix according to the order given in a list of integers.
 extractRows :: Element t => [Int] -> Matrix t -> Matrix t
-extractRows [] m = emptyM 0 (cols m)
-extractRows l m = fromRows $ extract (toRows m) l
-  where
-    extract l' is = [l'!!i | i<- map verify is]
-    verify k
-        | k >= 0 && k < rows m = k
-        | otherwise = error $ "can't extract row "
-                           ++show k++" in list " ++ show l ++ " from matrix " ++ shSize m
+extractRows l m = m ?? (Pos (idxs l), All)
 
 -- | rearranges the rows of a matrix according to the order given in a list of integers.
 extractColumns :: Element t => [Int] -> Matrix t -> Matrix t
-extractColumns l m = trans . extractRows (map verify l) . trans $ m
-  where
-    verify k
-        | k >= 0 && k < cols m = k
-        | otherwise = error $ "can't extract column "
-                           ++show k++" in list " ++ show l ++ " from matrix " ++ shSize m
-
+extractColumns l m = m ?? (All, Pos (idxs l))
 
 
 {- | creates matrix by repetition of a matrix a given number of rows and columns
