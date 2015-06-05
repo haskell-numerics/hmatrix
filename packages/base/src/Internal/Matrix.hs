@@ -2,10 +2,11 @@
 {-# LANGUAGE FlexibleContexts         #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE BangPatterns             #-}
+{-# LANGUAGE TypeOperators            #-}
 
 -- |
--- Module      :  Data.Packed.Internal.Matrix
--- Copyright   :  (c) Alberto Ruiz 2007
+-- Module      :  Internal.Matrix
+-- Copyright   :  (c) Alberto Ruiz 2007-15
 -- License     :  BSD3
 -- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
@@ -13,36 +14,23 @@
 -- Internal matrix representation
 --
 
-module Data.Packed.Internal.Matrix(
-    Matrix(..), rows, cols, cdat, fdat,
-    MatrixOrder(..), orderOf,
-    createMatrix, mat, omat,
-    cmat, fmat,
-    toLists, flatten, reshape,
-    Element(..),
-    trans,
-    fromRows, toRows, fromColumns, toColumns,
-    matrixFromVector,
-    subMatrix,
-    liftMatrix, liftMatrix2,
-    (@@>), atM',
-    singleton,
-    emptyM,
-    size, shSize, conformVs, conformMs, conformVTo, conformMTo
-) where
+module Internal.Matrix where
 
-import Data.Packed.Internal.Common
-import Data.Packed.Internal.Signatures
-import Data.Packed.Internal.Vector
 
-import Foreign.Marshal.Alloc(alloca, free)
-import Foreign.Marshal.Array(newArray)
-import Foreign.Ptr(Ptr, castPtr)
-import Foreign.Storable(Storable, peekElemOff, pokeElemOff, poke, sizeOf)
-import Data.Complex(Complex)
-import Foreign.C.Types
-import System.IO.Unsafe(unsafePerformIO)
-import Control.DeepSeq
+import Internal.Tools ( splitEvery, fi, compatdim, (//) )
+import Internal.Vector
+import Internal.Devel
+import Internal.Vectorized
+import Data.Vector.Storable ( unsafeWith, fromList )
+import Foreign.Marshal.Alloc ( free )
+import Foreign.Ptr ( Ptr )
+import Foreign.Storable ( Storable )
+import Data.Complex ( Complex )
+import Foreign.C.Types ( CInt(..) )
+import Foreign.C.String ( CString, newCString )
+import System.IO.Unsafe ( unsafePerformIO )
+import Control.DeepSeq ( NFData(..) )
+
 
 -----------------------------------------------------------------
 
@@ -93,8 +81,8 @@ data Matrix t = Matrix { irows :: {-# UNPACK #-} !Int
 -- RowMajor: preferred by C, fdat may require a transposition
 -- ColumnMajor: preferred by LAPACK, cdat may require a transposition
 
-cdat = xdat
-fdat = xdat
+--cdat = xdat
+--fdat = xdat
 
 rows :: Matrix t -> Int
 rows = irows
@@ -204,9 +192,7 @@ toColumns m = toRows . trans $ m
 (@@>) :: Storable t => Matrix t -> (Int,Int) -> t
 infixl 9 @@>
 m@Matrix {irows = r, icols = c} @@> (i,j)
-    | safe      = if i<0 || i>=r || j<0 || j>=c
-                    then error "matrix indexing out of range"
-                    else atM' m i j
+    | i<0 || i>=r || j<0 || j>=c = error "matrix indexing out of range"
     | otherwise = atM' m i j
 {-# INLINE (@@>) #-}
 
@@ -243,7 +229,7 @@ reshape :: Storable t => Int -> Vector t -> Matrix t
 reshape 0 v = matrixFromVector RowMajor 0 0 v
 reshape c v = matrixFromVector RowMajor (dim v `div` c) c v
 
-singleton x = reshape 1 (fromList [x])
+--singleton x = reshape 1 (fromList [x])
 
 -- | application of a vector function on the flattened matrix elements
 liftMatrix :: (Storable a, Storable b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
@@ -273,14 +259,8 @@ compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
     >instance Element Foo
 -}
 class (Storable a) => Element a where
-    subMatrixD :: (Int,Int) -- ^ (r0,c0) starting position
-               -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
-               -> Matrix a -> Matrix a
-    subMatrixD = subMatrix'
     transdata :: Int -> Vector a -> Int -> Vector a
-    transdata = transdataP -- transdata'
     constantD  :: a -> Int -> Vector a
-    constantD = constantP -- constant'
     extractR :: Matrix a -> CInt -> Vector CInt -> CInt -> Vector CInt -> Matrix a
     sortI    :: Ord a => Vector a -> Vector CInt
     sortV    :: Ord a => Vector a -> Vector a
@@ -357,57 +337,14 @@ transdataAux fun c1 d c2 =
         r2 = dim d `div` c2
         noneed = dim d == 0 || r1 == 1 || c1 == 1
 
-transdataP :: Storable a => Int -> Vector a -> Int -> Vector a
-transdataP c1 d c2 =
-    if noneed
-       then d
-       else unsafePerformIO $ do
-          v <- createVector (dim d)
-          unsafeWith d $ \pd ->
-              unsafeWith v $ \pv ->
-                  ctransP (fi r1) (fi c1) (castPtr pd) (fi sz) (fi r2) (fi c2) (castPtr pv) (fi sz) // check "transdataP"
-          return v
-   where r1 = dim d `div` c1
-         r2 = dim d `div` c2
-         sz = sizeOf (d @> 0)
-         noneed = dim d == 0 || r1 == 1 || c1 == 1
 
-foreign import ccall unsafe "transF" ctransF :: TFMFM
-foreign import ccall unsafe "transR" ctransR :: TMM
-foreign import ccall unsafe "transQ" ctransQ :: TQMQM
-foreign import ccall unsafe "transC" ctransC :: TCMCM
-foreign import ccall unsafe "transI" ctransI :: CM CInt (CM CInt (IO CInt))
-foreign import ccall unsafe "transP" ctransP :: CInt -> CInt -> Ptr () -> CInt -> CInt -> CInt -> Ptr () -> CInt -> IO CInt
+type TMM t = t ..> t ..> Ok
 
-----------------------------------------------------------------------
-
-constantAux fun x n = unsafePerformIO $ do
-    v <- createVector n
-    px <- newArray [x]
-    app1 (fun px) vec v "constantAux"
-    free px
-    return v
-
-foreign import ccall unsafe "constantF" cconstantF :: Ptr Float -> TF
-
-foreign import ccall unsafe "constantR" cconstantR :: Ptr Double -> TV
-
-foreign import ccall unsafe "constantQ" cconstantQ :: Ptr (Complex Float) -> TQV
-
-foreign import ccall unsafe "constantC" cconstantC :: Ptr (Complex Double) -> TCV
-
-foreign import ccall unsafe "constantI" cconstantI :: Ptr CInt -> CV CInt (IO CInt)
-
-constantP :: Storable a => a -> Int -> Vector a
-constantP a n = unsafePerformIO $ do
-    let sz = sizeOf a
-    v <- createVector n
-    unsafeWith v $ \p -> do
-       alloca $ \k -> do
-                      poke k a
-                      cconstantP (castPtr k) (fi n) (castPtr p) (fi sz) // check "constantP"
-    return v
-foreign import ccall unsafe "constantP" cconstantP :: Ptr () -> CInt -> Ptr () -> CInt -> IO CInt
+foreign import ccall unsafe "transF" ctransF :: TMM Float
+foreign import ccall unsafe "transR" ctransR :: TMM Double
+foreign import ccall unsafe "transQ" ctransQ :: TMM (Complex Float)
+foreign import ccall unsafe "transC" ctransC :: TMM (Complex Double)
+foreign import ccall unsafe "transI" ctransI :: TMM CInt
 
 ----------------------------------------------------------------------
 
@@ -418,25 +355,10 @@ subMatrix :: Element a
           -> Matrix a -- ^ input matrix
           -> Matrix a -- ^ result
 subMatrix (r0,c0) (rt,ct) m
-    | 0 <= r0 && 0 <= rt && r0+rt <= (rows m) &&
-      0 <= c0 && 0 <= ct && c0+ct <= (cols m) = subMatrixD (r0,c0) (rt,ct) m
+    | 0 <= r0 && 0 <= rt && r0+rt <= rows m &&
+      0 <= c0 && 0 <= ct && c0+ct <= cols m = extractR m 0 (idxs[r0,r0+rt-1]) 0 (idxs[c0,c0+ct-1])
     | otherwise = error $ "wrong subMatrix "++
                           show ((r0,c0),(rt,ct))++" of "++show(rows m)++"x"++ show (cols m)
-
-subMatrix'' (r0,c0) (rt,ct) c v = unsafePerformIO $ do
-    w <- createVector (rt*ct)
-    unsafeWith v $ \p ->
-        unsafeWith w $ \q -> do
-            let go (-1) _ = return ()
-                go !i (-1) = go (i-1) (ct-1)
-                go !i !j = do x <- peekElemOff p ((i+r0)*c+j+c0)
-                              pokeElemOff      q (i*ct+j) x
-                              go i (j-1)
-            go (rt-1) (ct-1)
-    return w
-
-subMatrix' (r0,c0) (rt,ct) (Matrix { icols = c, xdat = v, order = RowMajor}) = Matrix rt ct (subMatrix'' (r0,c0) (rt,ct) c v) RowMajor
-subMatrix' (r0,c0) (rt,ct) m = trans $ subMatrix' (c0,r0) (ct,rt) (trans m)
 
 --------------------------------------------------------------------------
 
@@ -580,4 +502,25 @@ foreign import ccall unsafe "remapI" c_remapI :: Rem CInt
 foreign import ccall unsafe "remapC" c_remapC :: Rem (Complex Double)
 foreign import ccall unsafe "remapQ" c_remapQ :: Rem (Complex Float)
 
+--------------------------------------------------------------------------------
+
+foreign import ccall unsafe "saveMatrix" c_saveMatrix
+    :: CString -> CString -> Double ..> Ok
+
+{- | save a matrix as a 2D ASCII table
+-}
+saveMatrix
+    :: FilePath
+    -> String        -- ^ \"printf\" format (e.g. \"%.2f\", \"%g\", etc.)
+    -> Matrix Double
+    -> IO ()
+saveMatrix name format m = do
+    cname   <- newCString name
+    cformat <- newCString format
+    app1 (c_saveMatrix cname cformat) mat m "saveMatrix"
+    free cname
+    free cformat
+    return ()
+
+--------------------------------------------------------------------------------
 
