@@ -1,62 +1,47 @@
 {-# LANGUAGE MagicHash, CPP, UnboxedTuples, BangPatterns, FlexibleContexts #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+
+
 -- |
--- Module      :  Data.Packed.Internal.Vector
--- Copyright   :  (c) Alberto Ruiz 2007
+-- Module      :  Internal.Vector
+-- Copyright   :  (c) Alberto Ruiz 2007-15
 -- License     :  BSD3
 -- Maintainer  :  Alberto Ruiz
 -- Stability   :  provisional
 --
--- Vector implementation
---
---------------------------------------------------------------------------------
 
-module Data.Packed.Internal.Vector (
-    Vector, dim,
-    fromList, toList, (|>),
-    vjoin, (@>), safe, at, at', subVector, takesV,
-    mapVector, mapVectorWithIndex, zipVectorWith, unzipVectorWith,
-    mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
-    foldVector, foldVectorG, foldLoop, foldVectorWithIndex,
-    createVector, vec,
-    asComplex, asReal, float2DoubleV, double2FloatV, double2IntV, int2DoubleV, float2IntV, int2floatV,
-    stepF, stepD, stepI, condF, condD, condI,
-    conjugateQ, conjugateC,
-    cloneVector,
-    unsafeToForeignPtr,
-    unsafeFromForeignPtr,
-    unsafeWith,
-    CInt, I
-) where
+module Internal.Vector where
 
-import Data.Packed.Internal.Common
-import Data.Packed.Internal.Signatures
-import Foreign.Marshal.Array(peekArray, copyArray, advancePtr)
-import Foreign.ForeignPtr(ForeignPtr, castForeignPtr)
-import Foreign.Ptr(Ptr)
-import Foreign.Storable(Storable, peekElemOff, pokeElemOff, sizeOf)
-import Foreign.C.Types
-import Data.Complex
-import System.IO.Unsafe(unsafePerformIO)
-
-#if __GLASGOW_HASKELL__ >= 605
-import GHC.ForeignPtr           (mallocPlainForeignPtrBytes)
-#else
-import Foreign.ForeignPtr       (mallocForeignPtrBytes)
-#endif
-
-import GHC.Base
-#if __GLASGOW_HASKELL__ < 612
-import GHC.IOBase hiding (liftIO)
-#endif
-
+import Internal.Tools
+import Foreign.Marshal.Array ( peekArray, copyArray, advancePtr )
+import Foreign.ForeignPtr ( ForeignPtr, castForeignPtr )
+import Foreign.Ptr ( Ptr )
+import Foreign.Storable
+    ( Storable, peekElemOff, pokeElemOff, sizeOf )
+import Foreign.C.Types ( CInt )
+import Data.Complex ( Complex )
+import System.IO.Unsafe ( unsafePerformIO )
+import GHC.ForeignPtr ( mallocPlainForeignPtrBytes )
+import GHC.Base ( realWorld#, IO(IO), when )
 import qualified Data.Vector.Storable as Vector
-import Data.Vector.Storable(Vector,
-                            fromList,
-                            unsafeToForeignPtr,
-                            unsafeFromForeignPtr,
-                            unsafeWith)
+    ( Vector, slice, length )
+import Data.Vector.Storable
+    ( fromList, unsafeToForeignPtr, unsafeFromForeignPtr, unsafeWith )
 
-type I = CInt
+
+#ifdef BINARY
+
+import Data.Binary
+import Control.Monad(replicateM)
+import qualified Data.ByteString.Internal as BS
+import Data.Vector.Storable.Internal(updPtr)
+import Foreign.Ptr(plusPtr)
+
+#endif
+
+
+
+type Vector = Vector.Vector
 
 -- | Number of elements
 dim :: (Storable t) => Vector t -> Int
@@ -86,11 +71,7 @@ createVector n = do
     --
     doMalloc :: Storable b => b -> IO (ForeignPtr b)
     doMalloc dummy = do
-#if __GLASGOW_HASKELL__ >= 605
         mallocPlainForeignPtrBytes (n * sizeOf dummy)
-#else
-        mallocForeignPtrBytes      (n * sizeOf dummy)
-#endif
 
 {- | creates a Vector from a list:
 
@@ -116,7 +97,7 @@ toList :: Storable a => Vector a -> [a]
 toList v = safeRead v $ peekArray (dim v)
 
 {- | Create a vector from a list of elements and explicit dimension. The input
-     list is explicitly truncated if it is too long, so it may safely
+     list is truncated if it is too long, so it may safely
      be used, for instance, with infinite lists.
 
 >>> 5 |> [1..]
@@ -125,36 +106,16 @@ fromList [1.0,2.0,3.0,4.0,5.0]
 -}
 (|>) :: (Storable a) => Int -> [a] -> Vector a
 infixl 9 |>
-n |> l = if length l' == n
-            then fromList l'
-            else error "list too short for |>"
-  where l' = take n l
+n |> l
+    | length l' == n = fromList l'
+    | otherwise      = error "list too short for |>"
+  where
+    l' = take n l
 
 
--- | access to Vector elements without range checking
-at' :: Storable a => Vector a -> Int -> a
-at' v n = safeRead v $ flip peekElemOff n
-{-# INLINE at' #-}
-
---
--- turn off bounds checking with -funsafe at configure time.
--- ghc will optimise away the salways true case at compile time.
---
-#if defined(UNSAFE)
-safe :: Bool
-safe = False
-#else
-safe = True
-#endif
-
--- | access to Vector elements with range checking.
-at :: Storable a => Vector a -> Int -> a
-at v n
-    | safe      = if n >= 0 && n < dim v
-                    then at' v n
-                    else error "vector index out of range"
-    | otherwise = at' v n
-{-# INLINE at #-}
+-- | Create a vector of indexes, useful for matrix extraction using '??'
+idxs :: [Int] -> Vector I
+idxs js = fromList (map fromIntegral js) :: Vector I
 
 {- | takes a number of consecutive elements from a Vector
 
@@ -169,6 +130,8 @@ subVector :: Storable t => Int       -- ^ index of the starting element
 subVector = Vector.slice
 
 
+
+
 {- | Reads a vector position:
 
 >>> fromList [0..9] @> 7
@@ -177,8 +140,15 @@ subVector = Vector.slice
 -}
 (@>) :: Storable t => Vector t -> Int -> t
 infixl 9 @>
-(@>) = at
+v @> n
+    | n >= 0 && n < dim v = at' v n
+    | otherwise = error "vector index out of range"
+{-# INLINE (@>) #-}
 
+-- | access to Vector elements without range checking
+at' :: Storable a => Vector a -> Int -> a
+at' v n = safeRead v $ flip peekElemOff n
+{-# INLINE at' #-}
 
 {- | concatenate a list of vectors
 
@@ -227,108 +197,8 @@ asComplex :: (RealFloat a, Storable a) => Vector a -> Vector (Complex a)
 asComplex v = unsafeFromForeignPtr (castForeignPtr fp) (i `div` 2) (n `div` 2)
     where (fp,i,n) = unsafeToForeignPtr v
 
----------------------------------------------------------------
-
-float2DoubleV :: Vector Float -> Vector Double
-float2DoubleV = tog c_float2double
-
-double2FloatV :: Vector Double -> Vector Float
-double2FloatV = tog c_double2float
-
-double2IntV :: Vector Double -> Vector CInt
-double2IntV = tog c_double2int
-
-int2DoubleV :: Vector CInt -> Vector Double
-int2DoubleV = tog c_int2double
-
-float2IntV :: Vector Float -> Vector CInt
-float2IntV = tog c_float2int
-
-int2floatV :: Vector CInt -> Vector Float
-int2floatV = tog c_int2float
-
-
-tog f v = unsafePerformIO $ do
-    r <- createVector (dim v)
-    app2 f vec v vec r "tog"
-    return r
-
-foreign import ccall unsafe "float2double" c_float2double :: TFV
-foreign import ccall unsafe "double2float" c_double2float :: TVF
-foreign import ccall unsafe "int2double"   c_int2double   :: CV CInt (CV Double (IO CInt))
-foreign import ccall unsafe "double2int"   c_double2int   :: CV Double (CV CInt (IO CInt))
-foreign import ccall unsafe "int2float"    c_int2float    :: CV CInt (CV Float (IO CInt))
-foreign import ccall unsafe "float2int"    c_float2int    :: CV Float (CV CInt (IO CInt))
-
-
----------------------------------------------------------------
-
-step f v = unsafePerformIO $ do
-    r <- createVector (dim v)
-    app2 f vec v vec r "step"
-    return r
-
-stepD :: Vector Double -> Vector Double
-stepD = step c_stepD
-
-stepF :: Vector Float -> Vector Float
-stepF = step c_stepF
-
-stepI :: Vector CInt -> Vector CInt
-stepI = step c_stepI
-
-foreign import ccall unsafe "stepF" c_stepF :: TFF
-foreign import ccall unsafe "stepD" c_stepD :: TVV
-foreign import ccall unsafe "stepI" c_stepI :: CV CInt (CV CInt (IO CInt))
-
----------------------------------------------------------------
-
-condF :: Vector Float -> Vector Float -> Vector Float -> Vector Float -> Vector Float -> Vector Float
-condF = condg c_condF
-
-condD :: Vector Double -> Vector Double -> Vector Double -> Vector Double -> Vector Double -> Vector Double
-condD = condg c_condD
-
-condI :: Vector CInt -> Vector CInt -> Vector CInt -> Vector CInt -> Vector CInt -> Vector CInt
-condI = condg c_condI
-
-
-condg f x y l e g = unsafePerformIO $ do
-    r <- createVector (dim x)
-    app6 f vec x vec y vec l vec e vec g vec r "cond"
-    return r
-
-
-foreign import ccall unsafe "condF" c_condF :: CInt -> PF -> CInt -> PF -> CInt -> PF -> TFFF
-foreign import ccall unsafe "condD" c_condD :: CInt -> PD -> CInt -> PD -> CInt -> PD -> TVVV
-foreign import ccall unsafe "condI" c_condI :: CV CInt (CV CInt (CV CInt (CV CInt (CV CInt (CV CInt (IO CInt))))))
-
 --------------------------------------------------------------------------------
 
-conjugateAux fun x = unsafePerformIO $ do
-    v <- createVector (dim x)
-    app2 fun vec x vec v "conjugateAux"
-    return v
-
-conjugateQ :: Vector (Complex Float) -> Vector (Complex Float)
-conjugateQ = conjugateAux c_conjugateQ
-foreign import ccall unsafe "conjugateQ" c_conjugateQ :: TQVQV
-
-conjugateC :: Vector (Complex Double) -> Vector (Complex Double)
-conjugateC = conjugateAux c_conjugateC
-foreign import ccall unsafe "conjugateC" c_conjugateC :: TCVCV
-
---------------------------------------------------------------------------------
-
-cloneVector :: Storable t => Vector t -> IO (Vector t)
-cloneVector v = do
-        let n = dim v
-        r <- createVector n
-        let f _ s _ d =  copyArray d s n >> return 0
-        app2 f vec v vec r "cloneVector"
-        return r
-
-------------------------------------------------------------------
 
 -- | map on Vectors
 mapVector :: (Storable a, Storable b) => (a-> b) -> Vector a -> Vector b
@@ -406,7 +276,7 @@ foldLoop f s0 d = go (d - 1) s0
        go !j !s = go (j - 1) (f j s)
 
 foldVectorG f s0 v = foldLoop g s0 (dim v)
-    where g !k !s = f k (at' v) s
+    where g !k !s = f k (safeRead v . flip peekElemOff) s
           {-# INLINE g #-} -- Thanks to Ryan Ingram (http://permalink.gmane.org/gmane.comp.lang.haskell.cafe/46479)
 {-# INLINE foldVectorG #-}
 
@@ -493,4 +363,85 @@ mapVectorWithIndex f v = unsafePerformIO $ do
     return w
 {-# INLINE mapVectorWithIndex #-}
 
+--------------------------------------------------------------------------------
+
+
+#ifdef BINARY
+
+-- a 64K cache, with a Double taking 13 bytes in Bytestring,
+-- implies a chunk size of 5041
+chunk :: Int
+chunk = 5000
+
+chunks :: Int -> [Int]
+chunks d = let c = d `div` chunk
+               m = d `mod` chunk
+           in if m /= 0 then reverse (m:(replicate c chunk)) else (replicate c chunk)
+
+putVector v = mapM_ put $! toList v
+
+getVector d = do
+              xs <- replicateM d get
+              return $! fromList xs
+
+--------------------------------------------------------------------------------
+
+toByteString :: Storable t => Vector t -> BS.ByteString
+toByteString v = BS.PS (castForeignPtr fp) (sz*o) (sz * dim v)
+  where
+    (fp,o,_n) = unsafeToForeignPtr v
+    sz = sizeOf (v@>0)
+
+
+fromByteString :: Storable t => BS.ByteString -> Vector t
+fromByteString (BS.PS fp o n) = r
+  where
+    r = unsafeFromForeignPtr (castForeignPtr (updPtr (`plusPtr` o) fp)) 0 n'
+    n' = n `div` sz
+    sz = sizeOf (r@>0)
+
+--------------------------------------------------------------------------------
+
+instance (Binary a, Storable a) => Binary (Vector a) where
+
+    put v = do
+            let d = dim v
+            put d
+            mapM_ putVector $! takesV (chunks d) v
+
+    -- put = put . v2bs
+
+    get = do
+          d <- get
+          vs <- mapM getVector $ chunks d
+          return $! vjoin vs
+
+    -- get = fmap bs2v get
+
+#endif
+
+
+-------------------------------------------------------------------
+
+{- | creates a Vector of the specified length using the supplied function to
+     to map the index to the value at that index.
+
+@> buildVector 4 fromIntegral
+4 |> [0.0,1.0,2.0,3.0]@
+
+-}
+buildVector :: Storable a => Int -> (Int -> a) -> Vector a
+buildVector len f =
+    fromList $ map f [0 .. (len - 1)]
+
+
+-- | zip for Vectors
+zipVector :: (Storable a, Storable b, Storable (a,b)) => Vector a -> Vector b -> Vector (a,b)
+zipVector = zipVectorWith (,)
+
+-- | unzip for Vectors
+unzipVector :: (Storable a, Storable b, Storable (a,b)) => Vector (a,b) -> (Vector a,Vector b)
+unzipVector = unzipVectorWith id
+
+-------------------------------------------------------------------
 
