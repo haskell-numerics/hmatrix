@@ -8,7 +8,7 @@
 
 -----------------------------------------------------------------------------
 {- |
-Module      :  Numeric.LinearAlgebra.Util
+Module      :  Internal.Util
 Copyright   :  (c) Alberto Ruiz 2013
 License     :  BSD3
 Maintainer  :  Alberto Ruiz
@@ -17,7 +17,7 @@ Stability   :  provisional
 -}
 -----------------------------------------------------------------------------
 
-module Numeric.LinearAlgebra.Util(
+module Internal.Util(
 
     -- * Convenience functions
     vector, matrix,
@@ -56,19 +56,27 @@ module Numeric.LinearAlgebra.Util(
     gaussElim
 ) where
 
-import Data.Packed.Numeric
-import Numeric.LinearAlgebra.Algorithms hiding (i,Normed)
---import qualified Numeric.LinearAlgebra.Algorithms as A
+import Internal.Tools
+import Internal.Vector
+import Internal.Matrix hiding (size)
+import Internal.Numeric
+import Internal.Element
+import Internal.Container
+import Internal.Vectorized
+import Internal.IO
+import Internal.Algorithms hiding (i,Normed)
 import Numeric.Matrix()
 import Numeric.Vector()
-import Numeric.LinearAlgebra.Random
-import Numeric.LinearAlgebra.Util.Convolution
+import Internal.Random
+import Internal.Convolution
 import Control.Monad(when)
 import Text.Printf
 import Data.List.Split(splitOn)
 import Data.List(intercalate,sortBy)
 import Data.Function(on)
 import Control.Arrow((&&&))
+import Data.Complex
+import Data.Vector.Storable(fromList)
 
 type ℝ = Double
 type ℕ = Int
