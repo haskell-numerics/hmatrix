@@ -2,7 +2,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Numeric.Chain
+-- Module      :  Internal.Chain
 -- Copyright   :  (c) Vivian McPhail 2010
 -- License     :  BSD3
 --
@@ -16,14 +16,14 @@
 
 {-# LANGUAGE FlexibleContexts #-}
 
-module Numeric.Chain (
+module Internal.Chain (
                       optimiseMult,
                      ) where
 
 import Data.Maybe
 
-import Data.Packed.Matrix
-import Data.Packed.Internal.Numeric
+import Internal.Matrix hiding (order)
+import Internal.Numeric
 
 import qualified Data.Array.IArray as A
 
