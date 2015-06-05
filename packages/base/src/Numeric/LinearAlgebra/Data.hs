@@ -93,12 +93,18 @@ module Numeric.LinearAlgebra.Data(
 
 ) where
 
-import Data.Packed.Vector
-import Data.Packed.Matrix
-import Data.Packed.Numeric
-import Numeric.LinearAlgebra.Util hiding ((&),(#))
+import Internal.Tools
+import Internal.Vector
+import Internal.Vectorized
+import Internal.Matrix hiding (size)
+import Internal.Element
+import Internal.IO
+import Internal.Numeric
+import Internal.Container
+import Internal.Util hiding ((&),(#))
 import Data.Complex
-import Numeric.Sparse
-import Numeric.LinearAlgebra.Util.Modular
+import Internal.Sparse
+import Internal.Modular
+import Data.Vector.Storable(fromList)
 
 

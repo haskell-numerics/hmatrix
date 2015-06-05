@@ -153,14 +153,17 @@ import Numeric.LinearAlgebra.Data
 
 import Numeric.Matrix()
 import Numeric.Vector()
-import Data.Packed.Numeric hiding ((<>), mul)
-import Numeric.LinearAlgebra.Algorithms hiding (linearSolve,Normed,orth)
-import qualified Numeric.LinearAlgebra.Algorithms as A
-import Numeric.LinearAlgebra.Util
-import Numeric.LinearAlgebra.Util.Modular
-import Numeric.LinearAlgebra.Random
-import Numeric.Sparse((!#>))
-import Numeric.LinearAlgebra.Util.CG
+import Internal.Matrix
+import Internal.Container hiding ((<>))
+import Internal.Numeric hiding (mul)
+import Internal.Algorithms hiding (linearSolve,Normed,orth)
+import qualified Internal.Algorithms as A
+import Internal.Util
+import Internal.Modular
+import Internal.Random
+import Internal.Sparse((!#>))
+import Internal.CG
+import Internal.Conversion
 
 {- | infix synonym of 'mul'
 

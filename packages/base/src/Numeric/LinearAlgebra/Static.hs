@@ -68,7 +68,7 @@ import Numeric.LinearAlgebra hiding (
     qr,size,app,mul,dot,chol,range)
 import qualified Numeric.LinearAlgebra as LA
 import Data.Proxy(Proxy)
-import Numeric.LinearAlgebra.Static.Internal
+import Internal.Static
 import Control.Arrow((***))
 
 

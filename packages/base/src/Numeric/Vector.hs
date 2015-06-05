@@ -19,9 +19,12 @@
 
 module Numeric.Vector () where
 
-import Numeric.Vectorized
-import Data.Packed.Vector
-import Data.Packed.Internal.Numeric
+import Internal.Tools
+import Internal.Vectorized
+import Internal.Vector
+import Internal.Numeric
+import Data.Vector.Storable(fromList)
+import Internal.Conversion
 
 -------------------------------------------------------------------
 

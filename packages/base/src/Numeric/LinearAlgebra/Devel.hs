@@ -17,12 +17,22 @@ module Numeric.LinearAlgebra.Devel(
     --
     -- @ glUniformMatrix4fv 0 1 (fromIntegral gl_TRUE) \`appMatrix\` perspective 0.01 100 (pi\/2) (4\/3)
     -- @
-    module Data.Packed.Foreign,
+    module Internal.Foreign,
 
     -- * FFI tools
     -- | Illustrative usage examples can be found
     --   in the @examples\/devel@ folder included in the package.
-    module Data.Packed.Development,
+    
+    createVector, createMatrix,
+    vec, mat, omat,
+    app1, app2, app3, app4,
+    app5, app6, app7, app8, app9, app10,
+    MatrixOrder(..), orderOf, cmat, fmat,
+    matrixFromVector,
+    unsafeFromForeignPtr,
+    unsafeToForeignPtr,
+    check, (//),
+    at', atM', fi, ti,
 
     -- * ST
     -- | In-place manipulation inside the ST monad.
@@ -58,9 +68,13 @@ module Numeric.LinearAlgebra.Devel(
 
 ) where
 
-import Data.Packed.Foreign
-import Data.Packed.Development
-import Data.Packed.ST
-import Data.Packed
-import Numeric.Sparse
+import Internal.Tools
+import Internal.Foreign
+import Internal.Devel
+import Internal.ST
+import Internal.Vector
+import Internal.Matrix
+import Internal.Element
+import Internal.Sparse
+import Data.Vector.Storable (unsafeToForeignPtr, unsafeFromForeignPtr )
 

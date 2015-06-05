@@ -26,11 +26,13 @@ module Numeric.Matrix (
 
 -------------------------------------------------------------------
 
-import Data.Packed
-import Data.Packed.Internal.Numeric
+import Internal.Vector
+import Internal.Matrix
+import Internal.Element
+import Internal.Numeric
 import qualified Data.Monoid as M
 import Data.List(partition)
-import Numeric.Chain
+import Internal.Chain
 
 -------------------------------------------------------------------
 

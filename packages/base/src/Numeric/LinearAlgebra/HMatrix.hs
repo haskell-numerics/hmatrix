@@ -17,6 +17,6 @@ module Numeric.LinearAlgebra.HMatrix (
 ) where
 
 import Numeric.LinearAlgebra
-import Numeric.LinearAlgebra.Util
+import Internal.Util
 
    
