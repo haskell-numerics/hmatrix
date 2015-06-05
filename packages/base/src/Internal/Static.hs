@@ -13,21 +13,21 @@
 {-# LANGUAGE ViewPatterns #-}
 
 {- |
-Module      :  Numeric.LinearAlgebra.Static.Internal
+Module      :  Internal.Static
 Copyright   :  (c) Alberto Ruiz 2006-14
 License     :  BSD3
 Stability   :  provisional
 
 -}
 
-module Numeric.LinearAlgebra.Static.Internal where
+module Internal.Static where
 
 
 import GHC.TypeLits
 import qualified Numeric.LinearAlgebra as LA
 import Numeric.LinearAlgebra hiding (konst,size)
-import Data.Packed as D
-import Data.Packed.ST
+import Internal.Vector as D
+import Internal.ST
 import Data.Proxy(Proxy)
 import Foreign.Storable(Storable)
 import Text.Printf
