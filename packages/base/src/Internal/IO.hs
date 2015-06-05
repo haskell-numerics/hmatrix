@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Packed.IO
+-- Module      :  Internal.IO
 -- Copyright   :  (c) Alberto Ruiz 2010
 -- License     :  BSD3
 --
@@ -10,19 +10,22 @@
 -- Display, formatting and IO functions for numeric 'Vector' and 'Matrix'
 --
 -----------------------------------------------------------------------------
-{-# OPTIONS_HADDOCK hide #-}
 
-module Data.Packed.IO (
+module Internal.IO (
     dispf, disps, dispcf, vecdisp, latexFormat, format,
-    readMatrix, fromArray2D, loadMatrix, loadMatrix', saveMatrix
+    loadMatrix, loadMatrix', saveMatrix
 ) where
 
-import Data.Packed
+import Internal.Tools
+import Internal.Devel
+import Internal.Vector
+import Internal.Matrix
+import Internal.Vectorized
 import Text.Printf(printf)
 import Data.List(intersperse)
 import Data.Complex
-import Numeric.Vectorized(vectorScan,saveMatrix)
-import Data.Packed.Internal
+
+
 
 {- | Creates a string from a matrix given a separator and a function to show each entry. Using
 this function the user can easily define any desired display function:
@@ -135,12 +138,6 @@ dispcf :: Int -> Matrix (Complex Double) -> String
 dispcf d m = sdims m ++ "\n" ++ format "  " (showComplex d) m
 
 --------------------------------------------------------------------
-
--- | reads a matrix from a string containing a table of numbers.
-readMatrix :: String -> Matrix Double
-readMatrix = fromLists . map (map read). map words . filter (not.null) . lines
-
---------------------------------------------------------------------------------
 
 apparentCols :: FilePath -> IO Int
 apparentCols s = f . dropWhile null . map words . lines <$> readFile s
