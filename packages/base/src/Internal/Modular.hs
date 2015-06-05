@@ -12,7 +12,7 @@
 
 
 {- |
-Module      :  Numeric.LinearAlgebra.Util.Modular
+Module      :  Internal.Modular
 Copyright   :  (c) Alberto Ruiz 2015
 License     :  BSD3
 Stability   :  experimental
@@ -21,20 +21,24 @@ Proof of concept of statically checked modular arithmetic.
 
 -}
 
-module Numeric.LinearAlgebra.Util.Modular(
+module Internal.Modular(
     Mod, F
 ) where
 
-import Data.Packed.Numeric
-import Numeric.LinearAlgebra.Util(Indexable(..),gaussElim)
+import Internal.Vector
+import Internal.Matrix hiding (mat,size)
+import Internal.Numeric
+import Internal.Element
+import Internal.Tools
+import Internal.Container
+import Internal.Util(Indexable(..),gaussElim)
 import GHC.TypeLits
 import Data.Proxy(Proxy)
 import Foreign.ForeignPtr(castForeignPtr)
-import Data.Vector.Storable(unsafeToForeignPtr, unsafeFromForeignPtr)
+import Data.Vector.Storable(fromList,unsafeToForeignPtr, unsafeFromForeignPtr)
 import Foreign.Storable
 import Data.Ratio
-import Data.Packed.Internal.Matrix hiding (mat,size)
-import Data.Packed.Internal.Numeric
+
 
 
 -- | Wrapper with a phantom integer for statically checked modular arithmetic.
@@ -149,7 +153,6 @@ instance forall m . KnownNat m => Container Vector (F m)
     find' = findV
     assoc' = assocV
     accum' = accumV
-    cond' x y l e g = cselect (ccompare x y) l e g
     ccompare' a b = ccompare (toInt a) (toInt b)
     cselect' c l e g = i2f $ cselect c (toInt l) (toInt e) (toInt g)
     scaleRecip s x = scale' s (cmap recip x)
