@@ -18,34 +18,16 @@
 -- This module provides basic functions for manipulation of structure.
 
 -----------------------------------------------------------------------------
-{-# OPTIONS_HADDOCK hide #-}
 
-module Data.Packed.Matrix (
-    Matrix,
-    Element,
-    rows,cols,
-    (><),
-    trans,
-    reshape, flatten,
-    fromLists, toLists, buildMatrix,
-    (@@>),
-    asRow, asColumn,
-    fromRows, toRows, fromColumns, toColumns,
-    fromBlocks, diagBlock, toBlocks, toBlocksEvery,
-    repmat,
-    flipud, fliprl, subMatrix,
-    takeRows, takeLastRows, dropRows, dropLastRows,
-    takeColumns, takeLastColumns, dropColumns, dropLastColumns,
-    extractRows, extractColumns,
-    diagRect, takeDiag,
-    mapMatrix, mapMatrixWithIndex, mapMatrixWithIndexM, mapMatrixWithIndexM_,
-    liftMatrix, liftMatrix2, liftMatrix2Auto,fromArray2D
-) where
+module Internal.Element where
 
-import Data.Packed.Internal
-import qualified Data.Packed.ST as ST
+import Internal.Tools
+import Internal.Vector
+import Internal.Matrix
+import qualified Internal.ST as ST
 import Data.Array
 
+import Data.Vector.Storable(fromList)
 import Data.List(transpose,intersperse)
 import Foreign.Storable(Storable)
 import Control.Monad(liftM)
@@ -219,7 +201,7 @@ diagRect z v r c = ST.runSTMatrix $ do
 
 -- | extracts the diagonal from a rectangular matrix
 takeDiag :: (Element t) => Matrix t -> Vector t
-takeDiag m = fromList [flatten m `at` (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
+takeDiag m = fromList [flatten m @> (k*cols m+k) | k <- [0 .. min (rows m) (cols m) -1]]
 
 ------------------------------------------------------------
 
@@ -505,3 +487,4 @@ mapMatrixWithIndex g m = reshape c . mapVectorWithIndex (mk c g) . flatten $ m
 
 mapMatrix :: (Storable a, Storable b) => (a -> b) -> Matrix a -> Matrix b
 mapMatrix f = liftMatrix (mapVector f)
+
