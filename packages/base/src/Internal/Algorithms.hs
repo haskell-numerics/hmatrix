@@ -6,7 +6,7 @@
 
 -----------------------------------------------------------------------------
 {- |
-Module      :  Numeric.LinearAlgebra.Algorithms
+Module      :  Internal.Algorithms
 Copyright   :  (c) Alberto Ruiz 2006-14
 License     :  BSD3
 Maintainer  :  Alberto Ruiz
@@ -18,73 +18,21 @@ Specific functions for particular base types can also be explicitly
 imported from "Numeric.LinearAlgebra.LAPACK".
 
 -}
-{-# OPTIONS_HADDOCK hide #-}
 -----------------------------------------------------------------------------
 
-module Numeric.LinearAlgebra.Algorithms (
--- * Supported types
-    Field(),
--- * Linear Systems
-    linearSolve,
-    mbLinearSolve,
-    luSolve,
-    cholSolve,
-    linearSolveLS,
-    linearSolveSVD,
-    inv, pinv, pinvTol,
-    det, invlndet,
-    rank, rcond,
--- * Matrix factorizations
--- ** Singular value decomposition
-    svd,
-    fullSVD,
-    thinSVD,
-    compactSVD,
-    singularValues,
-    leftSV, rightSV,
--- ** Eigensystems
-    eig, eigSH, eigSH',
-    eigenvalues, eigenvaluesSH, eigenvaluesSH',
-    geigSH',
--- ** QR
-    qr, rq, qrRaw, qrgr,
--- ** Cholesky
-    chol, cholSH, mbCholSH,
--- ** Hessenberg
-    hess,
--- ** Schur
-    schur,
--- ** LU
-    lu, luPacked,
--- * Matrix functions
-    expm,
-    sqrtm,
-    matFunc,
--- * Nullspace
-    nullspacePrec,
-    nullVector,
-    nullspaceSVD,
-    orthSVD,
-    orth,
--- * Norms
-    Normed(..), NormType(..),
-    relativeError', relativeError,
--- * Misc
-    eps, peps, i,
--- * Util
-    haussholder,
-    unpackQR, unpackHess,
-    ranksv
-) where
+module Internal.Algorithms where
 
-
-import Data.Packed
-import Numeric.LinearAlgebra.LAPACK as LAPACK
+import Internal.Vector
+import Internal.Matrix
+import Internal.Element
+import Internal.Conversion
+import Internal.LAPACK as LAPACK
 import Data.List(foldl1')
 import Data.Array
-import Data.Packed.Internal.Numeric
-import Data.Packed.Internal(shSize)
+import Internal.Numeric
+import Data.Vector.Storable(fromList)
 
+-- :i mul
 
 {- | Generic linear algebra functions for double precision real and complex matrices.
 
