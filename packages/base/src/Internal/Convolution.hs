@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 {- |
-Module      :  Numeric.LinearAlgebra.Util.Convolution
+Module      :  Internal.Convolution
 Copyright   :  (c) Alberto Ruiz 2012
 License     :  BSD3
 Maintainer  :  Alberto Ruiz
@@ -11,13 +11,18 @@ Stability   :  provisional
 -----------------------------------------------------------------------------
 {-# OPTIONS_HADDOCK hide #-}
 
-module Numeric.LinearAlgebra.Util.Convolution(
+module Internal.Convolution(
    corr, conv, corrMin,
    corr2, conv2, separable
 ) where
 
 import qualified Data.Vector.Storable as SV
-import Data.Packed.Numeric
+import Internal.Vector
+import Internal.Matrix hiding (mat)
+import Internal.Numeric
+import Internal.Element
+import Internal.Conversion
+import Internal.Container
 
 
 vectSS :: Element t => Int -> Vector t -> Matrix t
