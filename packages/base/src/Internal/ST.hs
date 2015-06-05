@@ -1,10 +1,8 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE Rank2Types    #-}
 {-# LANGUAGE BangPatterns  #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Packed.ST
+-- Module      :  Internal.ST
 -- Copyright   :  (c) Alberto Ruiz 2008
 -- License     :  BSD3
 -- Maintainer  :  Alberto Ruiz
@@ -14,9 +12,8 @@
 -- See examples/inplace.hs in the distribution.
 --
 -----------------------------------------------------------------------------
-{-# OPTIONS_HADDOCK hide #-}
 
-module Data.Packed.ST (
+module Internal.ST (
     -- * Mutable Vectors
     STVector, newVector, thawVector, freezeVector, runSTVector,
     readVector, writeVector, modifyVector, liftSTVector,
@@ -32,16 +29,17 @@ module Data.Packed.ST (
     unsafeThawMatrix, unsafeFreezeMatrix
 ) where
 
-import Data.Packed.Internal
+import Internal.Vector
+import Internal.Matrix
+import Internal.Vectorized
+import Data.Vector.Storable(unsafeWith)
+
 
 import Control.Monad.ST(ST, runST)
 import Foreign.Storable(Storable, peekElemOff, pokeElemOff)
 
-#if MIN_VERSION_base(4,4,0)
+
 import Control.Monad.ST.Unsafe(unsafeIOToST)
-#else
-import Control.Monad.ST(unsafeIOToST)
-#endif
 
 {-# INLINE ioReadV #-}
 ioReadV :: Storable t => Vector t -> Int -> IO t
