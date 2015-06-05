@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeOperators #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.LinearAlgebra.LAPACK
@@ -9,56 +11,36 @@
 -- Functional interface to selected LAPACK functions (<http://www.netlib.org/lapack>).
 --
 -----------------------------------------------------------------------------
-{-# OPTIONS_HADDOCK hide #-}
 
 
-module Numeric.LinearAlgebra.LAPACK (
-    -- * Matrix product
-    multiplyR, multiplyC, multiplyF, multiplyQ, multiplyI,
-    -- * Linear systems
-    linearSolveR, linearSolveC,
-    mbLinearSolveR, mbLinearSolveC,
-    lusR, lusC,
-    cholSolveR, cholSolveC,
-    linearSolveLSR, linearSolveLSC,
-    linearSolveSVDR, linearSolveSVDC,
-    -- * SVD
-    svR, svRd, svC, svCd,
-    svdR, svdRd, svdC, svdCd,
-    thinSVDR, thinSVDRd, thinSVDC, thinSVDCd,
-    rightSVR, rightSVC, leftSVR, leftSVC,
-    -- * Eigensystems
-    eigR, eigC, eigS, eigS', eigH, eigH',
-    eigOnlyR, eigOnlyC, eigOnlyS, eigOnlyH,
-    -- * LU
-    luR, luC,
-    -- * Cholesky
-    cholS, cholH, mbCholS, mbCholH,
-    -- * QR
-    qrR, qrC, qrgrR, qrgrC,
-    -- * Hessenberg
-    hessR, hessC,
-    -- * Schur
-    schurR, schurC
-) where
+module Internal.LAPACK where
 
-import Data.Packed.Development
-import Data.Packed
-import Data.Packed.Internal
-import Numeric.Conversion
+import Internal.Devel
+import Internal.Vector
+import Internal.Matrix
+import Internal.Conversion
+import Internal.Element
 
 import Foreign.Ptr(nullPtr)
 import Foreign.C.Types
 import Control.Monad(when)
 import System.IO.Unsafe(unsafePerformIO)
+import Data.Vector.Storable(fromList)
 
 -----------------------------------------------------------------------------------
 
-foreign import ccall unsafe "multiplyR" dgemmc :: CInt -> CInt -> TMMM
-foreign import ccall unsafe "multiplyC" zgemmc :: CInt -> CInt -> TCMCMCM
-foreign import ccall unsafe "multiplyF" sgemmc :: CInt -> CInt -> TFMFMFM
-foreign import ccall unsafe "multiplyQ" cgemmc :: CInt -> CInt -> TQMQMQM
-foreign import ccall unsafe "multiplyI" c_multiplyI :: OM CInt (OM CInt (OM CInt (IO CInt)))
+type TMMM t = t ..> t ..> t ..> Ok
+
+type R = Double
+type C = Complex Double
+type F = Float
+type Q = Complex Float
+
+foreign import ccall unsafe "multiplyR" dgemmc :: CInt -> CInt -> TMMM R
+foreign import ccall unsafe "multiplyC" zgemmc :: CInt -> CInt -> TMMM C
+foreign import ccall unsafe "multiplyF" sgemmc :: CInt -> CInt -> TMMM F
+foreign import ccall unsafe "multiplyQ" cgemmc :: CInt -> CInt -> TMMM Q
+foreign import ccall unsafe "multiplyI" c_multiplyI :: CInt ::> CInt ::> CInt ::> Ok
 
 isT Matrix{order = ColumnMajor} = 0
 isT Matrix{order = RowMajor} = 1
@@ -98,10 +80,13 @@ multiplyI a b = unsafePerformIO $ do
     return s
 
 -----------------------------------------------------------------------------
-foreign import ccall unsafe "svd_l_R" dgesvd :: TMMVM
-foreign import ccall unsafe "svd_l_C" zgesvd :: TCMCMVCM
-foreign import ccall unsafe "svd_l_Rdd" dgesdd :: TMMVM
-foreign import ccall unsafe "svd_l_Cdd" zgesdd :: TCMCMVCM
+
+type TSVD t = t ..> t ..> R :> t ..> Ok
+
+foreign import ccall unsafe "svd_l_R" dgesvd :: TSVD R
+foreign import ccall unsafe "svd_l_C" zgesvd :: TSVD C
+foreign import ccall unsafe "svd_l_Rdd" dgesdd :: TSVD R
+foreign import ccall unsafe "svd_l_Cdd" zgesdd :: TSVD C
 
 -- | Full SVD of a real matrix using LAPACK's /dgesvd/.
 svdR :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
@@ -221,10 +206,10 @@ leftSVAux f st x = unsafePerformIO $ do
 
 -----------------------------------------------------------------------------
 
-foreign import ccall unsafe "eig_l_R" dgeev :: TMMCVM
-foreign import ccall unsafe "eig_l_C" zgeev :: TCMCMCVCM
-foreign import ccall unsafe "eig_l_S" dsyev :: CInt -> TMVM
-foreign import ccall unsafe "eig_l_H" zheev :: CInt -> TCMVCM
+foreign import ccall unsafe "eig_l_R" dgeev :: R ..> R ..> C :> R ..> Ok
+foreign import ccall unsafe "eig_l_C" zgeev :: C ..> C ..> C :> C ..> Ok
+foreign import ccall unsafe "eig_l_S" dsyev :: CInt -> R ..> R :> R ..> Ok
+foreign import ccall unsafe "eig_l_H" zheev :: CInt -> C ..> R :> C ..> Ok
 
 eigAux f st m = unsafePerformIO $ do
         l <- createVector r
@@ -334,10 +319,10 @@ eigOnlyH = vrev . fst. eigSHAux (zheev 0) "eigH'" . fmat
 vrev = flatten . flipud . reshape 1
 
 -----------------------------------------------------------------------------
-foreign import ccall unsafe "linearSolveR_l" dgesv :: TMMM
-foreign import ccall unsafe "linearSolveC_l" zgesv :: TCMCMCM
-foreign import ccall unsafe "cholSolveR_l" dpotrs :: TMMM
-foreign import ccall unsafe "cholSolveC_l" zpotrs :: TCMCMCM
+foreign import ccall unsafe "linearSolveR_l" dgesv :: TMMM R
+foreign import ccall unsafe "linearSolveC_l" zgesv :: TMMM C
+foreign import ccall unsafe "cholSolveR_l" dpotrs  :: TMMM R
+foreign import ccall unsafe "cholSolveC_l" zpotrs  :: TMMM C
 
 linearSolveSQAux g f st a b
     | n1==n2 && n1==r = unsafePerformIO . g $ do
@@ -374,10 +359,10 @@ cholSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Comp
 cholSolveC a b = linearSolveSQAux id zpotrs "cholSolveC" (fmat a) (fmat b)
 
 -----------------------------------------------------------------------------------
-foreign import ccall unsafe "linearSolveLSR_l" dgels :: TMMM
-foreign import ccall unsafe "linearSolveLSC_l" zgels :: TCMCMCM
-foreign import ccall unsafe "linearSolveSVDR_l" dgelss :: Double -> TMMM
-foreign import ccall unsafe "linearSolveSVDC_l" zgelss :: Double -> TCMCMCM
+foreign import ccall unsafe "linearSolveLSR_l" dgels :: TMMM R
+foreign import ccall unsafe "linearSolveLSC_l" zgels :: TMMM C
+foreign import ccall unsafe "linearSolveSVDR_l" dgelss :: Double -> TMMM R
+foreign import ccall unsafe "linearSolveSVDC_l" zgelss :: Double -> TMMM C
 
 linearSolveAux f st a b = unsafePerformIO $ do
     r <- createMatrix ColumnMajor (max m n) nrhs
@@ -416,8 +401,9 @@ linearSolveSVDC (Just rcond) a b = subMatrix (0,0) (cols a, cols b) $
 linearSolveSVDC Nothing a b = linearSolveSVDC (Just (-1)) (fmat a) (fmat b)
 
 -----------------------------------------------------------------------------------
-foreign import ccall unsafe "chol_l_H" zpotrf :: TCMCM
-foreign import ccall unsafe "chol_l_S" dpotrf :: TMM
+
+foreign import ccall unsafe "chol_l_H" zpotrf :: TMM C
+foreign import ccall unsafe "chol_l_S" dpotrf :: TMM R
 
 cholAux f st a = do
     r <- createMatrix ColumnMajor n n
@@ -442,8 +428,11 @@ mbCholS :: Matrix Double -> Maybe (Matrix Double)
 mbCholS =  unsafePerformIO . mbCatch . cholAux dpotrf "cholS" . fmat
 
 -----------------------------------------------------------------------------------
-foreign import ccall unsafe "qr_l_R" dgeqr2 :: TMVM
-foreign import ccall unsafe "qr_l_C" zgeqr2 :: TCMCVCM
+
+type TMVM t = t ..> t :> t ..> Ok
+
+foreign import ccall unsafe "qr_l_R" dgeqr2 :: TMVM R
+foreign import ccall unsafe "qr_l_C" zgeqr2 :: TMVM C
 
 -- | QR factorization of a real matrix, using LAPACK's /dgeqr2/.
 qrR :: Matrix Double -> (Matrix Double, Vector Double)
@@ -463,8 +452,8 @@ qrAux f st a = unsafePerformIO $ do
     n = cols a
     mn = min m n
 
-foreign import ccall unsafe "c_dorgqr" dorgqr :: TMVM
-foreign import ccall unsafe "c_zungqr" zungqr :: TCMCVCM
+foreign import ccall unsafe "c_dorgqr" dorgqr :: TMVM R
+foreign import ccall unsafe "c_zungqr" zungqr :: TMVM C
 
 -- | build rotation from reflectors
 qrgrR :: Int -> (Matrix Double, Vector Double) -> Matrix Double
@@ -481,8 +470,8 @@ qrgrAux f st n (a, tau) = unsafePerformIO $ do
     tau' = vjoin [tau, constantD 0 n]
 
 -----------------------------------------------------------------------------------
-foreign import ccall unsafe "hess_l_R" dgehrd :: TMVM
-foreign import ccall unsafe "hess_l_C" zgehrd :: TCMCVCM
+foreign import ccall unsafe "hess_l_R" dgehrd :: TMVM R
+foreign import ccall unsafe "hess_l_C" zgehrd :: TMVM C
 
 -- | Hessenberg factorization of a square real matrix, using LAPACK's /dgehrd/.
 hessR :: Matrix Double -> (Matrix Double, Vector Double)
@@ -502,8 +491,8 @@ hessAux f st a = unsafePerformIO $ do
         mn = min m n
 
 -----------------------------------------------------------------------------------
-foreign import ccall unsafe "schur_l_R" dgees :: TMMM
-foreign import ccall unsafe "schur_l_C" zgees :: TCMCMCM
+foreign import ccall unsafe "schur_l_R" dgees :: TMMM R
+foreign import ccall unsafe "schur_l_C" zgees :: TMMM C
 
 -- | Schur factorization of a square real matrix, using LAPACK's /dgees/.
 schurR :: Matrix Double -> (Matrix Double, Matrix Double)
@@ -521,8 +510,8 @@ schurAux f st a = unsafePerformIO $ do
   where n = rows a
 
 -----------------------------------------------------------------------------------
-foreign import ccall unsafe "lu_l_R" dgetrf :: TMVM
-foreign import ccall unsafe "lu_l_C" zgetrf :: TCMVCM
+foreign import ccall unsafe "lu_l_R" dgetrf :: TMVM R
+foreign import ccall unsafe "lu_l_C" zgetrf :: C ..> R :> C ..> Ok
 
 -- | LU factorization of a general real matrix, using LAPACK's /dgetrf/.
 luR :: Matrix Double -> (Matrix Double, [Int])
@@ -541,11 +530,11 @@ luAux f st a = unsafePerformIO $ do
         m = cols a
 
 -----------------------------------------------------------------------------------
-type TW a = CInt -> PD -> a
-type TQ a = CInt -> CInt -> PC -> a
 
-foreign import ccall unsafe "luS_l_R" dgetrs :: TMVMM
-foreign import ccall unsafe "luS_l_C" zgetrs :: TQ (TW (TQ (TQ (IO CInt))))
+type Tlus t = t ..> Double :> t ..> t ..> Ok
+
+foreign import ccall unsafe "luS_l_R" dgetrs :: Tlus R
+foreign import ccall unsafe "luS_l_C" zgetrs :: Tlus C
 
 -- | Solve a real linear system from a precomputed LU decomposition ('luR'), using LAPACK's /dgetrs/.
 lusR :: Matrix Double -> [Int] -> Matrix Double -> Matrix Double
