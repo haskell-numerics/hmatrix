@@ -25,7 +25,7 @@ extra-source-files: src/Internal/C/lapack-aux.h
 flag openblas
     description:    Link with OpenBLAS (https://github.com/xianyi/OpenBLAS) optimized libraries.
     default:        False
-    manual: True 
+    manual: True
 
 library
 
@@ -41,41 +41,39 @@ library
 
     hs-source-dirs:     src
 
-    exposed-modules:    Numeric.LinearAlgebra
+    exposed-modules:
+                        Numeric.LinearAlgebra
                         Numeric.LinearAlgebra.Devel
                         Numeric.LinearAlgebra.Data
                         Numeric.LinearAlgebra.HMatrix
                         Numeric.LinearAlgebra.Static
 
-    other-modules:      Data.Packed,
-                        Data.Packed.Vector
-                        Data.Packed.Matrix
-                        Data.Packed.Foreign
-                        Data.Packed.ST
-                        Data.Packed.Development
-                        Data.Packed.Internal
-                        Data.Packed.Internal.Common
-                        Data.Packed.Internal.Signatures
-                        Data.Packed.Internal.Vector
-                        Data.Packed.Internal.Matrix
-                        Data.Packed.IO
-                        Numeric.Chain
-                        Numeric.Vectorized
+    other-modules:
+                        Internal.Tools
+                        Internal.Vector
+                        Internal.Devel
+                        Internal.Vectorized
+                        Internal.Matrix
+                        Internal.Foreign
+                        Internal.ST
+                        Internal.IO
+                        Internal.Element
+                        Internal.Conversion
+                        Internal.LAPACK
+                        Internal.Numeric
+                        Internal.Algorithms
+                        Internal.Random
+                        Internal.Container
+                        Internal.Sparse
+                        Internal.Convolution
+                        Internal.Chain
+                        Internal.CG
+                        Internal.Util
+                        Internal.Modular
+                        Internal.Static
                         Numeric.Vector
                         Numeric.Matrix
-                        Data.Packed.Internal.Numeric
-                        Data.Packed.Numeric
-                        Numeric.LinearAlgebra.LAPACK
-                        Numeric.LinearAlgebra.Algorithms
-                        Numeric.Container
-                        Numeric.LinearAlgebra.Util.Convolution
-                        Numeric.LinearAlgebra.Util.CG
-                        Numeric.LinearAlgebra.Random
-                        Numeric.Conversion
-                        Numeric.Sparse
-                        Numeric.LinearAlgebra.Static.Internal
-                        Numeric.LinearAlgebra.Util
-                        Numeric.LinearAlgebra.Util.Modular
+
 
     C-sources:          src/Internal/C/lapack-aux.c
                         src/Internal/C/vector-aux.c
@@ -98,9 +96,9 @@ library
     cpp-options:        -DBINARY
 
     if flag(openblas)
-        extra-lib-dirs:     /usr/lib/openblas/lib    
+        extra-lib-dirs:     /usr/lib/openblas/lib
         extra-libraries:    openblas
-    else 
+    else
         extra-libraries:    blas lapack
 
     if os(OSX)
