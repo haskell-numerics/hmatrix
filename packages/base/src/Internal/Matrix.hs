@@ -16,12 +16,9 @@
 
 module Internal.Matrix where
 
-
-import Internal.Tools ( splitEvery, fi, compatdim, (//) )
 import Internal.Vector
 import Internal.Devel
 import Internal.Vectorized
-import Data.Vector.Storable ( unsafeWith, fromList )
 import Foreign.Marshal.Alloc ( free )
 import Foreign.Ptr ( Ptr )
 import Foreign.Storable ( Storable )
@@ -30,7 +27,7 @@ import Foreign.C.Types ( CInt(..) )
 import Foreign.C.String ( CString, newCString )
 import System.IO.Unsafe ( unsafePerformIO )
 import Control.DeepSeq ( NFData(..) )
-
+import Data.List.Split(chunksOf)
 
 -----------------------------------------------------------------
 
@@ -150,7 +147,22 @@ type t ::> s = Mt t s
 
 -- | the inverse of 'Data.Packed.Matrix.fromLists'
 toLists :: (Element t) => Matrix t -> [[t]]
-toLists m = splitEvery (cols m) . toList . flatten $ m
+toLists m = chunksOf (cols m) . toList . flatten $ m
+
+
+
+-- | common value with \"adaptable\" 1
+compatdim :: [Int] -> Maybe Int
+compatdim [] = Nothing
+compatdim [a] = Just a
+compatdim (a:b:xs)
+    | a==b = compatdim (b:xs)
+    | a==1 = compatdim (b:xs)
+    | b==1 = compatdim (a:xs)
+    | otherwise = Nothing
+
+
+
 
 -- | Create a matrix from a list of vectors.
 -- All vectors must have the same dimension,

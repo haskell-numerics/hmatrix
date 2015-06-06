@@ -11,13 +11,17 @@
 module Internal.Devel where
 
 
-import Internal.Tools ( (//) )
 import Control.Monad ( when )
 import Foreign.C.Types ( CInt )
 --import Foreign.Storable.Complex ()
 import Foreign.Ptr(Ptr)
 import Control.Exception as E ( SomeException, catch )
 
+
+-- | postfix function application (@flip ($)@)
+(//) :: x -> (x -> y) -> y
+infixl 0 //
+(//) = flip ($)
 
 -- hmm..
 ww2 w1 o1 w2 o2 f = w1 o1 $ w2 o2 . f

@@ -56,7 +56,6 @@ module Internal.Util(
     gaussElim
 ) where
 
-import Internal.Tools
 import Internal.Vector
 import Internal.Matrix hiding (size)
 import Internal.Numeric
@@ -76,7 +75,6 @@ import Data.List(intercalate,sortBy)
 import Data.Function(on)
 import Control.Arrow((&&&))
 import Data.Complex
-import Data.Vector.Storable(fromList)
 
 type ℝ = Double
 type ℕ = Int

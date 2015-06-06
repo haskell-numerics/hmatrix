@@ -21,15 +21,14 @@
 
 module Internal.Element where
 
-import Internal.Tools
 import Internal.Vector
 import Internal.Matrix
 import Internal.Vectorized
 import qualified Internal.ST as ST
 import Data.Array
 import Text.Printf
-import Data.Vector.Storable(fromList)
 import Data.List(transpose,intersperse)
+import Data.List.Split(chunksOf)
 import Foreign.Storable(Storable)
 import Control.Monad(liftM)
 
@@ -165,6 +164,15 @@ m ?? (er,ec) = extractR m moder rs modec cs
 
 --------------------------------------------------------------------------------
 
+-- | obtains the common value of a property of a list
+common :: (Eq a) => (b->a) -> [b] -> Maybe a
+common f = commonval . map f
+  where
+    commonval :: (Eq a) => [a] -> Maybe a
+    commonval [] = Nothing
+    commonval [a] = Just a
+    commonval (a:b:xs) = if a==b then commonval (b:xs) else Nothing
+
 
 -- | creates a matrix from a vertical list of matrices
 joinVert :: Element t => [Matrix t] -> Matrix t
@@ -210,7 +218,7 @@ adaptBlocks ms = ms' where
     rs = map (compatdim . map rows) ms
     cs = map (compatdim . map cols) (transpose ms)
     szs = sequence [rs,cs]
-    ms' = splitEvery bc $ zipWith g szs (concat ms)
+    ms' = chunksOf bc $ zipWith g szs (concat ms)
 
     g [Just nr,Just nc] m
                 | nr == r && nc == c = m

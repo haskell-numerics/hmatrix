@@ -14,10 +14,8 @@
 
 module Internal.Vectorized where
 
-import Internal.Tools
 import Internal.Vector
 import Internal.Devel
-
 import Data.Complex
 import Foreign.Marshal.Alloc(free,malloc)
 import Foreign.Marshal.Array(newArray,copyArray)
@@ -26,9 +24,8 @@ import Foreign.Storable(peek,Storable)
 import Foreign.C.Types
 import Foreign.C.String
 import System.IO.Unsafe(unsafePerformIO)
-
 import Control.Monad(when)
-import Data.Vector.Storable ( unsafeWith )
+
 
 
 fromei x = fromIntegral (fromEnum x) :: CInt

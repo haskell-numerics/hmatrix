@@ -25,8 +25,6 @@ import Internal.Matrix
 import Internal.Numeric
 import Internal.Algorithms
 import System.Random(randomIO)
-import Data.Vector.Storable(fromList)
-
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
 -- Gaussian distribution.

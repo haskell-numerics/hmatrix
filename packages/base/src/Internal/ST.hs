@@ -32,9 +32,6 @@ module Internal.ST (
 import Internal.Vector
 import Internal.Matrix
 import Internal.Vectorized
-import Data.Vector.Storable(unsafeWith)
-
-
 import Control.Monad.ST(ST, runST)
 import Foreign.Storable(Storable, peekElemOff, pokeElemOff)
 

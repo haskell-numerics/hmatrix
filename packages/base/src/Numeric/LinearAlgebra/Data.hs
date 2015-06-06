@@ -88,12 +88,11 @@ module Numeric.LinearAlgebra.Data(
     separable,
     fromArray2D,
     module Data.Complex,
-    I,F,
+    R,C,I,Z,F,
     Vector, Matrix, GMatrix, nRows, nCols
 
 ) where
 
-import Internal.Tools
 import Internal.Vector
 import Internal.Vectorized
 import Internal.Matrix hiding (size)
@@ -105,6 +104,5 @@ import Internal.Util hiding ((&),(#))
 import Data.Complex
 import Internal.Sparse
 import Internal.Modular
-import Data.Vector.Storable(fromList)
 
 

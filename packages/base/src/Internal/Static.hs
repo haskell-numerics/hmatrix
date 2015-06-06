@@ -25,8 +25,8 @@ module Internal.Static where
 
 import GHC.TypeLits
 import qualified Numeric.LinearAlgebra as LA
-import Numeric.LinearAlgebra hiding (konst,size)
-import Internal.Vector as D
+import Numeric.LinearAlgebra hiding (konst,size,R,C)
+import Internal.Vector as D hiding (R,C)
 import Internal.ST
 import Data.Proxy(Proxy)
 import Foreign.Storable(Storable)

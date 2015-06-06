@@ -47,8 +47,7 @@ library
                         Numeric.LinearAlgebra.HMatrix
                         Numeric.LinearAlgebra.Static
 
-    other-modules:      Internal.Tools
-                        Internal.Vector
+    other-modules:      Internal.Vector
                         Internal.Devel
                         Internal.Vectorized
                         Internal.Matrix

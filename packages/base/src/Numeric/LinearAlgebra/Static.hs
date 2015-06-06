@@ -65,7 +65,7 @@ import Numeric.LinearAlgebra hiding (
     row,col,vector,matrix,linspace,toRows,toColumns,
     (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',
     eigenvalues,eigenvaluesSH,eigenvaluesSH',build,
-    qr,size,app,mul,dot,chol,range)
+    qr,size,app,mul,dot,chol,range,R,C)
 import qualified Numeric.LinearAlgebra as LA
 import Data.Proxy(Proxy)
 import Internal.Static

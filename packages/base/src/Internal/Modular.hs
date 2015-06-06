@@ -29,13 +29,11 @@ import Internal.Vector
 import Internal.Matrix hiding (mat,size)
 import Internal.Numeric
 import Internal.Element
-import Internal.Tools
 import Internal.Container
 import Internal.Util(Indexable(..),gaussElim)
 import GHC.TypeLits
 import Data.Proxy(Proxy)
 import Foreign.ForeignPtr(castForeignPtr)
-import Data.Vector.Storable(fromList,unsafeToForeignPtr, unsafeFromForeignPtr)
 import Foreign.Storable
 import Data.Ratio
 

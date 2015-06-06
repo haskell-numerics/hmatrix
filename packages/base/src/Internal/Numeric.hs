@@ -18,7 +18,6 @@
 
 module Internal.Numeric where
 
-import Internal.Tools
 import Internal.Vector
 import Internal.Matrix
 import Internal.Element
@@ -26,7 +25,7 @@ import Internal.ST as ST
 import Internal.Conversion
 import Internal.Vectorized
 import Internal.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ,multiplyI)
-import Data.Vector.Storable(fromList)
+import Data.List.Split(chunksOf)
 
 --------------------------------------------------------------------------------
 
@@ -617,7 +616,7 @@ m2=(4><3)
 -}
 kronecker :: (Product t) => Matrix t -> Matrix t -> Matrix t
 kronecker a b = fromBlocks
-              . splitEvery (cols a)
+              . chunksOf (cols a)
               . map (reshape (cols b))
               . toRows
               $ flatten a `outer` flatten b

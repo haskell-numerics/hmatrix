@@ -24,14 +24,12 @@
 
 module Internal.Container where
 
-import Internal.Tools
 import Internal.Vector
 import Internal.Matrix
 import Internal.Element
 import Internal.Numeric
 import Data.Complex
 import Internal.Algorithms(Field,linearSolveSVD)
-import Data.Vector.Storable(fromList)
 
 ------------------------------------------------------------------
 

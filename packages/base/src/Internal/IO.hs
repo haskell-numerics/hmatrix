@@ -16,14 +16,24 @@ module Internal.IO (
     loadMatrix, loadMatrix', saveMatrix
 ) where
 
-import Internal.Tools
 import Internal.Devel
 import Internal.Vector
 import Internal.Matrix
 import Internal.Vectorized
 import Text.Printf(printf)
-import Data.List(intersperse)
+import Data.List(intersperse,transpose)
 import Data.Complex
+
+
+-- | Formatting tool
+table :: String -> [[String]] -> String
+table sep as = unlines . map unwords' $ transpose mtp
+  where
+    mt = transpose as
+    longs = map (maximum . map length) mt
+    mtp = zipWith (\a b -> map (pad a) b) longs mt
+    pad n str = replicate (n - length str) ' ' ++ str
+    unwords' = concat . intersperse sep
 
 
 

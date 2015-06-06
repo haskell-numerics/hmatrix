@@ -10,38 +10,56 @@
 -- Stability   :  provisional
 --
 
-module Internal.Vector where
+module Internal.Vector(
+    I,Z,R,C,
+    fi,ti,
+    Vector, fromList, unsafeToForeignPtr, unsafeFromForeignPtr, unsafeWith,
+    createVector, vec,
+    toList, dim, (@>), at', (|>),
+    vjoin, subVector, takesV, idxs,
+    buildVector,
+    asReal, asComplex,
+    toByteString,fromByteString,
+    zipVector, unzipVector, zipVectorWith, unzipVectorWith,
+    foldVector, foldVectorG, foldVectorWithIndex, foldLoop,
+    mapVector, mapVectorM, mapVectorM_,
+    mapVectorWithIndex, mapVectorWithIndexM, mapVectorWithIndexM_
+) where
 
-import Internal.Tools
-import Foreign.Marshal.Array ( peekArray, copyArray, advancePtr )
-import Foreign.ForeignPtr ( ForeignPtr, castForeignPtr )
-import Foreign.Ptr ( Ptr )
+import Foreign.Marshal.Array
+import Foreign.ForeignPtr
+import Foreign.Ptr
 import Foreign.Storable
-    ( Storable, peekElemOff, pokeElemOff, sizeOf )
-import Foreign.C.Types ( CInt )
-import Data.Complex ( Complex )
-import System.IO.Unsafe ( unsafePerformIO )
-import GHC.ForeignPtr ( mallocPlainForeignPtrBytes )
-import GHC.Base ( realWorld#, IO(IO), when )
+import Foreign.C.Types(CInt)
+import Data.Int(Int64)
+import Data.Complex
+import System.IO.Unsafe(unsafePerformIO)
+import GHC.ForeignPtr(mallocPlainForeignPtrBytes)
+import GHC.Base(realWorld#, IO(IO), when)
 import qualified Data.Vector.Storable as Vector
-    ( Vector, slice, length )
-import Data.Vector.Storable
-    ( fromList, unsafeToForeignPtr, unsafeFromForeignPtr, unsafeWith )
-
+import Data.Vector.Storable(Vector, fromList, unsafeToForeignPtr, unsafeFromForeignPtr, unsafeWith)
 
 #ifdef BINARY
-
 import Data.Binary
 import Control.Monad(replicateM)
 import qualified Data.ByteString.Internal as BS
 import Data.Vector.Storable.Internal(updPtr)
-import Foreign.Ptr(plusPtr)
-
 #endif
 
+type I = CInt
+type Z = Int64
+type R = Double
+type C = Complex Double
 
 
-type Vector = Vector.Vector
+-- | specialized fromIntegral
+fi :: Int -> CInt
+fi = fromIntegral
+
+-- | specialized fromIntegral
+ti :: CInt -> Int
+ti = fromIntegral
+
 
 -- | Number of elements
 dim :: (Storable t) => Vector t -> Int

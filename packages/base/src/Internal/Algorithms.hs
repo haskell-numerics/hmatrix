@@ -27,12 +27,9 @@ import Internal.Matrix
 import Internal.Element
 import Internal.Conversion
 import Internal.LAPACK as LAPACK
+import Internal.Numeric
 import Data.List(foldl1')
 import Data.Array
-import Internal.Numeric
-import Data.Vector.Storable(fromList)
-
--- :i mul
 
 {- | Generic linear algebra functions for double precision real and complex matrices.
 

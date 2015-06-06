@@ -16,7 +16,6 @@ import Internal.Sparse
 import Numeric.Vector()
 import Internal.Algorithms(linearSolveLS, relativeError, pnorm, NormType(..))
 import Control.Arrow((***))
-import Data.Vector.Storable(fromList)
 
 {-
 import Util.Misc(debug, debugMat)
@@ -30,7 +29,6 @@ infix 0 ///
 v /// b = debugMat b 2 asRow v
 -}
 
-type R = Double
 type V = Vector R
 
 data CGState = CGState

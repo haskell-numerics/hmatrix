@@ -68,7 +68,6 @@ module Numeric.LinearAlgebra.Devel(
 
 ) where
 
-import Internal.Tools
 import Internal.Foreign
 import Internal.Devel
 import Internal.ST
@@ -76,5 +75,4 @@ import Internal.Vector
 import Internal.Matrix
 import Internal.Element
 import Internal.Sparse
-import Data.Vector.Storable (unsafeToForeignPtr, unsafeFromForeignPtr )
 

@@ -14,9 +14,7 @@ import Internal.Vector
 import Internal.Matrix
 import Internal.Numeric
 import Internal.Container
-import Internal.Tools
 import qualified Data.Vector.Storable as V
-import Data.Vector.Storable(fromList)
 import Data.Function(on)
 import Control.Arrow((***))
 import Control.Monad(when)

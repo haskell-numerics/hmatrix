@@ -20,19 +20,15 @@ import Internal.Vector
 import Internal.Matrix
 import Internal.Conversion
 import Internal.Element
-
 import Foreign.Ptr(nullPtr)
 import Foreign.C.Types
 import Control.Monad(when)
 import System.IO.Unsafe(unsafePerformIO)
-import Data.Vector.Storable(fromList)
 
 -----------------------------------------------------------------------------------
 
 type TMMM t = t ..> t ..> t ..> Ok
 
-type R = Double
-type C = Complex Double
 type F = Float
 type Q = Complex Float
 
