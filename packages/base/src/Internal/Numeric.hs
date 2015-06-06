@@ -24,7 +24,7 @@ import Internal.Element
 import Internal.ST as ST
 import Internal.Conversion
 import Internal.Vectorized
-import Internal.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ,multiplyI)
+import Internal.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ,multiplyI,multiplyL)
 import Data.List.Split(chunksOf)
 
 --------------------------------------------------------------------------------
@@ -128,6 +128,45 @@ instance Container Vector I
         | otherwise = error $ "cmod 0 on vector of size "++(show $ dim x)
     fromInt' = id
     toInt'   = id
+
+
+instance Container Vector Z
+  where
+    conj' = id
+    size' = dim
+    scale' = vectorMapValL Scale
+    addConstant = vectorMapValL AddConstant
+    add = vectorZipL Add
+    sub = vectorZipL Sub
+    mul = vectorZipL Mul
+    equal u v = dim u == dim v && maxElement' (vectorMapL Abs (sub u v)) == 0
+    scalar' x = fromList [x]
+    konst' = constantD
+    build' = buildV
+    cmap' = mapVector
+    atIndex' = (@>)
+    minIndex'     = emptyErrorV "minIndex"   (fromIntegral . toScalarL MinIdx)
+    maxIndex'     = emptyErrorV "maxIndex"   (fromIntegral . toScalarL MaxIdx)
+    minElement'   = emptyErrorV "minElement" (toScalarL Min)
+    maxElement'   = emptyErrorV "maxElement" (toScalarL Max)
+    sumElements'  = sumL
+    prodElements' = prodL
+    step' = stepL
+    find' = findV
+    assoc' = assocV
+    accum' = accumV
+    ccompare' = compareCV compareV
+    cselect' = selectCV selectV
+    scaleRecip = undefined -- cannot match
+    divide = undefined
+    arctan2' = undefined
+    cmod' m x
+        | m /= 0    = vectorMapValL ModVS m x
+        | otherwise = error $ "cmod 0 on vector of size "++(show $ dim x)
+    fromInt' = int2longV
+    toInt'   = long2intV
+
+
 
 instance Container Vector Float
   where
@@ -540,6 +579,13 @@ instance Product I where
     normInf    = emptyVal (maxElement . vectorMapI Abs)
     multiply   = emptyMul multiplyI
 
+instance Product Z where
+    norm2      = undefined
+    absSum     = emptyVal (sumElements . vectorMapL Abs)
+    norm1      = absSum
+    normInf    = emptyVal (maxElement . vectorMapL Abs)
+    multiply   = emptyMul multiplyL
+
 
 emptyMul m a b
     | x1 == 0 && x2 == 0 || r == 0 || c == 0 = konst' 0 (r,c)
@@ -676,6 +722,7 @@ type instance RealOf Float = Float
 type instance RealOf (Complex Float) = Float
 
 type instance RealOf I = I
+type instance RealOf Z = Z
 
 type family ComplexOf x
 

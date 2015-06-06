@@ -41,6 +41,14 @@ instance Num (Vector I) where
     abs = vectorMapI Abs
     fromInteger = fromList . return . fromInteger
 
+instance Num (Vector Z) where
+    (+) = adaptScalar addConstant add (flip addConstant)
+    negate = scale (-1)
+    (*) = adaptScalar scale mul (flip scale)
+    signum = vectorMapL Sign
+    abs = vectorMapL Abs
+    fromInteger = fromList . return . fromInteger
+
 instance Num (Vector Float) where
     (+) = adaptScalar addConstant add (flip addConstant)
     negate = scale (-1)

@@ -257,6 +257,7 @@ instance Numeric (Complex Double)
 instance Numeric Float
 instance Numeric (Complex Float)
 instance Numeric I
+instance Numeric Z
 
 --------------------------------------------------------------------------------
 

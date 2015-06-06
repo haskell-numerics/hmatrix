@@ -37,6 +37,7 @@ foreign import ccall unsafe "multiplyC" zgemmc :: CInt -> CInt -> TMMM C
 foreign import ccall unsafe "multiplyF" sgemmc :: CInt -> CInt -> TMMM F
 foreign import ccall unsafe "multiplyQ" cgemmc :: CInt -> CInt -> TMMM Q
 foreign import ccall unsafe "multiplyI" c_multiplyI :: CInt ::> CInt ::> CInt ::> Ok
+foreign import ccall unsafe "multiplyL" c_multiplyL :: Z ::> Z ::> Z ::> Ok
 
 isT Matrix{order = ColumnMajor} = 0
 isT Matrix{order = RowMajor} = 1
@@ -73,6 +74,14 @@ multiplyI a b = unsafePerformIO $ do
         "inconsistent dimensions in matrix product "++ shSize a ++ " x " ++ shSize b
     s <- createMatrix ColumnMajor (rows a) (cols b)
     app3 c_multiplyI omat a omat b omat s "c_multiplyI"
+    return s
+
+multiplyL :: Matrix Z -> Matrix Z -> Matrix Z
+multiplyL a b = unsafePerformIO $ do
+    when (cols a /= rows b) $ error $
+        "inconsistent dimensions in matrix product "++ shSize a ++ " x " ++ shSize b
+    s <- createMatrix ColumnMajor (rows a) (cols b)
+    app3 c_multiplyL omat a omat b omat s "c_multiplyL"
     return s
 
 -----------------------------------------------------------------------------

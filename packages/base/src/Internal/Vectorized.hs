@@ -98,6 +98,8 @@ sumC = sumg c_sumC
 sumI :: Vector CInt -> CInt
 sumI = sumg c_sumI
 
+sumL = sumg c_sumL
+
 sumg f x = unsafePerformIO $ do
     r <- createVector 1
     app2 f vec x vec r "sum"
@@ -110,6 +112,7 @@ foreign import ccall unsafe "sumR" c_sumR :: TVV Double
 foreign import ccall unsafe "sumQ" c_sumQ :: TVV (Complex Float)
 foreign import ccall unsafe "sumC" c_sumC :: TVV (Complex Double)
 foreign import ccall unsafe "sumI" c_sumI :: TVV CInt
+foreign import ccall unsafe "sumL" c_sumL :: TVV Z
 
 -- | product of elements
 prodF :: Vector Float -> Float
@@ -131,6 +134,7 @@ prodC = prodg c_prodC
 prodI :: Vector CInt -> CInt
 prodI = prodg c_prodI
 
+prodL = prodg c_prodL
 
 prodg f x = unsafePerformIO $ do
     r <- createVector 1
@@ -143,6 +147,7 @@ foreign import ccall unsafe "prodR" c_prodR :: TVV Double
 foreign import ccall unsafe "prodQ" c_prodQ :: TVV (Complex Float)
 foreign import ccall unsafe "prodC" c_prodC :: TVV (Complex Double)
 foreign import ccall unsafe "prodI" c_prodI :: TVV (CInt)
+foreign import ccall unsafe "prodL" c_prodL :: TVV Z
 
 ------------------------------------------------------------------
 
@@ -200,6 +205,13 @@ toScalarI oper =  toScalarAux c_toScalarI (fromei oper)
 
 foreign import ccall unsafe "toScalarI" c_toScalarI :: CInt -> TVV CInt
 
+-- | obtains different functions of a vector: norm1, norm2, max, min, posmax, posmin, etc.
+toScalarL :: FunCodeS -> Vector Z -> Z
+toScalarL oper =  toScalarAux c_toScalarL (fromei oper)
+
+foreign import ccall unsafe "toScalarL" c_toScalarL :: CInt -> TVV Z
+
+
 ------------------------------------------------------------------
 
 -- | map of real vectors with given function
@@ -232,6 +244,12 @@ vectorMapI = vectorMapAux c_vectorMapI
 
 foreign import ccall unsafe "mapI" c_vectorMapI :: CInt -> TVV CInt
 
+-- | map of real vectors with given function
+vectorMapL :: FunCodeV -> Vector Z -> Vector Z
+vectorMapL = vectorMapAux c_vectorMapL
+
+foreign import ccall unsafe "mapL" c_vectorMapL :: CInt -> TVV Z
+
 -------------------------------------------------------------------
 
 -- | map of real vectors with given function
@@ -263,6 +281,12 @@ vectorMapValI :: FunCodeSV -> CInt -> Vector CInt -> Vector CInt
 vectorMapValI oper = vectorMapValAux c_vectorMapValI (fromei oper)
 
 foreign import ccall unsafe "mapValI" c_vectorMapValI :: CInt -> Ptr CInt -> TVV CInt
+
+-- | map of real vectors with given function
+vectorMapValL :: FunCodeSV -> Z -> Vector Z -> Vector Z
+vectorMapValL oper = vectorMapValAux c_vectorMapValL (fromei oper)
+
+foreign import ccall unsafe "mapValL" c_vectorMapValL :: CInt -> Ptr Z -> TVV Z
 
 
 -------------------------------------------------------------------
@@ -299,6 +323,11 @@ vectorZipI = vectorZipAux c_vectorZipI
 
 foreign import ccall unsafe "zipI" c_vectorZipI :: CInt -> TVVV CInt
 
+-- | elementwise operation on CInt vectors
+vectorZipL :: FunCodeVV -> Vector Z -> Vector Z -> Vector Z
+vectorZipL = vectorZipAux c_vectorZipL
+
+foreign import ccall unsafe "zipL" c_vectorZipL :: CInt -> TVVV Z
 
 --------------------------------------------------------------------------------
 
@@ -385,6 +414,12 @@ float2IntV = tog c_float2int
 int2floatV :: Vector CInt -> Vector Float
 int2floatV = tog c_int2float
 
+int2longV :: Vector I -> Vector Z
+int2longV = tog c_int2long
+
+long2intV :: Vector Z -> Vector I
+long2intV = tog c_long2int
+
 
 tog f v = unsafePerformIO $ do
     r <- createVector (dim v)
@@ -397,6 +432,8 @@ foreign import ccall unsafe "int2double"   c_int2double   :: CInt :> Double :> O
 foreign import ccall unsafe "double2int"   c_double2int   :: Double :> CInt :> Ok
 foreign import ccall unsafe "int2float"    c_int2float    :: CInt :> Float :> Ok
 foreign import ccall unsafe "float2int"    c_float2int    :: Float :> CInt :> Ok
+foreign import ccall unsafe "int2long"    c_int2long    :: I :> Z :> Ok
+foreign import ccall unsafe "long2int"    c_long2int    :: Z :> I :> Ok
 
 
 ---------------------------------------------------------------
@@ -415,10 +452,14 @@ stepF = stepg c_stepF
 stepI :: Vector CInt -> Vector CInt
 stepI = stepg c_stepI
 
+stepL :: Vector Z -> Vector Z
+stepL = stepg c_stepL
+
+
 foreign import ccall unsafe "stepF" c_stepF :: TVV Float
 foreign import ccall unsafe "stepD" c_stepD :: TVV Double
 foreign import ccall unsafe "stepI" c_stepI :: TVV CInt
-
+foreign import ccall unsafe "stepL" c_stepL :: TVV Z
 
 --------------------------------------------------------------------------------
 
@@ -461,6 +502,7 @@ foreign import ccall unsafe "constantR" cconstantR :: TConst Double
 foreign import ccall unsafe "constantQ" cconstantQ :: TConst (Complex Float)
 foreign import ccall unsafe "constantC" cconstantC :: TConst (Complex Double)
 foreign import ccall unsafe "constantI" cconstantI :: TConst CInt
+foreign import ccall unsafe "constantL" cconstantL :: TConst Z
 
 ----------------------------------------------------------------------
 

@@ -1365,7 +1365,7 @@ int int2double(KIVEC(x),DVEC(y)) CONVERT_IMP
 
 int int2long(KIVEC(x),LVEC(y)) CONVERT_IMP
 
-int lont2int(KLVEC(x),IVEC(y)) CONVERT_IMP
+int long2int(KLVEC(x),IVEC(y)) CONVERT_IMP
 
 int long2double(KLVEC(x),DVEC(y)) CONVERT_IMP
 

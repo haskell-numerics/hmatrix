@@ -333,6 +333,16 @@ instance Element (CInt) where
     selectV    = selectI
     remapM     = remapI
 
+instance Element Z where
+    transdata  = transdataAux ctransL
+    constantD  = constantAux cconstantL
+    extractR   = extractAux c_extractL
+    sortI      = sortIdxL
+    sortV      = sortValL
+    compareV   = compareL
+    selectV    = selectL
+    remapM     = remapL
+
 -------------------------------------------------------------------
 
 transdataAux fun c1 d c2 =
@@ -357,6 +367,7 @@ foreign import ccall unsafe "transR" ctransR :: TMM Double
 foreign import ccall unsafe "transQ" ctransQ :: TMM (Complex Float)
 foreign import ccall unsafe "transC" ctransC :: TMM (Complex Double)
 foreign import ccall unsafe "transI" ctransI :: TMM CInt
+foreign import ccall unsafe "transL" ctransL :: TMM Z
 
 ----------------------------------------------------------------------
 
@@ -433,6 +444,7 @@ foreign import ccall unsafe "extractF" c_extractF :: Extr Float
 foreign import ccall unsafe "extractC" c_extractC :: Extr (Complex Double)
 foreign import ccall unsafe "extractQ" c_extractQ :: Extr (Complex Float)
 foreign import ccall unsafe "extractI" c_extractI :: Extr CInt
+foreign import ccall unsafe "extractL" c_extractL :: Extr Z
 
 --------------------------------------------------------------------------------
 
@@ -444,18 +456,22 @@ sortG f v = unsafePerformIO $ do
 sortIdxD = sortG c_sort_indexD
 sortIdxF = sortG c_sort_indexF
 sortIdxI = sortG c_sort_indexI
+sortIdxL = sortG c_sort_indexL
 
 sortValD = sortG c_sort_valD
 sortValF = sortG c_sort_valF
 sortValI = sortG c_sort_valI
+sortValL = sortG c_sort_valL
 
 foreign import ccall unsafe "sort_indexD" c_sort_indexD :: CV Double (CV CInt (IO CInt))
 foreign import ccall unsafe "sort_indexF" c_sort_indexF :: CV Float  (CV CInt (IO CInt))
 foreign import ccall unsafe "sort_indexI" c_sort_indexI :: CV CInt   (CV CInt (IO CInt))
+foreign import ccall unsafe "sort_indexL" c_sort_indexL :: Z :> I :> Ok
 
 foreign import ccall unsafe "sort_valuesD" c_sort_valD :: CV Double (CV Double (IO CInt))
 foreign import ccall unsafe "sort_valuesF" c_sort_valF :: CV Float  (CV Float (IO CInt))
 foreign import ccall unsafe "sort_valuesI" c_sort_valI :: CV CInt   (CV CInt (IO CInt))
+foreign import ccall unsafe "sort_valuesL" c_sort_valL :: Z :> Z :> Ok
 
 --------------------------------------------------------------------------------
 
@@ -467,10 +483,12 @@ compareG f u v = unsafePerformIO $ do
 compareD = compareG c_compareD
 compareF = compareG c_compareF
 compareI = compareG c_compareI
+compareL = compareG c_compareL
 
 foreign import ccall unsafe "compareD" c_compareD :: CV Double (CV Double (CV CInt (IO CInt)))
 foreign import ccall unsafe "compareF" c_compareF :: CV Float (CV Float  (CV CInt (IO CInt)))
 foreign import ccall unsafe "compareI" c_compareI :: CV CInt (CV CInt   (CV CInt (IO CInt)))
+foreign import ccall unsafe "compareL" c_compareL :: Z :> Z :> I :> Ok
 
 --------------------------------------------------------------------------------
 
@@ -482,6 +500,7 @@ selectG f c u v w = unsafePerformIO $ do
 selectD = selectG c_selectD
 selectF = selectG c_selectF
 selectI = selectG c_selectI
+selectL = selectG c_selectL
 selectC = selectG c_selectC
 selectQ = selectG c_selectQ
 
@@ -492,6 +511,7 @@ foreign import ccall unsafe "chooseF" c_selectF :: Sel Float
 foreign import ccall unsafe "chooseI" c_selectI :: Sel CInt
 foreign import ccall unsafe "chooseC" c_selectC :: Sel (Complex Double)
 foreign import ccall unsafe "chooseQ" c_selectQ :: Sel (Complex Float)
+foreign import ccall unsafe "chooseL" c_selectL :: Sel Z
 
 ---------------------------------------------------------------------------
 
@@ -503,6 +523,7 @@ remapG f i j m = unsafePerformIO $ do
 remapD = remapG c_remapD
 remapF = remapG c_remapF
 remapI = remapG c_remapI
+remapL = remapG c_remapL
 remapC = remapG c_remapC
 remapQ = remapG c_remapQ
 
@@ -513,6 +534,7 @@ foreign import ccall unsafe "remapF" c_remapF :: Rem Float
 foreign import ccall unsafe "remapI" c_remapI :: Rem CInt
 foreign import ccall unsafe "remapC" c_remapC :: Rem (Complex Double)
 foreign import ccall unsafe "remapQ" c_remapQ :: Rem (Complex Float)
+foreign import ccall unsafe "remapL" c_remapL :: Rem Z
 
 --------------------------------------------------------------------------------
 

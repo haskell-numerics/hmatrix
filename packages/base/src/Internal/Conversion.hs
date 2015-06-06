@@ -44,6 +44,11 @@ instance Precision (Complex Float) (Complex Double) where
     double2FloatG = asComplex . double2FloatV . asReal
     float2DoubleG = asComplex . float2DoubleV . asReal
 
+instance Precision I Z where
+    double2FloatG = long2intV
+    float2DoubleG = int2longV
+
+
 -- | Supported real types
 class (Element t, Element (Complex t), RealFloat t)
     => RealElement t
