@@ -408,6 +408,13 @@ double2IntV = tog c_double2int
 int2DoubleV :: Vector CInt -> Vector Double
 int2DoubleV = tog c_int2double
 
+double2longV :: Vector Double -> Vector Z
+double2longV = tog c_double2long
+
+long2DoubleV :: Vector Z -> Vector Double
+long2DoubleV = tog c_long2double
+
+
 float2IntV :: Vector Float -> Vector CInt
 float2IntV = tog c_float2int
 
@@ -430,6 +437,8 @@ foreign import ccall unsafe "float2double" c_float2double :: Float :> Double :> 
 foreign import ccall unsafe "double2float" c_double2float :: Double :> Float :> Ok
 foreign import ccall unsafe "int2double"   c_int2double   :: CInt :> Double :> Ok
 foreign import ccall unsafe "double2int"   c_double2int   :: Double :> CInt :> Ok
+foreign import ccall unsafe "long2double"  c_long2double   :: Z :> Double :> Ok
+foreign import ccall unsafe "double2long"  c_double2long   :: Double :> Z :> Ok
 foreign import ccall unsafe "int2float"    c_int2float    :: CInt :> Float :> Ok
 foreign import ccall unsafe "float2int"    c_float2int    :: Float :> CInt :> Ok
 foreign import ccall unsafe "int2long"    c_int2long    :: I :> Z :> Ok

@@ -89,7 +89,8 @@ class Element e => Container c e
     cmod'        :: Integral   e => e -> c e -> c e
     fromInt'     :: c I -> c e
     toInt'       :: c e -> c I
-
+    fromZ'       :: c Z -> c e
+    toZ'         :: c e -> c Z
 
 --------------------------------------------------------------------------
 
@@ -128,6 +129,8 @@ instance Container Vector I
         | otherwise = error $ "cmod 0 on vector of size "++(show $ dim x)
     fromInt' = id
     toInt'   = id
+    fromZ'   = long2intV
+    toZ'     = int2longV
 
 
 instance Container Vector Z
@@ -165,6 +168,8 @@ instance Container Vector Z
         | otherwise = error $ "cmod 0 on vector of size "++(show $ dim x)
     fromInt' = int2longV
     toInt'   = long2intV
+    fromZ'   = id
+    toZ'     = id
 
 
 
@@ -201,7 +206,8 @@ instance Container Vector Float
     cmod' = undefined
     fromInt' = int2floatV
     toInt'   = float2IntV
-
+    fromZ'   = (single :: Vector R-> Vector Float) . fromZ'
+    toZ'     = toZ' . double
 
 
 instance Container Vector Double
@@ -237,6 +243,8 @@ instance Container Vector Double
     cmod' = undefined
     fromInt' = int2DoubleV
     toInt'   = double2IntV
+    fromZ'   = long2DoubleV
+    toZ'     = double2longV
 
 
 instance Container Vector (Complex Double)
@@ -272,6 +280,8 @@ instance Container Vector (Complex Double)
     cmod' = undefined
     fromInt' = complex . int2DoubleV
     toInt'   = toInt' . fst . fromComplex
+    fromZ'   = complex . long2DoubleV
+    toZ'     = toZ' . fst . fromComplex
 
 instance Container Vector (Complex Float)
   where
@@ -306,6 +316,8 @@ instance Container Vector (Complex Float)
     cmod' = undefined
     fromInt' = complex . int2floatV
     toInt'   = toInt' . fst . fromComplex
+    fromZ' = complex . single . long2DoubleV
+    toZ'   = toZ' . double . fst . fromComplex
 
 ---------------------------------------------------------------
 
@@ -346,6 +358,8 @@ instance (Num a, Element a, Container Vector a) => Container Matrix a
         | otherwise = error $ "cmod 0 on matrix "++shSize x
     fromInt' = liftMatrix fromInt'
     toInt' = liftMatrix toInt'
+    fromZ' = liftMatrix fromZ'
+    toZ'   = liftMatrix toZ'
 
 
 emptyErrorV msg f v =
@@ -399,6 +413,11 @@ fromInt = fromInt'
 toInt :: (Container c e) => c e -> c I
 toInt = toInt'
 
+fromZ :: (Container c e) => c Z -> c e
+fromZ = fromZ'
+
+toZ :: (Container c e) => c e -> c Z
+toZ = toZ'
 
 -- | like 'fmap' (cannot implement instance Functor because of Element class constraint)
 cmap :: (Element b, Container c e) => (e -> b) -> c e -> c b

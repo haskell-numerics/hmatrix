@@ -82,7 +82,7 @@ module Numeric.LinearAlgebra.Data(
 -- * Element conversion
     Convert(..),
     roundVector,
-    fromInt,toInt,
+    fromInt,toInt,fromZ,toZ,
     -- * Misc
     arctan2,
     separable,
