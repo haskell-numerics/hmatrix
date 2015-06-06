@@ -3,6 +3,8 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <inttypes.h>
+
 #include "lapack-aux.h"
 
 #define MACRO(B) do {B} while (0)
@@ -1300,6 +1302,18 @@ int multiplyI(KOIMAT(a), KOIMAT(b), OIMAT(r)) {
     OK
 }
 
+int multiplyL(KOLMAT(a), KOLMAT(b), OLMAT(r)) {
+    { TRAV(r,i,j) {
+        int k;
+        AT(r,i,j) = 0;
+        for (k=0;k<ac;k++) {
+            AT(r,i,j) += AT(a,i,k) * AT(b,k,j);
+        }
+      }
+    }
+    OK
+}
+
 
 ////////////////// sparse matrix-product ///////////////////////////////////////
 
@@ -1331,67 +1345,23 @@ int smTXv(KDVEC(vals),KIVEC(cols),KIVEC(rows),KDVEC(x),DVEC(r)) {
 
 //////////////////// transpose /////////////////////////
 
-int transF(KFMAT(x),FMAT(t)) {
-    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
-    DEBUGMSG("transF");
-    int i,j;
-    for (i=0; i<tr; i++) {
-        for (j=0; j<tc; j++) {
-        tp[i*tc+j] = xp[j*xc+i];
-        }
-    }
-    OK
-}
+#define TRANS_IMP {                       \
+    REQUIRES(xr==tc && xc==tr,BAD_SIZE);  \
+    DEBUGMSG("trans");                    \
+    int i,j;                              \
+    for (i=0; i<tr; i++) {                \
+        for (j=0; j<tc; j++) {            \
+            tp[i*tc+j] = xp[j*xc+i];      \
+        }                                 \
+    }                                     \
+    OK }
 
-int transR(KDMAT(x),DMAT(t)) {
-    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
-    DEBUGMSG("transR");
-    int i,j;
-    for (i=0; i<tr; i++) {
-        for (j=0; j<tc; j++) {
-        tp[i*tc+j] = xp[j*xc+i];
-        }
-    }
-    OK
-}
-
-int transQ(KQMAT(x),QMAT(t)) {
-    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
-    DEBUGMSG("transQ");
-    int i,j;
-    for (i=0; i<tr; i++) {
-        for (j=0; j<tc; j++) {
-        tp[i*tc+j] = xp[j*xc+i];
-        }
-    }
-    OK
-}
-
-int transC(KCMAT(x),CMAT(t)) {
-    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
-    DEBUGMSG("transC");
-    int i,j;
-    for (i=0; i<tr; i++) {
-        for (j=0; j<tc; j++) {
-        tp[i*tc+j] = xp[j*xc+i];
-        }
-    }
-    OK
-}
-
-
-int transI(KIMAT(x),IMAT(t)) {
-    REQUIRES(xr==tc && xc==tr,BAD_SIZE);
-    DEBUGMSG("transI");
-    int i,j;
-    for (i=0; i<tr; i++) {
-        for (j=0; j<tc; j++) {
-            tp[i*tc+j] = xp[j*xc+i];
-        }
-    }
-    OK
-}
-
+int transF(KFMAT(x),FMAT(t)) TRANS_IMP
+int transR(KDMAT(x),DMAT(t)) TRANS_IMP
+int transQ(KQMAT(x),QMAT(t)) TRANS_IMP
+int transC(KCMAT(x),CMAT(t)) TRANS_IMP
+int transI(KIMAT(x),IMAT(t)) TRANS_IMP
+int transL(KLMAT(x),LMAT(t)) TRANS_IMP
 
 //////////////////////// extract /////////////////////////////////
 
@@ -1431,6 +1401,11 @@ int extractI(int modei, int modej, KIVEC(i), KIVEC(j), KOIMAT(m), OIMAT(r)) {
     EXTRACT_IMP
 }
 
+int extractL(int modei, int modej, KIVEC(i), KIVEC(j), KOLMAT(m), OLMAT(r)) {
+    EXTRACT_IMP
+}
+
+
 //////////////////////// remap /////////////////////////////////
 
 #define REMAP_IMP                                               \
@@ -1448,6 +1423,10 @@ int remapF(KOIMAT(i), KOIMAT(j), KOFMAT(m), OFMAT(r)) {
 }
 
 int remapI(KOIMAT(i), KOIMAT(j), KOIMAT(m), OIMAT(r)) {
+    REMAP_IMP
+}
+
+int remapL(KOIMAT(i), KOIMAT(j), KOLMAT(m), OLMAT(r)) {
     REMAP_IMP
 }
 

@@ -37,6 +37,7 @@ typedef short ftnlen;
 /********************************************************/
 
 #define IVEC(A) int A##n, int*A##p
+#define LVEC(A) int A##n, int64_t*A##p
 #define FVEC(A) int A##n, float*A##p
 #define DVEC(A) int A##n, double*A##p
 #define QVEC(A) int A##n, complex*A##p
@@ -44,6 +45,7 @@ typedef short ftnlen;
 #define PVEC(A) int A##n, void* A##p, int A##s
 
 #define IMAT(A) int A##r, int A##c, int* A##p
+#define LMAT(A) int A##r, int A##c, int64_t* A##p
 #define FMAT(A) int A##r, int A##c, float* A##p
 #define DMAT(A) int A##r, int A##c, double* A##p
 #define QMAT(A) int A##r, int A##c, complex* A##p
@@ -51,6 +53,7 @@ typedef short ftnlen;
 #define PMAT(A) int A##r, int A##c, void* A##p, int A##s
 
 #define OIMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, int* A##p
+#define OLMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, int64_t* A##p
 #define OFMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, float* A##p
 #define ODMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, double* A##p
 #define OQMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, complex* A##p
@@ -58,6 +61,7 @@ typedef short ftnlen;
 
 
 #define KIVEC(A) int A##n, const int*A##p
+#define KLVEC(A) int A##n, const int64_t*A##p
 #define KFVEC(A) int A##n, const float*A##p
 #define KDVEC(A) int A##n, const double*A##p
 #define KQVEC(A) int A##n, const complex*A##p
@@ -65,6 +69,7 @@ typedef short ftnlen;
 #define KPVEC(A) int A##n, const void* A##p, int A##s
 
 #define KIMAT(A) int A##r, int A##c, const int* A##p
+#define KLMAT(A) int A##r, int A##c, const int64_t* A##p
 #define KFMAT(A) int A##r, int A##c, const float* A##p
 #define KDMAT(A) int A##r, int A##c, const double* A##p
 #define KQMAT(A) int A##r, int A##c, const complex* A##p
@@ -72,6 +77,7 @@ typedef short ftnlen;
 #define KPMAT(A) int A##r, int A##c, const void* A##p, int A##s
 
 #define KOIMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const int* A##p
+#define KOLMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const int64_t* A##p
 #define KOFMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const float* A##p
 #define KODMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const double* A##p
 #define KOQMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const complex* A##p

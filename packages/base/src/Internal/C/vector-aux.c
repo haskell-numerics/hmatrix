@@ -1,4 +1,5 @@
 #include <complex.h>
+#include <inttypes.h>
 
 typedef double complex TCD;
 typedef float  complex TCF;
@@ -66,6 +67,14 @@ int sumI(KIVEC(x),IVEC(r)) {
     OK
 }
 
+int sumL(KLVEC(x),LVEC(r)) {
+    REQUIRES(rn==1,BAD_SIZE);
+    int i;
+    int res = 0;
+    for (i = 0; i < xn; i++) res += xp[i];
+    rp[0] = res;
+    OK
+}
 
 int sumQ(KQVEC(x),QVEC(r)) {
     DEBUGMSG("sumQ");
@@ -127,7 +136,14 @@ int prodI(KIVEC(x),IVEC(r)) {
     OK
 }
 
-
+int prodL(KLVEC(x),LVEC(r)) {
+    REQUIRES(rn==1,BAD_SIZE);
+    int i;
+    int res = 1;
+    for (i = 0; i < xn; i++) res *= xp[i];
+    rp[0] = res;
+    OK
+}
 
 int prodQ(KQVEC(x),QVEC(r)) {
     DEBUGMSG("prodQ");
@@ -189,7 +205,7 @@ double vector_min(KDVEC(x)) {
     return r;
 }
 
-double vector_max_index(KDVEC(x)) {
+int vector_max_index(KDVEC(x)) {
     int k, r = 0;
     for (k = 1; k<xn; k++) {
         if(xp[k]>xp[r]) {
@@ -199,7 +215,7 @@ double vector_max_index(KDVEC(x)) {
     return r;
 }
 
-double vector_min_index(KDVEC(x)) {
+int vector_min_index(KDVEC(x)) {
     int k, r = 0;
     for (k = 1; k<xn; k++) {
         if(xp[k]<xp[r]) {
@@ -254,7 +270,7 @@ float vector_min_f(KFVEC(x)) {
     return r;
 }
 
-float vector_max_index_f(KFVEC(x)) {
+int vector_max_index_f(KFVEC(x)) {
     int k, r = 0;
     for (k = 1; k<xn; k++) {
         if(xp[k]>xp[r]) {
@@ -264,7 +280,7 @@ float vector_max_index_f(KFVEC(x)) {
     return r;
 }
 
-float vector_min_index_f(KFVEC(x)) {
+int vector_min_index_f(KFVEC(x)) {
     int k, r = 0;
     for (k = 1; k<xn; k++) {
         if(xp[k]<xp[r]) {
@@ -306,7 +322,7 @@ int vector_max_i(KIVEC(x)) {
 }
 
 int vector_min_i(KIVEC(x)) {
-    float r = xp[0];
+    int r = xp[0];
     int k;
     for (k = 1; k<xn; k++) {
         if(xp[k]<r) {
@@ -345,6 +361,64 @@ int toScalarI(int code, KIVEC(x), IVEC(r)) {
         case 3: { res = vector_max_i(V(x));  break; }
         case 4: { res = vector_min_index_i(V(x)); break; }
         case 5: { res = vector_min_i(V(x)); break; }
+        default: ERROR(BAD_CODE);
+    }
+    rp[0] = res;
+    OK
+}
+
+
+int64_t vector_max_l(KLVEC(x)) {
+    int64_t r = xp[0];
+    int k;
+    for (k = 1; k<xn; k++) {
+        if(xp[k]>r) {
+            r = xp[k];
+        }
+    }
+    return r;
+}
+
+int64_t vector_min_l(KLVEC(x)) {
+    int64_t r = xp[0];
+    int k;
+    for (k = 1; k<xn; k++) {
+        if(xp[k]<r) {
+            r = xp[k];
+        }
+    }
+    return r;
+}
+
+int vector_max_index_l(KLVEC(x)) {
+    int k, r = 0;
+    for (k = 1; k<xn; k++) {
+        if(xp[k]>xp[r]) {
+            r = k;
+        }
+    }
+    return r;
+}
+
+int vector_min_index_l(KLVEC(x)) {
+    int k, r = 0;
+    for (k = 1; k<xn; k++) {
+        if(xp[k]<xp[r]) {
+            r = k;
+        }
+    }
+    return r;
+}
+
+
+int toScalarL(int code, KLVEC(x), LVEC(r)) {
+    REQUIRES(rn==1,BAD_SIZE);
+    int64_t res;
+    switch(code) {
+        case 2: { res = vector_max_index_l(V(x));  break; }
+        case 3: { res = vector_max_l(V(x));  break; }
+        case 4: { res = vector_min_index_l(V(x)); break; }
+        case 5: { res = vector_min_l(V(x)); break; }
         default: ERROR(BAD_CODE);
     }
     rp[0] = res;
@@ -467,6 +541,17 @@ int mapF(int code, KFVEC(x), FVEC(r)) {
 
 
 int mapI(int code, KIVEC(x), IVEC(r)) {
+    int k;
+    REQUIRES(xn == rn,BAD_SIZE);
+    switch (code) {
+        OP(3,abs)
+        OP(15,sign)
+        default: ERROR(BAD_CODE);
+    }
+}
+
+
+int mapL(int code, KLVEC(x), LVEC(r)) {
     int k;
     REQUIRES(xn == rn,BAD_SIZE);
     switch (code) {
@@ -641,6 +726,32 @@ int mapValI(int code, int* pval, KIVEC(x), IVEC(r)) {
 }
 
 
+int64_t mod_l (int64_t a, int64_t b) {
+    int64_t m = a % b;
+    if (b>0) {
+        return m >=0 ? m : m+b;
+    } else {
+        return m <=0 ? m : m+b;
+    }
+}
+
+int mapValL(int code, int64_t* pval, KLVEC(x), LVEC(r)) {
+    int k;
+    int64_t val = *pval;
+    REQUIRES(xn == rn,BAD_SIZE);
+    DEBUGMSG("mapValL");
+    switch (code) {
+        OPV(0,val*xp[k])
+        OPV(1,val/xp[k])
+        OPV(2,val+xp[k])
+        OPV(3,val-xp[k])
+        OPV(6,mod(val,xp[k]))
+        OPV(7,mod(xp[k],val))
+        default: ERROR(BAD_CODE);
+    }
+}
+
+
 
 inline doublecomplex complex_add(doublecomplex a, doublecomplex b) {
     doublecomplex r;
@@ -735,6 +846,19 @@ REQUIRES(an == bn && an == rn, BAD_SIZE);
     }
 }
 
+
+int zipL(int code, KLVEC(a), KLVEC(b), LVEC(r)) {
+REQUIRES(an == bn && an == rn, BAD_SIZE);
+    int k;
+    switch(code) {
+        OPZO(0,"zipI Add",+)
+        OPZO(1,"zipI Sub",-)
+        OPZO(2,"zipI Mul",*)
+        OPZO(3,"zipI Div",/)
+        OPZO(6,"zipI Mod",%)
+        default: ERROR(BAD_CODE);
+    }
+}
 
 
 #define OPZOb(C,msg,O) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) r2p[k] = a2p[k] O b2p[k]; OK }
@@ -990,6 +1114,18 @@ int sort_valuesI(KIVEC(v),IVEC(r)) {
     OK
 }
 
+int
+compare_longs(const void *a, const void *b) {
+  return *(int64_t*)a > *(int64_t*)b;
+}
+
+int sort_valuesL(KLVEC(v),LVEC(r)) {
+    memcpy(rp,vp,vn*sizeof(int64_t));
+    qsort(rp,rn,sizeof(int64_t),compare_ints);
+    OK
+}
+
+
 ////////////////////////////////////////
 
 
@@ -1010,7 +1146,7 @@ int sort_valuesI(KIVEC(v),IVEC(r)) {
     OK
 
 
-typedef struct SDI { int pos; double val;} DI;
+typedef struct DI { int pos; double val;} DI;
 
 int compare_doubles_i (const void *a, const void *b) {
   return ((DI*)a)->val > ((DI*)b)->val;
@@ -1040,6 +1176,17 @@ int compare_ints_i (const void *a, const void *b) {
 
 int sort_indexI(KIVEC(v),IVEC(r)) {
     SORTIDX_IMP(II,compare_ints_i)
+}
+
+
+typedef struct LI { int pos; int64_t val;} LI;
+
+int compare_longs_i (const void *a, const void *b) {
+  return ((II*)a)->val > ((II*)b)->val;
+}
+
+int sort_indexL(KLVEC(v),LVEC(r)) {
+    SORTIDX_IMP(II,compare_longs_i)
 }
 
 
@@ -1087,6 +1234,44 @@ int range_vector(IVEC(r)) {
     }
     OK
 }
+
+///////////////////////////
+
+
+int round_vector_l(KDVEC(v),LVEC(r)) {
+    int k;
+    for(k=0; k<vn; k++) {
+        rp[k] = round(vp[k]);
+    }
+    OK
+}
+
+
+int mod_vector_l(int64_t m, KLVEC(v), LVEC(r)) {
+    int k;
+    for(k=0; k<vn; k++) {
+        rp[k] = vp[k] % m;
+    }
+    OK
+}
+
+int div_vector_l(int64_t m, KLVEC(v), LVEC(r)) {
+    int k;
+    for(k=0; k<vn; k++) {
+        rp[k] = vp[k] / m;
+    }
+    OK
+}
+
+int range_vector_l(LVEC(r)) {
+    int k;
+    for(k=0; k<rn; k++) {
+        rp[k] = k;
+    }
+    OK
+}
+
+
 
 //////////////////// constant /////////////////////////
 
@@ -1143,65 +1328,46 @@ int constantI(int * pval, IVEC(r)) {
 }
 
 
-//////////////////// float-double conversion /////////////////////////
 
-int float2double(FVEC(x),DVEC(y)) {
-    DEBUGMSG("float2double")
+int constantL(int64_t * pval, LVEC(r)) {
+    DEBUGMSG("constantL")
     int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k];
-    }
-    OK
-}
-
-int float2int(KFVEC(x),IVEC(y)) {
-    DEBUGMSG("float2int")
-    int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k];
+    int64_t val = *pval;
+    for(k=0;k<rn;k++) {
+        rp[k]=val;
     }
     OK
 }
 
 
-int double2float(DVEC(x),FVEC(y)) {
-    DEBUGMSG("double2float")
-    int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k];
-    }
-    OK
-}
+//////////////////// type conversions /////////////////////////
 
+#define CONVERT_IMP {     \
+    int k;                \
+    for(k=0;k<xn;k++) {   \
+        yp[k]=xp[k];      \
+    }                     \
+    OK }
 
-int double2int(KDVEC(x),IVEC(y)) {
-    DEBUGMSG("double2int")
-    int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k];
-    }
-    OK
-}
+int float2double(FVEC(x),DVEC(y)) CONVERT_IMP
 
+int float2int(KFVEC(x),IVEC(y)) CONVERT_IMP
 
-int int2float(KIVEC(x),FVEC(y)) {
-    DEBUGMSG("int2float")
-    int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k];
-    }
-    OK
-}
+int double2float(DVEC(x),FVEC(y)) CONVERT_IMP
 
+int double2int(KDVEC(x),IVEC(y)) CONVERT_IMP
 
-int int2double(KIVEC(x),DVEC(y)) {
-    DEBUGMSG("int2double")
-    int k;
-    for(k=0;k<xn;k++) {
-        yp[k]=xp[k];
-    }
-    OK
-}
+int double2long(KDVEC(x),LVEC(y)) CONVERT_IMP
+
+int int2float(KIVEC(x),FVEC(y)) CONVERT_IMP
+
+int int2double(KIVEC(x),DVEC(y)) CONVERT_IMP
+
+int int2long(KIVEC(x),LVEC(y)) CONVERT_IMP
+
+int lont2int(KLVEC(x),IVEC(y)) CONVERT_IMP
+
+int long2double(KLVEC(x),DVEC(y)) CONVERT_IMP
 
 
 //////////////////// conjugate /////////////////////////
@@ -1249,6 +1415,11 @@ int stepI(KIVEC(x),IVEC(y)) {
     STEP_IMP
 }
 
+int stepL(KLVEC(x),LVEC(y)) {
+    STEP_IMP
+}
+
+
 //////////////////// cond /////////////////////////
 
 #define COMPARE_IMP                               \
@@ -1272,26 +1443,10 @@ int compareI(KIVEC(x),KIVEC(y),IVEC(r)) {
     COMPARE_IMP
 }
 
-
-#define COND_IMP                                                            \
-    REQUIRES(xn==yn && xn==ltn && xn==eqn && xn==gtn && xn==rn ,BAD_SIZE);  \
-    int k;                                                                  \
-    for(k=0;k<xn;k++) {                                                     \
-        rp[k] = xp[k]<yp[k]?ltp[k]:(xp[k]>yp[k]?gtp[k]:eqp[k]);             \
-    }                                                                       \
-    OK
-
-int condF(FVEC(x),FVEC(y),FVEC(lt),FVEC(eq),FVEC(gt),FVEC(r)) {
-    COND_IMP
+int compareL(KLVEC(x),KLVEC(y),IVEC(r)) {
+    COMPARE_IMP
 }
 
-int condD(DVEC(x),DVEC(y),DVEC(lt),DVEC(eq),DVEC(gt),DVEC(r)) {
-    COND_IMP
-}
-
-int condI(KIVEC(x),KIVEC(y),KIVEC(lt),KIVEC(eq),KIVEC(gt),IVEC(r)) {
-    COND_IMP
-}
 
 
 #define CHOOSE_IMP                                                      \
@@ -1313,6 +1468,11 @@ int chooseD(KIVEC(cond),KDVEC(lt),KDVEC(eq),KDVEC(gt),DVEC(r)) {
 int chooseI(KIVEC(cond),KIVEC(lt),KIVEC(eq),KIVEC(gt),IVEC(r)) {
     CHOOSE_IMP
 }
+
+int chooseL(KIVEC(cond),KLVEC(lt),KLVEC(eq),KLVEC(gt),LVEC(r)) {
+    CHOOSE_IMP
+}
+
 
 int chooseC(KIVEC(cond),KCVEC(lt),KCVEC(eq),KCVEC(gt),CVEC(r)) {
     CHOOSE_IMP
