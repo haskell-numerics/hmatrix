@@ -74,24 +74,24 @@ instance KnownNat m => Fractional (F m)
         | x*r == 1  = r
         | otherwise = error $ show x ++" does not have a multiplicative inverse mod "++show m'
       where
-        r = x^(m'-2)
-        m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
+        r = x^(m'-2 :: Integer)
+        m' = fromIntegral . natVal $ (undefined :: Proxy m)
     fromRational x = fromInteger (numerator x) / fromInteger (denominator x)
 
 l2 :: forall m a b c. (KnownNat m) => (Int -> a -> b -> c) -> Mod m a -> Mod m b -> Mod m c
 l2 f (Mod u) (Mod v) = Mod (f m' u v)
   where
-    m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
+    m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
 l1 :: forall m a b . (KnownNat m) => (Int -> a -> b) -> Mod m a -> Mod m b
 l1 f (Mod u) = Mod (f m' u)
   where
-    m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
+    m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
 l0 :: forall m a b . (KnownNat m) => (Int -> a -> b) -> a -> Mod m b
 l0 f u = Mod (f m' u)
   where
-    m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
+    m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
 
 instance Show (F n)
@@ -106,7 +106,7 @@ instance forall n . KnownNat n => Num (F n)
     abs = l1 (const abs)
     signum = l1 (const signum)
     fromInteger = l0 (\m x -> fromInteger x `mod` (fromIntegral m))
-    
+
 
 -- | Integer modulo n
 type F n = Mod n I
@@ -114,7 +114,7 @@ type F n = Mod n I
 type V n = Vector (F n)
 type M n = Matrix (F n)
 
-  
+
 instance Element (F n)
   where
     transdata n v m = i2f (transdata n (f2i v) m)
@@ -130,37 +130,37 @@ instance forall m . KnownNat m => Container Vector (F m)
   where
     conj' = id
     size' = dim
-    scale' s x = fromInt (scale (unMod s) (toInt x))
-    addConstant c x = fromInt (addConstant (unMod c) (toInt x))
-    add a b = fromInt (add (toInt a) (toInt b))
-    sub a b = fromInt (sub (toInt a) (toInt b))
-    mul a b = fromInt (mul (toInt a) (toInt b))
-    equal u v = equal (toInt u) (toInt v)
+    scale' s x = vmod (scale (unMod s) (f2i x))
+    addConstant c x = vmod (addConstant (unMod c) (f2i x))
+    add a b = vmod (add (f2i a) (f2i b))
+    sub a b = vmod (sub (f2i a) (f2i b))
+    mul a b = vmod (mul (f2i a) (f2i b))
+    equal u v = equal (f2i u) (f2i v)
     scalar' x = fromList [x]
     konst' x = i2f . konst (unMod x)
     build' n f = build n (fromIntegral . f)
     cmap' = cmap
-    atIndex' x k = fromIntegral (atIndex (toInt x) k)
-    minIndex'     = minIndex . toInt
-    maxIndex'     = maxIndex . toInt
-    minElement'   = Mod . minElement . toInt
-    maxElement'   = Mod . maxElement . toInt
-    sumElements'  = fromIntegral . sumElements . toInt
-    prodElements' = fromIntegral . sumElements . toInt
-    step'         = i2f . step . toInt
+    atIndex' x k = fromIntegral (atIndex (f2i x) k)
+    minIndex'     = minIndex . f2i
+    maxIndex'     = maxIndex . f2i
+    minElement'   = Mod . minElement . f2i
+    maxElement'   = Mod . maxElement . f2i
+    sumElements'  = fromIntegral . sumElements . f2i  -- FIXME
+    prodElements' = fromIntegral . sumElements . f2i  -- FIXME
+    step'         = i2f . step . f2i
     find' = findV
     assoc' = assocV
     accum' = accumV
-    ccompare' a b = ccompare (toInt a) (toInt b)
-    cselect' c l e g = i2f $ cselect c (toInt l) (toInt e) (toInt g)
+    ccompare' a b = ccompare (f2i a) (f2i b)
+    cselect' c l e g = i2f $ cselect c (f2i l) (f2i e) (f2i g)
     scaleRecip s x = scale' s (cmap recip x)
     divide x y = mul x (cmap recip y)
     arctan2' = undefined
-    cmod' m = fromInt' . cmod' (unMod m) . toInt'
-    fromInt' v = i2f $ cmod' (fromIntegral m') (fromInt' v)
-      where
-        m' = fromIntegral . natVal $ (undefined :: Proxy m) :: Int
+    cmod' m = vmod . cmod' (unMod m) . f2i
+    fromInt' = vmod
     toInt'   = f2i
+    fromZ'   = vmod . fromZ'
+    toZ'     = toZ' . f2i
 
 
 instance Indexable (Vector (F m)) (F m)
@@ -176,25 +176,29 @@ instance KnownNat m => Product (F m) where
     absSum     = undefined
     norm1      = undefined
     normInf    = undefined
-    multiply   = lift2 multiply
+    multiply   = lift2 multiply  -- FIXME
 
 
 instance KnownNat m => Numeric (F m)
 
-i2f :: Vector I -> Vector (F n)
+i2f :: Storable t => Vector t -> Vector (Mod n t)
 i2f v = unsafeFromForeignPtr (castForeignPtr fp) (i) (n)
     where (fp,i,n) = unsafeToForeignPtr v
 
-f2i :: Vector (F n) -> Vector I
+f2i :: Storable t => Vector (Mod n t) -> Vector t
 f2i v = unsafeFromForeignPtr (castForeignPtr fp) (i) (n)
     where (fp,i,n) = unsafeToForeignPtr v
 
-f2iM :: Matrix (F n) -> Matrix I
+f2iM :: Storable t => Matrix (Mod n t) -> Matrix t
 f2iM = liftMatrix f2i
 
-i2fM :: Matrix I -> Matrix (F n)
+i2fM :: Storable t => Matrix t -> Matrix (Mod n t)
 i2fM = liftMatrix i2f
 
+vmod :: forall m t. (KnownNat m, Storable t, Integral t, Numeric t) => Vector t -> Vector (Mod m t)
+vmod = i2f . cmod' m'
+  where
+    m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
 lift1 f a   = fromInt (f (toInt a))
 lift2 f a b = fromInt (f (toInt a) (toInt b))
@@ -220,18 +224,18 @@ test = (ok, info)
   where
     v = fromList [3,-5,75] :: V 11
     m = (3><3) [1..]   :: M 11
-    
+
     a = (3><3) [1,2 , 3
                ,4,5 , 6
                ,0,10,-3] :: Matrix I
 
     b = (3><2) [0..] :: Matrix I
-    
+
     am = fromInt a :: Matrix (F 13)
     bm = fromInt b :: Matrix (F 13)
     ad = fromInt a :: Matrix Double
     bd = fromInt b :: Matrix Double
-    
+
     info = do
         print v
         print m
