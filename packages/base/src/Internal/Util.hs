@@ -53,6 +53,7 @@ module Internal.Util(
     corr, conv, corrMin,
     -- ** 2D
     corr2, conv2, separable,
+    block2x2,block3x3,view1,unView1,foldMatrix,
     gaussElim
 ) where
 
@@ -71,8 +72,7 @@ import Internal.Convolution
 import Control.Monad(when)
 import Text.Printf
 import Data.List.Split(splitOn)
-import Data.List(intercalate,sortBy)
-import Data.Function(on)
+import Data.List(intercalate,)
 import Control.Arrow((&&&))
 import Data.Complex
 
@@ -498,50 +498,64 @@ dispShort maxr maxc dec m =
 
 --------------------------------------------------------------------------------
 
+-- matrix views
+
+block2x2 r c m = [[m11,m12],[m21,m22]]
+  where
+    m11 = m ?? (Take r, Take c)
+    m12 = m ?? (Take r, Drop c)
+    m21 = m ?? (Drop r, Take c)
+    m22 = m ?? (Drop r, Drop c)
+
+block3x3 r nr c nc m = [[m ?? (er !! i, ec !! j) | j <- [0..2] ] | i <- [0..2] ]
+  where
+    er = [ Range 0 1 (r-1), Range r 1 (r+nr-1), Drop (nr+r) ]
+    ec = [ Range 0 1 (c-1), Range c 1 (c+nc-1), Drop (nc+c) ]
+
+view1 :: Numeric t => Matrix t -> Maybe (t, Vector t, Vector t, Matrix t)
+view1 m
+    | rows m > 0 && cols m > 0 = Just (e, flatten m12, flatten m21 , m22)
+    | otherwise = Nothing
+  where
+    [[m11,m12],[m21,m22]] = block2x2 1 1 m
+    e = m11 `atIndex` (0, 0)
+
+unView1 :: Numeric t => (t, Vector t, Vector t, Matrix t) -> Matrix t
+unView1 (e,r,c,m) = fromBlocks [[scalar e, asRow r],[asColumn c, m]]
+
+
+foldMatrix g f ( (f <$>) . view1 . g -> Just (e,r,c,m)) = unView1 (e, r, c, foldMatrix g f m)
+foldMatrix _ _ m = m
+
+sortRowsBy h j m = m ?? (Pos (sortIndex (h (tr m ! j))), All)
+
+splitColsAt n = (takeColumns n &&& dropColumns n)
+
+
+down a = foldMatrix g f a
+  where
+    g = sortRowsBy (negate.abs) 0
+    f (e,r,c,m)
+        | e /= 0    = (1, r', 0, m - outer c r')
+        | otherwise = error "singular!"
+      where
+        r' = r / scalar e
+
+
 -- | generic reference implementation of gaussian elimination
 --
--- @a <> gauss a b = b@
+-- @a <> gaussElim a b = b@
 --
 gaussElim
   :: (Fractional t, Num (Vector t), Ord t, Indexable (Vector t) t, Numeric t)
   => Matrix t -> Matrix t -> Matrix t
 
-gaussElim x y = dropColumns (rows x) (flipud $ fromRows s2)
+gaussElim a b = r
   where
-    rs = toRows $ fromBlocks [[x , y]]
-    s1 = pivotDown (rows x) 0 rs
-    s2 = pivotUp (rows x-1) (reverse s1)
+    go x y = splitColsAt (cols a) (down $ fromBlocks [[x,y]])
+    (a1,b1) = go a b
+    ( _, r) = go (flipud . fliprl $ a1) (flipud . fliprl $ b1)
 
-pivotDown t n xs
-    | t == n    = []
-    | otherwise = y : pivotDown t (n+1) ys
-  where
-    y:ys = redu (pivot n xs)
-
-    pivot k = (const k &&& id)
-            . reverse . sortBy (compare `on` (abs. (!k)))  -- FIXME
-
-    redu (k,x:zs)
-        | p == 0 = error "gauss: singular!"  -- FIXME
-        | otherwise = u : map f zs
-      where
-        p = x!k
-        u = scale (recip (x!k)) x
-        f z = z - scale (z!k) u
-    redu (_,[]) = []
-
-
-pivotUp n xs
-    | n == -1 = []
-    | otherwise = y : pivotUp (n-1) ys
-  where
-    y:ys = redu' (n,xs)
-
-    redu' (k,x:zs) = u : map f zs
-      where
-        u = x
-        f z = z - scale (z!k) u
-    redu' (_,[]) = []
 
 --------------------------------------------------------------------------------
 
