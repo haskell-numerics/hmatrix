@@ -141,7 +141,6 @@ module Numeric.LinearAlgebra (
     Complexable, RealElement,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
-    Mod,
     Field,
 --    Normed,
     Transposable,
@@ -159,7 +158,6 @@ import Internal.Numeric hiding (mul)
 import Internal.Algorithms hiding (linearSolve,Normed,orth)
 import qualified Internal.Algorithms as A
 import Internal.Util
-import Internal.Modular
 import Internal.Random
 import Internal.Sparse((!#>))
 import Internal.CG

@@ -1308,7 +1308,7 @@ int multiplyQ(int ta, int tb, KQMAT(a),KQMAT(b),QMAT(r)) {
     } OK }
 
 int multiplyI(int     m, KOIMAT(a), KOIMAT(b), OIMAT(r)) MULT_IMP
-int multiplyL(int32_t m, KOLMAT(a), KOLMAT(b), OLMAT(r)) MULT_IMP
+int multiplyL(int64_t m, KOLMAT(a), KOLMAT(b), OLMAT(r)) MULT_IMP
 
 
 ////////////////// sparse matrix-product ///////////////////////////////////////

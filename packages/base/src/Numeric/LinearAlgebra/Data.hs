@@ -88,7 +88,7 @@ module Numeric.LinearAlgebra.Data(
     separable,
     fromArray2D,
     module Data.Complex,
-    R,C,I,Z,F,
+    R,C,I,Z,Mod,
     Vector, Matrix, GMatrix, nRows, nCols
 
 ) where

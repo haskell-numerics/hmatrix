@@ -383,7 +383,7 @@ intTest = utest "int ops" (fst $ checkT (undefined :: Matrix I))
 
 --------------------------------------------------------------------------------
 
-modularTest = utest "modular ops" (fst $ checkT (undefined :: Matrix (F 13)))
+modularTest = utest "modular ops" (fst $ checkT (undefined :: Matrix (Mod 13 I)))
 
 --------------------------------------------------------------------------------
 

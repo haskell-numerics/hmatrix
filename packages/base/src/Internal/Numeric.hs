@@ -398,8 +398,8 @@ arctan2 = arctan2'
 --
 -- >>> cmod 3 (range 5)
 -- fromList [0,1,2,0,1]
-cmod :: (Integral e, Container c e) => Int -> c e -> c e
-cmod m = cmod' (fromIntegral m)
+cmod :: (Integral e, Container c e) => e -> c e -> c e
+cmod = cmod'
 
 -- |
 -- >>>fromInt ((2><2) [0..3]) :: Matrix (Complex Double)

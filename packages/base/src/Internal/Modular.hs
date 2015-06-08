@@ -7,6 +7,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -22,7 +23,7 @@ Proof of concept of statically checked modular arithmetic.
 -}
 
 module Internal.Modular(
-    Mod, F
+    Mod
 ) where
 
 import Internal.Vector
@@ -30,8 +31,8 @@ import Internal.Matrix hiding (mat,size)
 import Internal.Numeric
 import Internal.Element
 import Internal.Container
-import Internal.Vectorized (prodI,sumI)
-import Internal.LAPACK (multiplyI)
+import Internal.Vectorized (prodI,sumI,prodL,sumL)
+import Internal.LAPACK (multiplyI, multiplyL)
 import Internal.Util(Indexable(..),gaussElim)
 import GHC.TypeLits
 import Data.Proxy(Proxy)
@@ -45,24 +46,24 @@ import Data.Ratio
 newtype Mod (n :: Nat) t = Mod {unMod:: t}
   deriving (Storable)
 
-instance KnownNat m => Enum (F m)
+instance (Integral t, Enum t, KnownNat m) => Enum (Mod m t)
   where
     toEnum = l0 (\m x -> fromIntegral $ x `mod` (fromIntegral m))
     fromEnum = fromIntegral . unMod
 
-instance KnownNat m => Eq (F m)
+instance (Eq t, KnownNat m) => Eq (Mod m t)
   where
     a == b = (unMod a) == (unMod b)
 
-instance KnownNat m => Ord (F m)
+instance (Ord t, KnownNat m) => Ord (Mod m t)
   where
     compare a b = compare (unMod a) (unMod b)
 
-instance KnownNat m => Real (F m)
+instance (Real t, KnownNat m, Integral (Mod m t)) => Real (Mod m t)
   where
     toRational x = toInteger x % 1
 
-instance KnownNat m => Integral (F m)
+instance (Integral t, KnownNat m, Num (Mod m t)) => Integral (Mod m t)
   where
     toInteger = toInteger . unMod
     quotRem a b = (Mod q, Mod r)
@@ -70,7 +71,7 @@ instance KnownNat m => Integral (F m)
          (q,r) = quotRem (unMod a) (unMod b)
 
 -- | this instance is only valid for prime m
-instance KnownNat m => Fractional (F m)
+instance (Show (Mod m t), Num (Mod m t), Eq t, KnownNat m) => Fractional (Mod m t)
   where
     recip x
         | x*r == 1  = r
@@ -80,27 +81,27 @@ instance KnownNat m => Fractional (F m)
         m' = fromIntegral . natVal $ (undefined :: Proxy m)
     fromRational x = fromInteger (numerator x) / fromInteger (denominator x)
 
-l2 :: forall m a b c. (KnownNat m) => (Int -> a -> b -> c) -> Mod m a -> Mod m b -> Mod m c
+l2 :: forall m a b c. (Num c, KnownNat m) => (c -> a -> b -> c) -> Mod m a -> Mod m b -> Mod m c
 l2 f (Mod u) (Mod v) = Mod (f m' u v)
   where
     m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
-l1 :: forall m a b . (KnownNat m) => (Int -> a -> b) -> Mod m a -> Mod m b
+l1 :: forall m a b . (Num b, KnownNat m) => (b -> a -> b) -> Mod m a -> Mod m b
 l1 f (Mod u) = Mod (f m' u)
   where
     m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
-l0 :: forall m a b . (KnownNat m) => (Int -> a -> b) -> a -> Mod m b
+l0 :: forall m a b . (Num b, KnownNat m) => (b -> a -> b) -> a -> Mod m b
 l0 f u = Mod (f m' u)
   where
     m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
 
-instance Show (F n)
+instance Show t => Show (Mod n t)
   where
     show = show . unMod
 
-instance forall n . KnownNat n => Num (F n)
+instance forall n t . (Integral t, KnownNat n) => Num (Mod n t)
   where
     (+) = l2 (\m a b -> (a + b) `mod` (fromIntegral m))
     (*) = l2 (\m a b -> (a * b) `mod` (fromIntegral m))
@@ -110,14 +111,8 @@ instance forall n . KnownNat n => Num (F n)
     fromInteger = l0 (\m x -> fromInteger x `mod` (fromIntegral m))
 
 
--- | Integer modulo n
-type F n = Mod n I
 
-type V n = Vector (F n)
-type M n = Matrix (F n)
-
-
-instance Element (F n)
+instance (Ord t, Element t) => Element (Mod n t)
   where
     transdata n v m = i2f (transdata n (f2i v) m)
     constantD x n = i2f (constantD (unMod x) n)
@@ -128,7 +123,8 @@ instance Element (F n)
     selectV c l e g = i2f (selectV c (f2i l) (f2i e) (f2i g))
     remapM i j m = i2fM (remap i j (f2iM m))
 
-instance forall m . KnownNat m => Container Vector (F m)
+
+instance forall m . KnownNat m => Container Vector (Mod m I)
   where
     conj' = id
     size' = dim
@@ -168,24 +164,77 @@ instance forall m . KnownNat m => Container Vector (F m)
     fromZ'   = vmod . fromZ'
     toZ'     = toZ' . f2i
 
+instance forall m . KnownNat m => Container Vector (Mod m Z)
+  where
+    conj' = id
+    size' = dim
+    scale' s x = vmod (scale (unMod s) (f2i x))
+    addConstant c x = vmod (addConstant (unMod c) (f2i x))
+    add a b = vmod (add (f2i a) (f2i b))
+    sub a b = vmod (sub (f2i a) (f2i b))
+    mul a b = vmod (mul (f2i a) (f2i b))
+    equal u v = equal (f2i u) (f2i v)
+    scalar' x = fromList [x]
+    konst' x = i2f . konst (unMod x)
+    build' n f = build n (fromIntegral . f)
+    cmap' = cmap
+    atIndex' x k = fromIntegral (atIndex (f2i x) k)
+    minIndex'     = minIndex . f2i
+    maxIndex'     = maxIndex . f2i
+    minElement'   = Mod . minElement . f2i
+    maxElement'   = Mod . maxElement . f2i
+    sumElements'  = fromIntegral . sumL m' . f2i
+      where
+        m' = fromIntegral . natVal $ (undefined :: Proxy m)
+    prodElements' = fromIntegral . prodL m' . f2i
+      where
+        m' = fromIntegral . natVal $ (undefined :: Proxy m)
+    step'         = i2f . step . f2i
+    find' = findV
+    assoc' = assocV
+    accum' = accumV
+    ccompare' a b = ccompare (f2i a) (f2i b)
+    cselect' c l e g = i2f $ cselect c (f2i l) (f2i e) (f2i g)
+    scaleRecip s x = scale' s (cmap recip x)
+    divide x y = mul x (cmap recip y)
+    arctan2' = undefined
+    cmod' m = vmod . cmod' (unMod m) . f2i
+    fromInt' = vmod . fromInt'
+    toInt'   = toInt . f2i
+    fromZ'   = vmod
+    toZ'     = f2i
 
-instance Indexable (Vector (F m)) (F m)
+
+
+instance (Storable t, Indexable (Vector t) t) => Indexable (Vector (Mod m t)) (Mod m t)
   where
     (!) = (@>)
 
 
-type instance RealOf (F n) = I
+type instance RealOf (Mod n I) = I
+type instance RealOf (Mod n Z) = Z
 
-instance KnownNat m => Product (F m) where
+instance KnownNat m => Product (Mod m I) where
     norm2      = undefined
     absSum     = undefined
     norm1      = undefined
     normInf    = undefined
-    multiply   = lift2 (multiplyI m')
+    multiply   = lift2m (multiplyI m')
       where
         m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
-instance KnownNat m => Numeric (F m)
+instance KnownNat m => Product (Mod m Z) where
+    norm2      = undefined
+    absSum     = undefined
+    norm1      = undefined
+    normInf    = undefined
+    multiply   = lift2m (multiplyL m')
+      where
+        m' = fromIntegral . natVal $ (undefined :: Proxy m)
+
+
+instance KnownNat m => Numeric (Mod m I)
+instance KnownNat m => Numeric (Mod m Z)
 
 i2f :: Storable t => Vector t -> Vector (Mod n t)
 i2f v = unsafeFromForeignPtr (castForeignPtr fp) (i) (n)
@@ -206,10 +255,12 @@ vmod = i2f . cmod' m'
   where
     m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
-lift1 f a   = fromInt (f (toInt a))
-lift2 f a b = fromInt (f (toInt a) (toInt b))
+lift1 f a   = vmod (f (f2i a))
+lift2 f a b = vmod (f (f2i a) (f2i b))
 
-instance forall m . KnownNat m => Num (V m)
+lift2m f a b = liftMatrix vmod (f (f2iM a) (f2iM b))
+
+instance forall m . KnownNat m => Num (Vector (Mod m I))
   where
     (+) = lift2 (+)
     (*) = lift2 (*)
@@ -222,14 +273,14 @@ instance forall m . KnownNat m => Num (V m)
 
 --------------------------------------------------------------------------------
 
-instance (KnownNat m) => Testable (M m)
+instance (KnownNat m) => Testable (Matrix (Mod m I))
   where
     checkT _ = test
 
 test = (ok, info)
   where
-    v = fromList [3,-5,75] :: V 11
-    m = (3><3) [1..]   :: M 11
+    v = fromList [3,-5,75] :: Vector (Mod 11 I)
+    m = (3><3) [1..]   :: Matrix (Mod 11 I)
 
     a = (3><3) [1,2 , 3
                ,4,5 , 6
@@ -237,13 +288,17 @@ test = (ok, info)
 
     b = (3><2) [0..] :: Matrix I
 
-    am = fromInt a :: Matrix (F 13)
-    bm = fromInt b :: Matrix (F 13)
+    am = fromInt a :: Matrix (Mod 13 I)
+    bm = fromInt b :: Matrix (Mod 13 I)
     ad = fromInt a :: Matrix Double
     bd = fromInt b :: Matrix Double
 
     g = (3><3) (repeat (40000)) :: Matrix I
-    gm = fromInt g :: Matrix (F 100000)
+    gm = fromInt g :: Matrix (Mod 100000 I)
+
+    lg = (3><3) (repeat (3*10^(9::Int))) :: Matrix Z
+    lgm = fromZ lg :: Matrix (Mod 10000000000 Z)
+
 
     info = do
         print v
@@ -262,11 +317,18 @@ test = (ok, info)
         print gm
         print $ gm <> gm
 
+        print lg
+        print $ lg <> lg
+        print lgm
+        print $ lgm <> lgm
+
+
     ok = and
       [ toInt (m #> v) == cmod 11 (toInt m #> toInt v )
       , am <> gaussElim am bm == bm
-      , prodElements (konst (9:: F 10) (12::Int)) == product (replicate 12 (9:: F 10))
+      , prodElements (konst (9:: Mod 10 I) (12::Int)) == product (replicate 12 (9:: Mod 10 I))
       , gm <> gm == konst 0 (3,3)
+      , lgm <> lgm == konst 0 (3,3)
       ]
 
 

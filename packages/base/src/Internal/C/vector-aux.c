@@ -71,7 +71,7 @@ int sumI(int m, KIVEC(x),IVEC(r)) {
     OK
 }
 
-int sumL(int32_t m, KLVEC(x),LVEC(r)) {
+int sumL(int64_t m, KLVEC(x),LVEC(r)) {
     REQUIRES(rn==1,BAD_SIZE);
     int i;
     int res = 0;
@@ -148,7 +148,7 @@ int prodI(int m, KIVEC(x),IVEC(r)) {
     OK
 }
 
-int prodL(int32_t m, KLVEC(x),LVEC(r)) {
+int prodL(int64_t m, KLVEC(x),LVEC(r)) {
     REQUIRES(rn==1,BAD_SIZE);
     int i;
     int res = 1;
@@ -761,8 +761,8 @@ int mapValL(int code, int64_t* pval, KLVEC(x), LVEC(r)) {
         OPV(1,val/xp[k])
         OPV(2,val+xp[k])
         OPV(3,val-xp[k])
-        OPV(6,mod(val,xp[k]))
-        OPV(7,mod(xp[k],val))
+        OPV(6,mod_l(val,xp[k]))
+        OPV(7,mod_l(xp[k],val))
         default: ERROR(BAD_CODE);
     }
 }
