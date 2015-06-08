@@ -1290,29 +1290,25 @@ int multiplyQ(int ta, int tb, KQMAT(a),KQMAT(b),QMAT(r)) {
 }
 
 
-int multiplyI(KOIMAT(a), KOIMAT(b), OIMAT(r)) {
-    { TRAV(r,i,j) {
-        int k;
-        AT(r,i,j) = 0;
-        for (k=0;k<ac;k++) {
-            AT(r,i,j) += AT(a,i,k) * AT(b,k,j);
-        }
-      }
+#define MULT_IMP_VER(OP)        \
+    { TRAV(r,i,j) {             \
+        int k;                  \
+        AT(r,i,j) = 0;          \
+        for (k=0;k<ac;k++) {    \
+            OP                  \
+        }                       \
+      }                         \
     }
-    OK
-}
 
-int multiplyL(KOLMAT(a), KOLMAT(b), OLMAT(r)) {
-    { TRAV(r,i,j) {
-        int k;
-        AT(r,i,j) = 0;
-        for (k=0;k<ac;k++) {
-            AT(r,i,j) += AT(a,i,k) * AT(b,k,j);
-        }
-      }
-    }
-    OK
-}
+#define MULT_IMP {                                                                   \
+    if (m==1) {                                                                      \
+        MULT_IMP_VER( AT(r,i,j) += AT(a,i,k) * AT(b,k,j); )                          \
+    } else {                                                                         \
+        MULT_IMP_VER( AT(r,i,j) = (AT(r,i,j) + (AT(a,i,k) * AT(b,k,j)) % m) % m ; )  \
+    } OK }
+
+int multiplyI(int     m, KOIMAT(a), KOIMAT(b), OIMAT(r)) MULT_IMP
+int multiplyL(int32_t m, KOLMAT(a), KOLMAT(b), OLMAT(r)) MULT_IMP
 
 
 ////////////////// sparse matrix-product ///////////////////////////////////////

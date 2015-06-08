@@ -30,6 +30,8 @@ import Internal.Matrix hiding (mat,size)
 import Internal.Numeric
 import Internal.Element
 import Internal.Container
+import Internal.Vectorized (prodI,sumI)
+import Internal.LAPACK (multiplyI)
 import Internal.Util(Indexable(..),gaussElim)
 import GHC.TypeLits
 import Data.Proxy(Proxy)
@@ -145,8 +147,12 @@ instance forall m . KnownNat m => Container Vector (F m)
     maxIndex'     = maxIndex . f2i
     minElement'   = Mod . minElement . f2i
     maxElement'   = Mod . maxElement . f2i
-    sumElements'  = fromIntegral . sumElements . f2i  -- FIXME
-    prodElements' = fromIntegral . sumElements . f2i  -- FIXME
+    sumElements'  = fromIntegral . sumI m' . f2i
+      where
+        m' = fromIntegral . natVal $ (undefined :: Proxy m)
+    prodElements' = fromIntegral . prodI m' . f2i
+      where
+        m' = fromIntegral . natVal $ (undefined :: Proxy m)
     step'         = i2f . step . f2i
     find' = findV
     assoc' = assocV
@@ -170,14 +176,14 @@ instance Indexable (Vector (F m)) (F m)
 
 type instance RealOf (F n) = I
 
-
 instance KnownNat m => Product (F m) where
     norm2      = undefined
     absSum     = undefined
     norm1      = undefined
     normInf    = undefined
-    multiply   = lift2 multiply  -- FIXME
-
+    multiply   = lift2 (multiplyI m')
+      where
+        m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
 instance KnownNat m => Numeric (F m)
 
@@ -236,6 +242,9 @@ test = (ok, info)
     ad = fromInt a :: Matrix Double
     bd = fromInt b :: Matrix Double
 
+    g = (3><3) (repeat (40000)) :: Matrix I
+    gm = fromInt g :: Matrix (F 100000)
+
     info = do
         print v
         print m
@@ -247,10 +256,17 @@ test = (ok, info)
 
         print $ am <> gaussElim am bm - bm
         print $ ad <> gaussElim ad bd - bd
+        
+        print g
+        print $ g <> g
+        print gm
+        print $ gm <> gm
 
     ok = and
       [ toInt (m #> v) == cmod 11 (toInt m #> toInt v )
       , am <> gaussElim am bm == bm
+      , prodElements (konst (9:: F 10) (12::Int)) == product (replicate 12 (9:: F 10))
+      , gm <> gm == konst 0 (3,3)
       ]
 
 

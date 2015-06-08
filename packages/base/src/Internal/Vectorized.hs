@@ -94,11 +94,9 @@ sumQ = sumg c_sumQ
 sumC :: Vector (Complex Double) -> Complex Double
 sumC = sumg c_sumC
 
--- | sum of elements
-sumI :: Vector CInt -> CInt
-sumI = sumg c_sumI
+sumI m = sumg (c_sumI m)
 
-sumL = sumg c_sumL
+sumL m = sumg (c_sumL m)
 
 sumg f x = unsafePerformIO $ do
     r <- createVector 1
@@ -111,8 +109,8 @@ foreign import ccall unsafe "sumF" c_sumF :: TVV Float
 foreign import ccall unsafe "sumR" c_sumR :: TVV Double
 foreign import ccall unsafe "sumQ" c_sumQ :: TVV (Complex Float)
 foreign import ccall unsafe "sumC" c_sumC :: TVV (Complex Double)
-foreign import ccall unsafe "sumI" c_sumI :: TVV CInt
-foreign import ccall unsafe "sumL" c_sumL :: TVV Z
+foreign import ccall unsafe "sumI" c_sumI :: I -> TVV I
+foreign import ccall unsafe "sumL" c_sumL :: Z -> TVV Z
 
 -- | product of elements
 prodF :: Vector Float -> Float
@@ -130,11 +128,10 @@ prodQ = prodg c_prodQ
 prodC :: Vector (Complex Double) -> Complex Double
 prodC = prodg c_prodC
 
--- | product of elements
-prodI :: Vector CInt -> CInt
-prodI = prodg c_prodI
 
-prodL = prodg c_prodL
+prodI = prodg . c_prodI
+
+prodL = prodg . c_prodL
 
 prodg f x = unsafePerformIO $ do
     r <- createVector 1
@@ -146,8 +143,8 @@ foreign import ccall unsafe "prodF" c_prodF :: TVV Float
 foreign import ccall unsafe "prodR" c_prodR :: TVV Double
 foreign import ccall unsafe "prodQ" c_prodQ :: TVV (Complex Float)
 foreign import ccall unsafe "prodC" c_prodC :: TVV (Complex Double)
-foreign import ccall unsafe "prodI" c_prodI :: TVV (CInt)
-foreign import ccall unsafe "prodL" c_prodL :: TVV Z
+foreign import ccall unsafe "prodI" c_prodI :: I -> TVV I
+foreign import ccall unsafe "prodL" c_prodL :: Z -> TVV Z
 
 ------------------------------------------------------------------
 

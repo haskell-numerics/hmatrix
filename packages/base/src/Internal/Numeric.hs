@@ -113,8 +113,8 @@ instance Container Vector I
     maxIndex'     = emptyErrorV "maxIndex"   (fromIntegral . toScalarI MaxIdx)
     minElement'   = emptyErrorV "minElement" (toScalarI Min)
     maxElement'   = emptyErrorV "maxElement" (toScalarI Max)
-    sumElements'  = sumI
-    prodElements' = prodI
+    sumElements'  = sumI 1
+    prodElements' = prodI 1
     step' = stepI
     find' = findV
     assoc' = assocV
@@ -152,8 +152,8 @@ instance Container Vector Z
     maxIndex'     = emptyErrorV "maxIndex"   (fromIntegral . toScalarL MaxIdx)
     minElement'   = emptyErrorV "minElement" (toScalarL Min)
     maxElement'   = emptyErrorV "maxElement" (toScalarL Max)
-    sumElements'  = sumL
-    prodElements' = prodL
+    sumElements'  = sumL 1
+    prodElements' = prodL 1
     step' = stepL
     find' = findV
     assoc' = assocV
@@ -596,14 +596,14 @@ instance Product I where
     absSum     = emptyVal (sumElements . vectorMapI Abs)
     norm1      = absSum
     normInf    = emptyVal (maxElement . vectorMapI Abs)
-    multiply   = emptyMul multiplyI
+    multiply   = emptyMul (multiplyI 1)
 
 instance Product Z where
     norm2      = undefined
     absSum     = emptyVal (sumElements . vectorMapL Abs)
     norm1      = absSum
     normInf    = emptyVal (maxElement . vectorMapL Abs)
-    multiply   = emptyMul multiplyL
+    multiply   = emptyMul (multiplyL 1)
 
 
 emptyMul m a b

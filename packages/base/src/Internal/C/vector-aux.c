@@ -58,20 +58,28 @@ int sumR(KDVEC(x),DVEC(r)) {
     OK
 }
 
-int sumI(KIVEC(x),IVEC(r)) {
+int sumI(int m, KIVEC(x),IVEC(r)) {
     REQUIRES(rn==1,BAD_SIZE);
     int i;
     int res = 0;
-    for (i = 0; i < xn; i++) res += xp[i];
+    if (m==1) {
+        for (i = 0; i < xn; i++) res += xp[i];
+    } else {
+        for (i = 0; i < xn; i++) res = (res + xp[i]) % m;
+    }
     rp[0] = res;
     OK
 }
 
-int sumL(KLVEC(x),LVEC(r)) {
+int sumL(int32_t m, KLVEC(x),LVEC(r)) {
     REQUIRES(rn==1,BAD_SIZE);
     int i;
     int res = 0;
-    for (i = 0; i < xn; i++) res += xp[i];
+    if (m==1) {
+        for (i = 0; i < xn; i++) res += xp[i];
+    } else {
+        for (i = 0; i < xn; i++) res = (res + xp[i]) % m;
+    }
     rp[0] = res;
     OK
 }
@@ -127,20 +135,28 @@ int prodR(KDVEC(x),DVEC(r)) {
     OK
 }
 
-int prodI(KIVEC(x),IVEC(r)) {
+int prodI(int m, KIVEC(x),IVEC(r)) {
     REQUIRES(rn==1,BAD_SIZE);
     int i;
     int res = 1;
-    for (i = 0; i < xn; i++) res *= xp[i];
+    if (m==1) {
+        for (i = 0; i < xn; i++) res *= xp[i];
+    } else {
+        for (i = 0; i < xn; i++) res = (res * xp[i]) % m;
+    }
     rp[0] = res;
     OK
 }
 
-int prodL(KLVEC(x),LVEC(r)) {
+int prodL(int32_t m, KLVEC(x),LVEC(r)) {
     REQUIRES(rn==1,BAD_SIZE);
     int i;
     int res = 1;
-    for (i = 0; i < xn; i++) res *= xp[i];
+    if (m==1) {
+        for (i = 0; i < xn; i++) res *= xp[i];
+    } else {
+        for (i = 0; i < xn; i++) res = (res * xp[i]) % m;
+    }
     rp[0] = res;
     OK
 }
