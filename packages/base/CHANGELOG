@@ -1,11 +1,11 @@
 0.17.0.0
 --------
 
-    * initial support of (C)Int elements
-
     * improved matrix extraction using vectors of indexes (??)
+
+    * basic support of Int32 and Int64 elements
     
-    * remap, ccompare
+    * remap, ccompare, sortIndex
 
     * experimental support of type safe modular arithmetic
 

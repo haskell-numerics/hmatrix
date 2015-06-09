@@ -512,7 +512,7 @@ block3x3 r nr c nc m = [[m ?? (er !! i, ec !! j) | j <- [0..2] ] | i <- [0..2] ]
     er = [ Range 0 1 (r-1), Range r 1 (r+nr-1), Drop (nr+r) ]
     ec = [ Range 0 1 (c-1), Range c 1 (c+nc-1), Drop (nc+c) ]
 
-view1 :: Numeric t => Matrix t -> Maybe (t, Vector t, Vector t, Matrix t)
+view1 :: Numeric t => Matrix t -> Maybe (View1 t)
 view1 m
     | rows m > 0 && cols m > 0 = Just (e, flatten m12, flatten m21 , m22)
     | otherwise = Nothing
@@ -520,21 +520,25 @@ view1 m
     [[m11,m12],[m21,m22]] = block2x2 1 1 m
     e = m11 `atIndex` (0, 0)
 
-unView1 :: Numeric t => (t, Vector t, Vector t, Matrix t) -> Matrix t
+unView1 :: Numeric t => View1 t -> Matrix t
 unView1 (e,r,c,m) = fromBlocks [[scalar e, asRow r],[asColumn c, m]]
 
+type View1 t = (t, Vector t, Vector t, Matrix t)
 
+foldMatrix :: Numeric t => (Matrix t -> Matrix t) -> (View1 t -> View1 t) -> (Matrix t -> Matrix t)
 foldMatrix g f ( (f <$>) . view1 . g -> Just (e,r,c,m)) = unView1 (e, r, c, foldMatrix g f m)
 foldMatrix _ _ m = m
 
-sortRowsBy h j m = m ?? (Pos (sortIndex (h (tr m ! j))), All)
 
-splitColsAt n = (takeColumns n &&& dropColumns n)
-
-
-down a = foldMatrix g f a
+swapMax k m
+    | rows m > 0 && j>0 = (j, m ?? (Pos (idxs swapped), All))
+    | otherwise  = (0,m)
   where
-    g = sortRowsBy (negate.abs) 0
+    j = maxIndex $ abs (tr m ! k)
+    swapped = j:[1..j-1] ++ 0:[j+1..rows m-1]
+
+down g a = foldMatrix g f a
+  where
     f (e,r,c,m)
         | e /= 0    = (1, r', 0, m - outer c r')
         | otherwise = error "singular!"
@@ -547,15 +551,16 @@ down a = foldMatrix g f a
 -- @a <> gaussElim a b = b@
 --
 gaussElim
-  :: (Fractional t, Num (Vector t), Ord t, Indexable (Vector t) t, Numeric t)
+  :: (Eq t, Fractional t, Num (Vector t), Numeric t)
   => Matrix t -> Matrix t -> Matrix t
 
-gaussElim a b = r
+gaussElim a b = flipudrl r
   where
-    go x y = splitColsAt (cols a) (down $ fromBlocks [[x,y]])
-    (a1,b1) = go a b
-    ( _, r) = go (flipud . fliprl $ a1) (flipud . fliprl $ b1)
-
+    flipudrl = flipud . fliprl
+    splitColsAt n = (takeColumns n &&& dropColumns n)
+    go f x y = splitColsAt (cols a) (down f $ fromBlocks [[x,y]])
+    (a1,b1) = go (snd . swapMax 0) a b
+    ( _, r) = go id (flipudrl $ a1) (flipudrl $ b1)
 
 --------------------------------------------------------------------------------
 

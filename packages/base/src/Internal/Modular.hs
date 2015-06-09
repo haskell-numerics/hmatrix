@@ -137,7 +137,7 @@ instance forall m . KnownNat m => Container Vector (Mod m I)
     scalar' x = fromList [x]
     konst' x = i2f . konst (unMod x)
     build' n f = build n (fromIntegral . f)
-    cmap' = cmap
+    cmap' = mapVector
     atIndex' x k = fromIntegral (atIndex (f2i x) k)
     minIndex'     = minIndex . f2i
     maxIndex'     = maxIndex . f2i
@@ -177,7 +177,7 @@ instance forall m . KnownNat m => Container Vector (Mod m Z)
     scalar' x = fromList [x]
     konst' x = i2f . konst (unMod x)
     build' n f = build n (fromIntegral . f)
-    cmap' = cmap
+    cmap' = mapVector
     atIndex' x k = fromIntegral (atIndex (f2i x) k)
     minIndex'     = minIndex . f2i
     maxIndex'     = maxIndex . f2i
@@ -311,7 +311,7 @@ test = (ok, info)
 
         print $ am <> gaussElim am bm - bm
         print $ ad <> gaussElim ad bd - bd
-        
+
         print g
         print $ g <> g
         print gm
