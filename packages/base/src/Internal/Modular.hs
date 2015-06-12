@@ -111,18 +111,46 @@ instance forall n t . (Integral t, KnownNat n) => Num (Mod n t)
     fromInteger = l0 (\m x -> fromInteger x `mod` (fromIntegral m))
 
 
-
-instance (Ord t, Element t) => Element (Mod n t)
+instance KnownNat m => Element (Mod m I)
   where
     transdata n v m = i2f (transdata n (f2i v) m)
     constantD x n = i2f (constantD (unMod x) n)
-    extractR m mi is mj js = i2fM (extractR (f2iM m) mi is mj js)
+    extractR m mi is mj js = i2fM <$> extractR (f2iM m) mi is mj js
     sortI = sortI . f2i
     sortV = i2f . sortV . f2i
     compareV u v = compareV (f2i u) (f2i v)
     selectV c l e g = i2f (selectV c (f2i l) (f2i e) (f2i g))
     remapM i j m = i2fM (remap i j (f2iM m))
+    rowOp c a i1 i2 j1 j2 x = rowOpAux (c_rowOpMI m') c (unMod a) i1 i2 j1 j2 (f2iM x)
+      where
+        m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
+instance KnownNat m => Element (Mod m Z)
+  where
+    transdata n v m = i2f (transdata n (f2i v) m)
+    constantD x n = i2f (constantD (unMod x) n)
+    extractR m mi is mj js = i2fM <$> extractR (f2iM m) mi is mj js
+    sortI = sortI . f2i
+    sortV = i2f . sortV . f2i
+    compareV u v = compareV (f2i u) (f2i v)
+    selectV c l e g = i2f (selectV c (f2i l) (f2i e) (f2i g))
+    remapM i j m = i2fM (remap i j (f2iM m))
+    rowOp c a i1 i2 j1 j2 x = rowOpAux (c_rowOpML m') c (unMod a) i1 i2 j1 j2 (f2iM x)
+      where
+        m' = fromIntegral . natVal $ (undefined :: Proxy m)
+
+{-
+instance (Ord t, Element t) => Element (Mod m t)
+  where
+    transdata n v m = i2f (transdata n (f2i v) m)
+    constantD x n = i2f (constantD (unMod x) n)
+    extractR m mi is mj js = i2fM <$> extractR (f2iM m) mi is mj js
+    sortI = sortI . f2i
+    sortV = i2f . sortV . f2i
+    compareV u v = compareV (f2i u) (f2i v)
+    selectV c l e g = i2f (selectV c (f2i l) (f2i e) (f2i g))
+    remapM i j m = i2fM (remap i j (f2iM m))
+-}
 
 instance forall m . KnownNat m => Container Vector (Mod m I)
   where
@@ -205,11 +233,9 @@ instance forall m . KnownNat m => Container Vector (Mod m Z)
     toZ'     = f2i
 
 
-
 instance (Storable t, Indexable (Vector t) t) => Indexable (Vector (Mod m t)) (Mod m t)
   where
     (!) = (@>)
-
 
 type instance RealOf (Mod n I) = I
 type instance RealOf (Mod n Z) = Z
@@ -270,6 +296,15 @@ instance forall m . KnownNat m => Num (Vector (Mod m I))
     negate = lift1 negate
     fromInteger x = fromInt (fromInteger x)
 
+instance forall m . KnownNat m => Num (Vector (Mod m Z))
+  where
+    (+) = lift2 (+)
+    (*) = lift2 (*)
+    (-) = lift2 (-)
+    abs = lift1 abs
+    signum = lift1 signum
+    negate = lift1 negate
+    fromInteger x = fromZ (fromInteger x)
 
 --------------------------------------------------------------------------------
 

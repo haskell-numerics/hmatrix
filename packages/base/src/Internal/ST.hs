@@ -1,5 +1,6 @@
 {-# LANGUAGE Rank2Types    #-}
 {-# LANGUAGE BangPatterns  #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Internal.ST
@@ -20,6 +21,8 @@ module Internal.ST (
     -- * Mutable Matrices
     STMatrix, newMatrix, thawMatrix, freezeMatrix, runSTMatrix,
     readMatrix, writeMatrix, modifyMatrix, liftSTMatrix,
+    axpy, scal, swap, extractRect,
+    mutable,
     -- * Unsafe functions
     newUndefinedVector,
     unsafeReadVector, unsafeWriteVector,
@@ -34,8 +37,6 @@ import Internal.Matrix
 import Internal.Vectorized
 import Control.Monad.ST(ST, runST)
 import Foreign.Storable(Storable, peekElemOff, pokeElemOff)
-
-
 import Control.Monad.ST.Unsafe(unsafeIOToST)
 
 {-# INLINE ioReadV #-}
@@ -144,6 +145,7 @@ liftSTMatrix f (STMatrix x) = unsafeIOToST . fmap f . cloneMatrix $ x
 unsafeFreezeMatrix :: (Storable t) => STMatrix s1 t -> ST s2 (Matrix t)
 unsafeFreezeMatrix (STMatrix x) = unsafeIOToST . return $ x
 
+
 freezeMatrix :: (Storable t) => STMatrix s1 t -> ST s2 (Matrix t)
 freezeMatrix m = liftSTMatrix id m
 
@@ -170,4 +172,24 @@ newUndefinedMatrix ord r c = unsafeIOToST $ fmap STMatrix $ createMatrix ord r c
 {-# NOINLINE newMatrix #-}
 newMatrix :: Storable t => t -> Int -> Int -> ST s (STMatrix s t)
 newMatrix v r c = unsafeThawMatrix $ reshape c $ runSTVector $ newVector v (r*c)
+
+--------------------------------------------------------------------------------
+
+rowOpST :: Element t => Int -> t -> Int -> Int -> Int -> Int -> STMatrix s t -> ST s ()
+rowOpST c x i1 i2 j1 j2 (STMatrix m) = unsafeIOToST (rowOp c x i1 i2 j1 j2 m)
+
+axpy (STMatrix m) a i j = rowOpST 0 a i j 0 (cols m -1) (STMatrix m)
+scal (STMatrix m) a i   = rowOpST 1 a i i 0 (cols m -1) (STMatrix m)
+swap (STMatrix m) i j   = rowOpST 2 0 i j 0 (cols m -1) (STMatrix m)
+
+extractRect (STMatrix m) i1 i2 j1 j2 = unsafeIOToST (extractR m 0 (idxs[i1,i2]) 0 (idxs[j1,j2]))
+
+--------------------------------------------------------------------------------
+
+mutable :: Storable t => (forall s . (Int, Int) -> STMatrix s t -> ST s u) -> Matrix t -> (Matrix t,u)
+mutable f a = runST $ do
+   x <- thawMatrix a
+   info <- f (rows a, cols a) x
+   r <- unsafeFreezeMatrix x
+   return (r,info)
 

@@ -134,7 +134,7 @@ module Numeric.LinearAlgebra (
     Seed, RandDist(..), randomVector, rand, randn, gaussianSample, uniformSample,
 
     -- * Misc
-    meanCov, rowOuters, pairwiseD2, unitary, peps, relativeError, haussholder, optimiseMult, udot, nullspaceSVD, orthSVD, ranksv, gaussElim,
+    meanCov, rowOuters, pairwiseD2, unitary, peps, relativeError, haussholder, optimiseMult, udot, nullspaceSVD, orthSVD, ranksv, gaussElim, gaussElim_1, gaussElim_2,
     ℝ,ℂ,iC,
     -- * Auxiliary classes
     Element, Container, Product, Numeric, LSDiv,

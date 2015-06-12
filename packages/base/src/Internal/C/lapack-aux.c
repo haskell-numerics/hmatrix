@@ -4,6 +4,12 @@
 #include <math.h>
 #include <time.h>
 #include <inttypes.h>
+#include <complex.h>
+
+typedef double complex TCD;
+typedef float  complex TCF;
+
+#undef complex
 
 #include "lapack-aux.h"
 
@@ -45,6 +51,10 @@
 #define NOCONVER 2005
 #define NODEFPOS 2006
 #define NOSPRTD  2007
+
+inline int mod (int a, int b);
+
+inline int64_t mod_l (int64_t a, int64_t b);
 
 //---------------------------------------
 void asm_finit() {
@@ -1310,6 +1320,83 @@ int multiplyQ(int ta, int tb, KQMAT(a),KQMAT(b),QMAT(r)) {
 int multiplyI(int     m, KOIMAT(a), KOIMAT(b), OIMAT(r)) MULT_IMP
 int multiplyL(int64_t m, KOLMAT(a), KOLMAT(b), OLMAT(r)) MULT_IMP
 
+/////////////////////////////// inplace row ops ////////////////////////////////
+
+#define AXPY_IMP {                    \
+    int j;                            \
+    for(j=j1; j<=j2; j++) {           \
+        AT(r,i2,j) += a*AT(r,i1,j);   \
+    } OK }
+
+#define AXPY_MOD_IMP(M) {                                      \
+    int j;                                                     \
+    for(j=j1; j<=j2; j++) {                                    \
+        AT(r,i2,j) = M(AT(r,i2,j) + M(a*AT(r,i1,j), m) , m);   \
+    } OK }
+
+
+#define SCAL_IMP {                    \
+    int i,j;                          \
+    for(i=i1; i<=i2; i++) {           \
+        for(j=j1; j<=j2; j++) {       \
+            AT(r,i,j) = a*AT(r,i,j);  \
+            }                         \
+    } OK }
+
+#define SCAL_MOD_IMP(M) {                   \
+    int i,j;                                \
+    for(i=i1; i<=i2; i++) {                 \
+        for(j=j1; j<=j2; j++) {             \
+            AT(r,i,j) = M(a*AT(r,i,j) , m); \
+            }                               \
+    } OK }
+
+
+#define SWAP_IMP(T)   {               \
+    T aux;                            \
+    int k;                            \
+    if (i1 != i2) {                   \
+        for (k=j1; k<=j2; k++) {      \
+            aux = AT(r,i1,k);         \
+            AT(r,i1,k) = AT(r,i2,k);  \
+            AT(r,i2,k) = aux;         \
+        }                             \
+    } OK }
+
+
+#define ROWOP_IMP(T) {                \
+    T a = *pa;                        \
+    switch(code) {                    \
+        case 0:  AXPY_IMP             \
+        case 1:  SCAL_IMP             \
+        case 2:  SWAP_IMP(T)          \
+        default: ERROR(BAD_CODE);     \
+    }                                 \
+}
+
+#define ROWOP_MOD_IMP(T,M) {          \
+    T a = *pa;                        \
+    switch(code) {                    \
+        case 0:  AXPY_MOD_IMP(M)      \
+        case 1:  SCAL_MOD_IMP(M)      \
+        case 2:  SWAP_IMP(T)          \
+        default: ERROR(BAD_CODE);     \
+    }                                 \
+}
+
+
+#define ROWOP(T) int rowop_##T(int code, T* pa, int i1, int i2, int j1, int j2, MATG(T,r)) ROWOP_IMP(T)
+
+#define ROWOP_MOD(T,M) int rowop_mod_##T(T m, int code, T* pa, int i1, int i2, int j1, int j2, MATG(T,r)) ROWOP_MOD_IMP(T,M)
+
+ROWOP(double)
+ROWOP(float)
+ROWOP(TCD)
+ROWOP(TCF)
+ROWOP(int32_t)
+ROWOP(int64_t)
+ROWOP_MOD(int32_t,mod)
+ROWOP_MOD(int64_t,mod_l)
 
 ////////////////// sparse matrix-product ///////////////////////////////////////
 

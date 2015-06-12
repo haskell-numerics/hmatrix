@@ -44,6 +44,7 @@ module Numeric.LinearAlgebra.Devel(
     -- ** Mutable Matrices
     STMatrix, newMatrix, thawMatrix, freezeMatrix, runSTMatrix,
     readMatrix, writeMatrix, modifyMatrix, liftSTMatrix,
+    axpy,scal,swap, extractRect, mutable,
     -- ** Unsafe functions
     newUndefinedVector,
     unsafeReadVector, unsafeWriteVector,

@@ -54,7 +54,7 @@ module Internal.Util(
     -- ** 2D
     corr2, conv2, separable,
     block2x2,block3x3,view1,unView1,foldMatrix,
-    gaussElim
+    gaussElim_1, gaussElim_2, gaussElim
 ) where
 
 import Internal.Vector
@@ -64,17 +64,19 @@ import Internal.Element
 import Internal.Container
 import Internal.Vectorized
 import Internal.IO
-import Internal.Algorithms hiding (i,Normed)
+import Internal.Algorithms hiding (i,Normed,swap)
 import Numeric.Matrix()
 import Numeric.Vector()
 import Internal.Random
 import Internal.Convolution
-import Control.Monad(when)
+import Control.Monad(when,forM_)
 import Text.Printf
 import Data.List.Split(splitOn)
-import Data.List(intercalate,)
+import Data.List(intercalate,sortBy)
 import Control.Arrow((&&&))
 import Data.Complex
+import Data.Function(on)
+import Internal.ST
 
 type ℝ = Double
 type ℕ = Int
@@ -359,6 +361,10 @@ instance Indexable (Vector I) I
   where
     (!) = (@>)
 
+instance Indexable (Vector Z) Z
+  where
+    (!) = (@>)
+
 instance Indexable (Vector (Complex Double)) (Complex Double)
   where
     (!) = (@>)
@@ -550,17 +556,79 @@ down g a = foldMatrix g f a
 --
 -- @a <> gaussElim a b = b@
 --
-gaussElim
+gaussElim_2
   :: (Eq t, Fractional t, Num (Vector t), Numeric t)
   => Matrix t -> Matrix t -> Matrix t
 
-gaussElim a b = flipudrl r
+gaussElim_2 a b = flipudrl r
   where
     flipudrl = flipud . fliprl
     splitColsAt n = (takeColumns n &&& dropColumns n)
     go f x y = splitColsAt (cols a) (down f $ fromBlocks [[x,y]])
     (a1,b1) = go (snd . swapMax 0) a b
     ( _, r) = go id (flipudrl $ a1) (flipudrl $ b1)
+
+--------------------------------------------------------------------------------
+
+gaussElim_1
+  :: (Fractional t, Num (Vector t), Ord t, Indexable (Vector t) t, Numeric t)
+  => Matrix t -> Matrix t -> Matrix t
+
+gaussElim_1 x y = dropColumns (rows x) (flipud $ fromRows s2)
+  where
+    rs = toRows $ fromBlocks [[x , y]]
+    s1 = fromRows $ pivotDown (rows x) 0 rs      -- interesting
+    s2 = pivotUp (rows x-1) (toRows $ flipud s1)
+
+pivotDown t n xs
+    | t == n    = []
+    | otherwise = y : pivotDown t (n+1) ys
+  where
+    y:ys = redu (pivot n xs)
+
+    pivot k = (const k &&& id)
+            . sortBy (flip compare `on` (abs. (!k)))
+
+    redu (k,x:zs)
+        | p == 0 = error "gauss: singular!"  -- FIXME
+        | otherwise = u : map f zs
+      where
+        p = x!k
+        u = scale (recip (x!k)) x
+        f z = z - scale (z!k) u
+    redu (_,[]) = []
+
+
+pivotUp n xs
+    | n == -1 = []
+    | otherwise = y : pivotUp (n-1) ys
+  where
+    y:ys = redu' (n,xs)
+
+    redu' (k,x:zs) = u : map f zs
+      where
+        u = x
+        f z = z - scale (z!k) u
+    redu' (_,[]) = []
+
+--------------------------------------------------------------------------------
+
+gaussElim a b = dropColumns (rows a) $ fst $ mutable gaussST (fromBlocks [[a,b]])
+
+gaussST (r,_) x = do
+    let n = r-1
+    forM_ [0..n] $ \i -> do
+        c <- maxIndex . abs . flatten <$> extractRect x i n i i
+        swap x i (i+c)
+        a <- readMatrix x i i
+        scal x (recip a) i
+        forM_ [i+1..n] $ \j -> do
+            b <- readMatrix x j i
+            axpy x (-b) i j
+    forM_ [n,n-1..1] $ \i -> do
+        forM_ [i-1,i-2..0] $ \j -> do
+            b <- readMatrix x j i
+            axpy x (-b) i j
 
 --------------------------------------------------------------------------------
 

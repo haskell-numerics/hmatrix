@@ -81,6 +81,7 @@ library
     ghc-options:        -Wall
                         -fno-warn-missing-signatures
                         -fno-warn-orphans
+                        -fprof-auto
 
     cc-options:         -O4 -Wall
 

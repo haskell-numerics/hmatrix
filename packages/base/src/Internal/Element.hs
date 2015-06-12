@@ -30,6 +30,7 @@ import Text.Printf
 import Data.List(transpose,intersperse)
 import Data.List.Split(chunksOf)
 import Foreign.Storable(Storable)
+import System.IO.Unsafe(unsafePerformIO)
 import Control.Monad(liftM)
 
 -------------------------------------------------------------------
@@ -147,7 +148,7 @@ m ?? (e, TakeLast n) = m ?? (e, Drop (cols m - n))
 m ?? (DropLast n, e) = m ?? (Take (rows m - n), e)
 m ?? (e, DropLast n) = m ?? (e, Take (cols m - n))
 
-m ?? (er,ec) = extractR m moder rs modec cs
+m ?? (er,ec) = unsafePerformIO $ extractR m moder rs modec cs
   where
     (moder,rs) = mkExt (rows m) er
     (modec,cs) = mkExt (cols m) ec

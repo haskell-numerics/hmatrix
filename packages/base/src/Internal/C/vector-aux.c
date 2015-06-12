@@ -716,6 +716,7 @@ int mapValF(int code, float* pval, KFVEC(x), FVEC(r)) {
     }
 }
 
+inline
 int mod (int a, int b) {
     int m = a % b;
     if (b>0) {
@@ -741,7 +742,7 @@ int mapValI(int code, int* pval, KIVEC(x), IVEC(r)) {
     }
 }
 
-
+inline
 int64_t mod_l (int64_t a, int64_t b) {
     int64_t m = a % b;
     if (b>0) {
@@ -1230,7 +1231,7 @@ int round_vector_i(KDVEC(v),IVEC(r)) {
 int mod_vector(int m, KIVEC(v), IVEC(r)) {
     int k;
     for(k=0; k<vn; k++) {
-        rp[k] = vp[k] % m;
+        rp[k] = mod(vp[k],m);
     }
     OK
 }
@@ -1266,7 +1267,7 @@ int round_vector_l(KDVEC(v),LVEC(r)) {
 int mod_vector_l(int64_t m, KLVEC(v), LVEC(r)) {
     int k;
     for(k=0; k<vn; k++) {
-        rp[k] = vp[k] % m;
+        rp[k] = mod_l(vp[k],m);
     }
     OK
 }
