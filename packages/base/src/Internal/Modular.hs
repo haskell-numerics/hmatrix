@@ -33,12 +33,15 @@ import Internal.Element
 import Internal.Container
 import Internal.Vectorized (prodI,sumI,prodL,sumL)
 import Internal.LAPACK (multiplyI, multiplyL)
-import Internal.Util(Indexable(..),gaussElim)
+import Internal.Algorithms(luFact)
+import Internal.Util(Normed(..),Indexable(..),gaussElim, gaussElim_1, gaussElim_2,luST, magnit)
+import Internal.ST(mutable)
 import GHC.TypeLits
 import Data.Proxy(Proxy)
 import Foreign.ForeignPtr(castForeignPtr)
 import Foreign.Storable
 import Data.Ratio
+import Data.Complex
 
 
 
@@ -116,6 +119,7 @@ instance KnownNat m => Element (Mod m I)
     transdata n v m = i2f (transdata n (f2i v) m)
     constantD x n = i2f (constantD (unMod x) n)
     extractR m mi is mj js = i2fM <$> extractR (f2iM m) mi is mj js
+    setRect i j m x = setRect i j (f2iM m) (f2iM x)
     sortI = sortI . f2i
     sortV = i2f . sortV . f2i
     compareV u v = compareV (f2i u) (f2i v)
@@ -130,6 +134,7 @@ instance KnownNat m => Element (Mod m Z)
     transdata n v m = i2f (transdata n (f2i v) m)
     constantD x n = i2f (constantD (unMod x) n)
     extractR m mi is mj js = i2fM <$> extractR (f2iM m) mi is mj js
+    setRect i j m x = setRect i j (f2iM m) (f2iM x)
     sortI = sortI . f2i
     sortV = i2f . sortV . f2i
     compareV u v = compareV (f2i u) (f2i v)
@@ -139,18 +144,6 @@ instance KnownNat m => Element (Mod m Z)
       where
         m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
-{-
-instance (Ord t, Element t) => Element (Mod m t)
-  where
-    transdata n v m = i2f (transdata n (f2i v) m)
-    constantD x n = i2f (constantD (unMod x) n)
-    extractR m mi is mj js = i2fM <$> extractR (f2iM m) mi is mj js
-    sortI = sortI . f2i
-    sortV = i2f . sortV . f2i
-    compareV u v = compareV (f2i u) (f2i v)
-    selectV c l e g = i2f (selectV c (f2i l) (f2i e) (f2i g))
-    remapM i j m = i2fM (remap i j (f2iM m))
--}
 
 instance forall m . KnownNat m => Container Vector (Mod m I)
   where
@@ -258,6 +251,20 @@ instance KnownNat m => Product (Mod m Z) where
       where
         m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
+instance KnownNat m => Normed (Vector (Mod m I))
+  where
+    norm_0 = norm_0 . toInt
+    norm_1 = norm_1 . toInt
+    norm_2 = norm_2 . toInt
+    norm_Inf = norm_Inf . toInt
+
+instance KnownNat m => Normed (Vector (Mod m Z))
+  where
+    norm_0 = norm_0 . toZ
+    norm_1 = norm_1 . toZ
+    norm_2 = norm_2 . toZ
+    norm_Inf = norm_Inf . toZ
+
 
 instance KnownNat m => Numeric (Mod m I)
 instance KnownNat m => Numeric (Mod m Z)
@@ -334,6 +341,15 @@ test = (ok, info)
     lg = (3><3) (repeat (3*10^(9::Int))) :: Matrix Z
     lgm = fromZ lg :: Matrix (Mod 10000000000 Z)
 
+    gen n = diagRect 1 (konst 5 n) n n :: Numeric t => Matrix t
+    
+    checkGen x = norm_Inf $ flatten $ invg x <> x - ident (rows x)
+    
+    invg t = gaussElim t (ident (rows t))
+
+    checkLU okf t = norm_Inf $ flatten (l <> u <> p - t)
+      where
+        (l,u,p,_ :: Int) = luFact $ mutable (luST okf) t
 
     info = do
         print v
@@ -356,11 +372,42 @@ test = (ok, info)
         print $ lg <> lg
         print lgm
         print $ lgm <> lgm
+        
+        print (checkGen (gen 5 :: Matrix R))
+        print (checkGen (gen 5 :: Matrix C))
+        print (checkGen (gen 5 :: Matrix Float))
+        print (checkGen (gen 5 :: Matrix (Complex Float)))
+        print (invg (gen 5) :: Matrix (Mod 7 I))
+        print (invg (gen 5) :: Matrix (Mod 7 Z))
+        
+        print $ mutable (luST (const True)) (gen 5 :: Matrix R)
+        print $ mutable (luST (const True)) (gen 5 :: Matrix (Mod 11 Z))
+
+        print $ checkLU (magnit 0) (gen 5 :: Matrix R)
+        print $ checkLU (magnit 0) (gen 5 :: Matrix Float)
+        print $ checkLU (magnit 0) (gen 5 :: Matrix C)
+        print $ checkLU (magnit 0) (gen 5 :: Matrix (Complex Float))
+        print $ checkLU (magnit 0) (gen 5 :: Matrix (Mod 7 I))
+        print $ checkLU (magnit 0) (gen 5 :: Matrix (Mod 7 Z))
 
 
     ok = and
       [ toInt (m #> v) == cmod 11 (toInt m #> toInt v )
-      , am <> gaussElim am bm == bm
+      , am <> gaussElim_1 am bm == bm
+      , am <> gaussElim_2 am bm == bm
+      , am <> gaussElim   am bm == bm
+      , (checkGen (gen 5 :: Matrix R)) < 1E-15
+      , (checkGen (gen 5 :: Matrix Float)) < 1E-7
+      , (checkGen (gen 5 :: Matrix C)) < 1E-15
+      , (checkGen (gen 5 :: Matrix (Complex Float))) < 1E-7
+      , (checkGen (gen 5 :: Matrix (Mod 7 I))) == 0
+      , (checkGen (gen 5 :: Matrix (Mod 7 Z))) == 0
+      , (checkLU (magnit 1E-10) (gen 5 :: Matrix R)) < 1E-15
+      , (checkLU (magnit 1E-5) (gen 5 :: Matrix Float)) < 1E-6
+      , (checkLU (magnit 1E-10) (gen 5 :: Matrix C)) < 1E-15
+      , (checkLU (magnit 1E-5) (gen 5 :: Matrix (Complex Float))) < 1E-6
+      , (checkLU (magnit 0) (gen 5 :: Matrix (Mod 7 I))) == 0
+      , (checkLU (magnit 0) (gen 5 :: Matrix (Mod 7 Z))) == 0
       , prodElements (konst (9:: Mod 10 I) (12::Int)) == product (replicate 12 (9:: Mod 10 I))
       , gm <> gm == konst 0 (3,3)
       , lgm <> lgm == konst 0 (3,3)

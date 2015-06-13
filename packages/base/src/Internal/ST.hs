@@ -21,7 +21,7 @@ module Internal.ST (
     -- * Mutable Matrices
     STMatrix, newMatrix, thawMatrix, freezeMatrix, runSTMatrix,
     readMatrix, writeMatrix, modifyMatrix, liftSTMatrix,
-    axpy, scal, swap, extractRect,
+    axpy, scal, swap, extractMatrix, setMatrix, rowOpST,
     mutable,
     -- * Unsafe functions
     newUndefinedVector,
@@ -166,6 +166,9 @@ readMatrix = safeIndexM unsafeReadMatrix
 writeMatrix :: Storable t => STMatrix s t -> Int -> Int -> t -> ST s ()
 writeMatrix = safeIndexM unsafeWriteMatrix
 
+setMatrix :: Element t => STMatrix s t -> Int -> Int -> Matrix t -> ST s ()
+setMatrix (STMatrix x) i j m = unsafeIOToST $ setRect i j m x
+
 newUndefinedMatrix :: Storable t => MatrixOrder -> Int -> Int -> ST s (STMatrix s t)
 newUndefinedMatrix ord r c = unsafeIOToST $ fmap STMatrix $ createMatrix ord r c
 
@@ -182,7 +185,7 @@ axpy (STMatrix m) a i j = rowOpST 0 a i j 0 (cols m -1) (STMatrix m)
 scal (STMatrix m) a i   = rowOpST 1 a i i 0 (cols m -1) (STMatrix m)
 swap (STMatrix m) i j   = rowOpST 2 0 i j 0 (cols m -1) (STMatrix m)
 
-extractRect (STMatrix m) i1 i2 j1 j2 = unsafeIOToST (extractR m 0 (idxs[i1,i2]) 0 (idxs[j1,j2]))
+extractMatrix (STMatrix m) i1 i2 j1 j2 = unsafeIOToST (extractR m 0 (idxs[i1,i2]) 0 (idxs[j1,j2]))
 
 --------------------------------------------------------------------------------
 

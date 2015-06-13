@@ -275,6 +275,7 @@ class (Storable a) => Element a where
     transdata :: Int -> Vector a -> Int -> Vector a
     constantD  :: a -> Int -> Vector a
     extractR :: Matrix a -> CInt -> Vector CInt -> CInt -> Vector CInt -> IO (Matrix a)
+    setRect  :: Int -> Int -> Matrix a -> Matrix a -> IO ()
     sortI    :: Ord a => Vector a -> Vector CInt
     sortV    :: Ord a => Vector a -> Vector a
     compareV :: Ord a => Vector a -> Vector a -> Vector CInt
@@ -287,6 +288,7 @@ instance Element Float where
     transdata  = transdataAux ctransF
     constantD  = constantAux cconstantF
     extractR   = extractAux c_extractF
+    setRect    = setRectAux c_setRectF
     sortI      = sortIdxF
     sortV      = sortValF
     compareV   = compareF
@@ -298,6 +300,7 @@ instance Element Double where
     transdata  = transdataAux ctransR
     constantD  = constantAux cconstantR
     extractR   = extractAux c_extractD
+    setRect    = setRectAux c_setRectD
     sortI      = sortIdxD
     sortV      = sortValD
     compareV   = compareD
@@ -310,6 +313,7 @@ instance Element (Complex Float) where
     transdata  = transdataAux ctransQ
     constantD  = constantAux cconstantQ
     extractR   = extractAux c_extractQ
+    setRect    = setRectAux c_setRectQ
     sortI      = undefined
     sortV      = undefined
     compareV   = undefined
@@ -322,6 +326,7 @@ instance Element (Complex Double) where
     transdata  = transdataAux ctransC
     constantD  = constantAux cconstantC
     extractR   = extractAux c_extractC
+    setRect    = setRectAux c_setRectC
     sortI      = undefined
     sortV      = undefined
     compareV   = undefined
@@ -333,6 +338,7 @@ instance Element (CInt) where
     transdata  = transdataAux ctransI
     constantD  = constantAux cconstantI
     extractR   = extractAux c_extractI
+    setRect    = setRectAux c_setRectI
     sortI      = sortIdxI
     sortV      = sortValI
     compareV   = compareI
@@ -344,6 +350,7 @@ instance Element Z where
     transdata  = transdataAux ctransL
     constantD  = constantAux cconstantL
     extractR   = extractAux c_extractL
+    setRect    = setRectAux c_setRectL
     sortI      = sortIdxL
     sortV      = sortValL
     compareV   = compareL
@@ -453,6 +460,19 @@ foreign import ccall unsafe "extractC" c_extractC :: Extr (Complex Double)
 foreign import ccall unsafe "extractQ" c_extractQ :: Extr (Complex Float)
 foreign import ccall unsafe "extractI" c_extractI :: Extr CInt
 foreign import ccall unsafe "extractL" c_extractL :: Extr Z
+
+---------------------------------------------------------------
+
+setRectAux f i j m r = app2 (f (fi i) (fi j)) omat m omat r "setRect"
+
+type SetRect x = I -> I -> x ::> x::> Ok
+
+foreign import ccall unsafe "setRectD" c_setRectD :: SetRect Double
+foreign import ccall unsafe "setRectF" c_setRectF :: SetRect Float
+foreign import ccall unsafe "setRectC" c_setRectC :: SetRect (Complex Double)
+foreign import ccall unsafe "setRectQ" c_setRectQ :: SetRect (Complex Float)
+foreign import ccall unsafe "setRectI" c_setRectI :: SetRect I
+foreign import ccall unsafe "setRectL" c_setRectL :: SetRect Z
 
 --------------------------------------------------------------------------------
 

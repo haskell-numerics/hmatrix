@@ -1448,7 +1448,7 @@ int transL(KLMAT(x),LMAT(t)) TRANS_IMP
 
 //////////////////////// extract /////////////////////////////////
 
-#define EXTRACT_IMP                        \
+#define EXTRACT_IMP {                      \
     int i,j,si,sj,ni,nj;                   \
     ni = modei ? in : ip[1]-ip[0]+1;       \
     nj = modej ? jn : jp[1]-jp[0]+1;       \
@@ -1461,33 +1461,35 @@ int transL(KLMAT(x),LMAT(t)) TRANS_IMP
                                            \
             AT(r,i,j) = AT(m,si,sj);       \
         }                                  \
-    }                                      \
-    OK
+    } OK }
 
-int extractD(int modei, int modej, KIVEC(i), KIVEC(j), KODMAT(m), ODMAT(r)) {
-    EXTRACT_IMP
-}
+#define EXTRACT(T) int extract##T(int modei, int modej, KIVEC(i), KIVEC(j), KO##T##MAT(m), O##T##MAT(r)) EXTRACT_IMP
 
-int extractF(int modei, int modej, KIVEC(i), KIVEC(j), KOFMAT(m), OFMAT(r)) {
-    EXTRACT_IMP
-}
+EXTRACT(D)
+EXTRACT(F)
+EXTRACT(C)
+EXTRACT(Q)
+EXTRACT(I)
+EXTRACT(L)
 
-int extractC(int modei, int modej, KIVEC(i), KIVEC(j), KOCMAT(m), OCMAT(r)) {
-    EXTRACT_IMP
-}
+//////////////////////// setRect /////////////////////////////////
 
-int extractQ(int modei, int modej, KIVEC(i), KIVEC(j), KOQMAT(m), OQMAT(r)) {
-    EXTRACT_IMP
-}
+#define SETRECT(T)                                            \
+int setRect##T(int i, int j, KO##T##MAT(m), O##T##MAT(r)) {   \
+    { TRAV(m,a,b) {                                           \
+        int x = a+i, y = b+j;                                 \
+        if(x>=0 && x<rr && y>=0 && y<rc) {                    \
+            AT(r,x,y) = AT(m,a,b);                            \
+        }                                                     \
+      }                                                       \
+    } OK }
 
-int extractI(int modei, int modej, KIVEC(i), KIVEC(j), KOIMAT(m), OIMAT(r)) {
-    EXTRACT_IMP
-}
-
-int extractL(int modei, int modej, KIVEC(i), KIVEC(j), KOLMAT(m), OLMAT(r)) {
-    EXTRACT_IMP
-}
-
+SETRECT(D)
+SETRECT(F)
+SETRECT(C)
+SETRECT(Q)
+SETRECT(I)
+SETRECT(L)
 
 //////////////////////// remap /////////////////////////////////
 

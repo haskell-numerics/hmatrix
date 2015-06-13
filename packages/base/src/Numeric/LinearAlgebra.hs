@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra
@@ -119,7 +121,7 @@ module Numeric.LinearAlgebra (
     schur,
 
     -- * LU
-    lu, luPacked,
+    lu, luPacked, luFact, luPacked',
 
     -- * Matrix functions
     expm,
@@ -134,7 +136,7 @@ module Numeric.LinearAlgebra (
     Seed, RandDist(..), randomVector, rand, randn, gaussianSample, uniformSample,
 
     -- * Misc
-    meanCov, rowOuters, pairwiseD2, unitary, peps, relativeError, haussholder, optimiseMult, udot, nullspaceSVD, orthSVD, ranksv, gaussElim, gaussElim_1, gaussElim_2,
+    meanCov, rowOuters, pairwiseD2, unitary, peps, relativeError, haussholder, optimiseMult, udot, nullspaceSVD, orthSVD, ranksv, gaussElim, luST, magnit,
     ℝ,ℂ,iC,
     -- * Auxiliary classes
     Element, Container, Product, Numeric, LSDiv,
@@ -142,7 +144,6 @@ module Numeric.LinearAlgebra (
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
     Field,
---    Normed,
     Transposable,
     CGState(..),
     Testable(..)
@@ -155,13 +156,14 @@ import Numeric.Vector()
 import Internal.Matrix
 import Internal.Container hiding ((<>))
 import Internal.Numeric hiding (mul)
-import Internal.Algorithms hiding (linearSolve,Normed,orth)
+import Internal.Algorithms hiding (linearSolve,Normed,orth,luPacked')
 import qualified Internal.Algorithms as A
 import Internal.Util
 import Internal.Random
 import Internal.Sparse((!#>))
 import Internal.CG
 import Internal.Conversion
+import Internal.ST(mutable)
 
 {- | infix synonym of 'mul'
 
@@ -235,4 +237,6 @@ nullspace m = nullspaceSVD (Left (1*eps)) m (rightSV m)
 
 -- | return an orthonormal basis of the range space of a matrix. See also 'orthSVD'.
 orth m = orthSVD (Left (1*eps)) m (leftSV m)
+
+luPacked' x = mutable (luST (magnit 0)) x
 

@@ -41,6 +41,7 @@ module Internal.Util(
     norm,
     ℕ,ℤ,ℝ,ℂ,iC,
     Normed(..), norm_Frob, norm_nuclear,
+    magnit,
     unitary,
     mt,
     (~!~),
@@ -54,7 +55,7 @@ module Internal.Util(
     -- ** 2D
     corr2, conv2, separable,
     block2x2,block3x3,view1,unView1,foldMatrix,
-    gaussElim_1, gaussElim_2, gaussElim
+    gaussElim_1, gaussElim_2, gaussElim, luST
 ) where
 
 import Internal.Vector
@@ -300,6 +301,26 @@ instance Normed (Vector I)
     norm_2 v = sqrt . fromIntegral $ dot v v
     norm_Inf = fromIntegral . normInf
 
+instance Normed (Vector Z)
+  where
+    norm_0 = fromIntegral . sumElements . step . abs
+    norm_1 = fromIntegral . norm1
+    norm_2 v = sqrt . fromIntegral $ dot v v
+    norm_Inf = fromIntegral . normInf
+
+instance Normed (Vector Float)
+  where
+    norm_0 = norm_0 . double
+    norm_1 = norm_1 . double
+    norm_2 = norm_2 . double
+    norm_Inf = norm_Inf . double
+
+instance Normed (Vector (Complex Float))
+  where
+    norm_0 = norm_0 . double
+    norm_1 = norm_1 . double
+    norm_2 = norm_2 . double
+    norm_Inf = norm_Inf . double
 
 
 norm_Frob :: (Normed (Vector t), Element t) => Matrix t -> ℝ
@@ -307,6 +328,9 @@ norm_Frob = norm_2 . flatten
 
 norm_nuclear :: Field t => Matrix t -> ℝ
 norm_nuclear = sumElements . singularValues
+
+magnit :: (Element t, Normed (Vector t)) => R -> t -> Bool
+magnit e x = norm_1 (fromList [x]) > e
 
 
 -- | Obtains a vector in the same direction with 2-norm=1
@@ -618,9 +642,10 @@ gaussElim a b = dropColumns (rows a) $ fst $ mutable gaussST (fromBlocks [[a,b]]
 gaussST (r,_) x = do
     let n = r-1
     forM_ [0..n] $ \i -> do
-        c <- maxIndex . abs . flatten <$> extractRect x i n i i
+        c <- maxIndex . abs . flatten <$> extractMatrix x i n i i
         swap x i (i+c)
         a <- readMatrix x i i
+        when (a == 0) $ error "singular!"
         scal x (recip a) i
         forM_ [i+1..n] $ \j -> do
             b <- readMatrix x j i
@@ -629,6 +654,25 @@ gaussST (r,_) x = do
         forM_ [i-1,i-2..0] $ \j -> do
             b <- readMatrix x j i
             axpy x (-b) i j
+
+
+luST ok (r,c) x = do
+    let n = r-1
+        axpy' m a i j = rowOpST 0 a i j (i+1) (c-1) m
+    p <- thawMatrix . asColumn . range $ r
+    forM_ [0..n] $ \i -> do
+        k <- maxIndex . abs . flatten <$> extractMatrix x i n i i
+        writeMatrix p i 0 (fi (k+i))
+        swap x i (i+k)
+        a <- readMatrix x i i
+        when (ok a) $ do
+            forM_ [i+1..n] $ \j -> do
+                b <- (/a) <$> readMatrix x j i
+                axpy' x (-b) i j
+                writeMatrix x j i b
+    v <- unsafeFreezeMatrix p
+    return (map ti $ toList $ flatten v)
+
 
 --------------------------------------------------------------------------------
 
