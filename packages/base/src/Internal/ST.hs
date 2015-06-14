@@ -10,7 +10,7 @@
 -- Stability   :  provisional
 --
 -- In-place manipulation inside the ST monad.
--- See examples/inplace.hs in the distribution.
+-- See @examples/inplace.hs@ in the repository.
 --
 -----------------------------------------------------------------------------
 
@@ -21,8 +21,8 @@ module Internal.ST (
     -- * Mutable Matrices
     STMatrix, newMatrix, thawMatrix, freezeMatrix, runSTMatrix,
     readMatrix, writeMatrix, modifyMatrix, liftSTMatrix,
-    axpy, scal, swap, extractMatrix, setMatrix, rowOpST,
-    mutable,
+--  axpy, scal, swap, rowOp,
+    mutable, extractMatrix, setMatrix, rowOper, RowOper(..), RowRange(..), ColRange(..),
     -- * Unsafe functions
     newUndefinedVector,
     unsafeReadVector, unsafeWriteVector,
@@ -178,16 +178,55 @@ newMatrix v r c = unsafeThawMatrix $ reshape c $ runSTVector $ newVector v (r*c)
 
 --------------------------------------------------------------------------------
 
-rowOpST :: Element t => Int -> t -> Int -> Int -> Int -> Int -> STMatrix s t -> ST s ()
-rowOpST c x i1 i2 j1 j2 (STMatrix m) = unsafeIOToST (rowOp c x i1 i2 j1 j2 m)
+data ColRange = AllCols
+              | ColRange Int Int
+              | Col Int
+              | FromCol Int
 
-axpy (STMatrix m) a i j = rowOpST 0 a i j 0 (cols m -1) (STMatrix m)
-scal (STMatrix m) a i   = rowOpST 1 a i i 0 (cols m -1) (STMatrix m)
-swap (STMatrix m) i j   = rowOpST 2 0 i j 0 (cols m -1) (STMatrix m)
+getColRange c AllCols = (0,c-1)
+getColRange c (ColRange a b) = (a `mod` c, b `mod` c)
+getColRange c (Col a) = (a `mod` c, a `mod` c)
+getColRange c (FromCol a) = (a `mod` c, c-1)
 
-extractMatrix (STMatrix m) i1 i2 j1 j2 = unsafeIOToST (extractR m 0 (idxs[i1,i2]) 0 (idxs[j1,j2]))
+data RowRange = AllRows
+              | RowRange Int Int
+              | Row Int
+              | FromRow Int
 
---------------------------------------------------------------------------------
+getRowRange r AllRows = (0,r-1)
+getRowRange r (RowRange a b) = (a `mod` r, b `mod` r)
+getRowRange r (Row a) = (a `mod` r, a `mod` r)
+getRowRange r (FromRow a) = (a `mod` r, r-1)
+
+data RowOper t = AXPY t Int Int  ColRange
+               | SCAL t RowRange ColRange
+               | SWAP Int Int    ColRange
+
+rowOper :: (Num t, Element t) => RowOper t -> STMatrix s t -> ST s ()
+
+rowOper (AXPY x i1 i2 r) (STMatrix m) = unsafeIOToST $ rowOp 0 x i1' i2' j1 j2 m
+  where
+    (j1,j2) = getColRange (cols m) r
+    i1' = i1 `mod` (rows m)
+    i2' = i2 `mod` (rows m)
+
+rowOper (SCAL x rr rc) (STMatrix m) = unsafeIOToST $ rowOp 1 x i1 i2 j1 j2 m
+  where
+    (i1,i2) = getRowRange (rows m) rr
+    (j1,j2) = getColRange (cols m) rc
+
+rowOper (SWAP i1 i2 r) (STMatrix m) = unsafeIOToST $ rowOp 2 0 i1' i2' j1 j2 m
+  where
+    (j1,j2) = getColRange (cols m) r
+    i1' = i1 `mod` (rows m)
+    i2' = i2 `mod` (rows m)
+
+
+extractMatrix (STMatrix m) rr rc = unsafeIOToST (extractR m 0 (idxs[i1,i2]) 0 (idxs[j1,j2]))
+  where
+    (i1,i2) = getRowRange (rows m) rr
+    (j1,j2) = getColRange (cols m) rc
+
 
 mutable :: Storable t => (forall s . (Int, Int) -> STMatrix s t -> ST s u) -> Matrix t -> (Matrix t,u)
 mutable f a = runST $ do

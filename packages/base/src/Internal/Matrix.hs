@@ -262,15 +262,7 @@ compat m1 m2 = rows m1 == rows m2 && cols m1 == cols m2
 
 ------------------------------------------------------------------
 
-{- | Supported matrix elements.
-
-    This class provides optimized internal
-    operations for selected element types.
-    It provides unoptimised defaults for any 'Storable' type,
-    so you can create instances simply as:
-
-    >instance Element Foo
--}
+-- | Supported matrix elements.
 class (Storable a) => Element a where
     transdata :: Int -> Vector a -> Int -> Vector a
     constantD  :: a -> Int -> Vector a

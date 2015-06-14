@@ -28,7 +28,7 @@ This module is under active development and the interface is subject to changes.
 
 module Numeric.LinearAlgebra.Static(
     -- * Vector
-    ℝ, R,
+       ℝ, R,
     vec2, vec3, vec4, (&), (#), split, headTail,
     vector,
     linspace, range, dim,
@@ -70,10 +70,6 @@ import qualified Numeric.LinearAlgebra as LA
 import Data.Proxy(Proxy)
 import Internal.Static
 import Control.Arrow((***))
-
-
-
-
 
 ud1 :: R n -> Vector ℝ
 ud1 (R (Dim v)) = v

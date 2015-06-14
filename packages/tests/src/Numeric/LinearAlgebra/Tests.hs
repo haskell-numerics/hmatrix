@@ -772,6 +772,7 @@ luBenchN f n x msg = do
     time (msg ++ " "++ show n) (f m)
 
 luBench = do
+    putStrLn ""
     luBenchN luPacked  1000 (5::R)          "luPacked  Double    "
     luBenchN luPacked' 1000 (5::R)          "luPacked' Double    "
     luBenchN luPacked' 1000 (5::Mod 9973 I) "luPacked' I mod 9973"

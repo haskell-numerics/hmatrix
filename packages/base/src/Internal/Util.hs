@@ -65,7 +65,7 @@ import Internal.Element
 import Internal.Container
 import Internal.Vectorized
 import Internal.IO
-import Internal.Algorithms hiding (i,Normed,swap)
+import Internal.Algorithms hiding (i,Normed,swap,linearSolve')
 import Numeric.Matrix()
 import Numeric.Vector()
 import Internal.Random
@@ -155,7 +155,7 @@ infixl 3 &
 (&) :: Vector Double -> Vector Double -> Vector Double
 a & b = vjoin [a,b]
 
-{- | horizontal concatenation of real matrices
+{- | horizontal concatenation
 
 >>> ident 3 ||| konst 7 (3,4)
 (3><7)
@@ -165,7 +165,7 @@ a & b = vjoin [a,b]
 
 -}
 infixl 3 |||
-(|||) :: Matrix Double -> Matrix Double -> Matrix Double
+(|||) :: Element t => Matrix t -> Matrix t -> Matrix t
 a ||| b = fromBlocks [[a,b]]
 
 -- | a synonym for ('|||') (unicode 0x00a6, broken bar)
@@ -174,9 +174,9 @@ infixl 3 ¦
 (¦) = (|||)
 
 
--- | vertical concatenation of real matrices
+-- | vertical concatenation
 --
-(===) :: Matrix Double -> Matrix Double -> Matrix Double
+(===) :: Element t => Matrix t -> Matrix t -> Matrix t
 infixl 2 ===
 a === b = fromBlocks [[a],[b]]
 
@@ -588,7 +588,7 @@ gaussElim_2 a b = flipudrl r
   where
     flipudrl = flipud . fliprl
     splitColsAt n = (takeColumns n &&& dropColumns n)
-    go f x y = splitColsAt (cols a) (down f $ fromBlocks [[x,y]])
+    go f x y = splitColsAt (cols a) (down f $ x ||| y)
     (a1,b1) = go (snd . swapMax 0) a b
     ( _, r) = go id (flipudrl $ a1) (flipudrl $ b1)
 
@@ -600,7 +600,7 @@ gaussElim_1
 
 gaussElim_1 x y = dropColumns (rows x) (flipud $ fromRows s2)
   where
-    rs = toRows $ fromBlocks [[x , y]]
+    rs = toRows $ x ||| y
     s1 = fromRows $ pivotDown (rows x) 0 rs      -- interesting
     s2 = pivotUp (rows x-1) (toRows $ flipud s1)
 
@@ -637,12 +637,15 @@ pivotUp n xs
 
 --------------------------------------------------------------------------------
 
-gaussElim a b = dropColumns (rows a) $ fst $ mutable gaussST (fromBlocks [[a,b]])
+gaussElim a b = dropColumns (rows a) $ fst $ mutable gaussST (a ||| b)
 
 gaussST (r,_) x = do
     let n = r-1
+        axpy m a i j = rowOper (AXPY a i j AllCols)     m
+        swap m i j   = rowOper (SWAP i j AllCols)       m
+        scal m a i   = rowOper (SCAL a (Row i) AllCols) m
     forM_ [0..n] $ \i -> do
-        c <- maxIndex . abs . flatten <$> extractMatrix x i n i i
+        c <- maxIndex . abs . flatten <$> extractMatrix x (FromRow i) (Col i)
         swap x i (i+c)
         a <- readMatrix x i i
         when (a == 0) $ error "singular!"
@@ -656,22 +659,23 @@ gaussST (r,_) x = do
             axpy x (-b) i j
 
 
-luST ok (r,c) x = do
-    let n = r-1
-        axpy' m a i j = rowOpST 0 a i j (i+1) (c-1) m
-    p <- thawMatrix . asColumn . range $ r
-    forM_ [0..n] $ \i -> do
-        k <- maxIndex . abs . flatten <$> extractMatrix x i n i i
-        writeMatrix p i 0 (fi (k+i))
+
+luST ok (r,_) x = do
+    let axpy m a i j = rowOper (AXPY a i j (FromCol (i+1))) m
+        swap m i j   = rowOper (SWAP i j AllCols)           m
+    p <- newUndefinedVector r
+    forM_ [0..r-1] $ \i -> do
+        k <- maxIndex . abs . flatten <$> extractMatrix x (FromRow i) (Col i)
+        writeVector p i (k+i)
         swap x i (i+k)
         a <- readMatrix x i i
         when (ok a) $ do
-            forM_ [i+1..n] $ \j -> do
+            forM_ [i+1..r-1] $ \j -> do
                 b <- (/a) <$> readMatrix x j i
-                axpy' x (-b) i j
+                axpy x (-b) i j
                 writeMatrix x j i b
-    v <- unsafeFreezeMatrix p
-    return (map ti $ toList $ flatten v)
+    v <- unsafeFreezeVector p
+    return (toList v)
 
 
 --------------------------------------------------------------------------------

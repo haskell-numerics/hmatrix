@@ -80,6 +80,7 @@ module Numeric.LinearAlgebra (
     cholSolve,
     cgSolve,
     cgSolve',
+    linearSolve',
 
     -- * Inverse and pseudoinverse
     inv, pinv, pinvTol,
@@ -136,8 +137,9 @@ module Numeric.LinearAlgebra (
     Seed, RandDist(..), randomVector, rand, randn, gaussianSample, uniformSample,
 
     -- * Misc
-    meanCov, rowOuters, pairwiseD2, unitary, peps, relativeError, haussholder, optimiseMult, udot, nullspaceSVD, orthSVD, ranksv, gaussElim, luST, magnit,
-    ℝ,ℂ,iC,
+    meanCov, rowOuters, pairwiseD2, unitary, peps, relativeError, magnit,
+    haussholder, optimiseMult, udot, nullspaceSVD, orthSVD, ranksv,
+    iC,
     -- * Auxiliary classes
     Element, Container, Product, Numeric, LSDiv,
     Complexable, RealElement,
@@ -156,7 +158,7 @@ import Numeric.Vector()
 import Internal.Matrix
 import Internal.Container hiding ((<>))
 import Internal.Numeric hiding (mul)
-import Internal.Algorithms hiding (linearSolve,Normed,orth,luPacked')
+import Internal.Algorithms hiding (linearSolve,Normed,orth,luPacked',linearSolve')
 import qualified Internal.Algorithms as A
 import Internal.Util
 import Internal.Random
@@ -239,4 +241,6 @@ nullspace m = nullspaceSVD (Left (1*eps)) m (rightSV m)
 orth m = orthSVD (Left (1*eps)) m (leftSV m)
 
 luPacked' x = mutable (luST (magnit 0)) x
+
+linearSolve' x y = gaussElim x y
 

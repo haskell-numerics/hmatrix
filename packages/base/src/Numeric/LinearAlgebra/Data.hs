@@ -53,8 +53,7 @@ module Numeric.LinearAlgebra.Data(
 
     -- * Matrix extraction
     Extractor(..), (??),
-    takeRows, takeLastRows, dropRows, dropLastRows,
-    takeColumns, takeLastColumns, dropColumns, dropLastColumns,
+    takeRows, dropRows, takeColumns, dropColumns,
     subMatrix, (?), (¿), fliprl, flipud, remap,
 
     -- * Block matrix

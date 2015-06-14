@@ -13,10 +13,10 @@ compatibility with previous version, to be removed
 
 module Numeric.LinearAlgebra.HMatrix (
     module Numeric.LinearAlgebra,
-     (¦),(——)
+    (¦),(——),ℝ,ℂ,
 ) where
 
 import Numeric.LinearAlgebra
 import Internal.Util
 
-   
+

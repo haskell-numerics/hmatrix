@@ -7,7 +7,10 @@
     
     * remap, ccompare, sortIndex
 
-    * experimental support of type safe modular arithmetic
+    * experimental support of type safe modular arithmetic, including linear
+      systems and lu factorization
+    
+    * elementary row operations in ST monad
 
     * old compatibility modules removed
 

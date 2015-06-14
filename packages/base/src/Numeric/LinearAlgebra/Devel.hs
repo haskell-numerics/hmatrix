@@ -20,8 +20,7 @@ module Numeric.LinearAlgebra.Devel(
     module Internal.Foreign,
 
     -- * FFI tools
-    -- | Illustrative usage examples can be found
-    --   in the @examples\/devel@ folder included in the package.
+    -- | See @examples/devel@ in the repository.
     
     createVector, createMatrix,
     vec, mat, omat,
@@ -36,7 +35,7 @@ module Numeric.LinearAlgebra.Devel(
 
     -- * ST
     -- | In-place manipulation inside the ST monad.
-    -- See examples\/inplace.hs in the distribution.
+    -- See @examples/inplace.hs@ in the repository.
     
     -- ** Mutable Vectors
     STVector, newVector, thawVector, freezeVector, runSTVector,
@@ -44,7 +43,7 @@ module Numeric.LinearAlgebra.Devel(
     -- ** Mutable Matrices
     STMatrix, newMatrix, thawMatrix, freezeMatrix, runSTMatrix,
     readMatrix, writeMatrix, modifyMatrix, liftSTMatrix,
-    axpy,scal,swap, extractMatrix, setMatrix, mutable, rowOpST,
+    mutable, extractMatrix, setMatrix, rowOper, RowOper(..), RowRange(..), ColRange(..),
     -- ** Unsafe functions
     newUndefinedVector,
     unsafeReadVector, unsafeWriteVector,

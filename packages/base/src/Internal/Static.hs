@@ -34,6 +34,9 @@ import Text.Printf
 
 --------------------------------------------------------------------------------
 
+type ℝ = Double
+type ℂ = Complex Double
+
 newtype Dim (n :: Nat) t = Dim t
   deriving Show
 
