@@ -613,6 +613,7 @@ runBenchmarks = do
     cholBench
     svdBench
     eigBench
+    luBench
     putStrLn ""
 
 --------------------------------
@@ -762,3 +763,20 @@ cholBench = do
     cholBenchN 300
 --    cholBenchN 150
 --    cholBenchN 50
+
+--------------------------------------------------------------------------------
+
+luBenchN f n x msg = do
+    let m = diagRect 1 (fromList (replicate n x)) n n
+    m `seq` putStr ""
+    time (msg ++ " "++ show n) (f m)
+
+luBench = do
+    luBenchN luPacked  1000 (5::R)          "luPacked  Double    "
+    luBenchN luPacked' 1000 (5::R)          "luPacked' Double    "
+    luBenchN luPacked' 1000 (5::Mod 9973 I) "luPacked' I mod 9973"
+    luBenchN luPacked' 1000 (5::Mod 9973 Z) "luPacked' Z mod 9973"
+
+    
+
+
