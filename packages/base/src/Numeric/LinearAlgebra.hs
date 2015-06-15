@@ -47,7 +47,7 @@ module Numeric.LinearAlgebra (
 
     -- * Products
     -- ** dot
-    dot, (<·>),
+    dot, (<.>),
     -- ** matrix-vector
     app, (#>), (<#), (!#>),
     -- ** matrix-matrix
@@ -240,7 +240,53 @@ nullspace m = nullspaceSVD (Left (1*eps)) m (rightSV m)
 -- | return an orthonormal basis of the range space of a matrix. See also 'orthSVD'.
 orth m = orthSVD (Left (1*eps)) m (leftSV m)
 
+{- | Experimental implementation of LU factorization
+     working on any Fractional element type, including 'Mod' n 'I' and 'Mod' n 'Z'.
+
+>>> let m = ident 5 + (5><5) [0..] :: Matrix (Z ./. 17)
+(5><5)
+ [  1,  1,  2,  3,  4
+ ,  5,  7,  7,  8,  9
+ , 10, 11, 13, 13, 14
+ , 15, 16,  0,  2,  2
+ ,  3,  4,  5,  6,  8 ]
+
+>>> let (l,u,p,s) = luFact $ luPacked' m
+>>> l
+(5><5)
+ [  1,  0, 0,  0, 0
+ ,  6,  1, 0,  0, 0
+ , 12,  7, 1,  0, 0
+ ,  7, 10, 7,  1, 0
+ ,  8,  2, 6, 11, 1 ]
+>>> u
+(5><5)
+ [ 15, 16,  0,  2,  2
+ ,  0, 13,  7, 13, 14
+ ,  0,  0, 15,  0, 11
+ ,  0,  0,  0, 15, 15
+ ,  0,  0,  0,  0,  1 ]
+
+-}
 luPacked' x = mutable (luST (magnit 0)) x
 
+{- | Experimental implementation of gaussian elimination
+     working on any Fractional element type, including 'Mod' n 'I' and 'Mod' n 'Z'.
+
+>>> let a = (2><2) [1,2,3,5] :: Matrix (Z ./. 13)
+(2><2)
+ [ 1, 2
+ , 3, 5 ]
+>>> b
+(2><3)
+ [ 5, 1, 3
+ , 8, 6, 3 ]
+
+>>> let x = linearSolve' a b
+(2><3)
+ [ 4,  7, 4
+ , 7, 10, 6 ]
+
+-}
 linearSolve' x y = gaussElim x y
 

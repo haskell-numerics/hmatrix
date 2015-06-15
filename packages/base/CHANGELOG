@@ -5,7 +5,7 @@
 
     * basic support of Int32 and Int64 elements
     
-    * remap, ccompare, sortIndex
+    * remap, more general cond
 
     * experimental support of type safe modular arithmetic, including linear
       systems and lu factorization

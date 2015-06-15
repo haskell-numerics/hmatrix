@@ -44,7 +44,7 @@ module Numeric.LinearAlgebra.Static(
     -- * Complex
     C, M, Her, her, 𝑖,
     -- * Products
-    (<>),(#>),(<·>),
+    (<>),(#>),(<.>),
     -- * Linear Systems
     linSolve, (<\>),
     -- * Factorizations
@@ -55,13 +55,13 @@ module Numeric.LinearAlgebra.Static(
     Disp(..), Domain(..),
     withVector, withMatrix,
     toRows, toColumns,
-    Sized(..), Diag(..), Sym, sym, mTm, unSym
+    Sized(..), Diag(..), Sym, sym, mTm, unSym, (<·>)
 ) where
 
 
 import GHC.TypeLits
 import Numeric.LinearAlgebra hiding (
-    (<>),(#>),(<·>),Konst(..),diag, disp,(===),(|||),
+    (<>),(#>),(<.>),Konst(..),diag, disp,(===),(|||),
     row,col,vector,matrix,linspace,toRows,toColumns,
     (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',
     eigenvalues,eigenvaluesSH,eigenvaluesSH',build,
@@ -206,6 +206,10 @@ infixr 8 #>
 infixr 8 <·>
 (<·>) :: R n -> R n -> ℝ
 (<·>) = dotR
+
+infixr 8 <.>
+(<.>) :: R n -> R n -> ℝ
+(<.>) = dotR
 
 --------------------------------------------------------------------------------
 
@@ -496,7 +500,7 @@ appC m v = mkC (extract m LA.#> extract v)
 dotC :: KnownNat n => C n -> C n -> ℂ
 dotC (unwrap -> u) (unwrap -> v)
     | singleV u || singleV v = sumElements (conj u * v)
-    | otherwise = u LA.<·> v
+    | otherwise = u LA.<.> v
 
 
 crossC :: C 3 -> C 3 -> C 3
@@ -584,12 +588,12 @@ test = (ok,info)
       where
         q = tm :: L 10 3
 
-    thingD = vjoin [ud1 u, 1] LA.<·> tr m LA.#> m LA.#> ud1 v
+    thingD = vjoin [ud1 u, 1] LA.<.> tr m LA.#> m LA.#> ud1 v
       where
         m = LA.matrix 3 [1..30]
 
     precS = (1::Double) + (2::Double) * ((1 :: R 3) * (u & 6)) <·> konst 2 #> v
-    precD = 1 + 2 * vjoin[ud1 u, 6] LA.<·> LA.konst 2 (LA.size (ud1 u) +1, LA.size (ud1 v)) LA.#> ud1 v
+    precD = 1 + 2 * vjoin[ud1 u, 6] LA.<.> LA.konst 2 (LA.size (ud1 u) +1, LA.size (ud1 v)) LA.#> ud1 v
 
 
 splittest

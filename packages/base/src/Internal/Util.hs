@@ -85,7 +85,7 @@ type ℤ = Int
 type ℂ = Complex Double
 
 -- | imaginary unit
-iC :: ℂ
+iC :: C
 iC = 0:+1
 
 {- | Create a real vector.
@@ -94,7 +94,7 @@ iC = 0:+1
 fromList [1.0,2.0,3.0,4.0,5.0]
 
 -}
-vector :: [ℝ] -> Vector ℝ
+vector :: [R] -> Vector R
 vector = fromList
 
 {- | Create a real matrix.
@@ -108,8 +108,8 @@ vector = fromList
 -}
 matrix
   :: Int -- ^ number of columns
-  -> [ℝ] -- ^ elements in row order
-  -> Matrix ℝ
+  -> [R] -- ^ elements in row order
+  -> Matrix R
 matrix c = reshape c . fromList
 
 
@@ -260,34 +260,34 @@ norm = pnorm PNorm2
 
 class Normed a
   where
-    norm_0   :: a -> ℝ
-    norm_1   :: a -> ℝ
-    norm_2   :: a -> ℝ
-    norm_Inf :: a -> ℝ
+    norm_0   :: a -> R
+    norm_1   :: a -> R
+    norm_2   :: a -> R
+    norm_Inf :: a -> R
 
 
-instance Normed (Vector ℝ)
+instance Normed (Vector R)
   where
     norm_0 v = sumElements (step (abs v - scalar (eps*normInf v)))
     norm_1 = pnorm PNorm1
     norm_2 = pnorm PNorm2
     norm_Inf = pnorm Infinity
 
-instance Normed (Vector ℂ)
+instance Normed (Vector C)
   where
     norm_0 v = sumElements (step (fst (fromComplex (abs v)) - scalar (eps*normInf v)))
     norm_1 = pnorm PNorm1
     norm_2 = pnorm PNorm2
     norm_Inf = pnorm Infinity
 
-instance Normed (Matrix ℝ)
+instance Normed (Matrix R)
   where
     norm_0 = norm_0 . flatten
     norm_1 = pnorm PNorm1
     norm_2 = pnorm PNorm2
     norm_Inf = pnorm Infinity
 
-instance Normed (Matrix ℂ)
+instance Normed (Matrix C)
   where
     norm_0 = norm_0 . flatten
     norm_1 = pnorm PNorm1
@@ -323,12 +323,22 @@ instance Normed (Vector (Complex Float))
     norm_Inf = norm_Inf . double
 
 
-norm_Frob :: (Normed (Vector t), Element t) => Matrix t -> ℝ
+norm_Frob :: (Normed (Vector t), Element t) => Matrix t -> R
 norm_Frob = norm_2 . flatten
 
-norm_nuclear :: Field t => Matrix t -> ℝ
+norm_nuclear :: Field t => Matrix t -> R
 norm_nuclear = sumElements . singularValues
 
+{- | Check if the absolute value or complex magnitude is greater than a given threshold
+
+>>> magnit 1E-6 (1E-12 :: R)
+False
+>>> magnit 1E-6 (3+iC :: C)
+True
+>>> magnit 0 (3 :: I ./. 5)
+True
+
+-}
 magnit :: (Element t, Normed (Vector t)) => R -> t -> Bool
 magnit e x = norm_1 (fromList [x]) > e
 

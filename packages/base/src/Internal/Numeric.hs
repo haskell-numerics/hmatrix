@@ -481,14 +481,16 @@ step = step'
 -- ,   0.0, 100.0,   7.0,  8.0
 -- ,   0.0,   0.0, 100.0, 12.0 ]
 --
+-- >>> let chop x = cond (abs x) 1E-6 0 0 x
+--
 cond
-    :: (Ord e, Container c e)
+    :: (Ord e, Container c e, Container c x)
     => c e -- ^ a
     -> c e -- ^ b
-    -> c e -- ^ l
-    -> c e -- ^ e
-    -> c e -- ^ g
-    -> c e -- ^ result
+    -> c x -- ^ l
+    -> c x -- ^ e
+    -> c x -- ^ g
+    -> c x -- ^ result
 cond a b l e g = cselect' (ccompare' a b) l e g
 
 

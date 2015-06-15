@@ -80,7 +80,7 @@ breakAt c l = (a++[c],tail b) where
     (a,b) = break (==c) l
 
 --------------------------------------------------------------------------------
-
+-- | Specification of indexes for the operator '??'.
 data Extractor
     = All
     | Range Int Int Int
@@ -102,7 +102,32 @@ ppext (Drop n) = printf "Drop %d" n
 ppext (TakeLast n) = printf "TakeLast %d" n
 ppext (DropLast n) = printf "DropLast %d" n
 
+{- | General matrix slicing.
 
+>>> m
+(4><5)
+ [  0,  1,  2,  3,  4
+ ,  5,  6,  7,  8,  9
+ , 10, 11, 12, 13, 14
+ , 15, 16, 17, 18, 19 ]
+
+>>> m ?? (Take 3, DropLast 2)
+(3><3)
+ [  0,  1,  2
+ ,  5,  6,  7
+ , 10, 11, 12 ]
+
+>>> m ?? (Pos (idxs[2,1]), All)
+(2><5)
+ [ 10, 11, 12, 13, 14
+ ,  5,  6,  7,  8,  9 ]
+
+>>> m ?? (PosCyc (idxs[-7,80]), Range 4 (-2) 0)
+(2><3)
+ [ 9, 7, 5
+ , 4, 2, 0 ]
+
+-}
 infixl 9 ??
 (??)  :: Element t => Matrix t -> (Extractor,Extractor) -> Matrix t
 
@@ -328,27 +353,30 @@ r >< c = f where
 
 ----------------------------------------------------------------
 
--- | Creates a matrix with the first n rows of another matrix
 takeRows :: Element t => Int -> Matrix t -> Matrix t
 takeRows n mt = subMatrix (0,0) (n, cols mt) mt
+
 -- | Creates a matrix with the last n rows of another matrix
 takeLastRows :: Element t => Int -> Matrix t -> Matrix t
 takeLastRows n mt = subMatrix (rows mt - n, 0) (n, cols mt) mt
--- | Creates a copy of a matrix without the first n rows
+
 dropRows :: Element t => Int -> Matrix t -> Matrix t
 dropRows n mt = subMatrix (n,0) (rows mt - n, cols mt) mt
+
 -- | Creates a copy of a matrix without the last n rows
 dropLastRows :: Element t => Int -> Matrix t -> Matrix t
 dropLastRows n mt = subMatrix (0,0) (rows mt - n, cols mt) mt
--- |Creates a matrix with the first n columns of another matrix
+
 takeColumns :: Element t => Int -> Matrix t -> Matrix t
 takeColumns n mt = subMatrix (0,0) (rows mt, n) mt
+
 -- |Creates a matrix with the last n columns of another matrix
 takeLastColumns :: Element t => Int -> Matrix t -> Matrix t
 takeLastColumns n mt = subMatrix (0, cols mt - n) (rows mt, n) mt
--- | Creates a copy of a matrix without the first n columns
+
 dropColumns :: Element t => Int -> Matrix t -> Matrix t
 dropColumns n mt = subMatrix (0,n) (rows mt, cols mt - n) mt
+
 -- | Creates a copy of a matrix without the last n columns
 dropLastColumns :: Element t => Int -> Matrix t -> Matrix t
 dropLastColumns n mt = subMatrix (0,0) (rows mt, cols mt - n) mt

@@ -9,8 +9,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE TypeFamilies #-}
-
+{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE TypeOperators #-}
 
 {- |
 Module      :  Internal.Modular
@@ -23,7 +23,7 @@ Proof of concept of statically checked modular arithmetic.
 -}
 
 module Internal.Modular(
-    Mod
+    Mod, type (./.)
 ) where
 
 import Internal.Vector
@@ -48,6 +48,9 @@ import Data.Complex
 -- | Wrapper with a phantom integer for statically checked modular arithmetic.
 newtype Mod (n :: Nat) t = Mod {unMod:: t}
   deriving (Storable)
+
+infixr 5 ./.
+type (./.) x n = Mod n x
 
 instance (Integral t, Enum t, KnownNat m) => Enum (Mod m t)
   where

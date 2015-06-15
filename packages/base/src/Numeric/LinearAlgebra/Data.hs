@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeOperators #-}
+
 --------------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Data
@@ -17,11 +19,11 @@ module Numeric.LinearAlgebra.Data(
     -- | 1D arrays are storable vectors from the vector package. There is no distinction
     --   between row and column vectors.
 
-    fromList, toList, vector, (|>),
+    fromList, toList, (|>), vector, range, idxs,
 
     -- * Matrix
 
-    matrix, (><), tr, tr',
+    (><), matrix, tr, tr',
 
     -- * Dimensions
 
@@ -43,7 +45,7 @@ module Numeric.LinearAlgebra.Data(
     Indexable(..),
 
     -- * Construction
-    scalar, Konst(..), Build(..), assoc, accum, linspace, range, idxs, -- ones, zeros,
+    scalar, Konst(..), Build(..), assoc, accum, linspace,  -- ones, zeros,
 
     -- * Diagonal
     ident, diag, diagl, diagRect, takeDiag,
@@ -53,16 +55,19 @@ module Numeric.LinearAlgebra.Data(
 
     -- * Matrix extraction
     Extractor(..), (??),
+
     takeRows, dropRows, takeColumns, dropColumns,
-    subMatrix, (?), (¿), fliprl, flipud, remap,
+    subMatrix, (?), (¿), fliprl, flipud,
+
+    remap,
 
     -- * Block matrix
     fromBlocks, (|||), (===), diagBlock, repmat, toBlocks, toBlocksEvery,
 
     -- * Mapping functions
     conj, cmap, cmod,
-    
-    step, cond, ccompare, cselect,
+
+    step, cond,
 
     -- * Find elements
     find, maxIndex, minIndex, maxElement, minElement,
@@ -87,7 +92,7 @@ module Numeric.LinearAlgebra.Data(
     separable,
     fromArray2D,
     module Data.Complex,
-    R,C,I,Z,Mod,
+    R,C,I,Z,Mod, type(./.),
     Vector, Matrix, GMatrix, nRows, nCols
 
 ) where

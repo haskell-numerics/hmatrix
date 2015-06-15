@@ -45,13 +45,13 @@ cg sym at a (CGState p r r2 x _) = CGState p' r' r'2 x' rdx
     ap1 = a p
     ap  | sym       = ap1
         | otherwise = at ap1
-    pap | sym       = p <·> ap1
+    pap | sym       = p <.> ap1
         | otherwise = norm2 ap1 ** 2
     alpha = r2 / pap
     dx = scale alpha p
     x' = x + dx
     r' = r - scale alpha ap
-    r'2 = r' <·> r'
+    r'2 = r' <.> r'
     beta = r'2 / r2
     p' = r' + scale beta p
 
@@ -75,9 +75,9 @@ solveG mat ma meth rawb x0' ϵb ϵx
     b = mat rawb
     x0  = if x0' == 0 then konst 0 (dim b) else x0'
     r0  = b - a x0
-    r20 = r0 <·> r0
+    r20 = r0 <.> r0
     p0  = r0
-    nb2 = b <·> b
+    nb2 = b <.> b
     ok CGState {..}
         =  cgr2 <nb2*ϵb**2
         || cgdx < ϵx

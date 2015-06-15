@@ -13,10 +13,13 @@ compatibility with previous version, to be removed
 
 module Numeric.LinearAlgebra.HMatrix (
     module Numeric.LinearAlgebra,
-    (¦),(——),ℝ,ℂ,
+    (¦),(——),ℝ,ℂ,(<·>)
 ) where
 
 import Numeric.LinearAlgebra
 import Internal.Util
 
+infixr 8 <·>
+(<·>) :: Numeric t => Vector t -> Vector t -> t
+(<·>) = dot
 

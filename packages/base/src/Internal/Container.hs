@@ -53,28 +53,23 @@ linspace n (a,b) = addConstant a $ scale s $ fromList $ map fromIntegral [0 .. n
 
 --------------------------------------------------------------------------------
 
-infixl 7 <.>
--- | An infix synonym for 'dot'
+infixr 8 <.>
+{- | An infix synonym for 'dot'
+
+>>> vector [1,2,3,4] <.> vector [-2,0,1,1]
+5.0
+
+>>> let 𝑖 = 0:+1 :: C
+>>> fromList [1+𝑖,1] <.> fromList [1,1+𝑖]
+2.0 :+ 0.0
+
+-}
+
 (<.>) :: Numeric t => Vector t -> Vector t -> t
 (<.>) = dot
 
 
-infixr 8 <·>, #>
 
-{- | infix synonym for 'dot'
-
->>> vector [1,2,3,4] <·> vector [-2,0,1,1]
-5.0
-
->>> let 𝑖 = 0:+1 :: ℂ
->>> fromList [1+𝑖,1] <·> fromList [1,1+𝑖]
-2.0 :+ 0.0
-
-(the dot symbol "·" is obtained by Alt-Gr .)
-
--}
-(<·>) :: Numeric t => Vector t -> Vector t -> t
-(<·>) = dot
 
 
 {- | infix synonym for 'app'
@@ -91,6 +86,7 @@ infixr 8 <·>, #>
 fromList [140.0,320.0]
 
 -}
+infixr 8 #>
 (#>) :: Numeric t => Matrix t -> Vector t -> Vector t
 (#>) = mXv
 
@@ -264,6 +260,24 @@ instance Numeric Z
 sortVector :: (Ord t, Element t) => Vector t -> Vector t
 sortVector = sortV
 
+{- |
+
+>>> m <- randn 4 10
+>>> disp 2 m
+4x10
+-0.31   0.41   0.43  -0.19  -0.17  -0.23  -0.17  -1.04  -0.07  -1.24
+ 0.26   0.19   0.14   0.83  -1.54  -0.09   0.37  -0.63   0.71  -0.50
+-0.11  -0.10  -1.29  -1.40  -1.04  -0.89  -0.68   0.35  -1.46   1.86
+ 1.04  -0.29   0.19  -0.75  -2.20  -0.01   1.06   0.11  -2.09  -1.58
+
+>>> disp 2 $ m ?? (All, Pos $ sortIndex (m!1))
+4x10
+-0.17  -1.04  -1.24  -0.23   0.43   0.41  -0.31  -0.17  -0.07  -0.19
+-1.54  -0.63  -0.50  -0.09   0.14   0.19   0.26   0.37   0.71   0.83
+-1.04   0.35   1.86  -0.89  -1.29  -0.10  -0.11  -0.68  -1.46  -1.40
+-2.20   0.11  -1.58  -0.01   0.19  -0.29   1.04   1.06  -2.09  -0.75
+
+-}
 sortIndex :: (Ord t, Element t) => Vector t -> Vector I
 sortIndex = sortI
 
@@ -273,11 +287,50 @@ ccompare = ccompare'
 cselect :: (Container c t) => c I -> c t -> c t -> c t -> c t
 cselect = cselect'
 
+{- | Extract elements from positions given in matrices of rows and columns.
+
+>>> r
+(3><3)
+ [ 1, 1, 1
+ , 1, 2, 2
+ , 1, 2, 3 ]
+>>> c
+(3><3)
+ [ 0, 1, 5
+ , 2, 2, 1
+ , 4, 4, 1 ]
+>>> m
+(4><6)
+ [  0,  1,  2,  3,  4,  5
+ ,  6,  7,  8,  9, 10, 11
+ , 12, 13, 14, 15, 16, 17
+ , 18, 19, 20, 21, 22, 23 ]
+
+>>> remap r c m
+(3><3)
+ [  6,  7, 11
+ ,  8, 14, 13
+ , 10, 16, 19 ]
+
+The indexes are autoconformable.
+
+>>> c'
+(3><1)
+ [ 1
+ , 2
+ , 4 ]
+>>> remap r c' m
+(3><3)
+ [  7,  7,  7
+ ,  8, 14, 14
+ , 10, 16, 22 ]
+
+-}
 remap :: Element t => Matrix I -> Matrix I -> Matrix t -> Matrix t
 remap i j m
     | minElement i >= 0 && maxElement i < fromIntegral (rows m) &&
       minElement j >= 0 && maxElement j < fromIntegral (cols m) = remapM i' j' m
-    | otherwise = error $ "out of range index in rmap"
+    | otherwise = error $ "out of range index in remap"
   where
     [i',j'] = conformMs [i,j]
     

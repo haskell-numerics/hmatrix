@@ -378,7 +378,6 @@ foreign import ccall unsafe "transL" ctransL :: TMM Z
 
 ----------------------------------------------------------------------
 
--- | Extracts a submatrix from a matrix.
 subMatrix :: Element a
           => (Int,Int) -- ^ (r0,c0) starting position
           -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
