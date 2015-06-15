@@ -400,9 +400,9 @@ test = (ok, info)
       , am <> gaussElim_2 am bm == bm
       , am <> gaussElim   am bm == bm
       , (checkGen (gen 5 :: Matrix R)) < 1E-15
-      , (checkGen (gen 5 :: Matrix Float)) < 1E-7
+      , (checkGen (gen 5 :: Matrix Float)) < 2E-7
       , (checkGen (gen 5 :: Matrix C)) < 1E-15
-      , (checkGen (gen 5 :: Matrix (Complex Float))) < 1E-7
+      , (checkGen (gen 5 :: Matrix (Complex Float))) < 2E-7
       , (checkGen (gen 5 :: Matrix (Mod 7 I))) == 0
       , (checkGen (gen 5 :: Matrix (Mod 7 Z))) == 0
       , (checkLU (magnit 1E-10) (gen 5 :: Matrix R)) < 1E-15
