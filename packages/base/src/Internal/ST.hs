@@ -228,10 +228,12 @@ extractMatrix (STMatrix m) rr rc = unsafeIOToST (extractR m 0 (idxs[i1,i2]) 0 (i
     (i1,i2) = getRowRange (rows m) rr
     (j1,j2) = getColRange (cols m) rc
 
+-- | r0 c0 height width
 data Slice s t = Slice (STMatrix s t) Int Int Int Int
 
 slice (Slice (STMatrix m) r0 c0 nr nc) = (m, idxs[r0,r0+nr-1,c0,c0+nc-1])
 
+gemmm :: Element t => t -> Slice s t -> t -> Slice s t -> Slice s t -> ST s ()
 gemmm beta (slice->(r,pr)) alpha (slice->(a,pa)) (slice->(b,pb)) = res
   where
     res = unsafeIOToST (gemm u v a b r)

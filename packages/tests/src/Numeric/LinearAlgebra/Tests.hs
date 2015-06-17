@@ -611,9 +611,10 @@ runBenchmarks = do
     mkVecBench
     multBench
     cholBench
+    luBench
+    luBench_2
     svdBench
     eigBench
-    luBench
     putStrLn ""
 
 --------------------------------
@@ -778,6 +779,17 @@ luBench = do
     luBenchN luPacked' 1000 (5::Mod 9973 I) "luPacked' I mod 9973"
     luBenchN luPacked' 1000 (5::Mod 9973 Z) "luPacked' Z mod 9973"
 
-    
+luBenchN_2 f g n x msg = do
+    let m = diagRect 1 (fromList (replicate n x)) n n
+        b = flipud m
+    m `seq` b `seq` putStr ""
+    time (msg ++ " "++ show n) (f (g m) b)
+
+luBench_2 = do
+    putStrLn ""
+    luBenchN_2 luSolve  luPacked  500 (5::R)          "luSolve .luPacked  Double    "
+    luBenchN_2 luSolve' luPacked' 500 (5::R)          "luSolve'.luPacked' Double    "
+    luBenchN_2 luSolve' luPacked' 500 (5::Mod 9973 I) "luSolve'.luPacked' I mod 9973"
+    luBenchN_2 luSolve' luPacked' 500 (5::Mod 9973 Z) "luSolve'.luPacked' Z mod 9973"
 
 

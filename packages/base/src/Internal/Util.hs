@@ -54,7 +54,7 @@ module Internal.Util(
     -- ** 2D
     corr2, conv2, separable,
     block2x2,block3x3,view1,unView1,foldMatrix,
-    gaussElim_1, gaussElim_2, gaussElim, luST, luSolve'
+    gaussElim_1, gaussElim_2, gaussElim, luST, luSolve', luSolve'', luPacked'
 ) where
 
 import Internal.Vector
@@ -64,7 +64,7 @@ import Internal.Element
 import Internal.Container
 import Internal.Vectorized
 import Internal.IO
-import Internal.Algorithms hiding (Normed,linearSolve',luSolve')
+import Internal.Algorithms hiding (Normed,linearSolve',luSolve', luPacked')
 import Numeric.Matrix()
 import Numeric.Vector()
 import Internal.Random
@@ -686,6 +686,35 @@ luST ok (r,_) x = do
     v <- unsafeFreezeVector p
     return (toList v)
 
+{- | Experimental implementation of 'luPacked'
+     for any Fractional element type, including 'Mod' n 'I' and 'Mod' n 'Z'.
+
+>>> let m = ident 5 + (5><5) [0..] :: Matrix (Z ./. 17)
+(5><5)
+ [  1,  1,  2,  3,  4
+ ,  5,  7,  7,  8,  9
+ , 10, 11, 13, 13, 14
+ , 15, 16,  0,  2,  2
+ ,  3,  4,  5,  6,  8 ]
+
+>>> let (l,u,p,s) = luFact $ luPacked' m
+>>> l
+(5><5)
+ [  1,  0, 0,  0, 0
+ ,  6,  1, 0,  0, 0
+ , 12,  7, 1,  0, 0
+ ,  7, 10, 7,  1, 0
+ ,  8,  2, 6, 11, 1 ]
+>>> u
+(5><5)
+ [ 15, 16,  0,  2,  2
+ ,  0, 13,  7, 13, 14
+ ,  0,  0, 15,  0, 11
+ ,  0,  0,  0, 15, 15
+ ,  0,  0,  0,  0,  1 ]
+
+-}
+luPacked' x = mutable (luST (magnit 0)) x
 
 --------------------------------------------------------------------------------
 
@@ -693,35 +722,79 @@ rowRange m = [0..rows m -1]
 
 at k = Pos (idxs[k])
 
-backSust lup rhs = foldl' f (rhs?[]) (reverse ls)
+backSust' lup rhs = foldl' f (rhs?[]) (reverse ls)
   where
     ls  = [ (d k , u k , b k) | k <- rowRange lup ]
       where
         d k = lup ?? (at k, at k)
         u k = lup ?? (at k, Drop (k+1))
         b k = rhs ?? (at k, All)
-    
+
     f x (d,u,b) = (b - u<>x) / d
                        ===
                         x
 
 
-forwSust lup rhs = foldl' f (rhs?[]) ls
+forwSust' lup rhs = foldl' f (rhs?[]) ls
   where
     ls  = [ (l k , b k) | k <- rowRange lup ]
       where
         l k = lup ?? (at k, Take k)
         b k = rhs ?? (at k, All)
-    
+
     f x (l,b) =     x
                    ===
                 (b - l<>x)
 
 
-luSolve' (lup,p) b = backSust lup (forwSust lup pb)
+luSolve'' (lup,p) b = backSust' lup (forwSust' lup pb)
   where
     pb = b ?? (Pos (fixPerm' p), All)
 
+--------------------------------------------------------------------------------
+
+forwSust lup rhs = fst $ mutable f rhs
+  where
+    f (r,c) x = do
+        l <- unsafeThawMatrix lup
+        let go k = gemmm 1 (Slice x k 0 1 c) (-1) (Slice l k 0 1 k) (Slice x 0 0 k c)
+        mapM_ go [0..r-1]
+
+
+backSust lup rhs = fst $ mutable f rhs
+  where
+    f (r,c) m = do
+        l <- unsafeThawMatrix lup
+        let d k = recip (lup `atIndex` (k,k))
+            u k = Slice l k (k+1) 1 (r-1-k)
+            b k = Slice m k 0 1 c
+            x k = Slice m (k+1) 0 (r-1-k) c
+            scal k = rowOper (SCAL (d k) (Row k) AllCols) m
+
+            go k = gemmm 1 (b k) (-1) (u k) (x k) >> scal k
+        mapM_ go [r-1,r-2..0]
+
+
+{- | Experimental implementation of 'luSolve' for any Fractional element type, including 'Mod' n 'I' and 'Mod' n 'Z'.
+
+>>> let a = (2><2) [1,2,3,5] :: Matrix (Z ./. 13)
+(2><2)
+ [ 1, 2
+ , 3, 5 ]
+>>> b
+(2><3)
+ [ 5, 1, 3
+ , 8, 6, 3 ]
+
+>>> luSolve' (luPacked' a) b
+(2><3)
+ [ 4,  7, 4
+ , 7, 10, 6 ]
+
+-}
+luSolve' (lup,p) b = backSust lup (forwSust lup pb)
+  where
+    pb = b ?? (Pos (fixPerm' p), All)
 
 --------------------------------------------------------------------------------
 

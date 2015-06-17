@@ -34,7 +34,9 @@ import Internal.Container
 import Internal.Vectorized (prodI,sumI,prodL,sumL)
 import Internal.LAPACK (multiplyI, multiplyL)
 import Internal.Algorithms(luFact)
-import Internal.Util(Normed(..),Indexable(..),gaussElim, gaussElim_1, gaussElim_2,luST, magnit)
+import Internal.Util(Normed(..),Indexable(..),
+                     gaussElim, gaussElim_1, gaussElim_2,
+                     luST, luSolve', luPacked', magnit)
 import Internal.ST(mutable)
 import GHC.TypeLits
 import Data.Proxy(Proxy)
@@ -350,7 +352,11 @@ test = (ok, info)
     lg = (3><3) (repeat (3*10^(9::Int))) :: Matrix Z
     lgm = fromZ lg :: Matrix (Mod 10000000000 Z)
 
-    gen n = diagRect 1 (konst 5 n) n n :: Numeric t => Matrix t
+    gen  n = diagRect 1 (konst 5 n) n n :: Numeric t => Matrix t
+    
+    rgen n = gen n :: Matrix R
+    cgen n = complex (rgen n) + fliprl (complex (rgen n)) * scalar (0:+1) :: Matrix C
+    sgen n = single (cgen n)
     
     checkGen x = norm_Inf $ flatten $ invg x <> x - ident (rows x)
     
@@ -359,6 +365,11 @@ test = (ok, info)
     checkLU okf t = norm_Inf $ flatten (l <> u <> p - t)
       where
         (l,u,p,_ :: Int) = luFact $ mutable (luST okf) t
+
+    checkSolve aa = norm_Inf $ flatten (aa <> x - bb)
+       where
+         bb = flipud aa
+         x = luSolve' (luPacked' aa) bb
 
     info = do
         print v
@@ -383,9 +394,9 @@ test = (ok, info)
         print $ lgm <> lgm
         
         print (checkGen (gen 5 :: Matrix R))
-        print (checkGen (gen 5 :: Matrix C))
         print (checkGen (gen 5 :: Matrix Float))
-        print (checkGen (gen 5 :: Matrix (Complex Float)))
+        print (checkGen (cgen 5 :: Matrix C))
+        print (checkGen (sgen 5 :: Matrix (Complex Float)))
         print (invg (gen 5) :: Matrix (Mod 7 I))
         print (invg (gen 5) :: Matrix (Mod 7 Z))
         
@@ -394,10 +405,17 @@ test = (ok, info)
 
         print $ checkLU (magnit 0) (gen 5 :: Matrix R)
         print $ checkLU (magnit 0) (gen 5 :: Matrix Float)
-        print $ checkLU (magnit 0) (gen 5 :: Matrix C)
-        print $ checkLU (magnit 0) (gen 5 :: Matrix (Complex Float))
+        print $ checkLU (magnit 0) (cgen 5 :: Matrix C)
+        print $ checkLU (magnit 0) (sgen 5 :: Matrix (Complex Float))
         print $ checkLU (magnit 0) (gen 5 :: Matrix (Mod 7 I))
         print $ checkLU (magnit 0) (gen 5 :: Matrix (Mod 7 Z))
+
+        print $ checkSolve (gen 5 :: Matrix R)
+        print $ checkSolve (gen 5 :: Matrix Float)
+        print $ checkSolve (cgen 5 :: Matrix C)
+        print $ checkSolve (sgen 5 :: Matrix (Complex Float))
+        print $ checkSolve (gen 5 :: Matrix (Mod 7 I))
+        print $ checkSolve (gen 5 :: Matrix (Mod 7 Z))
 
 
     ok = and
@@ -407,16 +425,22 @@ test = (ok, info)
       , am <> gaussElim   am bm == bm
       , (checkGen (gen 5 :: Matrix R)) < 1E-15
       , (checkGen (gen 5 :: Matrix Float)) < 2E-7
-      , (checkGen (gen 5 :: Matrix C)) < 1E-15
-      , (checkGen (gen 5 :: Matrix (Complex Float))) < 2E-7
+      , (checkGen (cgen 5 :: Matrix C)) < 1E-15
+      , (checkGen (sgen 5 :: Matrix (Complex Float))) < 2E-7
       , (checkGen (gen 5 :: Matrix (Mod 7 I))) == 0
       , (checkGen (gen 5 :: Matrix (Mod 7 Z))) == 0
-      , (checkLU (magnit 1E-10) (gen 5 :: Matrix R)) < 1E-15
+      , (checkLU (magnit 1E-10) (gen 5 :: Matrix R)) < 2E-15
       , (checkLU (magnit 1E-5) (gen 5 :: Matrix Float)) < 1E-6
-      , (checkLU (magnit 1E-10) (gen 5 :: Matrix C)) < 1E-15
-      , (checkLU (magnit 1E-5) (gen 5 :: Matrix (Complex Float))) < 1E-6
+      , (checkLU (magnit 1E-10) (cgen 5 :: Matrix C)) < 5E-15
+      , (checkLU (magnit 1E-5) (sgen 5 :: Matrix (Complex Float))) < 1E-6
       , (checkLU (magnit 0) (gen 5 :: Matrix (Mod 7 I))) == 0
       , (checkLU (magnit 0) (gen 5 :: Matrix (Mod 7 Z))) == 0
+      , checkSolve (gen 5 :: Matrix R) < 2E-15
+      , checkSolve (gen 5 :: Matrix Float) < 1E-6
+      , checkSolve (cgen 5 :: Matrix C) < 4E-15
+      , checkSolve (sgen 5 :: Matrix (Complex Float)) < 1E-6
+      , checkSolve (gen 5 :: Matrix (Mod 7 I)) == 0
+      , checkSolve (gen 5 :: Matrix (Mod 7 Z)) == 0
       , prodElements (konst (9:: Mod 10 I) (12::Int)) == product (replicate 12 (9:: Mod 10 I))
       , gm <> gm == konst 0 (3,3)
       , lgm <> lgm == konst 0 (3,3)
