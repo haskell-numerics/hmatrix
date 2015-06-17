@@ -77,6 +77,7 @@ module Numeric.LinearAlgebra (
     linearSolveLS,
     linearSolveSVD,
     luSolve,
+    luSolve',
     cholSolve,
     cgSolve,
     cgSolve',
@@ -158,7 +159,7 @@ import Numeric.Vector()
 import Internal.Matrix
 import Internal.Container hiding ((<>))
 import Internal.Numeric hiding (mul)
-import Internal.Algorithms hiding (linearSolve,Normed,orth,luPacked',linearSolve')
+import Internal.Algorithms hiding (linearSolve,Normed,orth,luPacked',linearSolve',luSolve')
 import qualified Internal.Algorithms as A
 import Internal.Util
 import Internal.Random

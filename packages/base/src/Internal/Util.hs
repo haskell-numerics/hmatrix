@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -55,7 +54,7 @@ module Internal.Util(
     -- ** 2D
     corr2, conv2, separable,
     block2x2,block3x3,view1,unView1,foldMatrix,
-    gaussElim_1, gaussElim_2, gaussElim, luST
+    gaussElim_1, gaussElim_2, gaussElim, luST, luSolve'
 ) where
 
 import Internal.Vector
@@ -65,7 +64,7 @@ import Internal.Element
 import Internal.Container
 import Internal.Vectorized
 import Internal.IO
-import Internal.Algorithms hiding (i,Normed,swap,linearSolve')
+import Internal.Algorithms hiding (Normed,linearSolve',luSolve')
 import Numeric.Matrix()
 import Numeric.Vector()
 import Internal.Random
@@ -73,7 +72,7 @@ import Internal.Convolution
 import Control.Monad(when,forM_)
 import Text.Printf
 import Data.List.Split(splitOn)
-import Data.List(intercalate,sortBy)
+import Data.List(intercalate,sortBy,foldl')
 import Control.Arrow((&&&))
 import Data.Complex
 import Data.Function(on)
@@ -686,6 +685,42 @@ luST ok (r,_) x = do
                 writeMatrix x j i b
     v <- unsafeFreezeVector p
     return (toList v)
+
+
+--------------------------------------------------------------------------------
+
+rowRange m = [0..rows m -1]
+
+at k = Pos (idxs[k])
+
+backSust lup rhs = foldl' f (rhs?[]) (reverse ls)
+  where
+    ls  = [ (d k , u k , b k) | k <- rowRange lup ]
+      where
+        d k = lup ?? (at k, at k)
+        u k = lup ?? (at k, Drop (k+1))
+        b k = rhs ?? (at k, All)
+    
+    f x (d,u,b) = (b - u<>x) / d
+                       ===
+                        x
+
+
+forwSust lup rhs = foldl' f (rhs?[]) ls
+  where
+    ls  = [ (l k , b k) | k <- rowRange lup ]
+      where
+        l k = lup ?? (at k, Take k)
+        b k = rhs ?? (at k, All)
+    
+    f x (l,b) =     x
+                   ===
+                (b - l<>x)
+
+
+luSolve' (lup,p) b = backSust lup (forwSust lup pb)
+  where
+    pb = b ?? (Pos (fixPerm' p), All)
 
 
 --------------------------------------------------------------------------------

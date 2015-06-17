@@ -29,7 +29,9 @@ import Internal.Conversion
 import Internal.LAPACK as LAPACK
 import Internal.Numeric
 import Data.List(foldl1')
-import Data.Array
+import qualified Data.Array as A
+import Internal.ST
+import Internal.Vectorized(range)
 
 {- | Generic linear algebra functions for double precision real and complex matrices.
 
@@ -578,11 +580,6 @@ eps =  2.22044604925031e-16
 peps :: RealFloat x => x
 peps = x where x = 2.0 ** fromIntegral (1 - floatDigits x)
 
-
--- | The imaginary unit: @i = 0.0 :+ 1.0@
-i :: Complex Double
-i = 0:+1
-
 -----------------------------------------------------------------------
 
 -- | The nullspace of a matrix from its precomputed SVD decomposition.
@@ -796,13 +793,23 @@ signlp r vals = foldl f 1 (zip [0..r-1] vals)
     where f s (a,b) | a /= b    = -s
                     | otherwise =  s
 
-swap (arr,s) (a,b) | a /= b    = (arr // [(a, arr!b),(b,arr!a)],-s)
-                   | otherwise = (arr,s)
+fixPerm r vals = (fromColumns $ A.elems res, sign)
+  where
+    v = [0..r-1]
+    t = toColumns (ident r)
+    (res,sign) = foldl swap (A.listArray (0,r-1) t, 1) (zip v vals)
+    swap (arr,s) (a,b)
+      | a /= b    = (arr A.// [(a, arr A.! b),(b,arr A.! a)],-s)
+      | otherwise = (arr,s)
 
-fixPerm r vals = (fromColumns $ elems res, sign)
-    where v = [0..r-1]
-          s = toColumns (ident r)
-          (res,sign) = foldl swap (listArray (0,r-1) s, 1) (zip v vals)
+fixPerm' :: [Int] -> Vector I
+fixPerm' s = res $ mutable f s0
+  where
+    s0 = reshape 1 (range (length s))
+    res = flatten . fst
+    swap m i j = rowOper (SWAP i j AllCols) m
+    f :: (Num t, Element t) => (Int, Int) -> STMatrix s t -> ST s () -- needed because of TypeFamilies
+    f _ p = sequence_ $ zipWith (swap p) [0..] s
 
 triang r c h v = (r><c) [el s t | s<-[0..r-1], t<-[0..c-1]]
     where el p q = if q-p>=h then v else 1 - v
