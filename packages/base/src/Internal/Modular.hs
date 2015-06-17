@@ -131,6 +131,9 @@ instance KnownNat m => Element (Mod m I)
     rowOp c a i1 i2 j1 j2 x = rowOpAux (c_rowOpMI m') c (unMod a) i1 i2 j1 j2 (f2iM x)
       where
         m' = fromIntegral . natVal $ (undefined :: Proxy m)
+    gemm u p a b c = gemmg (c_gemmMI m') (f2i u) p (f2iM a) (f2iM b) (f2iM c)
+      where
+        m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
 instance KnownNat m => Element (Mod m Z)
   where
@@ -144,6 +147,9 @@ instance KnownNat m => Element (Mod m Z)
     selectV c l e g = i2f (selectV c (f2i l) (f2i e) (f2i g))
     remapM i j m = i2fM (remap i j (f2iM m))
     rowOp c a i1 i2 j1 j2 x = rowOpAux (c_rowOpML m') c (unMod a) i1 i2 j1 j2 (f2iM x)
+      where
+        m' = fromIntegral . natVal $ (undefined :: Proxy m)
+    gemm u p a b c = gemmg (c_gemmML m') (f2i u) p (f2iM a) (f2iM b) (f2iM c)
       where
         m' = fromIntegral . natVal $ (undefined :: Proxy m)
 

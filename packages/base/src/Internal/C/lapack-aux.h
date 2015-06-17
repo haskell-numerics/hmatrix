@@ -59,6 +59,7 @@ typedef short ftnlen;
 #define OQMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, complex* A##p
 #define OCMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, doublecomplex* A##p
 
+#define VECG(T,A) int A##n, T* A##p
 #define MATG(T,A) int A##r, int A##c, int A##Xr, int A##Xc, T* A##p
 
 #define KIVEC(A) int A##n, const int*A##p

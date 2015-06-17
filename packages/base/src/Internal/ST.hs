@@ -1,5 +1,6 @@
 {-# LANGUAGE Rank2Types    #-}
 {-# LANGUAGE BangPatterns  #-}
+{-# LANGUAGE ViewPatterns #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -15,14 +16,14 @@
 -----------------------------------------------------------------------------
 
 module Internal.ST (
+    ST, runST,
     -- * Mutable Vectors
     STVector, newVector, thawVector, freezeVector, runSTVector,
     readVector, writeVector, modifyVector, liftSTVector,
     -- * Mutable Matrices
     STMatrix, newMatrix, thawMatrix, freezeMatrix, runSTMatrix,
     readMatrix, writeMatrix, modifyMatrix, liftSTMatrix,
---  axpy, scal, swap, rowOp,
-    mutable, extractMatrix, setMatrix, rowOper, RowOper(..), RowRange(..), ColRange(..),
+    mutable, extractMatrix, setMatrix, rowOper, RowOper(..), RowRange(..), ColRange(..), gemmm, Slice(..),
     -- * Unsafe functions
     newUndefinedVector,
     unsafeReadVector, unsafeWriteVector,
@@ -70,13 +71,13 @@ unsafeWriteVector  (STVector x) k = unsafeIOToST . ioWriteV x k
 modifyVector :: (Storable t) => STVector s t -> Int -> (t -> t) -> ST s ()
 modifyVector x k f = readVector x k >>= return . f >>= unsafeWriteVector x k
 
-liftSTVector :: (Storable t) => (Vector t -> a) -> STVector s1 t -> ST s2 a
+liftSTVector :: (Storable t) => (Vector t -> a) -> STVector s t -> ST s a
 liftSTVector f (STVector x) = unsafeIOToST . fmap f . cloneVector $ x
 
-freezeVector :: (Storable t) => STVector s1 t -> ST s2 (Vector t)
+freezeVector :: (Storable t) => STVector s t -> ST s (Vector t)
 freezeVector v = liftSTVector id v
 
-unsafeFreezeVector :: (Storable t) => STVector s1 t -> ST s2 (Vector t)
+unsafeFreezeVector :: (Storable t) => STVector s t -> ST s (Vector t)
 unsafeFreezeVector (STVector x) = unsafeIOToST . return $ x
 
 {-# INLINE safeIndexV #-}
@@ -139,14 +140,14 @@ unsafeWriteMatrix  (STMatrix x) r c = unsafeIOToST . ioWriteM x r c
 modifyMatrix :: (Storable t) => STMatrix s t -> Int -> Int -> (t -> t) -> ST s ()
 modifyMatrix x r c f = readMatrix x r c >>= return . f >>= unsafeWriteMatrix x r c
 
-liftSTMatrix :: (Storable t) => (Matrix t -> a) -> STMatrix s1 t -> ST s2 a
+liftSTMatrix :: (Storable t) => (Matrix t -> a) -> STMatrix s t -> ST s a
 liftSTMatrix f (STMatrix x) = unsafeIOToST . fmap f . cloneMatrix $ x
 
-unsafeFreezeMatrix :: (Storable t) => STMatrix s1 t -> ST s2 (Matrix t)
+unsafeFreezeMatrix :: (Storable t) => STMatrix s t -> ST s (Matrix t)
 unsafeFreezeMatrix (STMatrix x) = unsafeIOToST . return $ x
 
 
-freezeMatrix :: (Storable t) => STMatrix s1 t -> ST s2 (Matrix t)
+freezeMatrix :: (Storable t) => STMatrix s t -> ST s (Matrix t)
 freezeMatrix m = liftSTMatrix id m
 
 cloneMatrix (Matrix r c d o) = cloneVector d >>= return . (\d' -> Matrix r c d' o)
@@ -227,6 +228,16 @@ extractMatrix (STMatrix m) rr rc = unsafeIOToST (extractR m 0 (idxs[i1,i2]) 0 (i
     (i1,i2) = getRowRange (rows m) rr
     (j1,j2) = getColRange (cols m) rc
 
+data Slice s t = Slice (STMatrix s t) Int Int Int Int
+
+slice (Slice (STMatrix m) r0 c0 nr nc) = (m, idxs[r0,r0+nr-1,c0,c0+nc-1])
+
+gemmm beta (slice->(r,pr)) alpha (slice->(a,pa)) (slice->(b,pb)) = res
+  where
+    res = unsafeIOToST (gemm u v a b r)
+    u = fromList [alpha,beta]
+    v = vjoin[pa,pb,pr]
+    
 
 mutable :: Storable t => (forall s . (Int, Int) -> STMatrix s t -> ST s u) -> Matrix t -> (Matrix t,u)
 mutable f a = runST $ do

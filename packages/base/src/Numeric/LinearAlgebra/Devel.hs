@@ -43,7 +43,7 @@ module Numeric.LinearAlgebra.Devel(
     -- ** Mutable Matrices
     STMatrix, newMatrix, thawMatrix, freezeMatrix, runSTMatrix,
     readMatrix, writeMatrix, modifyMatrix, liftSTMatrix,
-    mutable, extractMatrix, setMatrix, rowOper, RowOper(..), RowRange(..), ColRange(..),
+    mutable, extractMatrix, setMatrix, rowOper, RowOper(..), RowRange(..), ColRange(..), gemmm, Slice(..),
     -- ** Unsafe functions
     newUndefinedVector,
     unsafeReadVector, unsafeWriteVector,

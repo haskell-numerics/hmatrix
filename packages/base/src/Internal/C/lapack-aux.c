@@ -1398,6 +1398,65 @@ ROWOP(int64_t)
 ROWOP_MOD(int32_t,mod)
 ROWOP_MOD(int64_t,mod_l)
 
+/////////////////////////////// inplace GEMM ////////////////////////////////
+
+#define GEMM(T) int gemm_##T(VECG(T,c),VECG(int,p),MATG(T,a),MATG(T,b),MATG(T,r)) {  \
+    T a = cp[0], b = cp[1];                                    \
+    int r1a = pp[0],              c1a = pp[2],  c2a = pp[3] ;  \
+    int r1b = pp[4],              c1b = pp[6]               ;  \
+    int r1r = pp[8], r2r = pp[9], c1r = pp[10], c2r = pp[11];  \
+    int dra = r1a - r1r;                                       \
+    int dcb = c1b-c1r;                                         \
+    int nk  = c2a-c1a+1;                                       \
+    int i,j,k;                                                 \
+    T t;                                                       \
+    for (i=r1r; i<=r2r; i++) {                                 \
+        for (j=c1r; j<=c2r; j++) {                             \
+            t = 0;                                             \
+            for(k=0; k<nk; k++) {                              \
+                t += AT(a,i+dra,k+c1a) * AT(b,k+r1b,j+dcb);    \
+            }                                                  \
+            AT(r,i,j) = b*AT(r,i,j) + a*t;                     \
+        }                                                      \
+    }                                                          \
+    OK                                                         \
+}
+
+GEMM(double)
+GEMM(float)
+GEMM(TCD)
+GEMM(TCF)
+GEMM(int32_t)
+GEMM(int64_t)
+
+#define GEMM_MOD(T,M) int gemm_mod_##T(T m, VECG(T,c),VECG(int,p),MATG(T,a),MATG(T,b),MATG(T,r)) {  \
+    T a = cp[0], b = cp[1];                                    \
+    int r1a = pp[0],              c1a = pp[2],  c2a = pp[3] ;  \
+    int r1b = pp[4],              c1b = pp[6]               ;  \
+    int r1r = pp[8], r2r = pp[9], c1r = pp[10], c2r = pp[11];  \
+    int dra = r1a - r1r;                                       \
+    int dcb = c1b-c1r;                                         \
+    int nk  = c2a-c1a+1;                                       \
+    int i,j,k;                                                 \
+    T t;                                                       \
+    for (i=r1r; i<=r2r; i++) {                                 \
+        for (j=c1r; j<=c2r; j++) {                             \
+            t = 0;                                             \
+            for(k=0; k<nk; k++) {                                     \
+                t = M(t+M(AT(a,i+dra,k+c1a) * AT(b,k+r1b,j+dcb)));    \
+            }                                                         \
+            AT(r,i,j) = M(M(b*AT(r,i,j)) + M(a*t));                   \
+        }                                                      \
+    }                                                          \
+    OK                                                         \
+}
+
+#define MOD32(X) mod(X,m)
+#define MOD64(X) mod_l(X,m)
+
+GEMM_MOD(int32_t,MOD32)
+GEMM_MOD(int64_t,MOD64)
+
 ////////////////// sparse matrix-product ///////////////////////////////////////
 
 
