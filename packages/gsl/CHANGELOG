@@ -2,6 +2,9 @@
 --------
 
     * Added interpolation modules
+    
+    * Added simulated annealing module
+
 
 0.16.0.0
 --------
