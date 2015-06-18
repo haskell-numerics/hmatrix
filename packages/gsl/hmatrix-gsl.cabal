@@ -44,6 +44,7 @@ library
                         Numeric.GSL,
                         Numeric.GSL.LinearAlgebra,
                         Numeric.GSL.Interpolation,
+                        Numeric.GSL.SimulatedAnnealing,
                         Graphics.Plot
     other-modules:      Numeric.GSL.Internal,
                         Numeric.GSL.Vector,
