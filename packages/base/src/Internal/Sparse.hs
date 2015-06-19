@@ -145,13 +145,13 @@ gmXv :: GMatrix -> Vector Double -> Vector Double
 gmXv SparseR { gmCSR = CSR{..}, .. } v = unsafePerformIO $ do
     dim v /= nCols ~!~ printf "gmXv (CSR): incorrect sizes: (%d,%d) x %d" nRows nCols (dim v)
     r <- createVector nRows
-    app5 c_smXv vec csrVals vec csrCols vec csrRows vec v vec r "CSRXv"
+    c_smXv # csrVals # csrCols # csrRows # v # r #|"CSRXv"
     return r
 
 gmXv SparseC { gmCSC = CSC{..}, .. } v = unsafePerformIO $ do
     dim v /= nCols ~!~ printf "gmXv (CSC): incorrect sizes: (%d,%d) x %d" nRows nCols (dim v)
     r <- createVector nRows
-    app5 c_smTXv vec cscVals vec cscRows vec cscCols vec v vec r "CSCXv"
+    c_smTXv # cscVals # cscRows # cscCols # v # r #|"CSCXv"
     return r
 
 gmXv Diag{..} v

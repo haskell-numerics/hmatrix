@@ -87,7 +87,7 @@ nlFitGen m f jac xiv epsabs epsrel maxit = unsafePerformIO $ do
     fp <- mkVecVecfun (aux_vTov (checkdim1 n p . f))
     jp <- mkVecMatfun (aux_vTom (checkdim2 n p . jac))
     rawpath <- createMatrix RowMajor maxit (2+p)
-    app2 (c_nlfit m fp jp epsabs epsrel (fi maxit) (fi n)) vec xiv mat rawpath "c_nlfit"
+    c_nlfit m fp jp epsabs epsrel (fi maxit) (fi n) # xiv # rawpath #|"c_nlfit"
     let it = round (rawpath `atIndex` (maxit-1,0))
         path = takeRows it rawpath
         [sol] = toRows $ dropRows (it-1) path

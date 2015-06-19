@@ -104,7 +104,7 @@ import Internal.Element
 import Internal.IO
 import Internal.Numeric
 import Internal.Container
-import Internal.Util hiding ((&),(#))
+import Internal.Util hiding ((&))
 import Data.Complex
 import Internal.Sparse
 import Internal.Modular

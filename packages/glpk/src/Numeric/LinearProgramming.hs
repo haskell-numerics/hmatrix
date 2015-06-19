@@ -275,6 +275,11 @@ mkConstrS n objfun b1 = fromLists (ob ++ co) where
 
 -----------------------------------------------------
 
+(##) :: TransArray c => TransRaw c b -> c -> b
+infixl 1 ##
+a ## b = applyRaw a b
+{-# INLINE (##) #-}
+
 foreign import ccall unsafe "c_simplex_sparse" c_simplex_sparse
     :: CInt -> CInt                  -- rows and cols
     -> CInt -> CInt -> Ptr Double    -- coeffs
@@ -285,7 +290,7 @@ foreign import ccall unsafe "c_simplex_sparse" c_simplex_sparse
 simplexSparse :: Int -> Int -> Matrix Double -> Matrix Double -> Vector Double
 simplexSparse m n c b = unsafePerformIO $ do
     s <- createVector (2+n)
-    app3 (c_simplex_sparse (fi m) (fi n)) mat (cmat c) mat (cmat b) vec s "c_simplex_sparse"
+    c_simplex_sparse (fi m) (fi n) ## (cmat c) ## (cmat b) ## s #|"c_simplex_sparse"
     return s
 
 foreign import ccall unsafe "c_exact_sparse" c_exact_sparse
@@ -298,7 +303,7 @@ foreign import ccall unsafe "c_exact_sparse" c_exact_sparse
 exactSparse :: Int -> Int -> Matrix Double -> Matrix Double -> Vector Double
 exactSparse m n c b = unsafePerformIO $ do
     s <- createVector (2+n)
-    app3 (c_exact_sparse (fi m) (fi n)) mat (cmat c) mat (cmat b) vec s "c_exact_sparse"
+    c_exact_sparse (fi m) (fi n) ## (cmat c) ## (cmat b) ## s #|"c_exact_sparse"
     return s
 
 glpFR, glpLO, glpUP, glpDB, glpFX :: Double

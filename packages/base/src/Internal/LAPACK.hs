@@ -17,13 +17,23 @@ module Internal.LAPACK where
 
 import Internal.Devel
 import Internal.Vector
-import Internal.Matrix
+import Internal.Matrix hiding ((#))
 import Internal.Conversion
 import Internal.Element
 import Foreign.Ptr(nullPtr)
 import Foreign.C.Types
 import Control.Monad(when)
 import System.IO.Unsafe(unsafePerformIO)
+
+-----------------------------------------------------------------------------------
+
+infixl 1 #
+a # b = applyRaw a b
+{-# INLINE (#) #-}
+
+infixl 1 #!
+a #! b = apply a b
+{-# INLINE (#!) #-}
 
 -----------------------------------------------------------------------------------
 
@@ -49,7 +59,7 @@ multiplyAux f st a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $ "inconsistent dimensions in matrix product "++
                                        show (rows a,cols a) ++ " x " ++ show (rows b, cols b)
     s <- createMatrix ColumnMajor (rows a) (cols b)
-    app3 (f (isT a) (isT b)) mat (tt a) mat (tt b) mat s st
+    f (isT a) (isT b) # (tt a) # (tt b) # s #| st
     return s
 
 -- | Matrix product based on BLAS's /dgemm/.
@@ -73,7 +83,7 @@ multiplyI m a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $
         "inconsistent dimensions in matrix product "++ shSize a ++ " x " ++ shSize b
     s <- createMatrix ColumnMajor (rows a) (cols b)
-    app3 (c_multiplyI m) omat a omat b omat s "c_multiplyI"
+    c_multiplyI m #! a #! b #! s #|"c_multiplyI"
     return s
 
 multiplyL :: Z -> Matrix Z -> Matrix Z -> Matrix Z
@@ -81,7 +91,7 @@ multiplyL m a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $
         "inconsistent dimensions in matrix product "++ shSize a ++ " x " ++ shSize b
     s <- createMatrix ColumnMajor (rows a) (cols b)
-    app3 (c_multiplyL m) omat a omat b omat s "c_multiplyL"
+    c_multiplyL m #! a #! b #! s #|"c_multiplyL"
     return s
 
 -----------------------------------------------------------------------------
@@ -113,7 +123,7 @@ svdAux f st x = unsafePerformIO $ do
     u <- createMatrix ColumnMajor r r
     s <- createVector (min r c)
     v <- createMatrix ColumnMajor c c
-    app4 f mat x mat u vec s mat v st
+    f # x # u # s # v #| st
     return (u,s,v)
   where r = rows x
         c = cols x
@@ -139,7 +149,7 @@ thinSVDAux f st x = unsafePerformIO $ do
     u <- createMatrix ColumnMajor r q
     s <- createVector q
     v <- createMatrix ColumnMajor q c
-    app4 f mat x mat u vec s mat v st
+    f # x # u # s # v #| st
     return (u,s,v)
   where r = rows x
         c = cols x
@@ -164,7 +174,7 @@ svCd = svAux zgesdd "svCd" . fmat
 
 svAux f st x = unsafePerformIO $ do
     s <- createVector q
-    app2 g mat x vec s st
+    g # x # s #| st
     return s
   where r = rows x
         c = cols x
@@ -183,7 +193,7 @@ rightSVC = rightSVAux zgesvd "rightSVC" . fmat
 rightSVAux f st x = unsafePerformIO $ do
     s <- createVector q
     v <- createMatrix ColumnMajor c c
-    app3 g mat x vec s mat v st
+    g # x # s # v #| st
     return (s,v)
   where r = rows x
         c = cols x
@@ -202,7 +212,7 @@ leftSVC = leftSVAux zgesvd "leftSVC" . fmat
 leftSVAux f st x = unsafePerformIO $ do
     u <- createMatrix ColumnMajor r r
     s <- createVector q
-    app3 g mat x mat u vec s st
+    g # x # u # s #| st
     return (u,s)
   where r = rows x
         c = cols x
@@ -219,7 +229,7 @@ foreign import ccall unsafe "eig_l_H" zheev :: CInt -> C ..> R :> C ..> Ok
 eigAux f st m = unsafePerformIO $ do
         l <- createVector r
         v <- createMatrix ColumnMajor r r
-        app3 g mat m vec l mat v st
+        g # m # l # v #| st
         return (l,v)
   where r = rows m
         g ra ca pa = f ra ca pa 0 0 nullPtr
@@ -232,7 +242,7 @@ eigC = eigAux zgeev "eigC" . fmat
 
 eigOnlyAux f st m = unsafePerformIO $ do
         l <- createVector r
-        app2 g mat m vec l st
+        g # m # l #| st
         return l
   where r = rows m
         g ra ca pa nl pl = f ra ca pa 0 0 nullPtr nl pl 0 0 nullPtr
@@ -255,7 +265,7 @@ eigRaux :: Matrix Double -> (Vector (Complex Double), Matrix Double)
 eigRaux m = unsafePerformIO $ do
         l <- createVector r
         v <- createMatrix ColumnMajor r r
-        app3 g mat m vec l mat v "eigR"
+        g # m # l # v #| "eigR"
         return (l,v)
   where r = rows m
         g ra ca pa = dgeev ra ca pa 0 0 nullPtr
@@ -282,7 +292,7 @@ eigOnlyR = fixeig1 . eigOnlyAux dgeev "eigOnlyR" . fmat
 eigSHAux f st m = unsafePerformIO $ do
         l <- createVector r
         v <- createMatrix ColumnMajor r r
-        app3 f mat m vec l mat v st
+        f # m # l # v #| st
         return (l,v)
   where r = rows m
 
@@ -332,7 +342,7 @@ foreign import ccall unsafe "cholSolveC_l" zpotrs  :: TMMM C
 linearSolveSQAux g f st a b
     | n1==n2 && n1==r = unsafePerformIO . g $ do
         s <- createMatrix ColumnMajor r c
-        app3 f mat a mat b mat s st
+        f # a # b # s #| st
         return s
     | otherwise = error $ st ++ " of nonsquare matrix"
   where n1 = rows a
@@ -371,7 +381,7 @@ foreign import ccall unsafe "linearSolveSVDC_l" zgelss :: Double -> TMMM C
 
 linearSolveAux f st a b = unsafePerformIO $ do
     r <- createMatrix ColumnMajor (max m n) nrhs
-    app3 f mat a mat b mat r st
+    f # a # b # r #| st
     return r
   where m = rows a
         n = cols a
@@ -412,7 +422,7 @@ foreign import ccall unsafe "chol_l_S" dpotrf :: TMM R
 
 cholAux f st a = do
     r <- createMatrix ColumnMajor n n
-    app2 f mat a mat r st
+    f # a # r #| st
     return r
   where n = rows a
 
@@ -450,7 +460,7 @@ qrC = qrAux zgeqr2 "qrC" . fmat
 qrAux f st a = unsafePerformIO $ do
     r <- createMatrix ColumnMajor m n
     tau <- createVector mn
-    app3 f mat a vec tau mat r st
+    f # a # tau # r #| st
     return (r,tau)
   where
     m = rows a
@@ -469,7 +479,7 @@ qrgrC = qrgrAux zungqr "qrgrC"
 
 qrgrAux f st n (a, tau) = unsafePerformIO $ do
     res <- createMatrix ColumnMajor (rows a) n
-    app3 f mat (fmat a) vec (subVector 0 n tau') mat res st
+    f # (fmat a) # (subVector 0 n tau') # res #| st
     return res
   where
     tau' = vjoin [tau, constantD 0 n]
@@ -489,7 +499,7 @@ hessC = hessAux zgehrd "hessC" . fmat
 hessAux f st a = unsafePerformIO $ do
     r <- createMatrix ColumnMajor m n
     tau <- createVector (mn-1)
-    app3 f mat a vec tau mat r st
+    f # a # tau # r #| st
     return (r,tau)
   where m = rows a
         n = cols a
@@ -510,7 +520,7 @@ schurC = schurAux zgees "schurC" . fmat
 schurAux f st a = unsafePerformIO $ do
     u <- createMatrix ColumnMajor n n
     s <- createMatrix ColumnMajor n n
-    app3 f mat a mat u mat s st
+    f # a # u # s #| st
     return (u,s)
   where n = rows a
 
@@ -529,7 +539,7 @@ luC = luAux zgetrf "luC" . fmat
 luAux f st a = unsafePerformIO $ do
     lu <- createMatrix ColumnMajor n m
     piv <- createVector (min n m)
-    app3 f mat a vec piv mat lu st
+    f # a # piv # lu #| st
     return (lu, map (pred.round) (toList piv))
   where n = rows a
         m = cols a
@@ -552,7 +562,7 @@ lusC a piv b = lusAux zgetrs "lusC" (fmat a) piv (fmat b)
 lusAux f st a piv b
     | n1==n2 && n2==n =unsafePerformIO $ do
          x <- createMatrix ColumnMajor n m
-         app4 f mat a vec piv' mat b mat x st
+         f # a # piv' # b # x #| st
          return x
     | otherwise = error $ st ++ " on LU factorization of nonsquare matrix"
   where n1 = rows a

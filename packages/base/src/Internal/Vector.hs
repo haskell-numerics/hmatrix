@@ -14,7 +14,7 @@ module Internal.Vector(
     I,Z,R,C,
     fi,ti,
     Vector, fromList, unsafeToForeignPtr, unsafeFromForeignPtr, unsafeWith,
-    createVector, vec,
+    createVector, vec, avec, arrvec, inlinePerformIO,
     toList, dim, (@>), at', (|>),
     vjoin, subVector, takesV, idxs,
     buildVector,
@@ -74,6 +74,16 @@ vec x f = unsafeWith x $ \p -> do
         g (fi $ dim x) p
     f v
 {-# INLINE vec #-}
+
+{-# INLINE avec #-}
+avec :: Storable a => (CInt -> Ptr a -> b) -> Vector a -> b
+avec f v = inlinePerformIO (unsafeWith v (return . f (fromIntegral (Vector.length v))))
+infixl 1 `avec`
+
+{-# INLINE arrvec #-}
+arrvec :: Storable a => (Ptr CInt -> Ptr a -> b) -> Vector a -> b
+arrvec f v = inlinePerformIO (unsafeWith (idxs [1,dim v]) (\p -> unsafeWith v (return . f p)))
+
 
 
 -- allocates memory for a new vector

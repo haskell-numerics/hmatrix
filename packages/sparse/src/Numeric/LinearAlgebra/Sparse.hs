@@ -27,7 +27,7 @@ dss :: CSR -> Vector Double -> Vector Double
 dss CSR{..} b = unsafePerformIO $ do
     size b /= csrNRows ??? printf "dss: incorrect sizes: (%d,%d) x %d" csrNRows csrNCols (size b)
     r <- createVector csrNCols
-    app5 c_dss vec csrVals vec csrCols vec csrRows vec b vec r "dss"
+    c_dss `apply` csrVals `apply` csrCols `apply` csrRows `apply` b `apply` r #|"dss"
     return r
 
 foreign import ccall unsafe "dss"

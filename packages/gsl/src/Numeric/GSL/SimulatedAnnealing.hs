@@ -55,7 +55,6 @@ import Foreign.Ptr(Ptr, FunPtr, nullFunPtr)
 import Foreign.StablePtr(StablePtr, newStablePtr, deRefStablePtr, freeStablePtr)
 import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
-import Control.Applicative ((<*>), (<$>))
 
 import System.IO (hFlush, stdout)
 

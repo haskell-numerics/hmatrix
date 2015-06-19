@@ -1,4 +1,5 @@
-{-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -26,7 +27,9 @@ import Foreign.C.String
 import System.IO.Unsafe(unsafePerformIO)
 import Control.Monad(when)
 
-
+infixl 1 #
+a # b = applyRaw a b
+{-# INLINE (#) #-}
 
 fromei x = fromIntegral (fromEnum x) :: CInt
 
@@ -100,7 +103,7 @@ sumL m = sumg (c_sumL m)
 
 sumg f x = unsafePerformIO $ do
     r <- createVector 1
-    app2 f vec x vec r "sum"
+    f # x # r #| "sum"
     return $ r @> 0
 
 type TVV t = t :> t :> Ok
@@ -128,14 +131,15 @@ prodQ = prodg c_prodQ
 prodC :: Vector (Complex Double) -> Complex Double
 prodC = prodg c_prodC
 
-
+prodI :: I-> Vector I -> I
 prodI = prodg . c_prodI
 
+prodL :: Z-> Vector Z -> Z
 prodL = prodg . c_prodL
 
 prodg f x = unsafePerformIO $ do
     r <- createVector 1
-    app2 f vec x vec r "prod"
+    f # x # r #| "prod"
     return $ r @> 0
 
 
@@ -150,24 +154,24 @@ foreign import ccall unsafe "prodL" c_prodL :: Z -> TVV Z
 
 toScalarAux fun code v = unsafePerformIO $ do
     r <- createVector 1
-    app2 (fun (fromei code)) vec v vec r "toScalarAux"
+    fun (fromei code) # v # r #|"toScalarAux"
     return (r @> 0)
 
 vectorMapAux fun code v = unsafePerformIO $ do
     r <- createVector (dim v)
-    app2 (fun (fromei code)) vec v vec r "vectorMapAux"
+    fun (fromei code) # v # r #|"vectorMapAux"
     return r
 
 vectorMapValAux fun code val v = unsafePerformIO $ do
     r <- createVector (dim v)
     pval <- newArray [val]
-    app2 (fun (fromei code) pval) vec v vec r "vectorMapValAux"
+    fun (fromei code) pval # v # r #|"vectorMapValAux"
     free pval
     return r
 
 vectorZipAux fun code u v = unsafePerformIO $ do
     r <- createVector (dim u)
-    app3 (fun (fromei code)) vec u vec v vec r "vectorZipAux"
+    fun (fromei code) # u # v # r #|"vectorZipAux"
     return r
 
 ---------------------------------------------------------------------
@@ -364,7 +368,7 @@ randomVector :: Seed
              -> Vector Double
 randomVector seed dist n = unsafePerformIO $ do
     r <- createVector n
-    app1 (c_random_vector (fi seed) ((fi.fromEnum) dist)) vec r "randomVector"
+    c_random_vector (fi seed) ((fi.fromEnum) dist) # r #|"randomVector"
     return r
 
 foreign import ccall unsafe "random_vector" c_random_vector :: CInt -> CInt -> Double :> Ok
@@ -373,7 +377,7 @@ foreign import ccall unsafe "random_vector" c_random_vector :: CInt -> CInt -> D
 
 roundVector v = unsafePerformIO $ do
     r <- createVector (dim v)
-    app2 c_round_vector vec v vec r "roundVector"
+    c_round_vector # v # r #|"roundVector"
     return r
 
 foreign import ccall unsafe "round_vector" c_round_vector :: TVV Double
@@ -387,7 +391,7 @@ foreign import ccall unsafe "round_vector" c_round_vector :: TVV Double
 range :: Int -> Vector I
 range n = unsafePerformIO $ do
     r <- createVector n
-    app1 c_range_vector vec r "range"
+    c_range_vector # r #|"range"
     return r
 
 foreign import ccall unsafe "range_vector" c_range_vector :: CInt :> Ok
@@ -427,7 +431,7 @@ long2intV = tog c_long2int
 
 tog f v = unsafePerformIO $ do
     r <- createVector (dim v)
-    app2 f vec v vec r "tog"
+    f # v # r #|"tog"
     return r
 
 foreign import ccall unsafe "float2double" c_float2double :: Float :> Double :> Ok
@@ -446,7 +450,7 @@ foreign import ccall unsafe "long2int"    c_long2int    :: Z :> I :> Ok
 
 stepg f v = unsafePerformIO $ do
     r <- createVector (dim v)
-    app2 f vec v vec r "step"
+    f # v # r #|"step"
     return r
 
 stepD :: Vector Double -> Vector Double
@@ -471,7 +475,7 @@ foreign import ccall unsafe "stepL" c_stepL :: TVV Z
 
 conjugateAux fun x = unsafePerformIO $ do
     v <- createVector (dim x)
-    app2 fun vec x vec v "conjugateAux"
+    fun # x # v #|"conjugateAux"
     return v
 
 conjugateQ :: Vector (Complex Float) -> Vector (Complex Float)
@@ -489,7 +493,7 @@ cloneVector v = do
         let n = dim v
         r <- createVector n
         let f _ s _ d =  copyArray d s n >> return 0
-        app2 f vec v vec r "cloneVector"
+        f # v # r #|"cloneVector"
         return r
 
 --------------------------------------------------------------------------------
@@ -497,7 +501,7 @@ cloneVector v = do
 constantAux fun x n = unsafePerformIO $ do
     v <- createVector n
     px <- newArray [x]
-    app1 (fun px) vec v "constantAux"
+    fun px # v #|"constantAux"
     free px
     return v
 

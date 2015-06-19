@@ -29,7 +29,7 @@ module Numeric.LinearAlgebra.Tests(
 ) where
 
 import Numeric.LinearAlgebra hiding (unitary)
-import Numeric.LinearAlgebra.Devel hiding (vec)
+import Numeric.LinearAlgebra.Devel
 import Numeric.LinearAlgebra.Static(L)
 import Numeric.LinearAlgebra.Tests.Instances
 import Numeric.LinearAlgebra.Tests.Properties

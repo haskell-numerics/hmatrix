@@ -31,7 +31,7 @@ module Internal.Util(
     diagl,
     row,
     col,
-    (&), (¦), (|||), (——), (===), (#),
+    (&), (¦), (|||), (——), (===),
     (?), (¿),
     Indexable(..), size,
     Numeric,
@@ -184,10 +184,6 @@ a === b = fromBlocks [[a],[b]]
 infixl 2 ——
 (——) = (===)
 
-
-(#) :: Matrix Double -> Matrix Double -> Matrix Double
-infixl 2 #
-a # b = fromBlocks [[a],[b]]
 
 -- | create a single row real matrix from a list
 --

@@ -137,7 +137,7 @@ minimizeV :: MinimizeMethod
 minimize method eps maxit sz f xi = v2l $ minimizeV method eps maxit (fromList sz) (f.toList) (fromList xi)
     where v2l (v,m) = (toList v, m)
 
-ww2 w1 o1 w2 o2 f = w1 o1 $ \a1 -> w2 o2 $ \a2 -> f a1 a2
+
 
 minimizeV method eps maxit szv f xiv = unsafePerformIO $ do
     let n   = size xiv

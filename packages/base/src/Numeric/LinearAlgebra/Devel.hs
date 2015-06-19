@@ -23,14 +23,12 @@ module Numeric.LinearAlgebra.Devel(
     -- | See @examples/devel@ in the repository.
     
     createVector, createMatrix,
-    vec, mat, omat,
-    app1, app2, app3, app4,
-    app5, app6, app7, app8, app9, app10,
+    TransArray(..),
     MatrixOrder(..), orderOf, cmat, fmat,
     matrixFromVector,
     unsafeFromForeignPtr,
     unsafeToForeignPtr,
-    check, (//),
+    check, (//), (#|),
     at', atM', fi, ti,
 
     -- * ST
