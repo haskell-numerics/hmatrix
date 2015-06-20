@@ -54,7 +54,7 @@ module Internal.Util(
     -- ** 2D
     corr2, conv2, separable,
     block2x2,block3x3,view1,unView1,foldMatrix,
-    gaussElim_1, gaussElim_2, gaussElim, luST, luSolve', luSolve'', luPacked'
+    gaussElim_1, gaussElim_2, gaussElim, luST, luSolve', luSolve'', luPacked', luPacked''
 ) where
 
 import Internal.Vector
@@ -73,7 +73,7 @@ import Control.Monad(when,forM_)
 import Text.Printf
 import Data.List.Split(splitOn)
 import Data.List(intercalate,sortBy,foldl')
-import Control.Arrow((&&&))
+import Control.Arrow((&&&),(***))
 import Data.Complex
 import Data.Function(on)
 import Internal.ST
@@ -711,6 +711,43 @@ luST ok (r,_) x = do
 
 -}
 luPacked' x = mutable (luST (magnit 0)) x
+
+--------------------------------------------------------------------------------
+
+scalS a (Slice x r0 c0 nr nc) = rowOper (SCAL a (RowRange r0 (r0+nr-1)) (ColRange c0 (c0+nc-1))) x
+
+view x k r = do
+    d <- readMatrix x k k
+    let rr = r-1-k
+        o  = if k < r-1 then 1 else 0
+        s = Slice x (k+1) (k+1) rr rr
+        u = Slice x k     (k+1) o  rr
+        l = Slice x (k+1) k     rr o
+    return (d,u,l,s)
+
+withVec r f = \s x -> do
+    p <- newUndefinedVector r
+    _ <- f s x p
+    v <- unsafeFreezeVector p
+    return v
+
+
+luPacked'' m = (id *** toList) (mutable (withVec (rows m) lu2) m)
+  where
+    lu2 (r,_) x p = do
+        forM_ [0..r-1] $ \k -> do
+            pivot x p k
+            (d,u,l,s) <- view x k r
+            when (magnit 0 d) $ do
+                scalS (recip d) l
+                gemmm 1 s (-1) l u
+
+    pivot x p k = do
+        j <- maxIndex . abs . flatten <$> extractMatrix x (FromRow k) (Col k)
+        writeVector p k (j+k)
+        swap k (k+j)
+      where
+        swap i j = rowOper (SWAP i j AllCols) x
 
 --------------------------------------------------------------------------------
 

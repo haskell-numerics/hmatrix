@@ -47,6 +47,7 @@ import Debug.Trace
 import Control.Monad(when)
 import Control.Applicative
 import Control.Monad(ap)
+import Control.DeepSeq ( NFData(..) )
 
 import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
                       ,sized,classify,Testable,Property
@@ -770,7 +771,7 @@ cholBench = do
 luBenchN f n x msg = do
     let m = diagRect 1 (fromList (replicate n x)) n n
     m `seq` putStr ""
-    time (msg ++ " "++ show n) (f m)
+    time (msg ++ " "++ show n) (rnf $ f m)
 
 luBench = do
     putStrLn ""

@@ -44,12 +44,17 @@ import Foreign.ForeignPtr(castForeignPtr)
 import Foreign.Storable
 import Data.Ratio
 import Data.Complex
+import Control.DeepSeq ( NFData(..) )
 
 
 
 -- | Wrapper with a phantom integer for statically checked modular arithmetic.
 newtype Mod (n :: Nat) t = Mod {unMod:: t}
   deriving (Storable)
+
+instance (NFData t) => NFData (Mod n t)
+  where
+    rnf (Mod x) = rnf x
 
 infixr 5 ./.
 type (./.) x n = Mod n x
