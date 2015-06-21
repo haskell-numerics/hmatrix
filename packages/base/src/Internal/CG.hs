@@ -7,7 +7,7 @@ module Internal.CG(
 ) where
 
 import Internal.Vector
-import Internal.Matrix hiding (mat)
+import Internal.Matrix
 import Internal.Numeric
 import Internal.Element
 import Internal.IO

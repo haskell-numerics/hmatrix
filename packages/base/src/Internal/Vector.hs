@@ -14,7 +14,7 @@ module Internal.Vector(
     I,Z,R,C,
     fi,ti,
     Vector, fromList, unsafeToForeignPtr, unsafeFromForeignPtr, unsafeWith,
-    createVector, vec, avec, arrvec, inlinePerformIO,
+    createVector, avec, inlinePerformIO,
     toList, dim, (@>), at', (|>),
     vjoin, subVector, takesV, idxs,
     buildVector,
@@ -67,24 +67,10 @@ dim = Vector.length
 
 
 -- C-Haskell vector adapter
--- vec :: Adapt (CInt -> Ptr t -> r) (Vector t) r
-vec :: (Storable t) => Vector t -> (((CInt -> Ptr t -> t1) -> t1) -> IO b) -> IO b
-vec x f = unsafeWith x $ \p -> do
-    let v g = do
-        g (fi $ dim x) p
-    f v
-{-# INLINE vec #-}
-
 {-# INLINE avec #-}
 avec :: Storable a => (CInt -> Ptr a -> b) -> Vector a -> b
 avec f v = inlinePerformIO (unsafeWith v (return . f (fromIntegral (Vector.length v))))
 infixl 1 `avec`
-
-{-# INLINE arrvec #-}
-arrvec :: Storable a => (Ptr CInt -> Ptr a -> b) -> Vector a -> b
-arrvec f v = inlinePerformIO (unsafeWith (idxs [1,dim v]) (\p -> unsafeWith v (return . f p)))
-
-
 
 -- allocates memory for a new vector
 createVector :: Storable a => Int -> IO (Vector a)

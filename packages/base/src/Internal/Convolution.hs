@@ -18,7 +18,7 @@ module Internal.Convolution(
 
 import qualified Data.Vector.Storable as SV
 import Internal.Vector
-import Internal.Matrix hiding (mat)
+import Internal.Matrix
 import Internal.Numeric
 import Internal.Element
 import Internal.Conversion

@@ -17,7 +17,7 @@ import Foreign.C.Types ( CInt )
 --import Foreign.Storable.Complex ()
 import Foreign.Ptr(Ptr)
 import Control.Exception as E ( SomeException, catch )
-import Internal.Vector(Vector,avec,arrvec)
+import Internal.Vector(Vector,avec)
 import Foreign.Storable(Storable)
 
 -- | postfix function application (@flip ($)@)
@@ -83,8 +83,7 @@ class TransArray c
     type Elem c
     apply      :: (Trans c b) -> c -> b
     applyRaw   :: (TransRaw c b) -> c -> b
-    applyArray :: (Ptr CInt -> Ptr (Elem c) -> b) -> c -> b
-    infixl 1 `apply`, `applyRaw`, `applyArray`
+    infixl 1 `apply`, `applyRaw`
 
 instance Storable t => TransArray (Vector t)
   where
@@ -95,8 +94,4 @@ instance Storable t => TransArray (Vector t)
     {-# INLINE apply #-}
     applyRaw = avec
     {-# INLINE applyRaw #-}
-    applyArray = arrvec
-    {-# INLINE applyArray #-}
-    
-
 

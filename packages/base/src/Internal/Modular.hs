@@ -27,7 +27,7 @@ module Internal.Modular(
 ) where
 
 import Internal.Vector
-import Internal.Matrix hiding (mat,size)
+import Internal.Matrix hiding (size)
 import Internal.Numeric
 import Internal.Element
 import Internal.Container
