@@ -109,13 +109,13 @@ newVector x n = do
 
 {-# INLINE ioReadM #-}
 ioReadM :: Storable t => Matrix t -> Int -> Int -> IO t
-ioReadM (Matrix _ nc cv RowMajor) r c = ioReadV cv (r*nc+c)
-ioReadM (Matrix nr _ fv ColumnMajor) r c = ioReadV fv (c*nr+r)
+ioReadM m r c = ioReadV (xdat m) (r * (ti $ xRow m) + c * (ti $ xCol m))
+
 
 {-# INLINE ioWriteM #-}
 ioWriteM :: Storable t => Matrix t -> Int -> Int -> t -> IO ()
-ioWriteM (Matrix _ nc cv RowMajor) r c val = ioWriteV cv (r*nc+c) val
-ioWriteM (Matrix nr _ fv ColumnMajor) r c val = ioWriteV fv (c*nr+r) val
+ioWriteM m r c val = ioWriteV (xdat m) (r * (ti $ xRow m) + c * (ti $ xCol m)) val
+
 
 newtype STMatrix s t = STMatrix (Matrix t)
 
@@ -150,7 +150,7 @@ unsafeFreezeMatrix (STMatrix x) = unsafeIOToST . return $ x
 freezeMatrix :: (Storable t) => STMatrix s t -> ST s (Matrix t)
 freezeMatrix m = liftSTMatrix id m
 
-cloneMatrix (Matrix r c d o) = cloneVector d >>= return . (\d' -> Matrix r c d' o)
+cloneMatrix m = cloneVector (xdat m) >>= return . (\d' -> m{xdat = d'})
 
 {-# INLINE safeIndexM #-}
 safeIndexM f (STMatrix m) r c

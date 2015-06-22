@@ -3,7 +3,9 @@
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE BangPatterns             #-}
 {-# LANGUAGE TypeOperators            #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE ViewPatterns             #-}
+
 
 
 -- |
@@ -74,10 +76,14 @@ The elements are stored in a continuous memory array.
 
 -}
 
-data Matrix t = Matrix { irows :: {-# UNPACK #-} !Int
-                       , icols :: {-# UNPACK #-} !Int
-                       , xdat :: {-# UNPACK #-} !(Vector t)
-                       , order :: !MatrixOrder }
+data Matrix t = Matrix
+    { irows :: {-# UNPACK #-} !Int
+    , icols :: {-# UNPACK #-} !Int
+    , xRow  :: {-# UNPACK #-} !CInt
+    , xCol  :: {-# UNPACK #-} !CInt
+--    , rowOrder :: {-# UNPACK #-} !Bool
+    , xdat  :: {-# UNPACK #-} !(Vector t)
+    }
 -- RowMajor: preferred by C, fdat may require a transposition
 -- ColumnMajor: preferred by LAPACK, cdat may require a transposition
 
@@ -88,49 +94,32 @@ rows = irows
 cols :: Matrix t -> Int
 cols = icols
 
+rowOrder m = xRow m > 1
+{-# INLINE rowOrder #-}
+
 orderOf :: Matrix t -> MatrixOrder
-orderOf = order
-
-stepRow :: Matrix t -> CInt
-stepRow Matrix {icols = c, order = RowMajor } = fromIntegral c
-stepRow _                                     = 1
-
-stepCol :: Matrix t -> CInt
-stepCol Matrix {irows = r, order = ColumnMajor } = fromIntegral r
-stepCol _                                        = 1
+orderOf m = if rowOrder m then RowMajor else ColumnMajor
 
 
 -- | Matrix transpose.
 trans :: Matrix t -> Matrix t
-trans Matrix {irows = r, icols = c, xdat = d, order = o } = Matrix { irows = c, icols = r, xdat = d, order = transOrder o}
+trans m@Matrix { irows = r, icols = c } | rowOrder m =
+             m { irows = c, icols = r, xRow = 1, xCol = fi c }
+trans m@Matrix { irows = r, icols = c } =
+             m { irows = c, icols = r, xRow = fi r, xCol = 1 }
 
 cmat :: (Element t) => Matrix t -> Matrix t
-cmat m@Matrix{order = RowMajor} = m
-cmat Matrix {irows = r, icols = c, xdat = d, order = ColumnMajor } = Matrix { irows = r, icols = c, xdat = transdata r d c, order = RowMajor}
+cmat m | rowOrder m = m
+cmat m@Matrix { irows = r, icols = c, xdat = d } =
+            m { xdat = transdata r d c, xRow = fi c, xCol = 1 }
 
 fmat :: (Element t) => Matrix t -> Matrix t
-fmat m@Matrix{order = ColumnMajor} = m
-fmat Matrix {irows = r, icols = c, xdat = d, order = RowMajor } = Matrix { irows = r, icols = c, xdat = transdata c d r, order = ColumnMajor}
+fmat m | not (rowOrder m) = m
+fmat m@Matrix { irows = r, icols = c, xdat = d} =
+            m { xdat = transdata c d r, xRow = 1, xCol = fi r }
 
--- C-Haskell matrix adapter
--- mat :: Adapt (CInt -> CInt -> Ptr t -> r) (Matrix t) r
 
-mat :: (Storable t) => Matrix t -> (((CInt -> CInt -> Ptr t -> t1) -> t1) -> IO b) -> IO b
-mat a f =
-    unsafeWith (xdat a) $ \p -> do
-        let m g = do
-            g (fi (rows a)) (fi (cols a)) p
-        f m
-
-omat :: (Storable t) => Matrix t -> (((CInt -> CInt -> CInt -> CInt -> Ptr t -> t1) -> t1) -> IO b) -> IO b
-omat a f =
-    unsafeWith (xdat a) $ \p -> do
-        let m g = do
-            g (fi (rows a)) (fi (cols a)) (stepRow a) (stepCol a) p
-        f m
-
---------------------------------------------------------------------------------
-
+-- C-Haskell matrix adapters
 {-# INLINE amatr #-}
 amatr :: Storable a => (CInt -> CInt -> Ptr a -> b) -> Matrix a -> b
 amatr f x = inlinePerformIO (unsafeWith (xdat x) (return . f r c))
@@ -144,14 +133,8 @@ amat f x = inlinePerformIO (unsafeWith (xdat x) (return . f r c sr sc))
   where
     r  = fromIntegral (rows x)
     c  = fromIntegral (cols x)
-    sr = stepRow x
-    sc = stepCol x
-
-{-# INLINE arrmat #-}
-arrmat :: Storable a => (Ptr CInt -> Ptr a -> b) -> Matrix a -> b
-arrmat f x = inlinePerformIO (unsafeWith s (\p -> unsafeWith (xdat x) (return . f p)))
-  where
-    s = fromList [fi (rows x), fi (cols x), stepRow x, stepCol x]
+    sr = xRow x
+    sc = xCol x
 
 
 instance Storable t => TransArray (Matrix t)
@@ -163,8 +146,6 @@ instance Storable t => TransArray (Matrix t)
     {-# INLINE apply #-}
     applyRaw = amatr
     {-# INLINE applyRaw #-}
-    applyArray = arrmat
-    {-# INLINE applyArray #-}
 
 infixl 1 #
 a # b = apply a b
@@ -246,8 +227,7 @@ m@Matrix {irows = r, icols = c} @@> (i,j)
 {-# INLINE (@@>) #-}
 
 --  Unsafe matrix access without range checking
-atM' Matrix {icols = c, xdat = v, order = RowMajor} i j = v `at'` (i*c+j)
-atM' Matrix {irows = r, xdat = v, order = ColumnMajor} i j = v `at'` (j*r+i)
+atM' m i j = xdat m `at'` (i * (ti $ xRow m) + j * (ti $ xCol m))
 {-# INLINE atM' #-}
 
 ------------------------------------------------------------------
@@ -256,7 +236,8 @@ matrixFromVector o r c v
     | r * c == dim v = m
     | otherwise = error $ "can't reshape vector dim = "++ show (dim v)++" to matrix " ++ shSize m
   where
-    m = Matrix { irows = r, icols = c, xdat = v, order = o }
+    m | o == RowMajor = Matrix { irows = r, icols = c, xdat = v, xRow = fi c, xCol = 1    }
+      | otherwise     = Matrix { irows = r, icols = c, xdat = v, xRow = 1   , xCol = fi r }
 
 -- allocates memory for a new matrix
 createMatrix :: (Storable a) => MatrixOrder -> Int -> Int -> IO (Matrix a)
@@ -282,7 +263,7 @@ reshape c v = matrixFromVector RowMajor (dim v `div` c) c v
 
 -- | application of a vector function on the flattened matrix elements
 liftMatrix :: (Storable a, Storable b) => (Vector a -> Vector b) -> Matrix a -> Matrix b
-liftMatrix f Matrix { irows = r, icols = c, xdat = d, order = o } = matrixFromVector o r c (f d)
+liftMatrix f m@Matrix { irows = r, icols = c, xdat = d} = matrixFromVector (orderOf m) r c (f d)
 
 -- | application of a vector function on the flattened matrices elements
 liftMatrix2 :: (Element t, Element a, Element b) => (Vector a -> Vector b -> Vector t) -> Matrix a -> Matrix b -> Matrix t

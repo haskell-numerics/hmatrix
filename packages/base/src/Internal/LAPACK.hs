@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ViewPatterns #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -49,11 +50,11 @@ foreign import ccall unsafe "multiplyQ" cgemmc :: CInt -> CInt -> TMMM Q
 foreign import ccall unsafe "multiplyI" c_multiplyI :: I -> I ::> I ::> I ::> Ok
 foreign import ccall unsafe "multiplyL" c_multiplyL :: Z -> Z ::> Z ::> Z ::> Ok
 
-isT Matrix{order = ColumnMajor} = 0
-isT Matrix{order = RowMajor} = 1
+isT (rowOrder -> False) = 0
+isT _                   = 1
 
-tt x@Matrix{order = ColumnMajor} = x
-tt x@Matrix{order = RowMajor} = trans x
+tt x@(rowOrder -> False) = x
+tt x                     = trans x
 
 multiplyAux f st a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $ "inconsistent dimensions in matrix product "++

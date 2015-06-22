@@ -22,7 +22,7 @@ module Internal.Chain (
 
 import Data.Maybe
 
-import Internal.Matrix hiding (order)
+import Internal.Matrix
 import Internal.Numeric
 
 import qualified Data.Array.IArray as A
