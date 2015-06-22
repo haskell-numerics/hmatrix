@@ -62,7 +62,7 @@ module Numeric.LinearAlgebra.Devel(
     GMatrix(..),
 
     -- * Misc
-    toByteString, fromByteString
+    toByteString, fromByteString, sliceMatrix
 
 ) where
 

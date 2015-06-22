@@ -109,12 +109,12 @@ newVector x n = do
 
 {-# INLINE ioReadM #-}
 ioReadM :: Storable t => Matrix t -> Int -> Int -> IO t
-ioReadM m r c = ioReadV (xdat m) (r * (ti $ xRow m) + c * (ti $ xCol m))
+ioReadM m r c = ioReadV (xdat m) (r * xRow m + c * xCol m)
 
 
 {-# INLINE ioWriteM #-}
 ioWriteM :: Storable t => Matrix t -> Int -> Int -> t -> IO ()
-ioWriteM m r c val = ioWriteV (xdat m) (r * (ti $ xRow m) + c * (ti $ xCol m)) val
+ioWriteM m r c val = ioWriteV (xdat m)  (r * xRow m + c * xCol m) val
 
 
 newtype STMatrix s t = STMatrix (Matrix t)

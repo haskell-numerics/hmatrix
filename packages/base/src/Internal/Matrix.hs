@@ -79,9 +79,8 @@ The elements are stored in a continuous memory array.
 data Matrix t = Matrix
     { irows :: {-# UNPACK #-} !Int
     , icols :: {-# UNPACK #-} !Int
-    , xRow  :: {-# UNPACK #-} !CInt
-    , xCol  :: {-# UNPACK #-} !CInt
---    , rowOrder :: {-# UNPACK #-} !Bool
+    , xRow  :: {-# UNPACK #-} !Int
+    , xCol  :: {-# UNPACK #-} !Int
     , xdat  :: {-# UNPACK #-} !(Vector t)
     }
 -- RowMajor: preferred by C, fdat may require a transposition
@@ -90,12 +89,17 @@ data Matrix t = Matrix
 
 rows :: Matrix t -> Int
 rows = irows
+{-# INLINE rows #-}
 
 cols :: Matrix t -> Int
 cols = icols
+{-# INLINE cols #-}
 
 rowOrder m = xRow m > 1
 {-# INLINE rowOrder #-}
+
+isSlice m = cols m < xRow m || rows m < xCol m
+{-# INLINE isSlice #-}
 
 orderOf :: Matrix t -> MatrixOrder
 orderOf m = if rowOrder m then RowMajor else ColumnMajor
@@ -104,19 +108,19 @@ orderOf m = if rowOrder m then RowMajor else ColumnMajor
 -- | Matrix transpose.
 trans :: Matrix t -> Matrix t
 trans m@Matrix { irows = r, icols = c } | rowOrder m =
-             m { irows = c, icols = r, xRow = 1, xCol = fi c }
+             m { irows = c, icols = r, xRow = 1, xCol = c }
 trans m@Matrix { irows = r, icols = c } =
-             m { irows = c, icols = r, xRow = fi r, xCol = 1 }
+             m { irows = c, icols = r, xRow = r, xCol = 1 }
 
 cmat :: (Element t) => Matrix t -> Matrix t
 cmat m | rowOrder m = m
 cmat m@Matrix { irows = r, icols = c, xdat = d } =
-            m { xdat = transdata r d c, xRow = fi c, xCol = 1 }
+            m { xdat = transdata r d c, xRow = c, xCol = 1 }
 
 fmat :: (Element t) => Matrix t -> Matrix t
 fmat m | not (rowOrder m) = m
 fmat m@Matrix { irows = r, icols = c, xdat = d} =
-            m { xdat = transdata c d r, xRow = 1, xCol = fi r }
+            m { xdat = transdata c d r, xRow = 1, xCol = r }
 
 
 -- C-Haskell matrix adapters
@@ -124,17 +128,17 @@ fmat m@Matrix { irows = r, icols = c, xdat = d} =
 amatr :: Storable a => (CInt -> CInt -> Ptr a -> b) -> Matrix a -> b
 amatr f x = inlinePerformIO (unsafeWith (xdat x) (return . f r c))
   where
-    r  = fromIntegral (rows x)
-    c  = fromIntegral (cols x)
+    r  = fi (rows x)
+    c  = fi (cols x)
 
 {-# INLINE amat #-}
 amat :: Storable a => (CInt -> CInt -> CInt -> CInt -> Ptr a -> b) -> Matrix a -> b
 amat f x = inlinePerformIO (unsafeWith (xdat x) (return . f r c sr sc))
   where
-    r  = fromIntegral (rows x)
-    c  = fromIntegral (cols x)
-    sr = xRow x
-    sc = xCol x
+    r  = fi (rows x)
+    c  = fi (cols x)
+    sr = fi (xRow x)
+    sc = fi (xCol x)
 
 
 instance Storable t => TransArray (Matrix t)
@@ -227,7 +231,7 @@ m@Matrix {irows = r, icols = c} @@> (i,j)
 {-# INLINE (@@>) #-}
 
 --  Unsafe matrix access without range checking
-atM' m i j = xdat m `at'` (i * (ti $ xRow m) + j * (ti $ xCol m))
+atM' m i j = xdat m `at'` (i * (xRow m) + j * (xCol m))
 {-# INLINE atM' #-}
 
 ------------------------------------------------------------------
@@ -236,8 +240,8 @@ matrixFromVector o r c v
     | r * c == dim v = m
     | otherwise = error $ "can't reshape vector dim = "++ show (dim v)++" to matrix " ++ shSize m
   where
-    m | o == RowMajor = Matrix { irows = r, icols = c, xdat = v, xRow = fi c, xCol = 1    }
-      | otherwise     = Matrix { irows = r, icols = c, xdat = v, xRow = 1   , xCol = fi r }
+    m | o == RowMajor = Matrix { irows = r, icols = c, xdat = v, xRow = c, xCol = 1    }
+      | otherwise     = Matrix { irows = r, icols = c, xdat = v, xRow = 1, xCol = r }
 
 -- allocates memory for a new matrix
 createMatrix :: (Storable a) => MatrixOrder -> Int -> Int -> IO (Matrix a)
@@ -410,6 +414,21 @@ subMatrix (r0,c0) (rt,ct) m
       0 <= c0 && 0 <= ct && c0+ct <= cols m = unsafePerformIO $ extractR m 0 (idxs[r0,r0+rt-1]) 0 (idxs[c0,c0+ct-1])
     | otherwise = error $ "wrong subMatrix "++
                           show ((r0,c0),(rt,ct))++" of "++show(rows m)++"x"++ show (cols m)
+
+
+sliceMatrix :: Element a
+            => (Int,Int) -- ^ (r0,c0) starting position
+            -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
+            -> Matrix a -- ^ input matrix
+            -> Matrix a -- ^ result
+sliceMatrix (r0,c0) (rt,ct) m
+    | 0 <= r0 && 0 <= rt && r0+rt <= rows m &&
+      0 <= c0 && 0 <= ct && c0+ct <= cols m = res
+    | otherwise = error $ "wrong sliceMatrix "++
+                          show ((r0,c0),(rt,ct))++" of "++show(rows m)++"x"++ show (cols m)
+  where
+    t = r0 * xRow m + c0 * xCol m
+    res = m { irows = rt, icols = ct, xdat = subVector t (rt*ct) (xdat m) }
 
 --------------------------------------------------------------------------
 
