@@ -1485,26 +1485,6 @@ int smTXv(KDVEC(vals),KIVEC(cols),KIVEC(rows),KDVEC(x),DVEC(r)) {
 }
 
 
-//////////////////// transpose /////////////////////////
-
-#define TRANS_IMP {                       \
-    REQUIRES(xr==tc && xc==tr,BAD_SIZE);  \
-    DEBUGMSG("trans");                    \
-    int i,j;                              \
-    for (i=0; i<tr; i++) {                \
-        for (j=0; j<tc; j++) {            \
-            tp[i*tc+j] = xp[j*xc+i];      \
-        }                                 \
-    }                                     \
-    OK }
-
-int transF(KFMAT(x),FMAT(t)) TRANS_IMP
-int transR(KDMAT(x),DMAT(t)) TRANS_IMP
-int transQ(KQMAT(x),QMAT(t)) TRANS_IMP
-int transC(KCMAT(x),CMAT(t)) TRANS_IMP
-int transI(KIMAT(x),IMAT(t)) TRANS_IMP
-int transL(KLMAT(x),LMAT(t)) TRANS_IMP
-
 //////////////////////// extract /////////////////////////////////
 
 #define EXTRACT_IMP {                      \

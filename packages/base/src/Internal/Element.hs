@@ -173,7 +173,7 @@ m ?? (e, TakeLast n) = m ?? (e, Drop (cols m - n))
 m ?? (DropLast n, e) = m ?? (Take (rows m - n), e)
 m ?? (e, DropLast n) = m ?? (e, Take (cols m - n))
 
-m ?? (er,ec) = unsafePerformIO $ extractR m moder rs modec cs
+m ?? (er,ec) = unsafePerformIO $ extractR (orderOf m) m moder rs modec cs
   where
     (moder,rs) = mkExt (rows m) er
     (modec,cs) = mkExt (cols m) ec
@@ -491,9 +491,13 @@ liftMatrix2Auto f m1 m2
 -- FIXME do not flatten if equal order
 lM f m1 m2 = matrixFromVector
                 RowMajor
-                (max (rows m1) (rows m2))
-                (max (cols m1) (cols m2))
+                (max' (rows m1) (rows m2))
+                (max' (cols m1) (cols m2))
                 (f (flatten m1) (flatten m2))
+  where
+    max' 1 b = b
+    max' a 1 = a
+    max' a b = max a b
 
 compat' :: Matrix a -> Matrix b -> Bool
 compat' m1 m2 = s1 == (1,1) || s2 == (1,1) || s1 == s2
@@ -595,6 +599,6 @@ mapMatrixWithIndex g m = reshape c . mapVectorWithIndex (mk c g) . flatten $ m
     where
       c = cols m
 
-mapMatrix :: (Storable a, Storable b) => (a -> b) -> Matrix a -> Matrix b
+mapMatrix :: (Element a, Element b) => (a -> b) -> Matrix a -> Matrix b
 mapMatrix f = liftMatrix (mapVector f)
 

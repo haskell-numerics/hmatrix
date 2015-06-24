@@ -54,7 +54,9 @@ module Internal.Util(
     -- ** 2D
     corr2, conv2, separable,
     block2x2,block3x3,view1,unView1,foldMatrix,
-    gaussElim_1, gaussElim_2, gaussElim, luST, luSolve', luSolve'', luPacked', luPacked''
+    gaussElim_1, gaussElim_2, gaussElim,
+    luST, luSolve', luSolve'', luPacked', luPacked'',
+    invershur
 ) where
 
 import Internal.Vector
@@ -828,6 +830,45 @@ backSust lup rhs = fst $ mutable f rhs
 luSolve' (lup,p) b = backSust lup (forwSust lup pb)
   where
     pb = b ?? (Pos (fixPerm' p), All)
+
+
+--------------------------------------------------------------------------------
+
+data MatrixView t b
+    = Elem t
+    | Block b b b b
+  deriving Show
+
+
+viewBlock' r c m
+    | (rt,ct) == (1,1) = Elem (atM' m 0 0)
+    | otherwise        = Block m11 m12 m21 m22
+  where
+    (rt,ct) = size m
+    m11 = sliceMatrix (0,0) (r,c)       m
+    m12 = sliceMatrix (0,c) (r,ct-c)    m
+    m21 = sliceMatrix (r,0) (rt-r,c)    m
+    m22 = sliceMatrix (r,c) (rt-r,ct-c) m
+
+viewBlock m = viewBlock' n n m
+  where
+    n = rows m `div` 2
+
+invershur (viewBlock -> Block a b c d) = fromBlocks [[a',b'],[c',d']]
+  where
+    r1 = invershur a
+    r2 = c <> r1
+    r3 = r1 <> b
+    r4 = c <> r3
+    r5 = r4-d
+    r6 = invershur r5
+    b' = r3 <> r6
+    c' = r6 <> r2
+    r7 = r3 <> c'
+    a' = r1-r7
+    d' = -r6
+
+invershur x = recip x
 
 --------------------------------------------------------------------------------
 

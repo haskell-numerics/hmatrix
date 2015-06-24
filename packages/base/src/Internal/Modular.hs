@@ -36,7 +36,7 @@ import Internal.LAPACK (multiplyI, multiplyL)
 import Internal.Algorithms(luFact)
 import Internal.Util(Normed(..),Indexable(..),
                      gaussElim, gaussElim_1, gaussElim_2,
-                     luST, luSolve', luPacked', magnit)
+                     luST, luSolve', luPacked', magnit, invershur)
 import Internal.ST(mutable)
 import GHC.TypeLits
 import Data.Proxy(Proxy)
@@ -126,9 +126,8 @@ instance forall n t . (Integral t, KnownNat n) => Num (Mod n t)
 
 instance KnownNat m => Element (Mod m I)
   where
-    transdata n v m = i2f (transdata n (f2i v) m)
     constantD x n = i2f (constantD (unMod x) n)
-    extractR m mi is mj js = i2fM <$> extractR (f2iM m) mi is mj js
+    extractR ord m mi is mj js = i2fM <$> extractR ord (f2iM m) mi is mj js
     setRect i j m x = setRect i j (f2iM m) (f2iM x)
     sortI = sortI . f2i
     sortV = i2f . sortV . f2i
@@ -144,9 +143,8 @@ instance KnownNat m => Element (Mod m I)
 
 instance KnownNat m => Element (Mod m Z)
   where
-    transdata n v m = i2f (transdata n (f2i v) m)
     constantD x n = i2f (constantD (unMod x) n)
-    extractR m mi is mj js = i2fM <$> extractR (f2iM m) mi is mj js
+    extractR ord m mi is mj js = i2fM <$> extractR ord (f2iM m) mi is mj js
     setRect i j m x = setRect i j (f2iM m) (f2iM x)
     sortI = sortI . f2i
     sortV = i2f . sortV . f2i
@@ -293,11 +291,11 @@ f2i :: Storable t => Vector (Mod n t) -> Vector t
 f2i v = unsafeFromForeignPtr (castForeignPtr fp) (i) (n)
     where (fp,i,n) = unsafeToForeignPtr v
 
-f2iM :: Storable t => Matrix (Mod n t) -> Matrix t
-f2iM = liftMatrix f2i
+f2iM :: (Element t, Element (Mod n t)) => Matrix (Mod n t) -> Matrix t
+f2iM m = m { xdat = f2i (xdat m) }
 
-i2fM :: Storable t => Matrix t -> Matrix (Mod n t)
-i2fM = liftMatrix i2f
+i2fM :: (Element t, Element (Mod n t)) => Matrix t -> Matrix (Mod n t)
+i2fM m = m { xdat = i2f (xdat m) }
 
 vmod :: forall m t. (KnownNat m, Storable t, Integral t, Numeric t) => Vector t -> Vector (Mod m t)
 vmod = i2f . cmod' m'
@@ -376,6 +374,8 @@ test = (ok, info)
          bb = flipud aa
          x = luSolve' (luPacked' aa) bb
 
+    tmm = diagRect 1 (fromList [2..6]) 5 5 :: Matrix (Mod 19 I)
+
     info = do
         print v
         print m
@@ -421,6 +421,9 @@ test = (ok, info)
         print $ checkSolve (sgen 5 :: Matrix (Complex Float))
         print $ checkSolve (gen 5 :: Matrix (Mod 7 I))
         print $ checkSolve (gen 5 :: Matrix (Mod 7 Z))
+        
+        print $ luSolve' (luPacked' tmm) (ident (rows tmm))
+        print $ invershur tmm
 
 
     ok = and
@@ -449,6 +452,7 @@ test = (ok, info)
       , prodElements (konst (9:: Mod 10 I) (12::Int)) == product (replicate 12 (9:: Mod 10 I))
       , gm <> gm == konst 0 (3,3)
       , lgm <> lgm == konst 0 (3,3)
+      , invershur tmm == luSolve' (luPacked' tmm) (ident (rows tmm))
       ]
 
 

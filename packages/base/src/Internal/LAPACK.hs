@@ -418,6 +418,8 @@ linearSolveSVDC Nothing a b = linearSolveSVDC (Just (-1)) (fmat a) (fmat b)
 
 -----------------------------------------------------------------------------------
 
+type TMM t = t ..> t ..> Ok
+
 foreign import ccall unsafe "chol_l_H" zpotrf :: TMM C
 foreign import ccall unsafe "chol_l_S" dpotrf :: TMM R
 
