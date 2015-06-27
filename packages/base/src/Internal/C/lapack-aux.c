@@ -38,6 +38,9 @@ typedef float  complex TCF;
 // #define OK return 0;
 // #endif
 
+
+// printf("%dx%d %d:%d\n",ar,ac,aXr,aXc);
+
 #define TRACEMAT(M) {int q; printf(" %d x %d: ",M##r,M##c); \
                      for(q=0;q<M##r*M##c;q++) printf("%.1f ",M##p[q]); printf("\n");}
 
@@ -56,7 +59,7 @@ inline int mod (int a, int b);
 
 inline int64_t mod_l (int64_t a, int64_t b);
 
-//---------------------------------------
+////////////////////////////////////////////////////////////////////////////////
 void asm_finit() {
 #ifdef i386
 
@@ -77,8 +80,6 @@ void asm_finit() {
 
 #endif
 }
-
-//---------------------------------------
 
 #if NANDEBUG
 
@@ -109,16 +110,16 @@ for(k=0; k<(M##r * M##c); k++) {             \
 #define CHECKNANR(M,msg)
 #endif
 
-//---------------------------------------
 
-//////////////////// real svd ////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//////////////////// real svd ///////////////////////////////////////////////////
 
 /* Subroutine */ int dgesvd_(char *jobu, char *jobvt, integer *m, integer *n,
 	doublereal *a, integer *lda, doublereal *s, doublereal *u, integer *
 	ldu, doublereal *vt, integer *ldvt, doublereal *work, integer *lwork,
 	integer *info);
 
-int svd_l_R(KDMAT(a),DMAT(u), DVEC(s),DMAT(v)) {
+int svd_l_R(KODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
     integer m = ar;
     integer n = ac;
     integer q = MIN(m,n);
@@ -181,7 +182,7 @@ int svd_l_R(KDMAT(a),DMAT(u), DVEC(s),DMAT(v)) {
 	doublereal *vt, integer *ldvt, doublereal *work, integer *lwork,
 	integer *iwork, integer *info);
 
-int svd_l_Rdd(KDMAT(a),DMAT(u), DVEC(s),DMAT(v)) {
+int svd_l_Rdd(KODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
     integer m = ar;
     integer n = ac;
     integer q = MIN(m,n);
@@ -231,7 +232,7 @@ int zgesvd_(char *jobu, char *jobvt, integer *m, integer *n,
     integer *ldu, doublecomplex *vt, integer *ldvt, doublecomplex *work,
     integer *lwork, doublereal *rwork, integer *info);
 
-int svd_l_C(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
+int svd_l_C(KOCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
     integer m = ar;
     integer n = ac;
     integer q = MIN(m,n);
@@ -297,7 +298,7 @@ int zgesdd_ (char *jobz, integer *m, integer *n,
     integer *ldu, doublecomplex *vt, integer *ldvt, doublecomplex *work,
     integer *lwork, doublereal *rwork, integer* iwork, integer *info);
 
-int svd_l_Cdd(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
+int svd_l_Cdd(KOCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
     //printf("entro\n");
     integer m = ar;
     integer n = ac;
@@ -358,7 +359,7 @@ int svd_l_Cdd(KCMAT(a),CMAT(u), DVEC(s),CMAT(v)) {
 	integer *ldvl, doublecomplex *vr, integer *ldvr, doublecomplex *work,
 	integer *lwork, doublereal *rwork, integer *info);
 
-int eig_l_C(KCMAT(a), CMAT(u), CVEC(s),CMAT(v)) {
+int eig_l_C(KOCMAT(a), OCMAT(u), CVEC(s),OCMAT(v)) {
     integer n = ar;
     REQUIRES(ac==n && sn==n, BAD_SIZE);
     REQUIRES(up==NULL || (ur==n && uc==n), BAD_SIZE);
@@ -413,7 +414,7 @@ int eig_l_C(KCMAT(a), CMAT(u), CVEC(s),CMAT(v)) {
 	integer *ldvl, doublereal *vr, integer *ldvr, doublereal *work,
 	integer *lwork, integer *info);
 
-int eig_l_R(KDMAT(a),DMAT(u), CVEC(s),DMAT(v)) {
+int eig_l_R(KODMAT(a),ODMAT(u), CVEC(s),ODMAT(v)) {
     integer n = ar;
     REQUIRES(ac==n && sn==n, BAD_SIZE);
     REQUIRES(up==NULL || (ur==n && uc==n), BAD_SIZE);
@@ -461,7 +462,7 @@ int eig_l_R(KDMAT(a),DMAT(u), CVEC(s),DMAT(v)) {
 	 integer *lda, doublereal *w, doublereal *work, integer *lwork,
 	integer *info);
 
-int eig_l_S(int wantV,KDMAT(a),DVEC(s),DMAT(v)) {
+int eig_l_S(int wantV,KODMAT(a),DVEC(s),ODMAT(v)) {
     integer n = ar;
     REQUIRES(ac==n && sn==n, BAD_SIZE);
     REQUIRES(vr==n && vc==n, BAD_SIZE);
@@ -499,7 +500,7 @@ int eig_l_S(int wantV,KDMAT(a),DVEC(s),DMAT(v)) {
 	*a, integer *lda, doublereal *w, doublecomplex *work, integer *lwork,
 	doublereal *rwork, integer *info);
 
-int eig_l_H(int wantV,KCMAT(a),DVEC(s),CMAT(v)) {
+int eig_l_H(int wantV,KOCMAT(a),DVEC(s),OCMAT(v)) {
     integer n = ar;
     REQUIRES(ac==n && sn==n, BAD_SIZE);
     REQUIRES(vr==n && vc==n, BAD_SIZE);
@@ -541,7 +542,7 @@ int eig_l_H(int wantV,KCMAT(a),DVEC(s),CMAT(v)) {
 /* Subroutine */ int dgesv_(integer *n, integer *nrhs, doublereal *a, integer
 	*lda, integer *ipiv, doublereal *b, integer *ldb, integer *info);
 
-int linearSolveR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
+int linearSolveR_l(KODMAT(a),KODMAT(b),ODMAT(x)) {
     integer n = ar;
     integer nhrs = bc;
     REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
@@ -571,7 +572,7 @@ int linearSolveR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
 	integer *lda, integer *ipiv, doublecomplex *b, integer *ldb, integer *
 	info);
 
-int linearSolveC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
+int linearSolveC_l(KOCMAT(a),KOCMAT(b),OCMAT(x)) {
     integer n = ar;
     integer nhrs = bc;
     REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
@@ -601,7 +602,7 @@ int linearSolveC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
 	doublereal *a, integer *lda, doublereal *b, integer *ldb, integer *
 	info);
 
-int cholSolveR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
+int cholSolveR_l(KODMAT(a),KODMAT(b),ODMAT(x)) {
     integer n = ar;
     integer nhrs = bc;
     REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
@@ -623,7 +624,7 @@ int cholSolveR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
 	doublecomplex *a, integer *lda, doublecomplex *b, integer *ldb,
 	integer *info);
 
-int cholSolveC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
+int cholSolveC_l(KOCMAT(a),KOCMAT(b),OCMAT(x)) {
     integer n = ar;
     integer nhrs = bc;
     REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
@@ -645,7 +646,7 @@ int cholSolveC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
 	nrhs, doublereal *a, integer *lda, doublereal *b, integer *ldb,
 	doublereal *work, integer *lwork, integer *info);
 
-int linearSolveLSR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
+int linearSolveLSR_l(KODMAT(a),KODMAT(b),ODMAT(x)) {
     integer m = ar;
     integer n = ac;
     integer nrhs = bc;
@@ -693,7 +694,7 @@ int linearSolveLSR_l(KDMAT(a),KDMAT(b),DMAT(x)) {
 	nrhs, doublecomplex *a, integer *lda, doublecomplex *b, integer *ldb,
 	doublecomplex *work, integer *lwork, integer *info);
 
-int linearSolveLSC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
+int linearSolveLSC_l(KOCMAT(a),KOCMAT(b),OCMAT(x)) {
     integer m = ar;
     integer n = ac;
     integer nrhs = bc;
@@ -742,7 +743,7 @@ int linearSolveLSC_l(KCMAT(a),KCMAT(b),CMAT(x)) {
 	s, doublereal *rcond, integer *rank, doublereal *work, integer *lwork,
 	 integer *info);
 
-int linearSolveSVDR_l(double rcond,KDMAT(a),KDMAT(b),DMAT(x)) {
+int linearSolveSVDR_l(double rcond,KODMAT(a),KODMAT(b),ODMAT(x)) {
     integer m = ar;
     integer n = ac;
     integer nrhs = bc;
@@ -801,7 +802,7 @@ int zgelss_(integer *m, integer *n, integer *nhrs,
     doublecomplex *work, integer* lwork, doublereal* rwork,
     integer *info);
 
-int linearSolveSVDC_l(double rcond, KCMAT(a),KCMAT(b),CMAT(x)) {
+int linearSolveSVDC_l(double rcond, KOCMAT(a),KOCMAT(b),OCMAT(x)) {
     integer m = ar;
     integer n = ac;
     integer nrhs = bc;
@@ -859,7 +860,7 @@ int linearSolveSVDC_l(double rcond, KCMAT(a),KCMAT(b),CMAT(x)) {
 /* Subroutine */ int zpotrf_(char *uplo, integer *n, doublecomplex *a,
 	integer *lda, integer *info);
 
-int chol_l_H(KCMAT(a),CMAT(l)) {
+int chol_l_H(KOCMAT(a),OCMAT(l)) {
     integer n = ar;
     REQUIRES(n>=1 && ac == n && lr==n && lc==n,BAD_SIZE);
     DEBUGMSG("chol_l_H");
@@ -871,9 +872,9 @@ int chol_l_H(KCMAT(a),CMAT(l)) {
     CHECK(res,res);
     doublecomplex zero = {0.,0.};
     int r,c;
-    for (r=0; r<lr-1; r++) {
-        for(c=r+1; c<lc; c++) {
-            lp[r*lc+c] = zero;
+    for (r=0; r<lr; r++) {
+        for(c=0; c<r; c++) {
+            AT(l,r,c) = zero;
         }
     }
     OK
@@ -883,7 +884,7 @@ int chol_l_H(KCMAT(a),CMAT(l)) {
 /* Subroutine */ int dpotrf_(char *uplo, integer *n, doublereal *a, integer *
 	lda, integer *info);
 
-int chol_l_S(KDMAT(a),DMAT(l)) {
+int chol_l_S(KODMAT(a),ODMAT(l)) {
     integer n = ar;
     REQUIRES(n>=1 && ac == n && lr==n && lc==n,BAD_SIZE);
     DEBUGMSG("chol_l_S");
@@ -894,9 +895,9 @@ int chol_l_S(KDMAT(a),DMAT(l)) {
     CHECK(res>0,NODEFPOS);
     CHECK(res,res);
     int r,c;
-    for (r=0; r<lr-1; r++) {
-        for(c=r+1; c<lc; c++) {
-            lp[r*lc+c] = 0.;
+    for (r=0; r<lr; r++) {
+        for(c=0; c<r; c++) {
+            AT(l,r,c) = 0.;
         }
     }
     OK
@@ -907,7 +908,7 @@ int chol_l_S(KDMAT(a),DMAT(l)) {
 /* Subroutine */ int dgeqr2_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *tau, doublereal *work, integer *info);
 
-int qr_l_R(KDMAT(a), DVEC(tau), DMAT(r)) {
+int qr_l_R(KODMAT(a), DVEC(tau), ODMAT(r)) {
     integer m = ar;
     integer n = ac;
     integer mn = MIN(m,n);
@@ -926,7 +927,7 @@ int qr_l_R(KDMAT(a), DVEC(tau), DMAT(r)) {
 /* Subroutine */ int zgeqr2_(integer *m, integer *n, doublecomplex *a,
 	integer *lda, doublecomplex *tau, doublecomplex *work, integer *info);
 
-int qr_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
+int qr_l_C(KOCMAT(a), CVEC(tau), OCMAT(r)) {
     integer m = ar;
     integer n = ac;
     integer mn = MIN(m,n);
@@ -946,7 +947,7 @@ int qr_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
 	a, integer *lda, doublereal *tau, doublereal *work, integer *lwork,
 	integer *info);
 
-int c_dorgqr(KDMAT(a), KDVEC(tau), DMAT(r)) {
+int c_dorgqr(KODMAT(a), KDVEC(tau), ODMAT(r)) {
     integer m = ar;
     integer n = MIN(ac,ar);
     integer k = taun;
@@ -966,7 +967,7 @@ int c_dorgqr(KDMAT(a), KDVEC(tau), DMAT(r)) {
 	doublecomplex *a, integer *lda, doublecomplex *tau, doublecomplex *
 	work, integer *lwork, integer *info);
 
-int c_zungqr(KCMAT(a), KCVEC(tau), CMAT(r)) {
+int c_zungqr(KOCMAT(a), KCVEC(tau), OCMAT(r)) {
     integer m = ar;
     integer n = MIN(ac,ar);
     integer k = taun;
@@ -989,7 +990,7 @@ int c_zungqr(KCMAT(a), KCVEC(tau), CMAT(r)) {
 	doublereal *a, integer *lda, doublereal *tau, doublereal *work,
 	integer *lwork, integer *info);
 
-int hess_l_R(KDMAT(a), DVEC(tau), DMAT(r)) {
+int hess_l_R(KODMAT(a), DVEC(tau), ODMAT(r)) {
     integer m = ar;
     integer n = ac;
     integer mn = MIN(m,n);
@@ -1012,7 +1013,7 @@ int hess_l_R(KDMAT(a), DVEC(tau), DMAT(r)) {
 	doublecomplex *a, integer *lda, doublecomplex *tau, doublecomplex *
 	work, integer *lwork, integer *info);
 
-int hess_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
+int hess_l_C(KOCMAT(a), CVEC(tau), OCMAT(r)) {
     integer m = ar;
     integer n = ac;
     integer mn = MIN(m,n);
@@ -1037,7 +1038,7 @@ int hess_l_C(KCMAT(a), CVEC(tau), CMAT(r)) {
 	doublereal *wi, doublereal *vs, integer *ldvs, doublereal *work,
 	integer *lwork, logical *bwork, integer *info);
 
-int schur_l_R(KDMAT(a), DMAT(u), DMAT(s)) {
+int schur_l_R(KODMAT(a), ODMAT(u), ODMAT(s)) {
     integer m = ar;
     integer n = ac;
     REQUIRES(m>=1 && n==m && ur==n && uc==n && sr==n && sc==n, BAD_SIZE);
@@ -1077,7 +1078,7 @@ int schur_l_R(KDMAT(a), DMAT(u), DMAT(s)) {
 	doublecomplex *vs, integer *ldvs, doublecomplex *work, integer *lwork,
 	 doublereal *rwork, logical *bwork, integer *info);
 
-int schur_l_C(KCMAT(a), CMAT(u), CMAT(s)) {
+int schur_l_C(KOCMAT(a), OCMAT(u), OCMAT(s)) {
     integer m = ar;
     integer n = ac;
     REQUIRES(m>=1 && n==m && ur==n && uc==n && sr==n && sc==n, BAD_SIZE);
@@ -1109,7 +1110,7 @@ int schur_l_C(KCMAT(a), CMAT(u), CMAT(s)) {
 /* Subroutine */ int dgetrf_(integer *m, integer *n, doublereal *a, integer *
 	lda, integer *ipiv, integer *info);
 
-int lu_l_R(KDMAT(a), DVEC(ipiv), DMAT(r)) {
+int lu_l_R(KODMAT(a), DVEC(ipiv), ODMAT(r)) {
     integer m = ar;
     integer n = ac;
     integer mn = MIN(m,n);
@@ -1135,7 +1136,7 @@ int lu_l_R(KDMAT(a), DVEC(ipiv), DMAT(r)) {
 /* Subroutine */ int zgetrf_(integer *m, integer *n, doublecomplex *a,
 	integer *lda, integer *ipiv, integer *info);
 
-int lu_l_C(KCMAT(a), DVEC(ipiv), CMAT(r)) {
+int lu_l_C(KOCMAT(a), DVEC(ipiv), OCMAT(r)) {
     integer m = ar;
     integer n = ac;
     integer mn = MIN(m,n);
@@ -1164,7 +1165,7 @@ int lu_l_C(KCMAT(a), DVEC(ipiv), CMAT(r)) {
 	doublereal *a, integer *lda, integer *ipiv, doublereal *b, integer *
 	ldb, integer *info);
 
-int luS_l_R(KDMAT(a), KDVEC(ipiv), KDMAT(b), DMAT(x)) {
+int luS_l_R(KODMAT(a), KDVEC(ipiv), KODMAT(b), ODMAT(x)) {
   integer m = ar;
   integer n = ac;
   integer mrhs = br;
@@ -1189,7 +1190,7 @@ int luS_l_R(KDMAT(a), KDVEC(ipiv), KDMAT(b), DMAT(x)) {
 	doublecomplex *a, integer *lda, integer *ipiv, doublecomplex *b,
 	integer *ldb, integer *info);
 
-int luS_l_C(KCMAT(a), KDVEC(ipiv), KCMAT(b), CMAT(x)) {
+int luS_l_C(KOCMAT(a), KDVEC(ipiv), KOCMAT(b), OCMAT(x)) {
     integer m = ar;
     integer n = ac;
     integer mrhs = br;
@@ -1215,7 +1216,7 @@ void dgemm_(char *, char *, integer *, integer *, integer *,
            double *, const double *, integer *, const double *,
            integer *, double *, double *, integer *);
 
-int multiplyR(int ta, int tb, KDMAT(a),KDMAT(b),DMAT(r)) {
+int multiplyR(int ta, int tb, KODMAT(a),KODMAT(b),ODMAT(r)) {
     //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
     DEBUGMSG("dgemm_");
     CHECKNANR(a,"NaN multR Input\n")
@@ -1237,7 +1238,7 @@ void zgemm_(char *, char *, integer *, integer *, integer *,
            doublecomplex *, const doublecomplex *, integer *, const doublecomplex *,
            integer *, doublecomplex *, doublecomplex *, integer *);
 
-int multiplyC(int ta, int tb, KCMAT(a),KCMAT(b),CMAT(r)) {
+int multiplyC(int ta, int tb, KOCMAT(a),KOCMAT(b),OCMAT(r)) {
     //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
     DEBUGMSG("zgemm_");
     CHECKNANC(a,"NaN multC Input\n")
@@ -1262,7 +1263,7 @@ void sgemm_(char *, char *, integer *, integer *, integer *,
             float *, const float *, integer *, const float *,
            integer *, float *, float *, integer *);
 
-int multiplyF(int ta, int tb, KFMAT(a),KFMAT(b),FMAT(r)) {
+int multiplyF(int ta, int tb, KOFMAT(a),KOFMAT(b),OFMAT(r)) {
     //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
     DEBUGMSG("sgemm_");
     integer m = ta?ac:ar;
@@ -1281,7 +1282,7 @@ void cgemm_(char *, char *, integer *, integer *, integer *,
            complex *, const complex *, integer *, const complex *,
            integer *, complex *, complex *, integer *);
 
-int multiplyQ(int ta, int tb, KQMAT(a),KQMAT(b),QMAT(r)) {
+int multiplyQ(int ta, int tb, KOQMAT(a),KOQMAT(b),OQMAT(r)) {
     //REQUIRES(ac==br && ar==rr && bc==rc,BAD_SIZE);
     DEBUGMSG("cgemm_");
     integer m = ta?ac:ar;
@@ -1564,13 +1565,13 @@ int remapQ(KOIMAT(i), KOIMAT(j), KOQMAT(m), OQMAT(r)) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-int saveMatrix(char * file, char * format, KDMAT(a)){
+int saveMatrix(char * file, char * format, KODMAT(a)){
     FILE * fp;
     fp = fopen (file, "w");
     int r, c;
     for (r=0;r<ar; r++) {
         for (c=0; c<ac; c++) {
-            fprintf(fp,format,ap[r*ac+c]);
+            fprintf(fp,format,AT(a,r,c));
             if (c<ac-1) {
                 fprintf(fp," ");
             } else {

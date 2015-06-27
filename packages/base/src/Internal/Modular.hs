@@ -398,6 +398,7 @@ test = (ok, info)
         print lgm
         print $ lgm <> lgm
         
+        putStrLn "checkGen"
         print (checkGen (gen 5 :: Matrix R))
         print (checkGen (gen 5 :: Matrix Float))
         print (checkGen (cgen 5 :: Matrix C))
@@ -408,6 +409,7 @@ test = (ok, info)
         print $ mutable (luST (const True)) (gen 5 :: Matrix R)
         print $ mutable (luST (const True)) (gen 5 :: Matrix (Mod 11 Z))
 
+        putStrLn "checkLU"
         print $ checkLU (magnit 0) (gen 5 :: Matrix R)
         print $ checkLU (magnit 0) (gen 5 :: Matrix Float)
         print $ checkLU (magnit 0) (cgen 5 :: Matrix C)
@@ -415,6 +417,7 @@ test = (ok, info)
         print $ checkLU (magnit 0) (gen 5 :: Matrix (Mod 7 I))
         print $ checkLU (magnit 0) (gen 5 :: Matrix (Mod 7 Z))
 
+        putStrLn "checkSolve"
         print $ checkSolve (gen 5 :: Matrix R)
         print $ checkSolve (gen 5 :: Matrix Float)
         print $ checkSolve (cgen 5 :: Matrix C)
@@ -422,6 +425,7 @@ test = (ok, info)
         print $ checkSolve (gen 5 :: Matrix (Mod 7 I))
         print $ checkSolve (gen 5 :: Matrix (Mod 7 Z))
         
+        putStrLn "luSolve'"
         print $ luSolve' (luPacked' tmm) (ident (rows tmm))
         print $ invershur tmm
 

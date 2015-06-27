@@ -52,16 +52,6 @@ typedef short ftnlen;
 #define CMAT(A) int A##r, int A##c, doublecomplex* A##p
 #define PMAT(A) int A##r, int A##c, void* A##p, int A##s
 
-#define OIMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, int* A##p
-#define OLMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, int64_t* A##p
-#define OFMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, float* A##p
-#define ODMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, double* A##p
-#define OQMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, complex* A##p
-#define OCMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, doublecomplex* A##p
-
-#define VECG(T,A) int A##n, T* A##p
-#define MATG(T,A) int A##r, int A##c, int A##Xr, int A##Xc, T* A##p
-
 #define KIVEC(A) int A##n, const int*A##p
 #define KLVEC(A) int A##n, const int64_t*A##p
 #define KFVEC(A) int A##n, const float*A##p
@@ -78,12 +68,22 @@ typedef short ftnlen;
 #define KCMAT(A) int A##r, int A##c, const doublecomplex* A##p
 #define KPMAT(A) int A##r, int A##c, const void* A##p, int A##s
 
-#define KOIMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const int* A##p
-#define KOLMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const int64_t* A##p
-#define KOFMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const float* A##p
-#define KODMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const double* A##p
-#define KOQMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const complex* A##p
-#define KOCMAT(A) int A##r, int A##c, int A##Xr, int A##Xc, const doublecomplex* A##p
+#define VECG(T,A) int A##n, T* A##p
+#define MATG(T,A) int A##r, int A##c, int A##Xr, int A##Xc, T* A##p
+
+#define OIMAT(A) MATG(int,A)
+#define OLMAT(A) MATG(int64_t,A)
+#define OFMAT(A) MATG(float,A)
+#define ODMAT(A) MATG(double,A)
+#define OQMAT(A) MATG(complex,A)
+#define OCMAT(A) MATG(doublecomplex,A)
+
+#define KOIMAT(A) MATG(const int,A)
+#define KOLMAT(A) MATG(const int64_t,A)
+#define KOFMAT(A) MATG(const float,A)
+#define KODMAT(A) MATG(const double,A)
+#define KOQMAT(A) MATG(const complex,A)
+#define KOCMAT(A) MATG(const doublecomplex,A)
 
 #define AT(m,i,j) (m##p[(i)*m##Xr + (j)*m##Xc])
 #define TRAV(m,i,j) int i,j; for (i=0;i<m##r;i++) for (j=0;j<m##c;j++)

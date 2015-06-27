@@ -150,6 +150,7 @@ unsafeFreezeMatrix (STMatrix x) = unsafeIOToST . return $ x
 freezeMatrix :: (Storable t) => STMatrix s t -> ST s (Matrix t)
 freezeMatrix m = liftSTMatrix id m
 
+-- FIXME
 cloneMatrix m = cloneVector (xdat m) >>= return . (\d' -> m{xdat = d'})
 
 {-# INLINE safeIndexM #-}

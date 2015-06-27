@@ -845,10 +845,11 @@ viewBlock' r c m
     | otherwise        = Block m11 m12 m21 m22
   where
     (rt,ct) = size m
-    m11 = sliceMatrix (0,0) (r,c)       m
-    m12 = sliceMatrix (0,c) (r,ct-c)    m
-    m21 = sliceMatrix (r,0) (rt-r,c)    m
-    m22 = sliceMatrix (r,c) (rt-r,ct-c) m
+    m11 = subm (0,0) (r,c)       m
+    m12 = subm (0,c) (r,ct-c)    m
+    m21 = subm (r,0) (rt-r,c)    m
+    m22 = subm (r,c) (rt-r,ct-c) m
+    subm = sliceMatrix
 
 viewBlock m = viewBlock' n n m
   where

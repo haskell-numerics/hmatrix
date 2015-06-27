@@ -29,16 +29,12 @@ import System.IO.Unsafe(unsafePerformIO)
 -----------------------------------------------------------------------------------
 
 infixl 1 #
-a # b = applyRaw a b
+a # b = apply a b
 {-# INLINE (#) #-}
-
-infixl 1 #!
-a #! b = apply a b
-{-# INLINE (#!) #-}
 
 -----------------------------------------------------------------------------------
 
-type TMMM t = t ..> t ..> t ..> Ok
+type TMMM t = t ::> t ::> t ::> Ok
 
 type F = Float
 type Q = Complex Float
@@ -47,8 +43,8 @@ foreign import ccall unsafe "multiplyR" dgemmc :: CInt -> CInt -> TMMM R
 foreign import ccall unsafe "multiplyC" zgemmc :: CInt -> CInt -> TMMM C
 foreign import ccall unsafe "multiplyF" sgemmc :: CInt -> CInt -> TMMM F
 foreign import ccall unsafe "multiplyQ" cgemmc :: CInt -> CInt -> TMMM Q
-foreign import ccall unsafe "multiplyI" c_multiplyI :: I -> I ::> I ::> I ::> Ok
-foreign import ccall unsafe "multiplyL" c_multiplyL :: Z -> Z ::> Z ::> Z ::> Ok
+foreign import ccall unsafe "multiplyI" c_multiplyI :: I -> TMMM I
+foreign import ccall unsafe "multiplyL" c_multiplyL :: Z -> TMMM Z
 
 isT (rowOrder -> False) = 0
 isT _                   = 1
@@ -84,7 +80,7 @@ multiplyI m a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $
         "inconsistent dimensions in matrix product "++ shSize a ++ " x " ++ shSize b
     s <- createMatrix ColumnMajor (rows a) (cols b)
-    c_multiplyI m #! a #! b #! s #|"c_multiplyI"
+    c_multiplyI m # a # b # s #|"c_multiplyI"
     return s
 
 multiplyL :: Z -> Matrix Z -> Matrix Z -> Matrix Z
@@ -92,12 +88,12 @@ multiplyL m a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $
         "inconsistent dimensions in matrix product "++ shSize a ++ " x " ++ shSize b
     s <- createMatrix ColumnMajor (rows a) (cols b)
-    c_multiplyL m #! a #! b #! s #|"c_multiplyL"
+    c_multiplyL m # a # b # s #|"c_multiplyL"
     return s
 
 -----------------------------------------------------------------------------
 
-type TSVD t = t ..> t ..> R :> t ..> Ok
+type TSVD t = t ::> t ::> R :> t ::> Ok
 
 foreign import ccall unsafe "svd_l_R" dgesvd :: TSVD R
 foreign import ccall unsafe "svd_l_C" zgesvd :: TSVD C
@@ -126,8 +122,9 @@ svdAux f st x = unsafePerformIO $ do
     v <- createMatrix ColumnMajor c c
     f # x # u # s # v #| st
     return (u,s,v)
-  where r = rows x
-        c = cols x
+  where
+    r = rows x
+    c = cols x
 
 
 -- | Thin SVD of a real matrix, using LAPACK's /dgesvd/ with jobu == jobvt == \'S\'.
@@ -152,9 +149,10 @@ thinSVDAux f st x = unsafePerformIO $ do
     v <- createMatrix ColumnMajor q c
     f # x # u # s # v #| st
     return (u,s,v)
-  where r = rows x
-        c = cols x
-        q = min r c
+  where
+    r = rows x
+    c = cols x
+    q = min r c
 
 
 -- | Singular values of a real matrix, using LAPACK's /dgesvd/ with jobu == jobvt == \'N\'.
@@ -177,10 +175,11 @@ svAux f st x = unsafePerformIO $ do
     s <- createVector q
     g # x # s #| st
     return s
-  where r = rows x
-        c = cols x
-        q = min r c
-        g ra ca pa nb pb = f ra ca pa 0 0 nullPtr nb pb 0 0 nullPtr
+  where
+    r = rows x
+    c = cols x
+    q = min r c
+    g ra ca xra xca pa nb pb = f ra ca xra xca pa 0 0 0 0 nullPtr nb pb 0 0 0 0 nullPtr
 
 
 -- | Singular values and all right singular vectors of a real matrix, using LAPACK's /dgesvd/ with jobu == \'N\' and jobvt == \'A\'.
@@ -196,10 +195,11 @@ rightSVAux f st x = unsafePerformIO $ do
     v <- createMatrix ColumnMajor c c
     g # x # s # v #| st
     return (s,v)
-  where r = rows x
-        c = cols x
-        q = min r c
-        g ra ca pa = f ra ca pa 0 0 nullPtr
+  where
+    r = rows x
+    c = cols x
+    q = min r c
+    g ra ca xra xca pa = f ra ca xra xca pa 0 0 0 0 nullPtr
 
 
 -- | Singular values and all left singular vectors of a real matrix, using LAPACK's /dgesvd/  with jobu == \'A\' and jobvt == \'N\'.
@@ -215,25 +215,27 @@ leftSVAux f st x = unsafePerformIO $ do
     s <- createVector q
     g # x # u # s #| st
     return (u,s)
-  where r = rows x
-        c = cols x
-        q = min r c
-        g ra ca pa ru cu pu nb pb = f ra ca pa ru cu pu nb pb 0 0 nullPtr
+  where
+    r = rows x
+    c = cols x
+    q = min r c
+    g ra ca xra xca pa ru cu xru xcu pu nb pb = f ra ca xra xca pa ru cu xru xcu pu nb pb 0 0 0 0 nullPtr
 
 -----------------------------------------------------------------------------
 
-foreign import ccall unsafe "eig_l_R" dgeev :: R ..> R ..> C :> R ..> Ok
-foreign import ccall unsafe "eig_l_C" zgeev :: C ..> C ..> C :> C ..> Ok
-foreign import ccall unsafe "eig_l_S" dsyev :: CInt -> R ..> R :> R ..> Ok
-foreign import ccall unsafe "eig_l_H" zheev :: CInt -> C ..> R :> C ..> Ok
+foreign import ccall unsafe "eig_l_R" dgeev :: R ::> R ::> C :> R ::> Ok
+foreign import ccall unsafe "eig_l_C" zgeev :: C ::> C ::> C :> C ::> Ok
+foreign import ccall unsafe "eig_l_S" dsyev :: CInt -> R ::> R :> R ::> Ok
+foreign import ccall unsafe "eig_l_H" zheev :: CInt -> C ::> R :> C ::> Ok
 
 eigAux f st m = unsafePerformIO $ do
-        l <- createVector r
-        v <- createMatrix ColumnMajor r r
-        g # m # l # v #| st
-        return (l,v)
-  where r = rows m
-        g ra ca pa = f ra ca pa 0 0 nullPtr
+    l <- createVector r
+    v <- createMatrix ColumnMajor r r
+    g # m # l # v #| st
+    return (l,v)
+  where
+    r = rows m
+    g ra ca xra xca pa = f ra ca xra xca pa 0 0 0 0 nullPtr
 
 
 -- | Eigenvalues and right eigenvectors of a general complex matrix, using LAPACK's /zgeev/.
@@ -242,11 +244,12 @@ eigC :: Matrix (Complex Double) -> (Vector (Complex Double), Matrix (Complex Dou
 eigC = eigAux zgeev "eigC" . fmat
 
 eigOnlyAux f st m = unsafePerformIO $ do
-        l <- createVector r
-        g # m # l #| st
-        return l
-  where r = rows m
-        g ra ca pa nl pl = f ra ca pa 0 0 nullPtr nl pl 0 0 nullPtr
+    l <- createVector r
+    g # m # l #| st
+    return l
+  where
+    r = rows m
+    g ra ca xra xca pa nl pl = f ra ca xra xca pa 0 0 0 0 nullPtr nl pl 0 0 0 0 nullPtr
 
 -- | Eigenvalues of a general complex matrix, using LAPACK's /zgeev/ with jobz == \'N\'.
 -- The eigenvalues are not sorted.
@@ -264,12 +267,13 @@ eigR m = (s', v'')
 
 eigRaux :: Matrix Double -> (Vector (Complex Double), Matrix Double)
 eigRaux m = unsafePerformIO $ do
-        l <- createVector r
-        v <- createMatrix ColumnMajor r r
-        g # m # l # v #| "eigR"
-        return (l,v)
-  where r = rows m
-        g ra ca pa = dgeev ra ca pa 0 0 nullPtr
+    l <- createVector r
+    v <- createMatrix ColumnMajor r r
+    g # m # l # v #| "eigR"
+    return (l,v)
+  where
+    r = rows m
+    g ra ca xra xca pa = dgeev ra ca xra xca pa 0 0 0 0 nullPtr
 
 fixeig1 s = toComplex' (subVector 0 r (asReal s), subVector r r (asReal s))
     where r = dim s
@@ -291,11 +295,12 @@ eigOnlyR = fixeig1 . eigOnlyAux dgeev "eigOnlyR" . fmat
 -----------------------------------------------------------------------------
 
 eigSHAux f st m = unsafePerformIO $ do
-        l <- createVector r
-        v <- createMatrix ColumnMajor r r
-        f # m # l # v #| st
-        return (l,v)
-  where r = rows m
+    l <- createVector r
+    v <- createMatrix ColumnMajor r r
+    f # m # l # v #| st
+    return (l,v)
+  where
+    r = rows m
 
 -- | Eigenvalues and right eigenvectors of a symmetric real matrix, using LAPACK's /dsyev/.
 -- The eigenvectors are the columns of v.
@@ -314,8 +319,9 @@ eigS' = eigSHAux (dsyev 1) "eigS'" . fmat
 -- The eigenvalues are sorted in descending order (use 'eigH'' for ascending order).
 eigH :: Matrix (Complex Double) -> (Vector Double, Matrix (Complex Double))
 eigH m = (s', fliprl v)
-    where (s,v) = eigH' (fmat m)
-          s' = fromList . reverse . toList $  s
+  where
+    (s,v) = eigH' (fmat m)
+    s' = fromList . reverse . toList $  s
 
 -- | 'eigH' in ascending order
 eigH' :: Matrix (Complex Double) -> (Vector Double, Matrix (Complex Double))
@@ -346,10 +352,11 @@ linearSolveSQAux g f st a b
         f # a # b # s #| st
         return s
     | otherwise = error $ st ++ " of nonsquare matrix"
-  where n1 = rows a
-        n2 = cols a
-        r  = rows b
-        c  = cols b
+  where
+    n1 = rows a
+    n2 = cols a
+    r  = rows b
+    c  = cols b
 
 -- | Solve a real linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, based on LAPACK's /dgesv/. For underconstrained or overconstrained systems use 'linearSolveLSR' or 'linearSolveSVDR'. See also 'lusR'.
 linearSolveR :: Matrix Double -> Matrix Double -> Matrix Double
@@ -375,6 +382,7 @@ cholSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Comp
 cholSolveC a b = linearSolveSQAux id zpotrs "cholSolveC" (fmat a) (fmat b)
 
 -----------------------------------------------------------------------------------
+
 foreign import ccall unsafe "linearSolveLSR_l" dgels :: TMMM R
 foreign import ccall unsafe "linearSolveLSC_l" zgels :: TMMM C
 foreign import ccall unsafe "linearSolveSVDR_l" dgelss :: Double -> TMMM R
@@ -384,9 +392,10 @@ linearSolveAux f st a b = unsafePerformIO $ do
     r <- createMatrix ColumnMajor (max m n) nrhs
     f # a # b # r #| st
     return r
-  where m = rows a
-        n = cols a
-        nrhs = cols b
+  where
+    m = rows a
+    n = cols a
+    nrhs = cols b
 
 -- | Least squared error solution of an overconstrained real linear system, or the minimum norm solution of an underconstrained system, using LAPACK's /dgels/. For rank-deficient systems use 'linearSolveSVDR'.
 linearSolveLSR :: Matrix Double -> Matrix Double -> Matrix Double
@@ -418,7 +427,7 @@ linearSolveSVDC Nothing a b = linearSolveSVDC (Just (-1)) (fmat a) (fmat b)
 
 -----------------------------------------------------------------------------------
 
-type TMM t = t ..> t ..> Ok
+type TMM t = t ::> t ::> Ok
 
 foreign import ccall unsafe "chol_l_H" zpotrf :: TMM C
 foreign import ccall unsafe "chol_l_S" dpotrf :: TMM R
@@ -427,7 +436,8 @@ cholAux f st a = do
     r <- createMatrix ColumnMajor n n
     f # a # r #| st
     return r
-  where n = rows a
+  where
+    n = rows a
 
 -- | Cholesky factorization of a complex Hermitian positive definite matrix, using LAPACK's /zpotrf/.
 cholH :: Matrix (Complex Double) -> Matrix (Complex Double)
@@ -447,7 +457,7 @@ mbCholS =  unsafePerformIO . mbCatch . cholAux dpotrf "cholS" . fmat
 
 -----------------------------------------------------------------------------------
 
-type TMVM t = t ..> t :> t ..> Ok
+type TMVM t = t ::> t :> t ::> Ok
 
 foreign import ccall unsafe "qr_l_R" dgeqr2 :: TMVM R
 foreign import ccall unsafe "qr_l_C" zgeqr2 :: TMVM C
@@ -504,13 +514,14 @@ hessAux f st a = unsafePerformIO $ do
     tau <- createVector (mn-1)
     f # a # tau # r #| st
     return (r,tau)
-  where m = rows a
-        n = cols a
-        mn = min m n
+  where
+    m = rows a
+    n = cols a
+    mn = min m n
 
 -----------------------------------------------------------------------------------
-foreign import ccall unsafe "schur_l_R" dgees :: TMMM R
-foreign import ccall unsafe "schur_l_C" zgees :: TMMM C
+foreign import ccall unsafe "schur_l_R" dgees :: R ::> R ::> R ::> Ok
+foreign import ccall unsafe "schur_l_C" zgees :: C ::> C ::> C ::> Ok
 
 -- | Schur factorization of a square real matrix, using LAPACK's /dgees/.
 schurR :: Matrix Double -> (Matrix Double, Matrix Double)
@@ -525,11 +536,12 @@ schurAux f st a = unsafePerformIO $ do
     s <- createMatrix ColumnMajor n n
     f # a # u # s #| st
     return (u,s)
-  where n = rows a
+  where
+    n = rows a
 
 -----------------------------------------------------------------------------------
 foreign import ccall unsafe "lu_l_R" dgetrf :: TMVM R
-foreign import ccall unsafe "lu_l_C" zgetrf :: C ..> R :> C ..> Ok
+foreign import ccall unsafe "lu_l_C" zgetrf :: C ::> R :> C ::> Ok
 
 -- | LU factorization of a general real matrix, using LAPACK's /dgetrf/.
 luR :: Matrix Double -> (Matrix Double, [Int])
@@ -544,12 +556,13 @@ luAux f st a = unsafePerformIO $ do
     piv <- createVector (min n m)
     f # a # piv # lu #| st
     return (lu, map (pred.round) (toList piv))
-  where n = rows a
-        m = cols a
+  where
+    n = rows a
+    m = cols a
 
 -----------------------------------------------------------------------------------
 
-type Tlus t = t ..> Double :> t ..> t ..> Ok
+type Tlus t = t ::> Double :> t ::> t ::> Ok
 
 foreign import ccall unsafe "luS_l_R" dgetrs :: Tlus R
 foreign import ccall unsafe "luS_l_C" zgetrs :: Tlus C
