@@ -354,12 +354,12 @@ int svd_l_Cdd(KOCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
 
 //////////////////// general complex eigensystem ////////////
 
-/* Subroutine */ int zgeev_(char *jobvl, char *jobvr, integer *n,
+int zgeev_(char *jobvl, char *jobvr, integer *n,
 	doublecomplex *a, integer *lda, doublecomplex *w, doublecomplex *vl,
 	integer *ldvl, doublecomplex *vr, integer *ldvr, doublecomplex *work,
 	integer *lwork, doublereal *rwork, integer *info);
 
-int eig_l_C(KOCMAT(a), OCMAT(u), CVEC(s),OCMAT(v)) {
+int eig_l_C(OCMAT(a), OCMAT(u), CVEC(s),OCMAT(v)) {
     integer n = ar;
     REQUIRES(ac==n && sn==n, BAD_SIZE);
     REQUIRES(up==NULL || (ur==n && uc==n), BAD_SIZE);
@@ -367,18 +367,14 @@ int eig_l_C(KOCMAT(a), OCMAT(u), CVEC(s),OCMAT(v)) {
     REQUIRES(vp==NULL || (vr==n && vc==n), BAD_SIZE);
     char jobvr = vp==NULL?'N':'V';
     DEBUGMSG("eig_l_C");
-    doublecomplex *B = (doublecomplex*)malloc(n*n*sizeof(doublecomplex));
-    CHECK(!B,MEM);
-    memcpy(B,ap,n*n*sizeof(doublecomplex));
     double *rwork = (double*) malloc(2*n*sizeof(double));
     CHECK(!rwork,MEM);
     integer lwork = -1;
     integer res;
     // ask for optimal lwork
     doublecomplex ans;
-    //printf("ask zgeev\n");
     zgeev_  (&jobvl,&jobvr,
-             &n,B,&n,
+             &n,ap,&n,
              sp,
              up,&n,
              vp,&n,
@@ -386,12 +382,10 @@ int eig_l_C(KOCMAT(a), OCMAT(u), CVEC(s),OCMAT(v)) {
              rwork,
              &res);
     lwork = ceil(ans.r);
-    //printf("ans = %d\n",lwork);
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     CHECK(!work,MEM);
-    //printf("zgeev\n");
     zgeev_  (&jobvl,&jobvr,
-             &n,B,&n,
+             &n,ap,&n,
              sp,
              up,&n,
              vp,&n,
@@ -401,7 +395,6 @@ int eig_l_C(KOCMAT(a), OCMAT(u), CVEC(s),OCMAT(v)) {
     CHECK(res,res);
     free(work);
     free(rwork);
-    free(B);
     OK
 }
 
@@ -409,12 +402,12 @@ int eig_l_C(KOCMAT(a), OCMAT(u), CVEC(s),OCMAT(v)) {
 
 //////////////////// general real eigensystem ////////////
 
-/* Subroutine */ int dgeev_(char *jobvl, char *jobvr, integer *n, doublereal *
+int dgeev_(char *jobvl, char *jobvr, integer *n, doublereal *
 	a, integer *lda, doublereal *wr, doublereal *wi, doublereal *vl,
 	integer *ldvl, doublereal *vr, integer *ldvr, doublereal *work,
 	integer *lwork, integer *info);
 
-int eig_l_R(KODMAT(a),ODMAT(u), CVEC(s),ODMAT(v)) {
+int eig_l_R(ODMAT(a),ODMAT(u), CVEC(s),ODMAT(v)) {
     integer n = ar;
     REQUIRES(ac==n && sn==n, BAD_SIZE);
     REQUIRES(up==NULL || (ur==n && uc==n), BAD_SIZE);
@@ -422,28 +415,22 @@ int eig_l_R(KODMAT(a),ODMAT(u), CVEC(s),ODMAT(v)) {
     REQUIRES(vp==NULL || (vr==n && vc==n), BAD_SIZE);
     char jobvr = vp==NULL?'N':'V';
     DEBUGMSG("eig_l_R");
-    double *B = (double*)malloc(n*n*sizeof(double));
-    CHECK(!B,MEM);
-    memcpy(B,ap,n*n*sizeof(double));
     integer lwork = -1;
     integer res;
     // ask for optimal lwork
     double ans;
-    //printf("ask dgeev\n");
     dgeev_  (&jobvl,&jobvr,
-             &n,B,&n,
+             &n,ap,&n,
              (double*)sp, (double*)sp+n,
              up,&n,
              vp,&n,
              &ans, &lwork,
              &res);
     lwork = ceil(ans);
-    //printf("ans = %d\n",lwork);
     double * work = (double*)malloc(lwork*sizeof(double));
     CHECK(!work,MEM);
-    //printf("dgeev\n");
     dgeev_  (&jobvl,&jobvr,
-             &n,B,&n,
+             &n,ap,&n,
              (double*)sp, (double*)sp+n,
              up,&n,
              vp,&n,
@@ -451,37 +438,32 @@ int eig_l_R(KODMAT(a),ODMAT(u), CVEC(s),ODMAT(v)) {
              &res);
     CHECK(res,res);
     free(work);
-    free(B);
     OK
 }
 
 
 //////////////////// symmetric real eigensystem ////////////
 
-/* Subroutine */ int dsyev_(char *jobz, char *uplo, integer *n, doublereal *a,
+int dsyev_(char *jobz, char *uplo, integer *n, doublereal *a,
 	 integer *lda, doublereal *w, doublereal *work, integer *lwork,
 	integer *info);
 
-int eig_l_S(int wantV,KODMAT(a),DVEC(s),ODMAT(v)) {
-    integer n = ar;
-    REQUIRES(ac==n && sn==n, BAD_SIZE);
+int eig_l_S(int wantV,DVEC(s),ODMAT(v)) {
+    integer n = sn;
     REQUIRES(vr==n && vc==n, BAD_SIZE);
     char jobz = wantV?'V':'N';
     DEBUGMSG("eig_l_S");
-    memcpy(vp,ap,n*n*sizeof(double));
     integer lwork = -1;
     char uplo = 'U';
     integer res;
     // ask for optimal lwork
     double ans;
-    //printf("ask dsyev\n");
     dsyev_  (&jobz,&uplo,
              &n,vp,&n,
              sp,
              &ans, &lwork,
              &res);
     lwork = ceil(ans);
-    //printf("ans = %d\n",lwork);
     double * work = (double*)malloc(lwork*sizeof(double));
     CHECK(!work,MEM);
     dsyev_  (&jobz,&uplo,
@@ -496,17 +478,15 @@ int eig_l_S(int wantV,KODMAT(a),DVEC(s),ODMAT(v)) {
 
 //////////////////// hermitian complex eigensystem ////////////
 
-/* Subroutine */ int zheev_(char *jobz, char *uplo, integer *n, doublecomplex
+int zheev_(char *jobz, char *uplo, integer *n, doublecomplex
 	*a, integer *lda, doublereal *w, doublecomplex *work, integer *lwork,
 	doublereal *rwork, integer *info);
 
-int eig_l_H(int wantV,KOCMAT(a),DVEC(s),OCMAT(v)) {
-    integer n = ar;
-    REQUIRES(ac==n && sn==n, BAD_SIZE);
+int eig_l_H(int wantV,DVEC(s),OCMAT(v)) {
+    integer n = sn;
     REQUIRES(vr==n && vc==n, BAD_SIZE);
     char jobz = wantV?'V':'N';
     DEBUGMSG("eig_l_H");
-    memcpy(vp,ap,2*n*n*sizeof(double));
     double *rwork = (double*) malloc((3*n-2)*sizeof(double));
     CHECK(!rwork,MEM);
     integer lwork = -1;
@@ -514,7 +494,6 @@ int eig_l_H(int wantV,KOCMAT(a),DVEC(s),OCMAT(v)) {
     integer res;
     // ask for optimal lwork
     doublecomplex ans;
-    //printf("ask zheev\n");
     zheev_  (&jobz,&uplo,
              &n,vp,&n,
              sp,
@@ -522,7 +501,6 @@ int eig_l_H(int wantV,KOCMAT(a),DVEC(s),OCMAT(v)) {
              rwork,
              &res);
     lwork = ceil(ans.r);
-    //printf("ans = %d\n",lwork);
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     CHECK(!work,MEM);
     zheev_  (&jobz,&uplo,
