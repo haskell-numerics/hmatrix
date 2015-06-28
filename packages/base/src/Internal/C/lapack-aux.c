@@ -39,7 +39,7 @@ typedef float  complex TCF;
 // #endif
 
 
-// printf("%dx%d %d:%d\n",ar,ac,aXr,aXc);
+#define INFOMAT(M) printf("%dx%d %d:%d\n",M##r,M##c,M##Xr,M##Xc);
 
 #define TRACEMAT(M) {int q; printf(" %d x %d: ",M##r,M##c); \
                      for(q=0;q<M##r*M##c;q++) printf("%.1f ",M##p[q]); printf("\n");}
@@ -857,14 +857,12 @@ int linearSolveSVDC_l(double rcond, KOCMAT(a),KOCMAT(b),OCMAT(x)) {
 
 //////////////////// Cholesky factorization /////////////////////////
 
-/* Subroutine */ int zpotrf_(char *uplo, integer *n, doublecomplex *a,
-	integer *lda, integer *info);
+int zpotrf_(char *uplo, integer *n, doublecomplex *a, integer *lda, integer *info);
 
-int chol_l_H(KOCMAT(a),OCMAT(l)) {
-    integer n = ar;
-    REQUIRES(n>=1 && ac == n && lr==n && lc==n,BAD_SIZE);
+int chol_l_H(OCMAT(l)) {
+    integer n = lr;
+    REQUIRES(n>=1 && lc == n,BAD_SIZE);
     DEBUGMSG("chol_l_H");
-    memcpy(lp,ap,n*n*sizeof(doublecomplex));
     char uplo = 'U';
     integer res;
     zpotrf_ (&uplo,&n,lp,&n,&res);
@@ -881,14 +879,12 @@ int chol_l_H(KOCMAT(a),OCMAT(l)) {
 }
 
 
-/* Subroutine */ int dpotrf_(char *uplo, integer *n, doublereal *a, integer *
-	lda, integer *info);
+int dpotrf_(char *uplo, integer *n, doublereal *a, integer * lda, integer *info);
 
-int chol_l_S(KODMAT(a),ODMAT(l)) {
-    integer n = ar;
-    REQUIRES(n>=1 && ac == n && lr==n && lc==n,BAD_SIZE);
+int chol_l_S(ODMAT(l)) {
+    integer n = lr;
+    REQUIRES(n>=1 && lc == n,BAD_SIZE);
     DEBUGMSG("chol_l_S");
-    memcpy(lp,ap,n*n*sizeof(double));
     char uplo = 'U';
     integer res;
     dpotrf_ (&uplo,&n,lp,&n,&res);

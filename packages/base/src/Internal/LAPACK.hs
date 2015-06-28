@@ -427,33 +427,29 @@ linearSolveSVDC Nothing a b = linearSolveSVDC (Just (-1)) (fmat a) (fmat b)
 
 -----------------------------------------------------------------------------------
 
-type TMM t = t ::> t ::> Ok
-
-foreign import ccall unsafe "chol_l_H" zpotrf :: TMM C
-foreign import ccall unsafe "chol_l_S" dpotrf :: TMM R
+foreign import ccall unsafe "chol_l_H" zpotrf :: C ::> Ok
+foreign import ccall unsafe "chol_l_S" dpotrf :: R ::> Ok
 
 cholAux f st a = do
-    r <- createMatrix ColumnMajor n n
-    f # a # r #| st
+    r <- copy ColumnMajor a
+    f # r #| st
     return r
-  where
-    n = rows a
 
 -- | Cholesky factorization of a complex Hermitian positive definite matrix, using LAPACK's /zpotrf/.
 cholH :: Matrix (Complex Double) -> Matrix (Complex Double)
-cholH = unsafePerformIO . cholAux zpotrf "cholH" . fmat
+cholH = unsafePerformIO . cholAux zpotrf "cholH"
 
 -- | Cholesky factorization of a real symmetric positive definite matrix, using LAPACK's /dpotrf/.
 cholS :: Matrix Double -> Matrix Double
-cholS =  unsafePerformIO . cholAux dpotrf "cholS" . fmat
+cholS =  unsafePerformIO . cholAux dpotrf "cholS"
 
 -- | Cholesky factorization of a complex Hermitian positive definite matrix, using LAPACK's /zpotrf/ ('Maybe' version).
 mbCholH :: Matrix (Complex Double) -> Maybe (Matrix (Complex Double))
-mbCholH = unsafePerformIO . mbCatch . cholAux zpotrf "cholH" . fmat
+mbCholH = unsafePerformIO . mbCatch . cholAux zpotrf "cholH"
 
 -- | Cholesky factorization of a real symmetric positive definite matrix, using LAPACK's /dpotrf/  ('Maybe' version).
 mbCholS :: Matrix Double -> Maybe (Matrix Double)
-mbCholS =  unsafePerformIO . mbCatch . cholAux dpotrf "cholS" . fmat
+mbCholS =  unsafePerformIO . mbCatch . cholAux dpotrf "cholS"
 
 -----------------------------------------------------------------------------------
 
