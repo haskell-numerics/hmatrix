@@ -455,29 +455,29 @@ mbCholS =  unsafePerformIO . mbCatch . cholAux dpotrf "cholS"
 
 type TMVM t = t ::> t :> t ::> Ok
 
-foreign import ccall unsafe "qr_l_R" dgeqr2 :: TMVM R
-foreign import ccall unsafe "qr_l_C" zgeqr2 :: TMVM C
+foreign import ccall unsafe "qr_l_R" dgeqr2 :: R :> R ::> Ok
+foreign import ccall unsafe "qr_l_C" zgeqr2 :: C :> C ::> Ok
 
 -- | QR factorization of a real matrix, using LAPACK's /dgeqr2/.
 qrR :: Matrix Double -> (Matrix Double, Vector Double)
-qrR = qrAux dgeqr2 "qrR" . fmat
+qrR = qrAux dgeqr2 "qrR"
 
 -- | QR factorization of a complex matrix, using LAPACK's /zgeqr2/.
 qrC :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector (Complex Double))
-qrC = qrAux zgeqr2 "qrC" . fmat
+qrC = qrAux zgeqr2 "qrC"
 
 qrAux f st a = unsafePerformIO $ do
-    r <- createMatrix ColumnMajor m n
+    r <- copy ColumnMajor a
     tau <- createVector mn
-    f # a # tau # r #| st
+    f # tau # r #| st
     return (r,tau)
   where
     m = rows a
     n = cols a
     mn = min m n
 
-foreign import ccall unsafe "c_dorgqr" dorgqr :: TMVM R
-foreign import ccall unsafe "c_zungqr" zungqr :: TMVM C
+foreign import ccall unsafe "c_dorgqr" dorgqr :: R :> R ::> Ok
+foreign import ccall unsafe "c_zungqr" zungqr :: C :> C ::> Ok
 
 -- | build rotation from reflectors
 qrgrR :: Int -> (Matrix Double, Vector Double) -> Matrix Double
@@ -487,28 +487,28 @@ qrgrC :: Int -> (Matrix (Complex Double), Vector (Complex Double)) -> Matrix (Co
 qrgrC = qrgrAux zungqr "qrgrC"
 
 qrgrAux f st n (a, tau) = unsafePerformIO $ do
-    res <- createMatrix ColumnMajor (rows a) n
-    f # (fmat a) # (subVector 0 n tau') # res #| st
+    res <- copy ColumnMajor (sliceMatrix (0,0) (rows a,n) a)
+    f # (subVector 0 n tau') # res #| st
     return res
   where
     tau' = vjoin [tau, constantD 0 n]
 
 -----------------------------------------------------------------------------------
-foreign import ccall unsafe "hess_l_R" dgehrd :: TMVM R
-foreign import ccall unsafe "hess_l_C" zgehrd :: TMVM C
+foreign import ccall unsafe "hess_l_R" dgehrd :: R :> R ::> Ok
+foreign import ccall unsafe "hess_l_C" zgehrd :: C :> C ::> Ok
 
 -- | Hessenberg factorization of a square real matrix, using LAPACK's /dgehrd/.
 hessR :: Matrix Double -> (Matrix Double, Vector Double)
-hessR = hessAux dgehrd "hessR" . fmat
+hessR = hessAux dgehrd "hessR"
 
 -- | Hessenberg factorization of a square complex matrix, using LAPACK's /zgehrd/.
 hessC :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector (Complex Double))
-hessC = hessAux zgehrd "hessC" . fmat
+hessC = hessAux zgehrd "hessC"
 
 hessAux f st a = unsafePerformIO $ do
-    r <- createMatrix ColumnMajor m n
+    r <- copy ColumnMajor a
     tau <- createVector (mn-1)
-    f # a # tau # r #| st
+    f # tau # r #| st
     return (r,tau)
   where
     m = rows a
@@ -516,28 +516,28 @@ hessAux f st a = unsafePerformIO $ do
     mn = min m n
 
 -----------------------------------------------------------------------------------
-foreign import ccall unsafe "schur_l_R" dgees :: R ::> R ::> R ::> Ok
-foreign import ccall unsafe "schur_l_C" zgees :: C ::> C ::> C ::> Ok
+foreign import ccall unsafe "schur_l_R" dgees :: R ::> R ::> Ok
+foreign import ccall unsafe "schur_l_C" zgees :: C ::> C ::> Ok
 
 -- | Schur factorization of a square real matrix, using LAPACK's /dgees/.
 schurR :: Matrix Double -> (Matrix Double, Matrix Double)
-schurR = schurAux dgees "schurR" . fmat
+schurR = schurAux dgees "schurR"
 
 -- | Schur factorization of a square complex matrix, using LAPACK's /zgees/.
 schurC :: Matrix (Complex Double) -> (Matrix (Complex Double), Matrix (Complex Double))
-schurC = schurAux zgees "schurC" . fmat
+schurC = schurAux zgees "schurC"
 
 schurAux f st a = unsafePerformIO $ do
     u <- createMatrix ColumnMajor n n
-    s <- createMatrix ColumnMajor n n
-    f # a # u # s #| st
+    s <- copy ColumnMajor a
+    f # u # s #| st
     return (u,s)
   where
     n = rows a
 
 -----------------------------------------------------------------------------------
-foreign import ccall unsafe "lu_l_R" dgetrf :: TMVM R
-foreign import ccall unsafe "lu_l_C" zgetrf :: C ::> R :> C ::> Ok
+foreign import ccall unsafe "lu_l_R" dgetrf :: R :> R ::> Ok
+foreign import ccall unsafe "lu_l_C" zgetrf :: R :> C ::> Ok
 
 -- | LU factorization of a general real matrix, using LAPACK's /dgetrf/.
 luR :: Matrix Double -> (Matrix Double, [Int])
@@ -548,9 +548,9 @@ luC :: Matrix (Complex Double) -> (Matrix (Complex Double), [Int])
 luC = luAux zgetrf "luC" . fmat
 
 luAux f st a = unsafePerformIO $ do
-    lu <- createMatrix ColumnMajor n m
+    lu <- copy ColumnMajor a
     piv <- createVector (min n m)
-    f # a # piv # lu #| st
+    f # piv # lu #| st
     return (lu, map (pred.round) (toList piv))
   where
     n = rows a
@@ -558,10 +558,8 @@ luAux f st a = unsafePerformIO $ do
 
 -----------------------------------------------------------------------------------
 
-type Tlus t = t ::> Double :> t ::> t ::> Ok
-
-foreign import ccall unsafe "luS_l_R" dgetrs :: Tlus R
-foreign import ccall unsafe "luS_l_C" zgetrs :: Tlus C
+foreign import ccall unsafe "luS_l_R" dgetrs :: R ::> R :> R ::> Ok
+foreign import ccall unsafe "luS_l_C" zgetrs :: C ::> R :> C ::> Ok
 
 -- | Solve a real linear system from a precomputed LU decomposition ('luR'), using LAPACK's /dgetrs/.
 lusR :: Matrix Double -> [Int] -> Matrix Double -> Matrix Double
@@ -573,13 +571,13 @@ lusC a piv b = lusAux zgetrs "lusC" (fmat a) piv (fmat b)
 
 lusAux f st a piv b
     | n1==n2 && n2==n =unsafePerformIO $ do
-         x <- createMatrix ColumnMajor n m
-         f # a # piv' # b # x #| st
+         x <- copy ColumnMajor b
+         f # a # piv' # x #| st
          return x
     | otherwise = error $ st ++ " on LU factorization of nonsquare matrix"
-  where n1 = rows a
-        n2 = cols a
-        n = rows b
-        m = cols b
-        piv' = fromList (map (fromIntegral.succ) piv) :: Vector Double
+  where
+    n1 = rows a
+    n2 = cols a
+    n = rows b
+    piv' = fromList (map (fromIntegral.succ) piv) :: Vector Double
 

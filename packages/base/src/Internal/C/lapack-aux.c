@@ -901,18 +901,17 @@ int chol_l_S(ODMAT(l)) {
 
 //////////////////// QR factorization /////////////////////////
 
-/* Subroutine */ int dgeqr2_(integer *m, integer *n, doublereal *a, integer *
+int dgeqr2_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *tau, doublereal *work, integer *info);
 
-int qr_l_R(KODMAT(a), DVEC(tau), ODMAT(r)) {
-    integer m = ar;
-    integer n = ac;
+int qr_l_R(DVEC(tau), ODMAT(r)) {
+    integer m = rr;
+    integer n = rc;
     integer mn = MIN(m,n);
-    REQUIRES(m>=1 && n >=1 && rr== m && rc == n && taun == mn, BAD_SIZE);
+    REQUIRES(m>=1 && n >=1 && taun == mn, BAD_SIZE);
     DEBUGMSG("qr_l_R");
     double *WORK = (double*)malloc(n*sizeof(double));
     CHECK(!WORK,MEM);
-    memcpy(rp,ap,m*n*sizeof(double));
     integer res;
     dgeqr2_ (&m,&n,rp,&m,taup,WORK,&res);
     CHECK(res,res);
@@ -920,18 +919,17 @@ int qr_l_R(KODMAT(a), DVEC(tau), ODMAT(r)) {
     OK
 }
 
-/* Subroutine */ int zgeqr2_(integer *m, integer *n, doublecomplex *a,
+int zgeqr2_(integer *m, integer *n, doublecomplex *a,
 	integer *lda, doublecomplex *tau, doublecomplex *work, integer *info);
 
-int qr_l_C(KOCMAT(a), CVEC(tau), OCMAT(r)) {
-    integer m = ar;
-    integer n = ac;
+int qr_l_C(CVEC(tau), OCMAT(r)) {
+    integer m = rr;
+    integer n = rc;
     integer mn = MIN(m,n);
-    REQUIRES(m>=1 && n >=1 && rr== m && rc == n && taun == mn, BAD_SIZE);
+    REQUIRES(m>=1 && n >=1 && taun == mn, BAD_SIZE);
     DEBUGMSG("qr_l_C");
     doublecomplex *WORK = (doublecomplex*)malloc(n*sizeof(doublecomplex));
     CHECK(!WORK,MEM);
-    memcpy(rp,ap,m*n*sizeof(doublecomplex));
     integer res;
     zgeqr2_ (&m,&n,rp,&m,taup,WORK,&res);
     CHECK(res,res);
@@ -939,19 +937,18 @@ int qr_l_C(KOCMAT(a), CVEC(tau), OCMAT(r)) {
     OK
 }
 
-/* Subroutine */ int dorgqr_(integer *m, integer *n, integer *k, doublereal *
+int dorgqr_(integer *m, integer *n, integer *k, doublereal *
 	a, integer *lda, doublereal *tau, doublereal *work, integer *lwork,
 	integer *info);
 
-int c_dorgqr(KODMAT(a), KDVEC(tau), ODMAT(r)) {
-    integer m = ar;
-    integer n = MIN(ac,ar);
+int c_dorgqr(KDVEC(tau), ODMAT(r)) {
+    integer m = rr;
+    integer n = MIN(rc,rr);
     integer k = taun;
     DEBUGMSG("c_dorgqr");
     integer lwork = 8*n; // FIXME
     double *WORK = (double*)malloc(lwork*sizeof(double));
     CHECK(!WORK,MEM);
-    memcpy(rp,ap,m*k*sizeof(double));
     integer res;
     dorgqr_ (&m,&n,&k,rp,&m,(double*)taup,WORK,&lwork,&res);
     CHECK(res,res);
@@ -959,19 +956,18 @@ int c_dorgqr(KODMAT(a), KDVEC(tau), ODMAT(r)) {
     OK
 }
 
-/* Subroutine */ int zungqr_(integer *m, integer *n, integer *k,
+int zungqr_(integer *m, integer *n, integer *k,
 	doublecomplex *a, integer *lda, doublecomplex *tau, doublecomplex *
 	work, integer *lwork, integer *info);
 
-int c_zungqr(KOCMAT(a), KCVEC(tau), OCMAT(r)) {
-    integer m = ar;
-    integer n = MIN(ac,ar);
+int c_zungqr(KCVEC(tau), OCMAT(r)) {
+    integer m = rr;
+    integer n = MIN(rc,rr);
     integer k = taun;
     DEBUGMSG("z_ungqr");
     integer lwork = 8*n; // FIXME
     doublecomplex *WORK = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     CHECK(!WORK,MEM);
-    memcpy(rp,ap,m*k*sizeof(doublecomplex));
     integer res;
     zungqr_ (&m,&n,&k,rp,&m,(doublecomplex*)taup,WORK,&lwork,&res);
     CHECK(res,res);
@@ -982,20 +978,19 @@ int c_zungqr(KOCMAT(a), KCVEC(tau), OCMAT(r)) {
 
 //////////////////// Hessenberg factorization /////////////////////////
 
-/* Subroutine */ int dgehrd_(integer *n, integer *ilo, integer *ihi,
+int dgehrd_(integer *n, integer *ilo, integer *ihi,
 	doublereal *a, integer *lda, doublereal *tau, doublereal *work,
 	integer *lwork, integer *info);
 
-int hess_l_R(KODMAT(a), DVEC(tau), ODMAT(r)) {
-    integer m = ar;
-    integer n = ac;
+int hess_l_R(DVEC(tau), ODMAT(r)) {
+    integer m = rr;
+    integer n = rc;
     integer mn = MIN(m,n);
-    REQUIRES(m>=1 && n == m && rr== m && rc == n && taun == mn-1, BAD_SIZE);
+    REQUIRES(m>=1 && n == m && taun == mn-1, BAD_SIZE);
     DEBUGMSG("hess_l_R");
-    integer lwork = 5*n; // fixme
+    integer lwork = 5*n; // FIXME
     double *WORK = (double*)malloc(lwork*sizeof(double));
     CHECK(!WORK,MEM);
-    memcpy(rp,ap,m*n*sizeof(double));
     integer res;
     integer one = 1;
     dgehrd_ (&n,&one,&n,rp,&n,taup,WORK,&lwork,&res);
@@ -1005,20 +1000,19 @@ int hess_l_R(KODMAT(a), DVEC(tau), ODMAT(r)) {
 }
 
 
-/* Subroutine */ int zgehrd_(integer *n, integer *ilo, integer *ihi,
+int zgehrd_(integer *n, integer *ilo, integer *ihi,
 	doublecomplex *a, integer *lda, doublecomplex *tau, doublecomplex *
 	work, integer *lwork, integer *info);
 
-int hess_l_C(KOCMAT(a), CVEC(tau), OCMAT(r)) {
-    integer m = ar;
-    integer n = ac;
+int hess_l_C(CVEC(tau), OCMAT(r)) {
+    integer m = rr;
+    integer n = rc;
     integer mn = MIN(m,n);
-    REQUIRES(m>=1 && n == m && rr== m && rc == n && taun == mn-1, BAD_SIZE);
+    REQUIRES(m>=1 && n == m && taun == mn-1, BAD_SIZE);
     DEBUGMSG("hess_l_C");
-    integer lwork = 5*n; // fixme
+    integer lwork = 5*n; // FIXME
     doublecomplex *WORK = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     CHECK(!WORK,MEM);
-    memcpy(rp,ap,m*n*sizeof(doublecomplex));
     integer res;
     integer one = 1;
     zgehrd_ (&n,&one,&n,rp,&n,taup,WORK,&lwork,&res);
@@ -1029,23 +1023,17 @@ int hess_l_C(KOCMAT(a), CVEC(tau), OCMAT(r)) {
 
 //////////////////// Schur factorization /////////////////////////
 
-/* Subroutine */ int dgees_(char *jobvs, char *sort, L_fp select, integer *n,
+int dgees_(char *jobvs, char *sort, L_fp select, integer *n,
 	doublereal *a, integer *lda, integer *sdim, doublereal *wr,
 	doublereal *wi, doublereal *vs, integer *ldvs, doublereal *work,
 	integer *lwork, logical *bwork, integer *info);
 
-int schur_l_R(KODMAT(a), ODMAT(u), ODMAT(s)) {
-    integer m = ar;
-    integer n = ac;
-    REQUIRES(m>=1 && n==m && ur==n && uc==n && sr==n && sc==n, BAD_SIZE);
+int schur_l_R(ODMAT(u), ODMAT(s)) {
+    integer m = sr;
+    integer n = sc;
+    REQUIRES(m>=1 && n==m && ur==n && uc==n, BAD_SIZE);
     DEBUGMSG("schur_l_R");
-    //int k;
-    //printf("---------------------------\n");
-    //printf("%p: ",ap); for(k=0;k<n*n;k++) printf("%f ",ap[k]); printf("\n");
-    //printf("%p: ",up); for(k=0;k<n*n;k++) printf("%f ",up[k]); printf("\n");
-    //printf("%p: ",sp); for(k=0;k<n*n;k++) printf("%f ",sp[k]); printf("\n");
-    memcpy(sp,ap,n*n*sizeof(double));
-    integer lwork = 6*n; // fixme
+    integer lwork = 6*n; // FIXME
     double *WORK = (double*)malloc(lwork*sizeof(double));
     double *WR = (double*)malloc(n*sizeof(double));
     double *WI = (double*)malloc(n*sizeof(double));
@@ -1054,9 +1042,6 @@ int schur_l_R(KODMAT(a), ODMAT(u), ODMAT(s)) {
     integer res;
     integer sdim;
     dgees_ ("V","N",NULL,&n,sp,&n,&sdim,WR,WI,up,&n,WORK,&lwork,BWORK,&res);
-    //printf("%p: ",ap); for(k=0;k<n*n;k++) printf("%f ",ap[k]); printf("\n");
-    //printf("%p: ",up); for(k=0;k<n*n;k++) printf("%f ",up[k]); printf("\n");
-    //printf("%p: ",sp); for(k=0;k<n*n;k++) printf("%f ",sp[k]); printf("\n");
     if(res>0) {
         return NOCONVER;
     }
@@ -1069,18 +1054,17 @@ int schur_l_R(KODMAT(a), ODMAT(u), ODMAT(s)) {
 }
 
 
-/* Subroutine */ int zgees_(char *jobvs, char *sort, L_fp select, integer *n,
+int zgees_(char *jobvs, char *sort, L_fp select, integer *n,
 	doublecomplex *a, integer *lda, integer *sdim, doublecomplex *w,
 	doublecomplex *vs, integer *ldvs, doublecomplex *work, integer *lwork,
 	 doublereal *rwork, logical *bwork, integer *info);
 
-int schur_l_C(KOCMAT(a), OCMAT(u), OCMAT(s)) {
-    integer m = ar;
-    integer n = ac;
-    REQUIRES(m>=1 && n==m && ur==n && uc==n && sr==n && sc==n, BAD_SIZE);
+int schur_l_C(OCMAT(u), OCMAT(s)) {
+    integer m = sr;
+    integer n = sc;
+    REQUIRES(m>=1 && n==m && ur==n && uc==n, BAD_SIZE);
     DEBUGMSG("schur_l_C");
-    memcpy(sp,ap,n*n*sizeof(doublecomplex));
-    integer lwork = 6*n; // fixme
+    integer lwork = 6*n; // FIXME
     doublecomplex *WORK = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     doublecomplex *W = (doublecomplex*)malloc(n*sizeof(doublecomplex));
     // W not really required in this call
@@ -1103,21 +1087,20 @@ int schur_l_C(KOCMAT(a), OCMAT(u), OCMAT(s)) {
 
 //////////////////// LU factorization /////////////////////////
 
-/* Subroutine */ int dgetrf_(integer *m, integer *n, doublereal *a, integer *
+int dgetrf_(integer *m, integer *n, doublereal *a, integer *
 	lda, integer *ipiv, integer *info);
 
-int lu_l_R(KODMAT(a), DVEC(ipiv), ODMAT(r)) {
-    integer m = ar;
-    integer n = ac;
+int lu_l_R(DVEC(ipiv), ODMAT(r)) {
+    integer m = rr;
+    integer n = rc;
     integer mn = MIN(m,n);
     REQUIRES(m>=1 && n >=1 && ipivn == mn, BAD_SIZE);
     DEBUGMSG("lu_l_R");
     integer* auxipiv = (integer*)malloc(mn*sizeof(integer));
-    memcpy(rp,ap,m*n*sizeof(double));
     integer res;
     dgetrf_ (&m,&n,rp,&m,auxipiv,&res);
     if(res>0) {
-        res = 0; // fixme
+        res = 0; // FIXME
     }
     CHECK(res,res);
     int k;
@@ -1129,21 +1112,20 @@ int lu_l_R(KODMAT(a), DVEC(ipiv), ODMAT(r)) {
 }
 
 
-/* Subroutine */ int zgetrf_(integer *m, integer *n, doublecomplex *a,
+int zgetrf_(integer *m, integer *n, doublecomplex *a,
 	integer *lda, integer *ipiv, integer *info);
 
-int lu_l_C(KOCMAT(a), DVEC(ipiv), OCMAT(r)) {
-    integer m = ar;
-    integer n = ac;
+int lu_l_C(DVEC(ipiv), OCMAT(r)) {
+    integer m = rr;
+    integer n = rc;
     integer mn = MIN(m,n);
     REQUIRES(m>=1 && n >=1 && ipivn == mn, BAD_SIZE);
     DEBUGMSG("lu_l_C");
     integer* auxipiv = (integer*)malloc(mn*sizeof(integer));
-    memcpy(rp,ap,m*n*sizeof(doublecomplex));
     integer res;
     zgetrf_ (&m,&n,rp,&m,auxipiv,&res);
     if(res>0) {
-        res = 0; // fixme
+        res = 0; // FIXME
     }
     CHECK(res,res);
     int k;
@@ -1157,11 +1139,11 @@ int lu_l_C(KOCMAT(a), DVEC(ipiv), OCMAT(r)) {
 
 //////////////////// LU substitution /////////////////////////
 
-/* Subroutine */ int dgetrs_(char *trans, integer *n, integer *nrhs,
+int dgetrs_(char *trans, integer *n, integer *nrhs,
 	doublereal *a, integer *lda, integer *ipiv, doublereal *b, integer *
 	ldb, integer *info);
 
-int luS_l_R(KODMAT(a), KDVEC(ipiv), KODMAT(b), ODMAT(x)) {
+int luS_l_R(KODMAT(a), KDVEC(ipiv), ODMAT(b)) {
   integer m = ar;
   integer n = ac;
   integer mrhs = br;
@@ -1174,19 +1156,18 @@ int luS_l_R(KODMAT(a), KDVEC(ipiv), KODMAT(b), ODMAT(x)) {
     auxipiv[k] = (integer)ipivp[k];
   }
   integer res;
-  memcpy(xp,bp,mrhs*nrhs*sizeof(double));
-  dgetrs_ ("N",&n,&nrhs,(/*no const (!?)*/ double*)ap,&m,auxipiv,xp,&mrhs,&res);
+  dgetrs_ ("N",&n,&nrhs,(/*no const (!?)*/ double*)ap,&m,auxipiv,bp,&mrhs,&res);
   CHECK(res,res);
   free(auxipiv);
   OK
 }
 
 
-/* Subroutine */ int zgetrs_(char *trans, integer *n, integer *nrhs,
+int zgetrs_(char *trans, integer *n, integer *nrhs,
 	doublecomplex *a, integer *lda, integer *ipiv, doublecomplex *b,
 	integer *ldb, integer *info);
 
-int luS_l_C(KOCMAT(a), KDVEC(ipiv), KOCMAT(b), OCMAT(x)) {
+int luS_l_C(KOCMAT(a), KDVEC(ipiv), OCMAT(b)) {
     integer m = ar;
     integer n = ac;
     integer mrhs = br;
@@ -1199,8 +1180,7 @@ int luS_l_C(KOCMAT(a), KDVEC(ipiv), KOCMAT(b), OCMAT(x)) {
         auxipiv[k] = (integer)ipivp[k];
     }
     integer res;
-    memcpy(xp,bp,mrhs*nrhs*sizeof(doublecomplex));
-    zgetrs_ ("N",&n,&nrhs,(doublecomplex*)ap,&m,auxipiv,xp,&mrhs,&res);
+    zgetrs_ ("N",&n,&nrhs,(doublecomplex*)ap,&m,auxipiv,bp,&mrhs,&res);
     CHECK(res,res);
     free(auxipiv);
     OK
