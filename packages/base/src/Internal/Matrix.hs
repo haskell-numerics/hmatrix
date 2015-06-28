@@ -142,10 +142,9 @@ a # b = apply a b
 
 --------------------------------------------------------------------------------
 
-extractAll ord m = unsafePerformIO $
-    extractR ord m
-             0 (idxs[0,rows m-1])
-             0 (idxs[0,cols m-1])
+copy ord m = extractR ord m 0 (idxs[0,rows m-1]) 0 (idxs[0,cols m-1])
+
+extractAll ord m = unsafePerformIO (copy ord m)
 
 {- | Creates a vector by concatenation of rows. If the matrix is ColumnMajor, this operation requires a transpose.
 
@@ -204,16 +203,6 @@ toRows m
     sub k = subVector (k*xRow m) (cols m) (xdat m)
     ext k = xdat $ unsafePerformIO $ extractR RowMajor m 1 (idxs[k]) 0 (idxs[0,cols m-1])
 
-{-
-    | c == 0    = replicate r (fromList[])
-    | otherwise = toRows' 0
-  where
-    v = flatten m
-    r = rows m
-    c = cols m
-    toRows' k | k == r*c  = []
-              | otherwise = subVector k c v : toRows' (k+c)
--}
 
 -- | Creates a matrix from a list of vectors, as columns
 fromColumns :: Element t => [Vector t] -> Matrix t

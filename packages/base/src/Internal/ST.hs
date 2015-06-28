@@ -119,7 +119,7 @@ ioWriteM m r c val = ioWriteV (xdat m)  (r * xRow m + c * xCol m) val
 
 newtype STMatrix s t = STMatrix (Matrix t)
 
-thawMatrix :: Storable t => Matrix t -> ST s (STMatrix s t)
+thawMatrix :: Element t => Matrix t -> ST s (STMatrix s t)
 thawMatrix = unsafeIOToST . fmap STMatrix . cloneMatrix
 
 unsafeThawMatrix :: Storable t => Matrix t -> ST s (STMatrix s t)
@@ -140,18 +140,17 @@ unsafeWriteMatrix  (STMatrix x) r c = unsafeIOToST . ioWriteM x r c
 modifyMatrix :: (Storable t) => STMatrix s t -> Int -> Int -> (t -> t) -> ST s ()
 modifyMatrix x r c f = readMatrix x r c >>= return . f >>= unsafeWriteMatrix x r c
 
-liftSTMatrix :: (Storable t) => (Matrix t -> a) -> STMatrix s t -> ST s a
+liftSTMatrix :: (Element t) => (Matrix t -> a) -> STMatrix s t -> ST s a
 liftSTMatrix f (STMatrix x) = unsafeIOToST . fmap f . cloneMatrix $ x
 
 unsafeFreezeMatrix :: (Storable t) => STMatrix s t -> ST s (Matrix t)
 unsafeFreezeMatrix (STMatrix x) = unsafeIOToST . return $ x
 
 
-freezeMatrix :: (Storable t) => STMatrix s t -> ST s (Matrix t)
+freezeMatrix :: (Element t) => STMatrix s t -> ST s (Matrix t)
 freezeMatrix m = liftSTMatrix id m
 
--- FIXME
-cloneMatrix m = cloneVector (xdat m) >>= return . (\d' -> m{xdat = d'})
+cloneMatrix m = copy (orderOf m) m
 
 {-# INLINE safeIndexM #-}
 safeIndexM f (STMatrix m) r c
@@ -242,7 +241,7 @@ gemmm beta (slice->(r,pr)) alpha (slice->(a,pa)) (slice->(b,pb)) = res
     v = vjoin[pa,pb,pr]
     
 
-mutable :: Storable t => (forall s . (Int, Int) -> STMatrix s t -> ST s u) -> Matrix t -> (Matrix t,u)
+mutable :: Element t => (forall s . (Int, Int) -> STMatrix s t -> ST s u) -> Matrix t -> (Matrix t,u)
 mutable f a = runST $ do
    x <- thawMatrix a
    info <- f (rows a, cols a) x
