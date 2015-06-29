@@ -544,11 +544,11 @@ foreign import ccall unsafe "lu_l_C" zgetrf :: R :> C ::> Ok
 
 -- | LU factorization of a general real matrix, using LAPACK's /dgetrf/.
 luR :: Matrix Double -> (Matrix Double, [Int])
-luR = luAux dgetrf "luR" . fmat
+luR = luAux dgetrf "luR"
 
 -- | LU factorization of a general complex matrix, using LAPACK's /zgetrf/.
 luC :: Matrix (Complex Double) -> (Matrix (Complex Double), [Int])
-luC = luAux zgetrf "luC" . fmat
+luC = luAux zgetrf "luC"
 
 luAux f st a = unsafePerformIO $ do
     lu <- copy ColumnMajor a
@@ -566,11 +566,11 @@ foreign import ccall unsafe "luS_l_C" zgetrs :: C ::> R :> C ::> Ok
 
 -- | Solve a real linear system from a precomputed LU decomposition ('luR'), using LAPACK's /dgetrs/.
 lusR :: Matrix Double -> [Int] -> Matrix Double -> Matrix Double
-lusR a piv b = lusAux dgetrs "lusR" (fmat a) piv (fmat b)
+lusR a piv b = lusAux dgetrs "lusR" (fmat a) piv b
 
 -- | Solve a real linear system from a precomputed LU decomposition ('luC'), using LAPACK's /zgetrs/.
 lusC :: Matrix (Complex Double) -> [Int] -> Matrix (Complex Double) -> Matrix (Complex Double)
-lusC a piv b = lusAux zgetrs "lusC" (fmat a) piv (fmat b)
+lusC a piv b = lusAux zgetrs "lusC" (fmat a) piv b
 
 lusAux f st a piv b
     | n1==n2 && n2==n =unsafePerformIO $ do

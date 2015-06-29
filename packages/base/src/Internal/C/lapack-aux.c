@@ -1124,6 +1124,7 @@ int dgetrs_(char *trans, integer *n, integer *nrhs,
 int luS_l_R(KODMAT(a), KDVEC(ipiv), ODMAT(b)) {
   integer m = ar;
   integer n = ac;
+  integer lda = aXc;
   integer mrhs = br;
   integer nrhs = bc;
 
@@ -1134,7 +1135,7 @@ int luS_l_R(KODMAT(a), KDVEC(ipiv), ODMAT(b)) {
     auxipiv[k] = (integer)ipivp[k];
   }
   integer res;
-  dgetrs_ ("N",&n,&nrhs,(/*no const (!?)*/ double*)ap,&m,auxipiv,bp,&mrhs,&res);
+  dgetrs_ ("N",&n,&nrhs,(/*no const (!?)*/ double*)ap,&lda,auxipiv,bp,&mrhs,&res);
   CHECK(res,res);
   free(auxipiv);
   OK
@@ -1148,6 +1149,7 @@ int zgetrs_(char *trans, integer *n, integer *nrhs,
 int luS_l_C(KOCMAT(a), KDVEC(ipiv), OCMAT(b)) {
     integer m = ar;
     integer n = ac;
+    integer lda = aXc;
     integer mrhs = br;
     integer nrhs = bc;
 
@@ -1158,7 +1160,7 @@ int luS_l_C(KOCMAT(a), KDVEC(ipiv), OCMAT(b)) {
         auxipiv[k] = (integer)ipivp[k];
     }
     integer res;
-    zgetrs_ ("N",&n,&nrhs,(doublecomplex*)ap,&m,auxipiv,bp,&mrhs,&res);
+    zgetrs_ ("N",&n,&nrhs,(doublecomplex*)ap,&lda,auxipiv,bp,&mrhs,&res);
     CHECK(res,res);
     free(auxipiv);
     OK
