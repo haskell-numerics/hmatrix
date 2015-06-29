@@ -349,57 +349,75 @@ eigOnlyH = vrev . fst. eigSHAux (zheev 0) "eigH'"
 vrev = flatten . flipud . reshape 1
 
 -----------------------------------------------------------------------------
-foreign import ccall unsafe "linearSolveR_l" dgesv :: TMMM R
-foreign import ccall unsafe "linearSolveC_l" zgesv :: TMMM C
-foreign import ccall unsafe "cholSolveR_l" dpotrs  :: TMMM R
-foreign import ccall unsafe "cholSolveC_l" zpotrs  :: TMMM C
+foreign import ccall unsafe "linearSolveR_l" dgesv :: R ::> R ::> Ok
+foreign import ccall unsafe "linearSolveC_l" zgesv :: C ::> C ::> Ok
 
 linearSolveSQAux g f st a b
     | n1==n2 && n1==r = unsafePerformIO . g $ do
-        s <- createMatrix ColumnMajor r c
-        f # a # b # s #| st
+        a' <- copy ColumnMajor a
+        s  <- copy ColumnMajor b
+        f # a' # s #| st
         return s
     | otherwise = error $ st ++ " of nonsquare matrix"
   where
     n1 = rows a
     n2 = cols a
     r  = rows b
-    c  = cols b
 
 -- | Solve a real linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, based on LAPACK's /dgesv/. For underconstrained or overconstrained systems use 'linearSolveLSR' or 'linearSolveSVDR'. See also 'lusR'.
 linearSolveR :: Matrix Double -> Matrix Double -> Matrix Double
-linearSolveR a b = linearSolveSQAux id dgesv "linearSolveR" (fmat a) (fmat b)
+linearSolveR a b = linearSolveSQAux id dgesv "linearSolveR" a b
 
 mbLinearSolveR :: Matrix Double -> Matrix Double -> Maybe (Matrix Double)
-mbLinearSolveR a b = linearSolveSQAux mbCatch dgesv "linearSolveR" (fmat a) (fmat b)
+mbLinearSolveR a b = linearSolveSQAux mbCatch dgesv "linearSolveR" a b
 
 
 -- | Solve a complex linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, based on LAPACK's /zgesv/. For underconstrained or overconstrained systems use 'linearSolveLSC' or 'linearSolveSVDC'. See also 'lusC'.
 linearSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
-linearSolveC a b = linearSolveSQAux id zgesv "linearSolveC" (fmat a) (fmat b)
+linearSolveC a b = linearSolveSQAux id zgesv "linearSolveC" a b
 
 mbLinearSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Maybe (Matrix (Complex Double))
-mbLinearSolveC a b = linearSolveSQAux mbCatch zgesv "linearSolveC" (fmat a) (fmat b)
+mbLinearSolveC a b = linearSolveSQAux mbCatch zgesv "linearSolveC" a b
+
+--------------------------------------------------------------------------------
+foreign import ccall unsafe "cholSolveR_l" dpotrs  :: R ::> R ::> Ok
+foreign import ccall unsafe "cholSolveC_l" zpotrs  :: C ::> C ::> Ok
+
+
+linearSolveSQAux2 g f st a b
+    | n1==n2 && n1==r = unsafePerformIO . g $ do
+        s <- copy ColumnMajor b
+        f # a # s #| st
+        return s
+    | otherwise = error $ st ++ " of nonsquare matrix"
+  where
+    n1 = rows a
+    n2 = cols a
+    r  = rows b
 
 -- | Solves a symmetric positive definite system of linear equations using a precomputed Cholesky factorization obtained by 'cholS'.
 cholSolveR :: Matrix Double -> Matrix Double -> Matrix Double
-cholSolveR a b = linearSolveSQAux id dpotrs "cholSolveR" (fmat a) (fmat b)
+cholSolveR a b = linearSolveSQAux2 id dpotrs "cholSolveR" (fmat a) b
 
 -- | Solves a Hermitian positive definite system of linear equations using a precomputed Cholesky factorization obtained by 'cholH'.
 cholSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
-cholSolveC a b = linearSolveSQAux id zpotrs "cholSolveC" (fmat a) (fmat b)
+cholSolveC a b = linearSolveSQAux2 id zpotrs "cholSolveC" (fmat a) b
 
 -----------------------------------------------------------------------------------
 
-foreign import ccall unsafe "linearSolveLSR_l" dgels :: TMMM R
-foreign import ccall unsafe "linearSolveLSC_l" zgels :: TMMM C
-foreign import ccall unsafe "linearSolveSVDR_l" dgelss :: Double -> TMMM R
-foreign import ccall unsafe "linearSolveSVDC_l" zgelss :: Double -> TMMM C
+foreign import ccall unsafe "linearSolveLSR_l"   dgels ::           R ::> R ::> Ok
+foreign import ccall unsafe "linearSolveLSC_l"   zgels ::           C ::> C ::> Ok
+foreign import ccall unsafe "linearSolveSVDR_l" dgelss :: Double -> R ::> R ::> Ok
+foreign import ccall unsafe "linearSolveSVDC_l" zgelss :: Double -> C ::> C ::> Ok
 
-linearSolveAux f st a b = unsafePerformIO $ do
-    r <- createMatrix ColumnMajor (max m n) nrhs
-    f # a # b # r #| st
-    return r
+linearSolveAux f st a b
+    | m == rows b = unsafePerformIO $ do
+        a' <- copy ColumnMajor a
+        r  <- createMatrix ColumnMajor (max m n) nrhs
+        setRect 0 0 b r
+        f # a' # r #| st
+        return r
+    | otherwise = error $ "different number of rows in linearSolve ("++st++")"
   where
     m = rows a
     n = cols a
@@ -408,12 +426,12 @@ linearSolveAux f st a b = unsafePerformIO $ do
 -- | Least squared error solution of an overconstrained real linear system, or the minimum norm solution of an underconstrained system, using LAPACK's /dgels/. For rank-deficient systems use 'linearSolveSVDR'.
 linearSolveLSR :: Matrix Double -> Matrix Double -> Matrix Double
 linearSolveLSR a b = subMatrix (0,0) (cols a, cols b) $
-                     linearSolveAux dgels "linearSolverLSR" (fmat a) (fmat b)
+                     linearSolveAux dgels "linearSolverLSR" a b
 
 -- | Least squared error solution of an overconstrained complex linear system, or the minimum norm solution of an underconstrained system, using LAPACK's /zgels/. For rank-deficient systems use 'linearSolveSVDC'.
 linearSolveLSC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
 linearSolveLSC a b = subMatrix (0,0) (cols a, cols b) $
-                     linearSolveAux zgels "linearSolveLSC" (fmat a) (fmat b)
+                     linearSolveAux zgels "linearSolveLSC" a b
 
 -- | Minimum norm solution of a general real linear least squares problem Ax=B using the SVD, based on LAPACK's /dgelss/. Admits rank-deficient systems but it is slower than 'linearSolveLSR'. The effective rank of A is determined by treating as zero those singular valures which are less than rcond times the largest singular value. If rcond == Nothing machine precision is used.
 linearSolveSVDR :: Maybe Double   -- ^ rcond
@@ -421,8 +439,8 @@ linearSolveSVDR :: Maybe Double   -- ^ rcond
                 -> Matrix Double  -- ^ right hand sides (as columns)
                 -> Matrix Double  -- ^ solution vectors (as columns)
 linearSolveSVDR (Just rcond) a b = subMatrix (0,0) (cols a, cols b) $
-                                   linearSolveAux (dgelss rcond) "linearSolveSVDR" (fmat a) (fmat b)
-linearSolveSVDR Nothing a b = linearSolveSVDR (Just (-1)) (fmat a) (fmat b)
+                                   linearSolveAux (dgelss rcond) "linearSolveSVDR" a b
+linearSolveSVDR Nothing a b = linearSolveSVDR (Just (-1)) a b
 
 -- | Minimum norm solution of a general complex linear least squares problem Ax=B using the SVD, based on LAPACK's /zgelss/. Admits rank-deficient systems but it is slower than 'linearSolveLSC'. The effective rank of A is determined by treating as zero those singular valures which are less than rcond times the largest singular value. If rcond == Nothing machine precision is used.
 linearSolveSVDC :: Maybe Double            -- ^ rcond
@@ -430,8 +448,8 @@ linearSolveSVDC :: Maybe Double            -- ^ rcond
                 -> Matrix (Complex Double) -- ^ right hand sides (as columns)
                 -> Matrix (Complex Double) -- ^ solution vectors (as columns)
 linearSolveSVDC (Just rcond) a b = subMatrix (0,0) (cols a, cols b) $
-                                   linearSolveAux (zgelss rcond) "linearSolveSVDC" (fmat a) (fmat b)
-linearSolveSVDC Nothing a b = linearSolveSVDC (Just (-1)) (fmat a) (fmat b)
+                                   linearSolveAux (zgelss rcond) "linearSolveSVDC" a b
+linearSolveSVDC Nothing a b = linearSolveSVDC (Just (-1)) a b
 
 -----------------------------------------------------------------------------------
 

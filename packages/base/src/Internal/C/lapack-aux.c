@@ -314,22 +314,19 @@ int svd_l_Cdd(OCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
     }
     double *rwk = (double*)malloc(lrwk*sizeof(double));;
     CHECK(!rwk,MEM);
-    //printf("%s %ld %d\n",jobz,q,lrwk);
     integer lwk = -1;
     integer res;
     // ask for optimal lwk
     doublecomplex ans;
     zgesdd_ (jobz,&m,&n,ap,&m,sp,up,&m,vp,&ldvt,&ans,&lwk,rwk,iwk,&res);
     lwk = ans.r;
-    //printf("lwk = %ld\n",lwk);
     doublecomplex * workv = (doublecomplex*)malloc(lwk*sizeof(doublecomplex));
     CHECK(!workv,MEM);
     zgesdd_ (jobz,&m,&n,ap,&m,sp,up,&m,vp,&ldvt,workv,&lwk,rwk,iwk,&res);
-    //printf("res = %ld\n",res);
     CHECK(res,res);
-    free(workv); // printf("freed workv\n");
-    free(rwk);   // printf("freed rwk\n");
-    free(iwk);   // printf("freed iwk\n");
+    free(workv);
+    free(rwk);
+    free(iwk);
     OK
 }
 
@@ -498,80 +495,72 @@ int eig_l_H(int wantV,DVEC(s),OCMAT(v)) {
 
 //////////////////// general real linear system ////////////
 
-/* Subroutine */ int dgesv_(integer *n, integer *nrhs, doublereal *a, integer
+int dgesv_(integer *n, integer *nrhs, doublereal *a, integer
 	*lda, integer *ipiv, doublereal *b, integer *ldb, integer *info);
 
-int linearSolveR_l(KODMAT(a),KODMAT(b),ODMAT(x)) {
+int linearSolveR_l(ODMAT(a),ODMAT(b)) {
     integer n = ar;
     integer nhrs = bc;
     REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
     DEBUGMSG("linearSolveR_l");
-    double*AC = (double*)malloc(n*n*sizeof(double));
-    memcpy(AC,ap,n*n*sizeof(double));
-    memcpy(xp,bp,n*nhrs*sizeof(double));
     integer * ipiv = (integer*)malloc(n*sizeof(integer));
     integer res;
     dgesv_  (&n,&nhrs,
-             AC, &n,
+             ap, &n,
              ipiv,
-             xp, &n,
+             bp, &n,
              &res);
     if(res>0) {
         return SINGULAR;
     }
     CHECK(res,res);
     free(ipiv);
-    free(AC);
     OK
 }
 
 //////////////////// general complex linear system ////////////
 
-/* Subroutine */ int zgesv_(integer *n, integer *nrhs, doublecomplex *a,
+int zgesv_(integer *n, integer *nrhs, doublecomplex *a,
 	integer *lda, integer *ipiv, doublecomplex *b, integer *ldb, integer *
 	info);
 
-int linearSolveC_l(KOCMAT(a),KOCMAT(b),OCMAT(x)) {
+int linearSolveC_l(OCMAT(a),OCMAT(b)) {
     integer n = ar;
     integer nhrs = bc;
     REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
     DEBUGMSG("linearSolveC_l");
-    doublecomplex*AC = (doublecomplex*)malloc(n*n*sizeof(doublecomplex));
-    memcpy(AC,ap,n*n*sizeof(doublecomplex));
-    memcpy(xp,bp,n*nhrs*sizeof(doublecomplex));
     integer * ipiv = (integer*)malloc(n*sizeof(integer));
     integer res;
     zgesv_  (&n,&nhrs,
-             AC, &n,
+             ap, &n,
              ipiv,
-             xp, &n,
+             bp, &n,
              &res);
     if(res>0) {
         return SINGULAR;
     }
     CHECK(res,res);
     free(ipiv);
-    free(AC);
     OK
 }
 
 //////// symmetric positive definite real linear system using Cholesky ////////////
 
-/* Subroutine */ int dpotrs_(char *uplo, integer *n, integer *nrhs,
+int dpotrs_(char *uplo, integer *n, integer *nrhs,
 	doublereal *a, integer *lda, doublereal *b, integer *ldb, integer *
 	info);
 
-int cholSolveR_l(KODMAT(a),KODMAT(b),ODMAT(x)) {
+int cholSolveR_l(KODMAT(a),ODMAT(b)) {
     integer n = ar;
+    integer lda = aXc;
     integer nhrs = bc;
     REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
     DEBUGMSG("cholSolveR_l");
-    memcpy(xp,bp,n*nhrs*sizeof(double));
     integer res;
     dpotrs_ ("U",
              &n,&nhrs,
-             (double*)ap, &n,
-             xp, &n,
+             (double*)ap, &lda,
+             bp, &n,
              &res);
     CHECK(res,res);
     OK
@@ -579,21 +568,21 @@ int cholSolveR_l(KODMAT(a),KODMAT(b),ODMAT(x)) {
 
 //////// Hermitian positive definite real linear system using Cholesky ////////////
 
-/* Subroutine */ int zpotrs_(char *uplo, integer *n, integer *nrhs,
+int zpotrs_(char *uplo, integer *n, integer *nrhs,
 	doublecomplex *a, integer *lda, doublecomplex *b, integer *ldb,
 	integer *info);
 
-int cholSolveC_l(KOCMAT(a),KOCMAT(b),OCMAT(x)) {
+int cholSolveC_l(KOCMAT(a),OCMAT(b)) {
     integer n = ar;
+    integer lda = aXc;
     integer nhrs = bc;
     REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
     DEBUGMSG("cholSolveC_l");
-    memcpy(xp,bp,n*nhrs*sizeof(doublecomplex));
     integer res;
     zpotrs_  ("U",
              &n,&nhrs,
-             (doublecomplex*)ap, &n,
-             xp, &n,
+             (doublecomplex*)ap, &lda,
+             bp, &n,
              &res);
     CHECK(res,res);
     OK
@@ -601,41 +590,30 @@ int cholSolveC_l(KOCMAT(a),KOCMAT(b),OCMAT(x)) {
 
 //////////////////// least squares real linear system ////////////
 
-/* Subroutine */ int dgels_(char *trans, integer *m, integer *n, integer *
+int dgels_(char *trans, integer *m, integer *n, integer *
 	nrhs, doublereal *a, integer *lda, doublereal *b, integer *ldb,
 	doublereal *work, integer *lwork, integer *info);
 
-int linearSolveLSR_l(KODMAT(a),KODMAT(b),ODMAT(x)) {
+int linearSolveLSR_l(ODMAT(a),ODMAT(b)) {
     integer m = ar;
     integer n = ac;
     integer nrhs = bc;
-    integer ldb = xr;
-    REQUIRES(m>=1 && n>=1 && ar==br && xr==MAX(m,n) && xc == bc, BAD_SIZE);
+    integer ldb = bXc;
+    REQUIRES(m>=1 && n>=1 && br==MAX(m,n), BAD_SIZE);
     DEBUGMSG("linearSolveLSR_l");
-    double*AC = (double*)malloc(m*n*sizeof(double));
-    memcpy(AC,ap,m*n*sizeof(double));
-    if (m>=n) {
-        memcpy(xp,bp,m*nrhs*sizeof(double));
-    } else {
-        int k;
-        for(k = 0; k<nrhs; k++) {
-            memcpy(xp+ldb*k,bp+m*k,m*sizeof(double));
-        }
-    }
     integer res;
     integer lwork = -1;
     double ans;
     dgels_  ("N",&m,&n,&nrhs,
-             AC,&m,
-             xp,&ldb,
+             ap,&m,
+             bp,&ldb,
              &ans,&lwork,
              &res);
     lwork = ceil(ans);
-    //printf("ans = %d\n",lwork);
     double * work = (double*)malloc(lwork*sizeof(double));
     dgels_  ("N",&m,&n,&nrhs,
-             AC,&m,
-             xp,&ldb,
+             ap,&m,
+             bp,&ldb,
              work,&lwork,
              &res);
     if(res>0) {
@@ -643,47 +621,35 @@ int linearSolveLSR_l(KODMAT(a),KODMAT(b),ODMAT(x)) {
     }
     CHECK(res,res);
     free(work);
-    free(AC);
     OK
 }
 
 //////////////////// least squares complex linear system ////////////
 
-/* Subroutine */ int zgels_(char *trans, integer *m, integer *n, integer *
+int zgels_(char *trans, integer *m, integer *n, integer *
 	nrhs, doublecomplex *a, integer *lda, doublecomplex *b, integer *ldb,
 	doublecomplex *work, integer *lwork, integer *info);
 
-int linearSolveLSC_l(KOCMAT(a),KOCMAT(b),OCMAT(x)) {
+int linearSolveLSC_l(OCMAT(a),OCMAT(b)) {
     integer m = ar;
     integer n = ac;
     integer nrhs = bc;
-    integer ldb = xr;
-    REQUIRES(m>=1 && n>=1 && ar==br && xr==MAX(m,n) && xc == bc, BAD_SIZE);
+    integer ldb = bXc;
+    REQUIRES(m>=1 && n>=1 && br==MAX(m,n), BAD_SIZE);
     DEBUGMSG("linearSolveLSC_l");
-    doublecomplex*AC = (doublecomplex*)malloc(m*n*sizeof(doublecomplex));
-    memcpy(AC,ap,m*n*sizeof(doublecomplex));
-    if (m>=n) {
-        memcpy(xp,bp,m*nrhs*sizeof(doublecomplex));
-    } else {
-        int k;
-        for(k = 0; k<nrhs; k++) {
-            memcpy(xp+ldb*k,bp+m*k,m*sizeof(doublecomplex));
-        }
-    }
     integer res;
     integer lwork = -1;
     doublecomplex ans;
     zgels_  ("N",&m,&n,&nrhs,
-             AC,&m,
-             xp,&ldb,
+             ap,&m,
+             bp,&ldb,
              &ans,&lwork,
              &res);
     lwork = ceil(ans.r);
-    //printf("ans = %d\n",lwork);
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     zgels_  ("N",&m,&n,&nrhs,
-             AC,&m,
-             xp,&ldb,
+             ap,&m,
+             bp,&ldb,
              work,&lwork,
              &res);
     if(res>0) {
@@ -691,52 +657,40 @@ int linearSolveLSC_l(KOCMAT(a),KOCMAT(b),OCMAT(x)) {
     }
     CHECK(res,res);
     free(work);
-    free(AC);
     OK
 }
 
 //////////////////// least squares real linear system using SVD ////////////
 
-/* Subroutine */ int dgelss_(integer *m, integer *n, integer *nrhs,
+int dgelss_(integer *m, integer *n, integer *nrhs,
 	doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *
 	s, doublereal *rcond, integer *rank, doublereal *work, integer *lwork,
 	 integer *info);
 
-int linearSolveSVDR_l(double rcond,KODMAT(a),KODMAT(b),ODMAT(x)) {
+int linearSolveSVDR_l(double rcond,ODMAT(a),ODMAT(b)) {
     integer m = ar;
     integer n = ac;
     integer nrhs = bc;
-    integer ldb = xr;
-    REQUIRES(m>=1 && n>=1 && ar==br && xr==MAX(m,n) && xc == bc, BAD_SIZE);
+    integer ldb = bXc;
+    REQUIRES(m>=1 && n>=1 && br==MAX(m,n), BAD_SIZE);
     DEBUGMSG("linearSolveSVDR_l");
-    double*AC = (double*)malloc(m*n*sizeof(double));
     double*S = (double*)malloc(MIN(m,n)*sizeof(double));
-    memcpy(AC,ap,m*n*sizeof(double));
-    if (m>=n) {
-        memcpy(xp,bp,m*nrhs*sizeof(double));
-    } else {
-        int k;
-        for(k = 0; k<nrhs; k++) {
-            memcpy(xp+ldb*k,bp+m*k,m*sizeof(double));
-        }
-    }
     integer res;
     integer lwork = -1;
     integer rank;
     double ans;
     dgelss_  (&m,&n,&nrhs,
-             AC,&m,
-             xp,&ldb,
+             ap,&m,
+             bp,&ldb,
              S,
              &rcond,&rank,
              &ans,&lwork,
              &res);
     lwork = ceil(ans);
-    //printf("ans = %d\n",lwork);
     double * work = (double*)malloc(lwork*sizeof(double));
     dgelss_  (&m,&n,&nrhs,
-             AC,&m,
-             xp,&ldb,
+             ap,&m,
+             bp,&ldb,
              S,
              &rcond,&rank,
              work,&lwork,
@@ -747,13 +701,10 @@ int linearSolveSVDR_l(double rcond,KODMAT(a),KODMAT(b),ODMAT(x)) {
     CHECK(res,res);
     free(work);
     free(S);
-    free(AC);
     OK
 }
 
 //////////////////// least squares complex linear system using SVD ////////////
-
-// not in clapack.h
 
 int zgelss_(integer *m, integer *n, integer *nhrs,
     doublecomplex *a, integer *lda, doublecomplex *b, integer *ldb, doublereal *s,
@@ -761,43 +712,32 @@ int zgelss_(integer *m, integer *n, integer *nhrs,
     doublecomplex *work, integer* lwork, doublereal* rwork,
     integer *info);
 
-int linearSolveSVDC_l(double rcond, KOCMAT(a),KOCMAT(b),OCMAT(x)) {
+int linearSolveSVDC_l(double rcond, OCMAT(a),OCMAT(b)) {
     integer m = ar;
     integer n = ac;
     integer nrhs = bc;
-    integer ldb = xr;
-    REQUIRES(m>=1 && n>=1 && ar==br && xr==MAX(m,n) && xc == bc, BAD_SIZE);
+    integer ldb = bXc;
+    REQUIRES(m>=1 && n>=1 && br==MAX(m,n), BAD_SIZE);
     DEBUGMSG("linearSolveSVDC_l");
-    doublecomplex*AC = (doublecomplex*)malloc(m*n*sizeof(doublecomplex));
     double*S = (double*)malloc(MIN(m,n)*sizeof(double));
     double*RWORK = (double*)malloc(5*MIN(m,n)*sizeof(double));
-    memcpy(AC,ap,m*n*sizeof(doublecomplex));
-    if (m>=n) {
-        memcpy(xp,bp,m*nrhs*sizeof(doublecomplex));
-    } else {
-        int k;
-        for(k = 0; k<nrhs; k++) {
-            memcpy(xp+ldb*k,bp+m*k,m*sizeof(doublecomplex));
-        }
-    }
     integer res;
     integer lwork = -1;
     integer rank;
     doublecomplex ans;
     zgelss_  (&m,&n,&nrhs,
-             AC,&m,
-             xp,&ldb,
+             ap,&m,
+             bp,&ldb,
              S,
              &rcond,&rank,
              &ans,&lwork,
              RWORK,
              &res);
     lwork = ceil(ans.r);
-    //printf("ans = %d\n",lwork);
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     zgelss_  (&m,&n,&nrhs,
-             AC,&m,
-             xp,&ldb,
+             ap,&m,
+             bp,&ldb,
              S,
              &rcond,&rank,
              work,&lwork,
@@ -810,7 +750,6 @@ int linearSolveSVDC_l(double rcond, KOCMAT(a),KOCMAT(b),OCMAT(x)) {
     free(work);
     free(RWORK);
     free(S);
-    free(AC);
     OK
 }
 
