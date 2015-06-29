@@ -114,12 +114,12 @@ for(k=0; k<(M##r * M##c); k++) {             \
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////// real svd ///////////////////////////////////////////////////
 
-/* Subroutine */ int dgesvd_(char *jobu, char *jobvt, integer *m, integer *n,
+int dgesvd_(char *jobu, char *jobvt, integer *m, integer *n,
 	doublereal *a, integer *lda, doublereal *s, doublereal *u, integer *
 	ldu, doublereal *vt, integer *ldvt, doublereal *work, integer *lwork,
 	integer *info);
 
-int svd_l_R(KODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
+int svd_l_R(ODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
     integer m = ar;
     integer n = ac;
     integer q = MIN(m,n);
@@ -145,15 +145,12 @@ int svd_l_R(KODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
         }
     }
     DEBUGMSG("svd_l_R");
-    double *B = (double*)malloc(m*n*sizeof(double));
-    CHECK(!B,MEM);
-    memcpy(B,ap,m*n*sizeof(double));
     integer lwork = -1;
     integer res;
     // ask for optimal lwork
     double ans;
     dgesvd_ (jobu,jobvt,
-             &m,&n,B,&m,
+             &m,&n,ap,&m,
              sp,
              up,&m,
              vp,&ldvt,
@@ -163,7 +160,7 @@ int svd_l_R(KODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
     double * work = (double*)malloc(lwork*sizeof(double));
     CHECK(!work,MEM);
     dgesvd_ (jobu,jobvt,
-             &m,&n,B,&m,
+             &m,&n,ap,&m,
              sp,
              up,&m,
              vp,&ldvt,
@@ -171,18 +168,17 @@ int svd_l_R(KODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
              &res);
     CHECK(res,res);
     free(work);
-    free(B);
     OK
 }
 
 // (alternative version)
 
-/* Subroutine */ int dgesdd_(char *jobz, integer *m, integer *n, doublereal *
+int dgesdd_(char *jobz, integer *m, integer *n, doublereal *
 	a, integer *lda, doublereal *s, doublereal *u, integer *ldu,
 	doublereal *vt, integer *ldvt, doublereal *work, integer *lwork,
 	integer *iwork, integer *info);
 
-int svd_l_Rdd(KODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
+int svd_l_Rdd(ODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
     integer m = ar;
     integer n = ac;
     integer q = MIN(m,n);
@@ -202,37 +198,31 @@ int svd_l_Rdd(KODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
         }
     }
     DEBUGMSG("svd_l_Rdd");
-    double *B = (double*)malloc(m*n*sizeof(double));
-    CHECK(!B,MEM);
-    memcpy(B,ap,m*n*sizeof(double));
     integer* iwk = (integer*) malloc(8*q*sizeof(integer));
     CHECK(!iwk,MEM);
     integer lwk = -1;
     integer res;
     // ask for optimal lwk
     double ans;
-    dgesdd_ (jobz,&m,&n,B,&m,sp,up,&m,vp,&ldvt,&ans,&lwk,iwk,&res);
+    dgesdd_ (jobz,&m,&n,ap,&m,sp,up,&m,vp,&ldvt,&ans,&lwk,iwk,&res);
     lwk = ans;
     double * workv = (double*)malloc(lwk*sizeof(double));
     CHECK(!workv,MEM);
-    dgesdd_ (jobz,&m,&n,B,&m,sp,up,&m,vp,&ldvt,workv,&lwk,iwk,&res);
+    dgesdd_ (jobz,&m,&n,ap,&m,sp,up,&m,vp,&ldvt,workv,&lwk,iwk,&res);
     CHECK(res,res);
     free(iwk);
     free(workv);
-    free(B);
     OK
 }
 
 //////////////////// complex svd ////////////////////////////////////
-
-// not in clapack.h
 
 int zgesvd_(char *jobu, char *jobvt, integer *m, integer *n,
     doublecomplex *a, integer *lda, doublereal *s, doublecomplex *u,
     integer *ldu, doublecomplex *vt, integer *ldvt, doublecomplex *work,
     integer *lwork, doublereal *rwork, integer *info);
 
-int svd_l_C(KOCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
+int svd_l_C(OCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
     integer m = ar;
     integer n = ac;
     integer q = MIN(m,n);
@@ -257,10 +247,7 @@ int svd_l_C(KOCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
             ldvt = q;
         }
     }DEBUGMSG("svd_l_C");
-    doublecomplex *B = (doublecomplex*)malloc(m*n*sizeof(doublecomplex));
-    CHECK(!B,MEM);
-    memcpy(B,ap,m*n*sizeof(doublecomplex));
-
+    
     double *rwork = (double*) malloc(5*q*sizeof(double));
     CHECK(!rwork,MEM);
     integer lwork = -1;
@@ -268,7 +255,7 @@ int svd_l_C(KOCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
     // ask for optimal lwork
     doublecomplex ans;
     zgesvd_ (jobu,jobvt,
-             &m,&n,B,&m,
+             &m,&n,ap,&m,
              sp,
              up,&m,
              vp,&ldvt,
@@ -279,7 +266,7 @@ int svd_l_C(KOCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     CHECK(!work,MEM);
     zgesvd_ (jobu,jobvt,
-             &m,&n,B,&m,
+             &m,&n,ap,&m,
              sp,
              up,&m,
              vp,&ldvt,
@@ -289,7 +276,6 @@ int svd_l_C(KOCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
     CHECK(res,res);
     free(work);
     free(rwork);
-    free(B);
     OK
 }
 
@@ -298,8 +284,7 @@ int zgesdd_ (char *jobz, integer *m, integer *n,
     integer *ldu, doublecomplex *vt, integer *ldvt, doublecomplex *work,
     integer *lwork, doublereal *rwork, integer* iwork, integer *info);
 
-int svd_l_Cdd(KOCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
-    //printf("entro\n");
+int svd_l_Cdd(OCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
     integer m = ar;
     integer n = ac;
     integer q = MIN(m,n);
@@ -319,9 +304,6 @@ int svd_l_Cdd(KOCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
         }
     }
     DEBUGMSG("svd_l_Cdd");
-    doublecomplex *B = (doublecomplex*)malloc(m*n*sizeof(doublecomplex));
-    CHECK(!B,MEM);
-    memcpy(B,ap,m*n*sizeof(doublecomplex));
     integer* iwk = (integer*) malloc(8*q*sizeof(integer));
     CHECK(!iwk,MEM);
     int lrwk;
@@ -337,18 +319,17 @@ int svd_l_Cdd(KOCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
     integer res;
     // ask for optimal lwk
     doublecomplex ans;
-    zgesdd_ (jobz,&m,&n,B,&m,sp,up,&m,vp,&ldvt,&ans,&lwk,rwk,iwk,&res);
+    zgesdd_ (jobz,&m,&n,ap,&m,sp,up,&m,vp,&ldvt,&ans,&lwk,rwk,iwk,&res);
     lwk = ans.r;
     //printf("lwk = %ld\n",lwk);
     doublecomplex * workv = (doublecomplex*)malloc(lwk*sizeof(doublecomplex));
     CHECK(!workv,MEM);
-    zgesdd_ (jobz,&m,&n,B,&m,sp,up,&m,vp,&ldvt,workv,&lwk,rwk,iwk,&res);
+    zgesdd_ (jobz,&m,&n,ap,&m,sp,up,&m,vp,&ldvt,workv,&lwk,rwk,iwk,&res);
     //printf("res = %ld\n",res);
     CHECK(res,res);
     free(workv); // printf("freed workv\n");
     free(rwk);   // printf("freed rwk\n");
     free(iwk);   // printf("freed iwk\n");
-    free(B);     // printf("freed B, salgo\n");
     OK
 }
 

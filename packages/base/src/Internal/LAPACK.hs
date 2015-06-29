@@ -102,25 +102,26 @@ foreign import ccall unsafe "svd_l_Cdd" zgesdd :: TSVD C
 
 -- | Full SVD of a real matrix using LAPACK's /dgesvd/.
 svdR :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
-svdR = svdAux dgesvd "svdR" . fmat
+svdR = svdAux dgesvd "svdR"
 
 -- | Full SVD of a real matrix using LAPACK's /dgesdd/.
 svdRd :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
-svdRd = svdAux dgesdd "svdRdd" . fmat
+svdRd = svdAux dgesdd "svdRdd"
 
 -- | Full SVD of a complex matrix using LAPACK's /zgesvd/.
 svdC :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector Double, Matrix (Complex Double))
-svdC = svdAux zgesvd "svdC" . fmat
+svdC = svdAux zgesvd "svdC"
 
 -- | Full SVD of a complex matrix using LAPACK's /zgesdd/.
 svdCd :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector Double, Matrix (Complex Double))
-svdCd = svdAux zgesdd "svdCdd" . fmat
+svdCd = svdAux zgesdd "svdCdd"
 
 svdAux f st x = unsafePerformIO $ do
+    a <- copy ColumnMajor x
     u <- createMatrix ColumnMajor r r
     s <- createVector (min r c)
     v <- createMatrix ColumnMajor c c
-    f # x # u # s # v #| st
+    f # a # u # s # v #| st
     return (u,s,v)
   where
     r = rows x
@@ -129,25 +130,26 @@ svdAux f st x = unsafePerformIO $ do
 
 -- | Thin SVD of a real matrix, using LAPACK's /dgesvd/ with jobu == jobvt == \'S\'.
 thinSVDR :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
-thinSVDR = thinSVDAux dgesvd "thinSVDR" . fmat
+thinSVDR = thinSVDAux dgesvd "thinSVDR"
 
 -- | Thin SVD of a complex matrix, using LAPACK's /zgesvd/ with jobu == jobvt == \'S\'.
 thinSVDC :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector Double, Matrix (Complex Double))
-thinSVDC = thinSVDAux zgesvd "thinSVDC" . fmat
+thinSVDC = thinSVDAux zgesvd "thinSVDC"
 
 -- | Thin SVD of a real matrix, using LAPACK's /dgesdd/ with jobz == \'S\'.
 thinSVDRd :: Matrix Double -> (Matrix Double, Vector Double, Matrix Double)
-thinSVDRd = thinSVDAux dgesdd "thinSVDRdd" . fmat
+thinSVDRd = thinSVDAux dgesdd "thinSVDRdd"
 
 -- | Thin SVD of a complex matrix, using LAPACK's /zgesdd/ with jobz == \'S\'.
 thinSVDCd :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector Double, Matrix (Complex Double))
-thinSVDCd = thinSVDAux zgesdd "thinSVDCdd" . fmat
+thinSVDCd = thinSVDAux zgesdd "thinSVDCdd"
 
 thinSVDAux f st x = unsafePerformIO $ do
+    a <- copy ColumnMajor x
     u <- createMatrix ColumnMajor r q
     s <- createVector q
     v <- createMatrix ColumnMajor q c
-    f # x # u # s # v #| st
+    f # a # u # s # v #| st
     return (u,s,v)
   where
     r = rows x
@@ -157,23 +159,24 @@ thinSVDAux f st x = unsafePerformIO $ do
 
 -- | Singular values of a real matrix, using LAPACK's /dgesvd/ with jobu == jobvt == \'N\'.
 svR :: Matrix Double -> Vector Double
-svR = svAux dgesvd "svR" . fmat
+svR = svAux dgesvd "svR"
 
 -- | Singular values of a complex matrix, using LAPACK's /zgesvd/ with jobu == jobvt == \'N\'.
 svC :: Matrix (Complex Double) -> Vector Double
-svC = svAux zgesvd "svC" . fmat
+svC = svAux zgesvd "svC"
 
 -- | Singular values of a real matrix, using LAPACK's /dgesdd/ with jobz == \'N\'.
 svRd :: Matrix Double -> Vector Double
-svRd = svAux dgesdd "svRd" . fmat
+svRd = svAux dgesdd "svRd"
 
 -- | Singular values of a complex matrix, using LAPACK's /zgesdd/ with jobz == \'N\'.
 svCd :: Matrix (Complex Double) -> Vector Double
-svCd = svAux zgesdd "svCd" . fmat
+svCd = svAux zgesdd "svCd"
 
 svAux f st x = unsafePerformIO $ do
+    a <- copy ColumnMajor x
     s <- createVector q
-    g # x # s #| st
+    g # a # s #| st
     return s
   where
     r = rows x
@@ -184,16 +187,17 @@ svAux f st x = unsafePerformIO $ do
 
 -- | Singular values and all right singular vectors of a real matrix, using LAPACK's /dgesvd/ with jobu == \'N\' and jobvt == \'A\'.
 rightSVR :: Matrix Double -> (Vector Double, Matrix Double)
-rightSVR = rightSVAux dgesvd "rightSVR" . fmat
+rightSVR = rightSVAux dgesvd "rightSVR"
 
 -- | Singular values and all right singular vectors of a complex matrix, using LAPACK's /zgesvd/ with jobu == \'N\' and jobvt == \'A\'.
 rightSVC :: Matrix (Complex Double) -> (Vector Double, Matrix (Complex Double))
-rightSVC = rightSVAux zgesvd "rightSVC" . fmat
+rightSVC = rightSVAux zgesvd "rightSVC"
 
 rightSVAux f st x = unsafePerformIO $ do
+    a <- copy ColumnMajor x
     s <- createVector q
     v <- createMatrix ColumnMajor c c
-    g # x # s # v #| st
+    g # a # s # v #| st
     return (s,v)
   where
     r = rows x
@@ -204,16 +208,17 @@ rightSVAux f st x = unsafePerformIO $ do
 
 -- | Singular values and all left singular vectors of a real matrix, using LAPACK's /dgesvd/  with jobu == \'A\' and jobvt == \'N\'.
 leftSVR :: Matrix Double -> (Matrix Double, Vector Double)
-leftSVR = leftSVAux dgesvd "leftSVR" . fmat
+leftSVR = leftSVAux dgesvd "leftSVR"
 
 -- | Singular values and all left singular vectors of a complex matrix, using LAPACK's /zgesvd/ with jobu == \'A\' and jobvt == \'N\'.
 leftSVC :: Matrix (Complex Double) -> (Matrix (Complex Double), Vector Double)
-leftSVC = leftSVAux zgesvd "leftSVC" . fmat
+leftSVC = leftSVAux zgesvd "leftSVC"
 
 leftSVAux f st x = unsafePerformIO $ do
+    a <- copy ColumnMajor x
     u <- createMatrix ColumnMajor r r
     s <- createVector q
-    g # x # u # s #| st
+    g # a # u # s #| st
     return (u,s)
   where
     r = rows x
