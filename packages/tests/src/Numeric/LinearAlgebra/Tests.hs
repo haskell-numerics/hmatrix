@@ -536,7 +536,7 @@ sliceTest = utest "slice test" $ and
 
     testSlice f x@(size->sz@(r,c)) = all (==f x) (map f (g y1 ++ g y2))
       where
-        subm = sliceMatrix
+        subm = subMatrix
         g y = [ subm (a*r,b*c) sz y | a <-[0..2], b <- [0..2]]
         h z = fromBlocks (replicate 3 (replicate 3 z))
         y1  = h x

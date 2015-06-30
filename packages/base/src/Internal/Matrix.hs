@@ -70,7 +70,7 @@ is1d (size->(r,c)) = r==1 || c==1
 {-# INLINE is1d #-}
 
 -- data is not contiguous
-isSlice m@(size->(r,c)) = (c < xRow m || r < xCol m) && min r c > 1
+isSlice m@(size->(r,c)) = r*c < dim (xdat m)
 {-# INLINE isSlice #-}
 
 orderOf :: Matrix t -> MatrixOrder
@@ -359,26 +359,16 @@ instance Element Z where
 
 -------------------------------------------------------------------
 
+-- | reference to a rectangular slice of a matrix (no data copy)
 subMatrix :: Element a
-          => (Int,Int) -- ^ (r0,c0) starting position
-          -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
-          -> Matrix a -- ^ input matrix
-          -> Matrix a -- ^ result
-subMatrix (r0,c0) (rt,ct) m
-    | 0 <= r0 && 0 <= rt && r0+rt <= rows m &&
-      0 <= c0 && 0 <= ct && c0+ct <= cols m = unsafePerformIO $ extractR RowMajor m 0 (idxs[r0,r0+rt-1]) 0 (idxs[c0,c0+ct-1])
-    | otherwise = error $ "wrong subMatrix "++show ((r0,c0),(rt,ct))++" of "++shSize m
-
-
-sliceMatrix :: Element a
             => (Int,Int) -- ^ (r0,c0) starting position
             -> (Int,Int) -- ^ (rt,ct) dimensions of submatrix
             -> Matrix a -- ^ input matrix
             -> Matrix a -- ^ result
-sliceMatrix (r0,c0) (rt,ct) m
+subMatrix (r0,c0) (rt,ct) m
     | 0 <= r0 && 0 <= rt && r0+rt <= rows m &&
       0 <= c0 && 0 <= ct && c0+ct <= cols m = res
-    | otherwise = error $ "wrong sliceMatrix "++show ((r0,c0),(rt,ct))++" of "++shSize m
+    | otherwise = error $ "wrong subMatrix "++show ((r0,c0),(rt,ct))++" of "++shSize m
   where
     p = r0 * xRow m + c0 * xCol m
     tot | rowOrder m = ct + (rt-1) * xRow m

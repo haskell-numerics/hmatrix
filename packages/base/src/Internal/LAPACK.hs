@@ -513,7 +513,7 @@ qrgrC :: Int -> (Matrix (Complex Double), Vector (Complex Double)) -> Matrix (Co
 qrgrC = qrgrAux zungqr "qrgrC"
 
 qrgrAux f st n (a, tau) = unsafePerformIO $ do
-    res <- copy ColumnMajor (sliceMatrix (0,0) (rows a,n) a)
+    res <- copy ColumnMajor (subMatrix (0,0) (rows a,n) a)
     f # (subVector 0 n tau') # res #| st
     return res
   where

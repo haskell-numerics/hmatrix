@@ -849,7 +849,7 @@ viewBlock' r c m
     m12 = subm (0,c) (r,ct-c)    m
     m21 = subm (r,0) (rt-r,c)    m
     m22 = subm (r,c) (rt-r,ct-c) m
-    subm = sliceMatrix
+    subm = subMatrix
 
 viewBlock m = viewBlock' n n m
   where

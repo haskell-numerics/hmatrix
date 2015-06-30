@@ -231,7 +231,7 @@ extractMatrix (STMatrix m) rr rc = unsafeIOToST (extractR (orderOf m) m 0 (idxs[
 -- | r0 c0 height width
 data Slice s t = Slice (STMatrix s t) Int Int Int Int
 
-slice (Slice (STMatrix m) r0 c0 nr nc) = sliceMatrix (r0,c0) (nr,nc) m
+slice (Slice (STMatrix m) r0 c0 nr nc) = subMatrix (r0,c0) (nr,nc) m
 
 gemmm :: Element t => t -> Slice s t -> t -> Slice s t -> Slice s t -> ST s ()
 gemmm beta (slice->r) alpha (slice->a) (slice->b) = res
