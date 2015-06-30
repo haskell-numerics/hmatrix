@@ -245,6 +245,7 @@ class ( Container Vector t
       , Container Matrix t
       , Konst t Int Vector
       , Konst t (Int,Int) Matrix
+      , CTrans t
       , Product t
       ) => Numeric t
 

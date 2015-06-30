@@ -45,6 +45,7 @@ class (Product t,
        Normed Matrix t,
        Normed Vector t,
        Floating t,
+       CTrans t,
        RealOf t ~ Double) => Field t where
     svd'         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     thinSVD'     :: Matrix t -> (Matrix t, Vector Double, Matrix t)

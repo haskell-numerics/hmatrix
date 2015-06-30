@@ -782,9 +782,6 @@ buildV n f = fromList [f k | k <- ks]
     where ks = map fromIntegral [0 .. (n-1)]
 
 --------------------------------------------------------
--- | conjugate transpose
-ctrans :: (Container Vector e, Element e) => Matrix e -> Matrix e
-ctrans = liftMatrix conj' . trans
 
 -- | Creates a square matrix with a given diagonal.
 diag :: (Num a, Element a) => Vector a -> Matrix a
@@ -843,6 +840,24 @@ selectCV f c l e t = f (toInt c') l' e' t'
 
 --------------------------------------------------------------------------------
 
+class CTrans t
+  where
+    ctrans :: Matrix t -> Matrix t
+    ctrans = trans
+
+instance CTrans Float
+instance CTrans R
+instance CTrans I
+instance CTrans Z
+
+instance CTrans C
+  where
+    ctrans = conj . trans
+
+instance CTrans (Complex Float)
+  where
+    ctrans = conj . trans
+
 class Transposable m mt | m -> mt, mt -> m
   where
     -- | conjugate transpose
@@ -850,7 +865,7 @@ class Transposable m mt | m -> mt, mt -> m
     -- | transpose
     tr' :: m -> mt
 
-instance (Container Vector t) => Transposable (Matrix t) (Matrix t)
+instance (CTrans t, Container Vector t) => Transposable (Matrix t) (Matrix t)
   where
     tr  = ctrans
     tr' = trans

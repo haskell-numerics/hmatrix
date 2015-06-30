@@ -241,7 +241,7 @@ createMatrix ord r c = do
     p <- createVector (r*c)
     return (matrixFromVector ord r c p)
 
-{- | Creates a matrix from a vector by grouping the elements in rows with the desired number of columns. (GNU-Octave groups by columns. To do it you can define @reshapeF r = trans . reshape r@
+{- | Creates a matrix from a vector by grouping the elements in rows with the desired number of columns. (GNU-Octave groups by columns. To do it you can define @reshapeF r = tr' . reshape r@
 where r is the desired number of rows.)
 
 >>> reshape 4 (fromList [1..12])

@@ -159,6 +159,10 @@ instance KnownNat m => Element (Mod m Z)
         m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
 
+instance forall m . KnownNat m => CTrans (Mod m I)
+instance forall m . KnownNat m => CTrans (Mod m Z)
+
+
 instance forall m . KnownNat m => Container Vector (Mod m I)
   where
     conj' = id
