@@ -231,14 +231,13 @@ extractMatrix (STMatrix m) rr rc = unsafeIOToST (extractR (orderOf m) m 0 (idxs[
 -- | r0 c0 height width
 data Slice s t = Slice (STMatrix s t) Int Int Int Int
 
-slice (Slice (STMatrix m) r0 c0 nr nc) = (m, idxs[r0,r0+nr-1,c0,c0+nc-1])
+slice (Slice (STMatrix m) r0 c0 nr nc) = sliceMatrix (r0,c0) (nr,nc) m
 
 gemmm :: Element t => t -> Slice s t -> t -> Slice s t -> Slice s t -> ST s ()
-gemmm beta (slice->(r,pr)) alpha (slice->(a,pa)) (slice->(b,pb)) = res
+gemmm beta (slice->r) alpha (slice->a) (slice->b) = res
   where
-    res = unsafeIOToST (gemm u v a b r)
-    u = fromList [alpha,beta]
-    v = vjoin[pa,pb,pr]
+    res = unsafeIOToST (gemm v a b r)
+    v = fromList [alpha,beta]
     
 
 mutable :: Element t => (forall s . (Int, Int) -> STMatrix s t -> ST s u) -> Matrix t -> (Matrix t,u)

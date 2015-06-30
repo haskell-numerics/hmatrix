@@ -4,6 +4,8 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ViewPatterns #-}
 
 -----------------------------------------------------------------------------
 {- |
@@ -76,7 +78,7 @@ detTest1 = det m == 26
         && det mc == 38 :+ (-3)
         && det (feye 2) == -1
     where
-        m = (3><3) 
+        m = (3><3)
             [ 1, 2, 3
             , 4, 5, 7
             , 2, 8, 4 :: Double
@@ -357,7 +359,7 @@ accumTest = utest "accum" ok
                    ,0,1,7
                    ,0,0,4]
          &&
-         toList (flatten x) == [1,0,0,0,1,0,0,0,1] 
+         toList (flatten x) == [1,0,0,0,1,0,0,0,1]
 
 --------------------------------------------------------------------------------
 
@@ -397,6 +399,150 @@ indexProp g f x = a1 == g a2 && a2 == a3 && b1 == g b2 && b2 == b3
     b2 = x `atIndex` minIndex x
     a3 = maxElement x
     b3 = minElement x
+
+--------------------------------------------------------------------------------
+
+sliceTest = utest "slice test" $ and
+    [ testSlice chol  (gen 5 :: Matrix R)
+    , testSlice chol  (gen 5 :: Matrix C)
+    , testSlice qr    (rec :: Matrix R)
+    , testSlice qr    (rec :: Matrix C)
+    , testSlice hess  (agen 5 :: Matrix R)
+    , testSlice hess  (agen 5 :: Matrix C)
+    , testSlice schur (agen 5 :: Matrix R)
+    , testSlice schur (agen 5 :: Matrix C)
+    , testSlice lu    (agen 5 :: Matrix R)
+    , testSlice lu    (agen 5 :: Matrix C)
+    , testSlice (luSolve (luPacked (agen 5 :: Matrix R))) (agen 5)
+    , testSlice (luSolve (luPacked (agen 5 :: Matrix C))) (agen 5)
+    , test_lus (agen 5 :: Matrix R)
+    , test_lus (agen 5 :: Matrix C)
+
+    , testSlice eig   (agen 5 :: Matrix R)
+    , testSlice eig   (agen 5 :: Matrix C)
+    , testSlice eigSH (gen 5 :: Matrix R)
+    , testSlice eigSH (gen 5 :: Matrix C)
+    , testSlice eigenvalues   (agen 5 :: Matrix R)
+    , testSlice eigenvalues   (agen 5 :: Matrix C)
+    , testSlice eigenvaluesSH (gen 5 :: Matrix R)
+    , testSlice eigenvaluesSH (gen 5 :: Matrix C)
+
+    , testSlice svd           (rec :: Matrix R)
+    , testSlice thinSVD       (rec :: Matrix R)
+    , testSlice compactSVD     (rec :: Matrix R)
+    , testSlice leftSV        (rec :: Matrix R)
+    , testSlice rightSV       (rec :: Matrix R)
+    , testSlice singularValues (rec :: Matrix R)
+
+    , testSlice svd           (rec :: Matrix C)
+    , testSlice thinSVD       (rec :: Matrix C)
+    , testSlice compactSVD     (rec :: Matrix C)
+    , testSlice leftSV        (rec :: Matrix C)
+    , testSlice rightSV       (rec :: Matrix C)
+    , testSlice singularValues (rec :: Matrix C)
+
+    , testSlice (linearSolve (agen 5:: Matrix R)) (agen 5)
+    , testSlice (flip linearSolve (agen 5:: Matrix R)) (agen 5)
+
+    , testSlice (linearSolve (agen 5:: Matrix C)) (agen 5)
+    , testSlice (flip linearSolve (agen 5:: Matrix C)) (agen 5)
+
+    , testSlice (linearSolveLS (ogen 5:: Matrix R)) (ogen 5)
+    , testSlice (flip linearSolveLS (ogen 5:: Matrix R)) (ogen 5)
+
+    , testSlice (linearSolveLS (ogen 5:: Matrix C)) (ogen 5)
+    , testSlice (flip linearSolveLS (ogen 5:: Matrix C)) (ogen 5)
+
+    , testSlice (linearSolveSVD (ogen 5:: Matrix R)) (ogen 5)
+    , testSlice (flip linearSolveSVD (ogen 5:: Matrix R)) (ogen 5)
+
+    , testSlice (linearSolveSVD (ogen 5:: Matrix C)) (ogen 5)
+    , testSlice (flip linearSolveSVD (ogen 5:: Matrix C)) (ogen 5)
+
+    , testSlice (linearSolveLS (ugen 5:: Matrix R)) (ugen 5)
+    , testSlice (flip linearSolveLS (ugen 5:: Matrix R)) (ugen 5)
+
+    , testSlice (linearSolveLS (ugen 5:: Matrix C)) (ugen 5)
+    , testSlice (flip linearSolveLS (ugen 5:: Matrix C)) (ugen 5)
+
+    , testSlice (linearSolveSVD (ugen 5:: Matrix R)) (ugen 5)
+    , testSlice (flip linearSolveSVD (ugen 5:: Matrix R)) (ugen 5)
+
+    , testSlice (linearSolveSVD (ugen 5:: Matrix C)) (ugen 5)
+    , testSlice (flip linearSolveSVD (ugen 5:: Matrix C)) (ugen 5)
+
+    , testSlice ((<>) (ogen 5:: Matrix R)) (gen 5)
+    , testSlice (flip (<>) (gen 5:: Matrix R)) (ogen 5)
+    , testSlice ((<>) (ogen 5:: Matrix C)) (gen 5)
+    , testSlice (flip (<>) (gen 5:: Matrix C)) (ogen 5)
+    , testSlice ((<>) (ogen 5:: Matrix Float)) (gen 5)
+    , testSlice (flip (<>) (gen 5:: Matrix Float)) (ogen 5)
+    , testSlice ((<>) (ogen 5:: Matrix (Complex Float))) (gen 5)
+    , testSlice (flip (<>) (gen 5:: Matrix (Complex Float))) (ogen 5)
+    , testSlice ((<>) (ogen 5:: Matrix I)) (gen 5)
+    , testSlice (flip (<>) (gen 5:: Matrix I)) (ogen 5)
+    , testSlice ((<>) (ogen 5:: Matrix Z)) (gen 5)
+    , testSlice (flip (<>) (gen 5:: Matrix Z)) (ogen 5)
+
+    , testSlice ((<>) (ogen 5:: Matrix (I ./. 7))) (gen 5)
+    , testSlice (flip (<>) (gen 5:: Matrix (I ./. 7))) (ogen 5)
+    , testSlice ((<>) (ogen 5:: Matrix (Z ./. 7))) (gen 5)
+    , testSlice (flip (<>) (gen 5:: Matrix (Z ./. 7))) (ogen 5)
+
+    , testSlice (flip cholSolve (agen 5:: Matrix R)) (chol $ gen 5)
+    , testSlice (flip cholSolve (agen 5:: Matrix C)) (chol $ gen 5)
+    , testSlice (cholSolve (chol $ gen 5:: Matrix R)) (agen 5)
+    , testSlice (cholSolve (chol $ gen 5:: Matrix C)) (agen 5)
+
+    , ok_qrgr        (rec :: Matrix R)
+    , ok_qrgr        (rec :: Matrix C)
+    , testSlice (test_qrgr 4 tau1) qrr1
+    , testSlice (test_qrgr 4 tau2) qrr2
+    ]
+  where
+    (qrr1,tau1) = qrRaw (rec :: Matrix R)
+    (qrr2,tau2) = qrRaw (rec :: Matrix C)
+
+    test_qrgr n t x = qrgr n (x,t)
+
+    ok_qrgr x = simeq 1E-15 q q'
+      where
+        (q,_) = qr x
+        atau = qrRaw x
+        q' = qrgr (rows q) atau
+
+    simeq eps a b =  not $ magnit eps (norm_1 $ flatten (a-b))
+
+    test_lus m = testSlice f lup
+      where
+        f x = luSolve (x,p) m
+        (lup,p) = luPacked m
+
+    gen :: Numeric t => Int -> Matrix t
+    gen n = diagRect 1 (konst 5 n) n n
+
+    agen :: (Numeric t, Num (Vector t))=> Int -> Matrix t
+    agen n = gen n + fromInt ((n><n)[0..])
+
+    ogen :: (Numeric t, Num (Vector t))=> Int -> Matrix t
+    ogen n = gen n === gen n
+
+    ugen :: (Numeric t, Num (Vector t))=> Int -> Matrix t
+    ugen n = takeRows 3 (gen n)
+
+
+    rec :: Numeric t => Matrix t
+    rec = subMatrix (0,0) (4,5) (gen 5)
+
+    testSlice f x@(size->sz@(r,c)) = all (==f x) (map f (g y1 ++ g y2))
+      where
+        subm = sliceMatrix
+        g y = [ subm (a*r,b*c) sz y | a <-[0..2], b <- [0..2]]
+        h z = fromBlocks (replicate 3 (replicate 3 z))
+        y1  = h x
+        y2  = (tr . h . tr) x
+
+
 
 --------------------------------------------------------------------------------
 
@@ -578,6 +724,7 @@ runTests n = do
         , staticTest
         , intTest
         , modularTest
+        , sliceTest
         ]
     when (errors c + failures c > 0) exitFailure
     return ()
