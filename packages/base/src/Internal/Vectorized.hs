@@ -28,7 +28,7 @@ import System.IO.Unsafe(unsafePerformIO)
 import Control.Monad(when)
 
 infixl 1 #
-a # b = applyRaw a b
+a # b = apply a b
 {-# INLINE (#) #-}
 
 fromei x = fromIntegral (fromEnum x) :: CInt

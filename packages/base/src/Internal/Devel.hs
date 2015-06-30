@@ -64,34 +64,25 @@ mbCatch act = E.catch (Just `fmap` act) f
 
 --------------------------------------------------------------------------------
 
-type CM b r = CInt -> CInt -> Ptr b -> r
 type CV b r = CInt -> Ptr b -> r
 type OM b r = CInt -> CInt -> CInt -> CInt -> Ptr b -> r
 
 type CIdxs r = CV CInt r
 type Ok = IO CInt
 
-infixr 5 :>, ::>, ..>
+infixr 5 :>, ::>
 type (:>)  t r = CV t r
 type (::>) t r = OM t r
-type (..>) t r = CM t r
 
 class TransArray c
   where
     type Trans c b
-    type TransRaw c b
-    type Elem c
     apply      :: (Trans c b) -> c -> b
-    applyRaw   :: (TransRaw c b) -> c -> b
-    infixl 1 `apply`, `applyRaw`
+    infixl 1 `apply`
 
 instance Storable t => TransArray (Vector t)
   where
     type Trans (Vector t) b    = CInt -> Ptr t -> b
-    type TransRaw (Vector t) b = CInt -> Ptr t -> b
-    type Elem (Vector t)       = t
     apply = avec
     {-# INLINE apply #-}
-    applyRaw = avec
-    {-# INLINE applyRaw #-}
 

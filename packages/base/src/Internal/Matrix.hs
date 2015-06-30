@@ -108,14 +108,6 @@ fmat m
     | otherwise  = extractAll ColumnMajor m
 
 
--- C-Haskell matrix adapters
-{-# INLINE amatr #-}
-amatr :: Storable a => (CInt -> CInt -> Ptr a -> b) -> Matrix a -> b
-amatr f x = inlinePerformIO (unsafeWith (xdat x) (return . f r c))
-  where
-    r  = fi (rows x)
-    c  = fi (cols x)
-
 {-# INLINE amat #-}
 amat :: Storable a => (CInt -> CInt -> CInt -> CInt -> Ptr a -> b) -> Matrix a -> b
 amat f x = inlinePerformIO (unsafeWith (xdat x) (return . f r c sr sc))
@@ -125,16 +117,11 @@ amat f x = inlinePerformIO (unsafeWith (xdat x) (return . f r c sr sc))
     sr = fi (xRow x)
     sc = fi (xCol x)
 
-
 instance Storable t => TransArray (Matrix t)
   where
-    type Elem (Matrix t)       = t
-    type TransRaw (Matrix t) b = CInt -> CInt -> Ptr t -> b
     type Trans (Matrix t) b    = CInt -> CInt -> CInt -> CInt -> Ptr t -> b
     apply = amat
     {-# INLINE apply #-}
-    applyRaw = amatr
-    {-# INLINE applyRaw #-}
 
 infixl 1 #
 a # b = apply a b
@@ -577,7 +564,7 @@ foreign import ccall unsafe "gemm_mod_int64_t" c_gemmML :: Z -> Tgemm Z
 --------------------------------------------------------------------------------
 
 foreign import ccall unsafe "saveMatrix" c_saveMatrix
-    :: CString -> CString -> Double ..> Ok
+    :: CString -> CString -> Double ::> Ok
 
 {- | save a matrix as a 2D ASCII table
 -}
@@ -589,7 +576,7 @@ saveMatrix
 saveMatrix name format m = do
     cname   <- newCString name
     cformat <- newCString format
-    c_saveMatrix cname cformat `applyRaw` m #|"saveMatrix"
+    c_saveMatrix cname cformat `apply` m #|"saveMatrix"
     free cname
     free cformat
     return ()
