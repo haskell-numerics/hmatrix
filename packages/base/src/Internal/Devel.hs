@@ -80,7 +80,6 @@ class TransArray c
   where
     type Trans c b
     type TransRaw c b
-    type Elem c
     apply      :: (Trans c b) -> c -> b
     applyRaw   :: (TransRaw c b) -> c -> b
     infixl 1 `apply`, `applyRaw`
@@ -89,7 +88,6 @@ instance Storable t => TransArray (Vector t)
   where
     type Trans (Vector t) b    = CInt -> Ptr t -> b
     type TransRaw (Vector t) b = CInt -> Ptr t -> b
-    type Elem (Vector t)       = t
     apply = avec
     {-# INLINE apply #-}
     applyRaw = avec

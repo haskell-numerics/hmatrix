@@ -128,7 +128,6 @@ amat f x = inlinePerformIO (unsafeWith (xdat x) (return . f r c sr sc))
 
 instance Storable t => TransArray (Matrix t)
   where
-    type Elem (Matrix t)       = t
     type TransRaw (Matrix t) b = CInt -> CInt -> Ptr t -> b
     type Trans (Matrix t) b    = CInt -> CInt -> CInt -> CInt -> Ptr t -> b
     apply = amat
