@@ -442,7 +442,7 @@ test = (ok, info)
       , (checkGen (gen 5 :: Matrix R)) < 1E-15
       , (checkGen (gen 5 :: Matrix Float)) < 2E-7
       , (checkGen (cgen 5 :: Matrix C)) < 1E-15
-      , (checkGen (sgen 5 :: Matrix (Complex Float))) < 2E-7
+      , (checkGen (sgen 5 :: Matrix (Complex Float))) < 3E-7
       , (checkGen (gen 5 :: Matrix (Mod 7 I))) == 0
       , (checkGen (gen 5 :: Matrix (Mod 7 Z))) == 0
       , (checkLU (magnit 1E-10) (gen 5 :: Matrix R)) < 2E-15
@@ -461,6 +461,7 @@ test = (ok, info)
       , gm <> gm == konst 0 (3,3)
       , lgm <> lgm == konst 0 (3,3)
       , invershur tmm == luSolve' (luPacked' tmm) (ident (rows tmm))
+      , luSolve' (luPacked' (tr $ ident 5 :: Matrix (I ./. 2))) (ident 5) == ident 5
       ]
 
 

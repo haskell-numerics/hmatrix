@@ -365,6 +365,7 @@ subMatrix :: Element a
             -> Matrix a -- ^ input matrix
             -> Matrix a -- ^ result
 subMatrix (r0,c0) (rt,ct) m
+    | rt <= 0 || ct <= 0 = matrixFromVector RowMajor (max 0 rt) (max 0 ct) (fromList [])
     | 0 <= r0 && 0 <= rt && r0+rt <= rows m &&
       0 <= c0 && 0 <= ct && c0+ct <= cols m = res
     | otherwise = error $ "wrong subMatrix "++show ((r0,c0),(rt,ct))++" of "++shSize m
