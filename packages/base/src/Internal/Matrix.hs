@@ -577,7 +577,7 @@ foreign import ccall unsafe "gemm_mod_int64_t" c_gemmML :: Z -> Tgemm Z
 --------------------------------------------------------------------------------
 
 foreign import ccall unsafe "saveMatrix" c_saveMatrix
-    :: CString -> CString -> Double ..> Ok
+    :: CString -> CString -> Double ::> Ok
 
 {- | save a matrix as a 2D ASCII table
 -}
@@ -589,7 +589,7 @@ saveMatrix
 saveMatrix name format m = do
     cname   <- newCString name
     cformat <- newCString format
-    c_saveMatrix cname cformat `applyRaw` m #|"saveMatrix"
+    c_saveMatrix cname cformat # m #|"saveMatrix"
     free cname
     free cformat
     return ()
