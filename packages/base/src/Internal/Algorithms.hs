@@ -55,6 +55,8 @@ class (Product t,
     mbLinearSolve' :: Matrix t -> Matrix t -> Maybe (Matrix t)
     linearSolve' :: Matrix t -> Matrix t -> Matrix t
     cholSolve'   :: Matrix t -> Matrix t -> Matrix t
+    ldlPacked'   :: Matrix t -> (Matrix t, [Int])
+    ldlSolve'    :: (Matrix t, [Int]) -> Matrix t -> Matrix t
     linearSolveSVD' :: Matrix t -> Matrix t -> Matrix t
     linearSolveLS'  :: Matrix t -> Matrix t -> Matrix t
     eig'         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
@@ -90,6 +92,8 @@ instance Field Double where
     qrgr' = qrgrR
     hess' = unpackHess hessR
     schur' = schurR
+    ldlPacked' = ldlR
+    ldlSolve'= uncurry ldlsR
 
 instance Field (Complex Double) where
 #ifdef NOZGESDD
@@ -117,6 +121,8 @@ instance Field (Complex Double) where
     qrgr' = qrgrC
     hess' = unpackHess hessC
     schur' = schurC
+    ldlPacked' = ldlC
+    ldlSolve' = uncurry ldlsC
 
 --------------------------------------------------------------
 
@@ -332,6 +338,23 @@ linearSolveSVD = {-# SCC "linearSolveSVD" #-} linearSolveSVD'
 -- | Least squared error solution of an overconstrained linear system, or the minimum norm solution of an underconstrained system. For rank-deficient systems use 'linearSolveSVD'.
 linearSolveLS :: Field t => Matrix t -> Matrix t -> Matrix t
 linearSolveLS = {-# SCC "linearSolveLS" #-} linearSolveLS'
+
+--------------------------------------------------------------------------------
+
+-- | Similar to 'ldlPacked', without checking that the input matrix is hermitian or symmetric. It works with the lower triangular part.
+ldlPackedSH :: Field t => Matrix t -> (Matrix t, [Int])
+ldlPackedSH = {-# SCC "ldlPacked" #-} ldlPacked'
+
+-- | Obtains the LDL decomposition of a matrix in a compact data structure suitable for 'ldlSolve'.
+ldlPacked :: Field t => Matrix t -> (Matrix t, [Int])
+ldlPacked m
+    | exactHermitian m = {-# SCC "ldlPacked" #-} ldlPackedSH m
+    | otherwise = error "ldlPacked requires complex Hermitian or real symmetrix matrix"
+
+
+-- | Solution of a linear system (for several right hand sides) from the precomputed LDL factorization obtained by 'ldlPacked'.
+ldlSolve :: Field t => (Matrix t, [Int]) -> Matrix t -> Matrix t
+ldlSolve = {-# SCC "ldlSolve" #-} ldlSolve'
 
 --------------------------------------------------------------
 

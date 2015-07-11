@@ -15,7 +15,7 @@ module Numeric.LinearAlgebra (
     -- * Basic types and data processing
     module Numeric.LinearAlgebra.Data,
 
-    -- * Arithmetic and numeric classes
+    -- * Numeric classes
     -- |
     -- The standard numeric classes are defined elementwise:
     --
@@ -27,7 +27,9 @@ module Numeric.LinearAlgebra (
     --  [ 1.0, 0.0, 0.0
     --  , 0.0, 5.0, 0.0
     --  , 0.0, 0.0, 9.0 ]
-    --
+
+    -- * Autoconformable dimensions
+    -- |
     -- In arithmetic operations single-element vectors and matrices
     -- (created from numeric literals or using 'scalar') automatically
     -- expand to match the dimensions of the other operand:
@@ -79,6 +81,7 @@ module Numeric.LinearAlgebra (
     luSolve,
     luSolve',
     cholSolve,
+    ldlSolve,
     cgSolve,
     cgSolve',
 
@@ -115,14 +118,17 @@ module Numeric.LinearAlgebra (
     -- * Cholesky
     chol, cholSH, mbCholSH,
 
+    -- * LU
+    lu, luPacked, luPacked', luFact,
+
+    -- * LDL
+    ldlPacked, ldlPackedSH,
+
     -- * Hessenberg
     hess,
 
     -- * Schur
     schur,
-
-    -- * LU
-    lu, luPacked, luPacked', luFact,
 
     -- * Matrix functions
     expm,

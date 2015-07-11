@@ -591,7 +591,7 @@ foreign import ccall unsafe "luS_l_C" zgetrs :: C ::> R :> C ::> Ok
 lusR :: Matrix Double -> [Int] -> Matrix Double -> Matrix Double
 lusR a piv b = lusAux dgetrs "lusR" (fmat a) piv b
 
--- | Solve a real linear system from a precomputed LU decomposition ('luC'), using LAPACK's /zgetrs/.
+-- | Solve a complex linear system from a precomputed LU decomposition ('luC'), using LAPACK's /zgetrs/.
 lusC :: Matrix (Complex Double) -> [Int] -> Matrix (Complex Double) -> Matrix (Complex Double)
 lusC a piv b = lusAux zgetrs "lusC" (fmat a) piv b
 
@@ -600,10 +600,41 @@ lusAux f st a piv b
          x <- copy ColumnMajor b
          f # a # piv' # x #| st
          return x
-    | otherwise = error $ st ++ " on LU factorization of nonsquare matrix"
+    | otherwise = error st
   where
     n1 = rows a
     n2 = cols a
     n = rows b
     piv' = fromList (map (fromIntegral.succ) piv) :: Vector Double
+
+-----------------------------------------------------------------------------------
+foreign import ccall unsafe "ldl_R" dsytrf :: R :> R ::> Ok
+foreign import ccall unsafe "ldl_C" zhetrf :: R :> C ::> Ok
+
+-- | LDL factorization of a symmetric real matrix, using LAPACK's /dsytrf/.
+ldlR :: Matrix Double -> (Matrix Double, [Int])
+ldlR = ldlAux dsytrf "ldlR"
+
+-- | LDL factorization of a hermitian complex matrix, using LAPACK's /zhetrf/.
+ldlC :: Matrix (Complex Double) -> (Matrix (Complex Double), [Int])
+ldlC = ldlAux zhetrf "ldlC"
+
+ldlAux f st a = unsafePerformIO $ do
+    ldl <- copy ColumnMajor a
+    piv <- createVector (rows a)
+    f # piv # ldl #| st
+    return (ldl, map (pred.round) (toList piv))
+
+-----------------------------------------------------------------------------------
+
+foreign import ccall unsafe "ldl_S_R" dsytrs :: R ::> R :> R ::> Ok
+foreign import ccall unsafe "ldl_S_C" zsytrs :: C ::> R :> C ::> Ok
+
+-- | Solve a real linear system from a precomputed LDL decomposition ('ldlR'), using LAPACK's /dsytrs/.
+ldlsR :: Matrix Double -> [Int] -> Matrix Double -> Matrix Double
+ldlsR a piv b = lusAux dsytrs "ldlsR" (fmat a) piv b
+
+-- | Solve a complex linear system from a precomputed LDL decomposition ('ldlC'), using LAPACK's /zsytrs/.
+ldlsC :: Matrix (Complex Double) -> [Int] -> Matrix (Complex Double) -> Matrix (Complex Double)
+ldlsC a piv b = lusAux zsytrs "ldlsC" (fmat a) piv b
 

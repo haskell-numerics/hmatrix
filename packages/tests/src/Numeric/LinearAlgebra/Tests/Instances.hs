@@ -16,7 +16,7 @@ module Numeric.LinearAlgebra.Tests.Instances(
     Rot(..),    rRot,cRot,
     Her(..),    rHer,cHer,
     WC(..),     rWC,cWC,
-    SqWC(..),   rSqWC, cSqWC,
+    SqWC(..),   rSqWC, cSqWC, rSymWC, cSymWC,
     PosDef(..), rPosDef, cPosDef,
     Consistent(..), rConsist, cConsist,
     RM,CM, rM,cM,
@@ -175,6 +175,9 @@ cWC (WC m) = m :: CM
 
 rSqWC (SqWC m) = m :: RM
 cSqWC (SqWC m) = m :: CM
+
+rSymWC (SqWC m) = m + tr m :: RM
+cSymWC (SqWC m) = m + tr m :: CM
 
 rPosDef (PosDef m) = m :: RM
 cPosDef (PosDef m) = m :: CM

@@ -1086,6 +1086,113 @@ int luS_l_C(KOCMAT(a), KDVEC(ipiv), OCMAT(b)) {
     OK
 }
 
+
+//////////////////// LDL factorization /////////////////////////
+
+int dsytrf_(char *uplo, integer *n, doublereal *a, integer *lda, integer *ipiv,
+            doublereal *work, integer *lwork, integer *info);
+
+int ldl_R(DVEC(ipiv), ODMAT(r)) {
+    integer n = rr;
+    REQUIRES(n>=1 && rc==n && ipivn == n, BAD_SIZE);
+    DEBUGMSG("ldl_R");
+    integer* auxipiv = (integer*)malloc(n*sizeof(integer));
+    integer res;
+    integer lda = rXc;
+    integer lwork = -1;
+    doublereal ans;
+    dsytrf_ ("L",&n,rp,&lda,auxipiv,&ans,&lwork,&res);
+    lwork = ceil(ans);
+    doublereal* work = (doublereal*)malloc(lwork*sizeof(doublereal));
+    dsytrf_ ("L",&n,rp,&lda,auxipiv,work,&lwork,&res);
+    CHECK(res,res);
+    int k;
+    for (k=0; k<n; k++) {
+        ipivp[k] = auxipiv[k];
+    }
+    free(auxipiv);
+    free(work);
+    OK
+}
+
+
+int zhetrf_(char *uplo, integer *n, doublecomplex *a, integer *lda, integer *ipiv,
+            doublecomplex *work, integer *lwork, integer *info);
+
+int ldl_C(DVEC(ipiv), OCMAT(r)) {
+    integer n = rr;
+    REQUIRES(n>=1 && rc==n && ipivn == n, BAD_SIZE);
+    DEBUGMSG("ldl_R");
+    integer* auxipiv = (integer*)malloc(n*sizeof(integer));
+    integer res;
+    integer lda = rXc;
+    integer lwork = -1;
+    doublecomplex ans;
+    zhetrf_ ("L",&n,rp,&lda,auxipiv,&ans,&lwork,&res);
+    lwork = ceil(ans.r);
+    doublecomplex* work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
+    zhetrf_ ("L",&n,rp,&lda,auxipiv,work,&lwork,&res);
+    CHECK(res,res);
+    int k;
+    for (k=0; k<n; k++) {
+        ipivp[k] = auxipiv[k];
+    }
+    free(auxipiv);
+    free(work);
+    OK
+
+}
+
+//////////////////// LDL solve /////////////////////////
+
+int dsytrs_(char *uplo, integer *n, integer *nrhs, doublereal *a, integer *lda,
+            integer *ipiv, doublereal *b, integer *ldb, integer *info);
+
+int ldl_S_R(KODMAT(a), KDVEC(ipiv), ODMAT(b)) {
+  integer m = ar;
+  integer n = ac;
+  integer lda = aXc;
+  integer mrhs = br;
+  integer nrhs = bc;
+
+  REQUIRES(m==n && m==mrhs && m==ipivn,BAD_SIZE);
+  integer* auxipiv = (integer*)malloc(n*sizeof(integer));
+  int k;
+  for (k=0; k<n; k++) {
+    auxipiv[k] = (integer)ipivp[k];
+  }
+  integer res;
+  dsytrs_ ("L",&n,&nrhs,(/*no const (!?)*/ double*)ap,&lda,auxipiv,bp,&mrhs,&res);
+  CHECK(res,res);
+  free(auxipiv);
+  OK
+}
+
+
+int zhetrs_(char *uplo, integer *n, integer *nrhs, doublecomplex *a, integer *lda,
+            integer *ipiv, doublecomplex *b, integer *ldb, integer *info);
+
+int ldl_S_C(KOCMAT(a), KDVEC(ipiv), OCMAT(b)) {
+    integer m = ar;
+    integer n = ac;
+    integer lda = aXc;
+    integer mrhs = br;
+    integer nrhs = bc;
+
+    REQUIRES(m==n && m==mrhs && m==ipivn,BAD_SIZE);
+    integer* auxipiv = (integer*)malloc(n*sizeof(integer));
+    int k;
+    for (k=0; k<n; k++) {
+        auxipiv[k] = (integer)ipivp[k];
+    }
+    integer res;
+    zhetrs_ ("L",&n,&nrhs,(doublecomplex*)ap,&lda,auxipiv,bp,&mrhs,&res);
+    CHECK(res,res);
+    free(auxipiv);
+    OK
+}
+
+
 //////////////////// Matrix Product /////////////////////////
 
 void dgemm_(char *, char *, integer *, integer *, integer *,
