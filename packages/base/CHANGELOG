@@ -1,20 +1,24 @@
 0.17.0.0
 --------
 
-    * improved matrix extraction using vectors of indexes (??)
+    * improved matrix extraction (??) and rectangular matrix slices without data copy
 
     * basic support of Int32 and Int64 elements
     
-    * remap, more general cond
+    * remap, more general cond, sortIndex
 
     * experimental support of type safe modular arithmetic, including linear
       systems and lu factorization
     
-    * elementary row operations in ST monad
+    * elementary row operations and inplace matrix slice products in the ST monad
 
-    * old compatibility modules removed
+    * Improved development tools.
+
+    * old compatibility modules removed, simpler organization of internal modules
 
     * unitary, pairwiseD2, tr'
+
+    * ldlPacked, ldlSolve
 
 0.16.1.0
 --------

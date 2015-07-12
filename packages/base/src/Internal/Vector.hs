@@ -127,7 +127,7 @@ n |> l
     l' = take n l
 
 
--- | Create a vector of indexes, useful for matrix extraction using '??'
+-- | Create a vector of indexes, useful for matrix extraction using '(??)'
 idxs :: [Int] -> Vector I
 idxs js = fromList (map fromIntegral js) :: Vector I
 

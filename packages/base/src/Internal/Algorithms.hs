@@ -470,14 +470,14 @@ rq m =  {-# SCC "rq" #-} (r,q) where
 
 -- | Hessenberg factorization.
 --
--- If @(p,h) = hess m@ then @m == p \<> h \<> ctrans p@, where p is unitary
+-- If @(p,h) = hess m@ then @m == p \<> h \<> tr p@, where p is unitary
 -- and h is in upper Hessenberg form (it has zero entries below the first subdiagonal).
 hess        :: Field t => Matrix t -> (Matrix t, Matrix t)
 hess = hess'
 
 -- | Schur factorization.
 --
--- If @(u,s) = schur m@ then @m == u \<> s \<> ctrans u@, where u is unitary
+-- If @(u,s) = schur m@ then @m == u \<> s \<> tr u@, where u is unitary
 -- and s is a Shur matrix. A complex Schur matrix is upper triangular. A real Schur matrix is
 -- upper triangular in 2x2 blocks.
 --
@@ -497,7 +497,7 @@ cholSH = {-# SCC "cholSH" #-} cholSH'
 
 -- | Cholesky factorization of a positive definite hermitian or symmetric matrix.
 --
--- If @c = chol m@ then @c@ is upper triangular and @m == ctrans c \<> c@.
+-- If @c = chol m@ then @c@ is upper triangular and @m == tr c \<> c@.
 chol :: Field t => Matrix t ->  Matrix t
 chol m | exactHermitian m = cholSH m
        | otherwise = error "chol requires positive definite complex hermitian or real symmetric matrix"

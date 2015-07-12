@@ -325,9 +325,9 @@ takeDiag m = fromList [flatten m @> (k*cols m+k) | k <- [0 .. min (rows m) (cols
 
 ------------------------------------------------------------
 
-{- | create a general matrix
+{- | Create a matrix from a list of elements
 
->>> (2><3) [2, 4, 7+2*𝑖,   -3, 11, 0]
+>>> (2><3) [2, 4, 7+2*iC,   -3, 11, 0]
 (2><3)
  [       2.0 :+ 0.0,  4.0 :+ 0.0, 7.0 :+ 2.0
  , (-3.0) :+ (-0.0), 11.0 :+ 0.0, 0.0 :+ 0.0 ]

@@ -22,7 +22,7 @@ Stability   :  experimental
 
 Experimental interface with statically checked dimensions.
 
-This module is under active development and the interface is subject to changes.
+See code examples at http://dis.um.es/~alberto/hmatrix/static.html.
 
 -}
 
@@ -65,7 +65,7 @@ import Numeric.LinearAlgebra hiding (
     row,col,vector,matrix,linspace,toRows,toColumns,
     (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',
     eigenvalues,eigenvaluesSH,eigenvaluesSH',build,
-    qr,size,app,mul,dot,chol,range,R,C)
+    qr,size,dot,chol,range,R,C)
 import qualified Numeric.LinearAlgebra as LA
 import Data.Proxy(Proxy)
 import Internal.Static

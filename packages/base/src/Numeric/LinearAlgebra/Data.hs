@@ -8,20 +8,28 @@ License     :  BSD3
 Maintainer  :  Alberto Ruiz
 Stability   :  provisional
 
-Basic data processing.
+This module provides functions for creation and manipulation of vectors and matrices, IO, and other utilities.
 
 -}
 --------------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.Data(
 
+    -- * Elements
+    R,C,I,Z,type(./.),
+
     -- * Vector
-    -- | 1D arrays are storable vectors from the vector package. There is no distinction
-    --   between row and column vectors.
+    {- | 1D arrays are storable vectors directly reexported from the vector package.
+    -}
 
     fromList, toList, (|>), vector, range, idxs,
 
     -- * Matrix
+
+    {- | The main data type of hmatrix is a 2D dense array defined on top of
+         a storable vector. The internal representation is suitable for direct
+         interface with standard numeric libraries.
+    -}
 
     (><), matrix, tr, tr',
 
@@ -56,8 +64,9 @@ module Numeric.LinearAlgebra.Data(
     -- * Matrix extraction
     Extractor(..), (??),
 
-    takeRows, dropRows, takeColumns, dropColumns,
-    subMatrix, (?), (¿), fliprl, flipud,
+    (?), (¿), fliprl, flipud,
+
+    subMatrix, takeRows, dropRows, takeColumns, dropColumns,
 
     remap,
 
@@ -92,7 +101,7 @@ module Numeric.LinearAlgebra.Data(
     separable,
     fromArray2D,
     module Data.Complex,
-    R,C,I,Z,Mod, type(./.),
+    Mod,
     Vector, Matrix, GMatrix, nRows, nCols
 
 ) where

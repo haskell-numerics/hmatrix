@@ -72,7 +72,7 @@ infixr 8 <.>
 
 
 
-{- | infix synonym for 'app'
+{- | dense matrix-vector product
 
 >>> let m = (2><3) [1..]
 >>> m

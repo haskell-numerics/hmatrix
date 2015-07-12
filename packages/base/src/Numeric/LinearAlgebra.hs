@@ -8,11 +8,16 @@ License     :  BSD3
 Maintainer  :  Alberto Ruiz
 Stability   :  provisional
 
+
 -}
 -----------------------------------------------------------------------------
 module Numeric.LinearAlgebra (
 
-    -- * Basic types and data processing
+    -- * Basic Types and data manipulation
+    -- | This package works with 2D ('Matrix') and 1D ('Vector')
+    -- arrays of real ('R') or complex ('C') double precision numbers.
+    -- Single precision and machine integers are also supported for
+    -- basic arithmetic and data manipulation.
     module Numeric.LinearAlgebra.Data,
 
     -- * Numeric classes
@@ -51,9 +56,9 @@ module Numeric.LinearAlgebra (
     -- ** dot
     dot, (<.>),
     -- ** matrix-vector
-    app, (#>), (<#), (!#>),
+    (#>), (<#), (!#>),
     -- ** matrix-matrix
-    mul, (<>),
+    (<>),
     -- | The matrix product is also implemented in the "Data.Monoid" instance, where
     -- single-element matrices (created from numeric literals or using 'scalar')
     -- are used for scaling.
@@ -172,7 +177,7 @@ import Internal.Sparse((!#>))
 import Internal.CG
 import Internal.Conversion
 
-{- | infix synonym of 'mul'
+{- | dense matrix product
 
 >>> let a = (3><5) [1..]
 >>> a
