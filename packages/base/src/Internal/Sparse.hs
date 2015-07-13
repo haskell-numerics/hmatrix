@@ -13,7 +13,6 @@ module Internal.Sparse(
 import Internal.Vector
 import Internal.Matrix
 import Internal.Numeric
-import Internal.Container
 import qualified Data.Vector.Storable as V
 import Data.Function(on)
 import Control.Arrow((***))

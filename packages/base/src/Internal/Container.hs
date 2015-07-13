@@ -28,7 +28,6 @@ import Internal.Vector
 import Internal.Matrix
 import Internal.Element
 import Internal.Numeric
-import Data.Complex
 import Internal.Algorithms(Field,linearSolveSVD)
 
 ------------------------------------------------------------------
@@ -158,29 +157,6 @@ instance LSDiv Matrix
 
 --------------------------------------------------------------------------------
 
-class Konst e d c | d -> c, c -> d
-  where
-    -- |
-    -- >>> konst 7 3 :: Vector Float
-    -- fromList [7.0,7.0,7.0]
-    --
-    -- >>> konst i (3::Int,4::Int)
-    -- (3><4)
-    --  [ 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0
-    --  , 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0
-    --  , 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0 ]
-    --
-    konst :: e -> d -> c e
-
-instance Container Vector e => Konst e Int Vector
-  where
-    konst = konst'
-
-instance (Num e, Container Vector e) => Konst e (Int,Int) Matrix
-  where
-    konst = konst'
-
---------------------------------------------------------------------------------
 
 class Build d f c e | d -> c, c -> d, f -> e, f -> d, f -> c, c e -> f, d e -> f
   where
@@ -238,23 +214,6 @@ meanCov x = (med,cov) where
     meds = konst 1 r `outer` med
     xc   = x `sub` meds
     cov  = scale (recip (fromIntegral (r-1))) (trans xc `mXm` xc)
-
---------------------------------------------------------------------------------
-
-class ( Container Vector t
-      , Container Matrix t
-      , Konst t Int Vector
-      , Konst t (Int,Int) Matrix
-      , CTrans t
-      , Product t
-      ) => Numeric t
-
-instance Numeric Double
-instance Numeric (Complex Double)
-instance Numeric Float
-instance Numeric (Complex Float)
-instance Numeric I
-instance Numeric Z
 
 --------------------------------------------------------------------------------
 

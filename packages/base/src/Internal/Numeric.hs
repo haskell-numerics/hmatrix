@@ -549,6 +549,48 @@ accum
     -> c e              -- ^ result
 accum = accum'
 
+--------------------------------------------------------------------------------
+
+class Konst e d c | d -> c, c -> d
+  where
+    -- |
+    -- >>> konst 7 3 :: Vector Float
+    -- fromList [7.0,7.0,7.0]
+    --
+    -- >>> konst i (3::Int,4::Int)
+    -- (3><4)
+    --  [ 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0
+    --  , 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0
+    --  , 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0, 0.0 :+ 1.0 ]
+    --
+    konst :: e -> d -> c e
+
+instance Container Vector e => Konst e Int Vector
+  where
+    konst = konst'
+
+instance (Num e, Container Vector e) => Konst e (Int,Int) Matrix
+  where
+    konst = konst'
+
+--------------------------------------------------------------------------------
+
+class ( Container Vector t
+      , Container Matrix t
+      , Konst t Int Vector
+      , Konst t (Int,Int) Matrix
+      , CTrans t
+      , Product t
+      ) => Numeric t
+
+instance Numeric Double
+instance Numeric (Complex Double)
+instance Numeric Float
+instance Numeric (Complex Float)
+instance Numeric I
+instance Numeric Z
+
+--------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
 
