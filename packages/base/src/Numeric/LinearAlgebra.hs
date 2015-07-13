@@ -13,7 +13,7 @@ Stability   :  provisional
 -----------------------------------------------------------------------------
 module Numeric.LinearAlgebra (
 
-    -- * Basic Types and data manipulation
+    -- * Basic types and data manipulation
     -- | This package works with 2D ('Matrix') and 1D ('Vector')
     -- arrays of real ('R') or complex ('C') double precision numbers.
     -- Single precision and machine integers are also supported for
@@ -78,7 +78,7 @@ module Numeric.LinearAlgebra (
     scale,
     sumElements, prodElements,
 
-    -- * Linear Systems
+    -- * Linear systems
     (<\>),
     linearSolve,
     linearSolveLS,
@@ -105,14 +105,14 @@ module Numeric.LinearAlgebra (
     orth,
     nullspace, null1, null1sym,
 
-    -- * SVD
+    -- * Singular value decomposition
     svd,
     thinSVD,
     compactSVD,
     singularValues,
     leftSV, rightSV,
 
-    -- * Eigensystems
+    -- * Eigendecomposition
     eig, eigSH, eigSH',
     eigenvalues, eigenvaluesSH, eigenvaluesSH',
     geigSH',
@@ -205,10 +205,6 @@ import Internal.Conversion
 (<>) :: Numeric t => Matrix t -> Matrix t -> Matrix t
 (<>) = mXm
 infixr 8 <>
-
--- | dense matrix product
-mul :: Numeric t => Matrix t -> Matrix t -> Matrix t
-mul = mXm
 
 
 {- | Solve a linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, returning Nothing for a singular system. For underconstrained or overconstrained systems use 'linearSolveLS' or 'linearSolveSVD'.
