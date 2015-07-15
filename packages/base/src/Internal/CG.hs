@@ -14,7 +14,7 @@ import Internal.IO
 import Internal.Container
 import Internal.Sparse
 import Numeric.Vector()
-import Internal.Algorithms(linearSolveLS, relativeError, pnorm, NormType(..))
+import Internal.Algorithms(linearSolveLS, linearSolve, relativeError, pnorm, NormType(..))
 import Control.Arrow((***))
 
 {-
@@ -59,20 +59,21 @@ cg sym at a (CGState p r r2 x _) = CGState p' r' r'2 x' rdx
 
 conjugrad
   :: Bool -> GMatrix -> V -> V -> R -> R -> [CGState]
-conjugrad sym a b = solveG (tr a !#>) (a !#>) (cg sym) b
+conjugrad sym a b = solveG sym (tr a !#>) (a !#>) (cg sym) b
 
 solveG
-    :: (V -> V) -> (V -> V)
+    :: Bool
+    -> (V -> V) -> (V -> V)
     -> ((V -> V) -> (V -> V) -> CGState -> CGState)
     -> V
     -> V
     -> R -> R
     -> [CGState]
-solveG mat ma meth rawb x0' ϵb ϵx
+solveG sym mat ma meth rawb x0' ϵb ϵx
     = takeUntil ok . iterate (meth mat ma) $ CGState p0 r0 r20 x0 1
   where
-    a = mat . ma
-    b = mat rawb
+    a = if sym then ma else mat . ma
+    b = if sym then rawb else mat rawb
     x0  = if x0' == 0 then konst 0 (dim b) else x0'
     r0  = b - a x0
     r20 = r0 <.> r0
@@ -138,6 +139,11 @@ instance Testable GMatrix
         s5 = cgSolve False sm v
         d5 = denseSolve dm v
 
+        symassoc = [((0,0),1.0),((1,1),2.0),((0,1),0.5),((1,0),0.5)]
+        b = vect [3,4]
+        d6 = flatten $ linearSolve (toDense symassoc) (asColumn b)
+        s6 = cgSolve True (mkSparse symassoc) b
+
         info = do
             print sm
             disp (toDense sma)
@@ -147,12 +153,15 @@ instance Testable GMatrix
             print s4; print d4
             print s5; print d5
             print $ relativeError (pnorm Infinity) s5 d5
+            print s6; print d6
+            print $ relativeError (pnorm Infinity) s6 d6
 
         ok = s1==d1
           && s2==d2
           && s3==d3
           && s4==d4
           && relativeError (pnorm Infinity) s5 d5 < 1E-10
+          && relativeError (pnorm Infinity) s6 d6 < 1E-10
 
         disp = putStr . dispf 2
 

@@ -194,3 +194,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - "ntfrgl" added {take,drop}Last{Rows,Columns}
 
+- "cruegge" discovered a bug in the conjugate gradient solver for sparse symmetric systems.
+
