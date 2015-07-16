@@ -39,7 +39,7 @@ module Numeric.LinearAlgebra.Tests.Properties (
     expmDiagProp,
     multProp1, multProp2,
     subProp,
-    linearSolveProp, linearSolveProp2
+    linearSolveProp, linearSolvePropH, linearSolveProp2
 ) where
 
 import Numeric.LinearAlgebra.HMatrix hiding (Testable,unitary)
@@ -209,11 +209,11 @@ eigProp m = complex m <> v |~| v <> diag s
 eigSHProp m = m <> v |~| v <> real (diag s)
               && unitary v
               && m |~| v <> real (diag s) <> tr v
-    where (s, v) = eigSH m
+    where (s, v) = eigSH' m
 
 eigProp2 m = fst (eig m) |~| eigenvalues m
 
-eigSHProp2 m = fst (eigSH m) |~| eigenvaluesSH m
+eigSHProp2 m = fst (eigSH' m) |~| eigenvaluesSH' m
 
 ------------------------------------------------------------------
 
@@ -246,9 +246,9 @@ schurProp2 m = m |~| u <> s <> tr u && unitary u && upperHessenberg s -- fixme
     where (u,s) = schur m
 
 cholProp m = m |~| tr c <> c && upperTriang c
-    where c = chol m
+    where c = chol (trustSym m)
 
-exactProp m = chol m == chol (m+0)
+exactProp m = chol (trustSym m) == chol (trustSym (m+0))
 
 expmDiagProp m = expm (logm m) :~ 7 ~: complex m
     where logm = matFunc log
@@ -262,6 +262,8 @@ multProp1 p (a,b) = (a <> b) :~p~: (mulH a b)
 multProp2 p (a,b) = (tr (a <> b)) :~p~: (tr b <> tr a)
 
 linearSolveProp f m = f m m |~| ident (rows m)
+
+linearSolvePropH f m = f m (her m) |~| ident (rows (her m))
 
 linearSolveProp2 f (a,x) = not wc `trivial` (not wc || a <> f a b |~| b)
     where q = min (rows a) (cols a)

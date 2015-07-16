@@ -49,7 +49,7 @@ class Element e => Container c e
     scalar'      :: e -> c e
     scale'       :: e -> c e -> c e
     addConstant :: e -> c e -> c e
-    add         :: c e -> c e -> c e
+    add'        :: c e -> c e -> c e
     sub         :: c e -> c e -> c e
     -- | element by element multiplication
     mul         :: c e -> c e -> c e
@@ -100,7 +100,7 @@ instance Container Vector I
     size' = dim
     scale' = vectorMapValI Scale
     addConstant = vectorMapValI AddConstant
-    add = vectorZipI Add
+    add' = vectorZipI Add
     sub = vectorZipI Sub
     mul = vectorZipI Mul
     equal u v = dim u == dim v && maxElement' (vectorMapI Abs (sub u v)) == 0
@@ -139,7 +139,7 @@ instance Container Vector Z
     size' = dim
     scale' = vectorMapValL Scale
     addConstant = vectorMapValL AddConstant
-    add = vectorZipL Add
+    add' = vectorZipL Add
     sub = vectorZipL Sub
     mul = vectorZipL Mul
     equal u v = dim u == dim v && maxElement' (vectorMapL Abs (sub u v)) == 0
@@ -179,7 +179,7 @@ instance Container Vector Float
     size' = dim
     scale' = vectorMapValF Scale
     addConstant = vectorMapValF AddConstant
-    add = vectorZipF Add
+    add' = vectorZipF Add
     sub = vectorZipF Sub
     mul = vectorZipF Mul
     equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
@@ -216,7 +216,7 @@ instance Container Vector Double
     size' = dim
     scale' = vectorMapValR Scale
     addConstant = vectorMapValR AddConstant
-    add = vectorZipR Add
+    add' = vectorZipR Add
     sub = vectorZipR Sub
     mul = vectorZipR Mul
     equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
@@ -253,7 +253,7 @@ instance Container Vector (Complex Double)
     size' = dim
     scale' = vectorMapValC Scale
     addConstant = vectorMapValC AddConstant
-    add = vectorZipC Add
+    add' = vectorZipC Add
     sub = vectorZipC Sub
     mul = vectorZipC Mul
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
@@ -289,7 +289,7 @@ instance Container Vector (Complex Float)
     size' = dim
     scale' = vectorMapValQ Scale
     addConstant = vectorMapValQ AddConstant
-    add = vectorZipQ Add
+    add' = vectorZipQ Add
     sub = vectorZipQ Sub
     mul = vectorZipQ Mul
     equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
@@ -327,7 +327,7 @@ instance (Num a, Element a, Container Vector a) => Container Matrix a
     size' = size
     scale' x = liftMatrix (scale' x)
     addConstant x = liftMatrix (addConstant x)
-    add = liftMatrix2 add
+    add' = liftMatrix2 add'
     sub = liftMatrix2 sub
     mul = liftMatrix2 mul
     equal a b = cols a == cols b && flatten a `equal` flatten b
@@ -387,9 +387,6 @@ scalar = scalar'
 conj :: Container c e => c e -> c e
 conj = conj'
 
--- | multiplication by scalar
-scale :: Container c e => e -> c e -> c e
-scale = scale'
 
 arctan2 :: (Fractional e, Container c e) => c e -> c e -> c e
 arctan2 = arctan2'
@@ -581,6 +578,10 @@ class ( Container Vector t
       , Konst t (Int,Int) Matrix
       , CTrans t
       , Product t
+      , Additive (Vector t)
+      , Additive (Matrix t)
+      , Linear t Vector
+      , Linear t Matrix
       ) => Numeric t
 
 instance Numeric Double
@@ -912,11 +913,30 @@ instance (CTrans t, Container Vector t) => Transposable (Matrix t) (Matrix t)
     tr  = ctrans
     tr' = trans
 
-class Linear t v
+class Additive c
   where
-    scalarL :: t -> v
-    addL    :: v -> v -> v
-    scaleL  :: t -> v -> v
+    add    :: c -> c -> c
+
+class Linear t c
+  where
+    scale  :: t -> c t -> c t
+
+
+instance Container Vector t => Linear t Vector
+  where
+    scale = scale'
+
+instance Container Matrix t => Linear t Matrix
+  where
+    scale = scale'
+
+instance Container Vector t => Additive (Vector t)
+  where
+    add = add'
+
+instance Container Matrix t => Additive (Matrix t)
+  where
+    add = add'
 
 
 class Testable t

@@ -458,12 +458,12 @@ rowOuters a b = a' * b'
 --------------------------------------------------------------------------------
 
 -- | solution of overconstrained homogeneous linear system
-null1 :: Matrix Double -> Vector Double
+null1 :: Matrix R -> Vector R
 null1 = last . toColumns . snd . rightSV
 
 -- | solution of overconstrained homogeneous symmetric linear system
-null1sym :: Matrix Double -> Vector Double
-null1sym = last . toColumns . snd . eigSH'
+null1sym :: Her R -> Vector R
+null1sym = last . toColumns . snd . eigSH
 
 --------------------------------------------------------------------------------
 
@@ -712,7 +712,9 @@ luST ok (r,_) x = do
  ,  0,  0,  0,  0,  1 ]
 
 -}
-luPacked' x = mutable (luST (magnit 0)) x
+luPacked' x = LU m p
+  where
+    (m,p) = mutable (luST (magnit 0)) x
 
 --------------------------------------------------------------------------------
 
@@ -782,7 +784,7 @@ forwSust' lup rhs = foldl' f (rhs?[]) ls
                 (b - l<>x)
 
 
-luSolve'' (lup,p) b = backSust' lup (forwSust' lup pb)
+luSolve'' (LU lup p) b = backSust' lup (forwSust' lup pb)
   where
     pb = b ?? (Pos (fixPerm' p), All)
 
@@ -827,7 +829,7 @@ backSust lup rhs = fst $ mutable f rhs
  , 7, 10, 6 ]
 
 -}
-luSolve' (lup,p) b = backSust lup (forwSust lup pb)
+luSolve' (LU lup p) b = backSust lup (forwSust lup pb)
   where
     pb = b ?? (Pos (fixPerm' p), All)
 

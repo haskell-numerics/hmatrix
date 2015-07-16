@@ -14,7 +14,7 @@ Arbitrary instances for vectors, matrices.
 module Numeric.LinearAlgebra.Tests.Instances(
     Sq(..),     rSq,cSq,
     Rot(..),    rRot,cRot,
-    Her(..),    rHer,cHer,
+                rHer,cHer,
     WC(..),     rWC,cWC,
     SqWC(..),   rSqWC, cSqWC, rSymWC, cSymWC,
     PosDef(..), rPosDef, cPosDef,
@@ -81,12 +81,12 @@ instance (Field a, Arbitrary a) => Arbitrary (Rot a) where
 
 
 -- a complex hermitian or real symmetric matrix
-newtype (Her a) = Her (Matrix a) deriving Show
+--newtype (Her a) = Her (Matrix a) deriving Show
 instance (Field a, Arbitrary a, Num (Vector a)) => Arbitrary (Her a) where
     arbitrary = do
         Sq m <- arbitrary
         let m' = m/2
-        return $ Her (m' + tr m')
+        return $ sym m'
 
 
 class (Field a, Arbitrary a, Element (RealOf a), Random (RealOf a)) => ArbitraryField a
@@ -125,9 +125,9 @@ newtype (PosDef a) = PosDef (Matrix a) deriving Show
 instance (Numeric a, ArbitraryField a, Num (Vector a)) 
     => Arbitrary (PosDef a) where
     arbitrary = do
-        Her m <- arbitrary
+        m <- arbitrary
         let (_,v) = eigSH m
-            n = rows m
+            n = rows (her m)
         l <- replicateM n (choose (0,100))
         let s = diag (fromList l)
             p = v <> real s <> tr v
@@ -161,8 +161,8 @@ fM m = m :: FM
 zM m = m :: ZM
 
 
-rHer (Her m) = m :: RM
-cHer (Her m) = m :: CM
+rHer m = her m :: RM
+cHer m = her m :: CM
 
 rRot (Rot m) = m :: RM
 cRot (Rot m) = m :: CM
@@ -176,8 +176,8 @@ cWC (WC m) = m :: CM
 rSqWC (SqWC m) = m :: RM
 cSqWC (SqWC m) = m :: CM
 
-rSymWC (SqWC m) = m + tr m :: RM
-cSymWC (SqWC m) = m + tr m :: CM
+rSymWC (SqWC m) = sym m :: Her R
+cSymWC (SqWC m) = sym m :: Her C
 
 rPosDef (PosDef m) = m :: RM
 cPosDef (PosDef m) = m :: CM

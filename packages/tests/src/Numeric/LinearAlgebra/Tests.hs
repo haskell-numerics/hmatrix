@@ -127,8 +127,8 @@ expmTest2 = expm nd2 :~15~: (2><2)
 mbCholTest = utest "mbCholTest" (ok1 && ok2) where
     m1 = (2><2) [2,5,5,8 :: Double]
     m2 = (2><2) [3,5,5,9 :: Complex Double]
-    ok1 = mbCholSH m1 == Nothing
-    ok2 = mbCholSH m2 == Just (chol m2)
+    ok1 = mbChol (trustSym m1) == Nothing
+    ok2 = mbChol (trustSym m2) == Just (chol $ trustSym m2)
 
 ---------------------------------------------------------------------
 
@@ -403,8 +403,8 @@ indexProp g f x = a1 == g a2 && a2 == a3 && b1 == g b2 && b2 == b3
 --------------------------------------------------------------------------------
 
 sliceTest = utest "slice test" $ and
-    [ testSlice chol  (gen 5 :: Matrix R)
-    , testSlice chol  (gen 5 :: Matrix C)
+    [ testSlice (chol . trustSym)  (gen 5 :: Matrix R)
+    , testSlice (chol . trustSym)  (gen 5 :: Matrix C)
     , testSlice qr    (rec :: Matrix R)
     , testSlice qr    (rec :: Matrix C)
     , testSlice hess  (agen 5 :: Matrix R)
@@ -420,12 +420,12 @@ sliceTest = utest "slice test" $ and
 
     , testSlice eig   (agen 5 :: Matrix R)
     , testSlice eig   (agen 5 :: Matrix C)
-    , testSlice eigSH (gen 5 :: Matrix R)
-    , testSlice eigSH (gen 5 :: Matrix C)
+    , testSlice (eigSH . trustSym) (gen 5 :: Matrix R)
+    , testSlice (eigSH . trustSym) (gen 5 :: Matrix C)
     , testSlice eigenvalues   (agen 5 :: Matrix R)
     , testSlice eigenvalues   (agen 5 :: Matrix C)
-    , testSlice eigenvaluesSH (gen 5 :: Matrix R)
-    , testSlice eigenvaluesSH (gen 5 :: Matrix C)
+    , testSlice (eigenvaluesSH . trustSym) (gen 5 :: Matrix R)
+    , testSlice (eigenvaluesSH . trustSym) (gen 5 :: Matrix C)
 
     , testSlice svd           (rec :: Matrix R)
     , testSlice thinSVD       (rec :: Matrix R)
@@ -489,10 +489,10 @@ sliceTest = utest "slice test" $ and
     , testSlice ((<>) (ogen 5:: Matrix (Z ./. 7))) (gen 5)
     , testSlice (flip (<>) (gen 5:: Matrix (Z ./. 7))) (ogen 5)
 
-    , testSlice (flip cholSolve (agen 5:: Matrix R)) (chol $ gen 5)
-    , testSlice (flip cholSolve (agen 5:: Matrix C)) (chol $ gen 5)
-    , testSlice (cholSolve (chol $ gen 5:: Matrix R)) (agen 5)
-    , testSlice (cholSolve (chol $ gen 5:: Matrix C)) (agen 5)
+    , testSlice (flip cholSolve (agen 5:: Matrix R)) (chol $ trustSym $ gen 5)
+    , testSlice (flip cholSolve (agen 5:: Matrix C)) (chol $ trustSym $ gen 5)
+    , testSlice (cholSolve (chol $ trustSym $ gen 5:: Matrix R)) (agen 5)
+    , testSlice (cholSolve (chol $ trustSym $ gen 5:: Matrix C)) (agen 5)
 
     , ok_qrgr        (rec :: Matrix R)
     , ok_qrgr        (rec :: Matrix C)
@@ -515,8 +515,8 @@ sliceTest = utest "slice test" $ and
 
     test_lus m = testSlice f lup
       where
-        f x = luSolve (x,p) m
-        (lup,p) = luPacked m
+        f x = luSolve (LU x p) m
+        (LU lup p) = luPacked m
 
     gen :: Numeric t => Int -> Matrix t
     gen n = diagRect 1 (konst 5 n) n n
@@ -588,11 +588,11 @@ runTests n = do
     test (linearSolveProp (luSolve.luPacked) . rSqWC)
     test (linearSolveProp (luSolve.luPacked) . cSqWC)
     putStrLn "------ ldlSolve"
-    test (linearSolveProp (ldlSolve.ldlPacked) . rSymWC)
-    test (linearSolveProp (ldlSolve.ldlPacked) . cSymWC)
+    test (linearSolvePropH (ldlSolve.ldlPacked) . rSymWC)
+    test (linearSolvePropH (ldlSolve.ldlPacked) . cSymWC)
     putStrLn "------ cholSolve"
-    test (linearSolveProp (cholSolve.chol) . rPosDef)
-    test (linearSolveProp (cholSolve.chol) . cPosDef)
+    test (linearSolveProp (cholSolve.chol.trustSym) . rPosDef)
+    test (linearSolveProp (cholSolve.chol.trustSym) . cPosDef)
     putStrLn "------ luSolveLS"
     test (linearSolveProp linearSolveLS . rSqWC)
     test (linearSolveProp linearSolveLS . cSqWC)
@@ -865,8 +865,8 @@ eigBench = do
     let m = reshape 1000 (randomVector 777 Uniform (1000*1000))
         s = m + tr m
     m `seq` s `seq` putStrLn ""
-    time "eigenvalues  symmetric 1000x1000" (eigenvaluesSH' m)
-    time "eigenvectors symmetric 1000x1000" (snd $ eigSH' m)
+    time "eigenvalues  symmetric 1000x1000" (eigenvaluesSH (trustSym m))
+    time "eigenvectors symmetric 1000x1000" (snd $ eigSH (trustSym m))
     time "eigenvalues  general   1000x1000" (eigenvalues m)
     time "eigenvectors general   1000x1000" (snd $ eig m)
 
@@ -893,12 +893,14 @@ solveBenchN n = do
     time ("svd solve " ++ show n) (linearSolveSVD a b)
     time (" ls solve " ++ show n) (linearSolveLS a b)
     time ("    solve " ++ show n) (linearSolve a b)
-    time ("cholSolve " ++ show n) (cholSolve (chol a) b)
+--    time (" LU solve " ++ show n) (luSolve (luPacked a) b)
+    time ("LDL solve " ++ show n) (ldlSolve (ldlPacked (trustSym a)) b)
+    time ("cholSolve " ++ show n) (cholSolve (chol $ trustSym a) b)
 
 solveBench = do
     solveBenchN 500
     solveBenchN 1000
-    -- solveBenchN 1500
+    solveBenchN 1500
 
 --------------------------------
 
@@ -906,7 +908,7 @@ cholBenchN n = do
     let x = uniformSample 777 (2*n) (replicate n (-1,1))
         a = tr x <> x
     a `seq` putStr ""
-    time ("chol " ++ show n) (chol a)
+    time ("chol " ++ show n) (chol $ trustSym a)
 
 cholBench = do
     putStrLn ""

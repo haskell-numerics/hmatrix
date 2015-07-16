@@ -13,11 +13,12 @@ compatibility with previous version, to be removed
 
 module Numeric.LinearAlgebra.HMatrix (
     module Numeric.LinearAlgebra,
-    (¦),(——),ℝ,ℂ,(<·>),app,mul
+    (¦),(——),ℝ,ℂ,(<·>),app,mul, cholSH, mbCholSH, eigSH', eigenvaluesSH', geigSH'
 ) where
 
 import Numeric.LinearAlgebra
 import Internal.Util
+import Internal.Algorithms(cholSH, mbCholSH, eigSH', eigenvaluesSH', geigSH')
 
 infixr 8 <·>
 (<·>) :: Numeric t => Vector t -> Vector t -> t

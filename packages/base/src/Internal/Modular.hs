@@ -33,7 +33,7 @@ import Internal.Element
 import Internal.Container
 import Internal.Vectorized (prodI,sumI,prodL,sumL)
 import Internal.LAPACK (multiplyI, multiplyL)
-import Internal.Algorithms(luFact)
+import Internal.Algorithms(luFact,LU(..))
 import Internal.Util(Normed(..),Indexable(..),
                      gaussElim, gaussElim_1, gaussElim_2,
                      luST, luSolve', luPacked', magnit, invershur)
@@ -169,7 +169,7 @@ instance forall m . KnownNat m => Container Vector (Mod m I)
     size' = dim
     scale' s x = vmod (scale (unMod s) (f2i x))
     addConstant c x = vmod (addConstant (unMod c) (f2i x))
-    add a b = vmod (add (f2i a) (f2i b))
+    add' a b = vmod (add' (f2i a) (f2i b))
     sub a b = vmod (sub (f2i a) (f2i b))
     mul a b = vmod (mul (f2i a) (f2i b))
     equal u v = equal (f2i u) (f2i v)
@@ -209,7 +209,7 @@ instance forall m . KnownNat m => Container Vector (Mod m Z)
     size' = dim
     scale' s x = vmod (scale (unMod s) (f2i x))
     addConstant c x = vmod (addConstant (unMod c) (f2i x))
-    add a b = vmod (add (f2i a) (f2i b))
+    add' a b = vmod (add' (f2i a) (f2i b))
     sub a b = vmod (sub (f2i a) (f2i b))
     mul a b = vmod (mul (f2i a) (f2i b))
     equal u v = equal (f2i u) (f2i v)
@@ -371,7 +371,9 @@ test = (ok, info)
 
     checkLU okf t = norm_Inf $ flatten (l <> u <> p - t)
       where
-        (l,u,p,_ :: Int) = luFact $ mutable (luST okf) t
+        (l,u,p,_ :: Int) = luFact (LU x' p')
+          where
+            (x',p') = mutable (luST okf) t
 
     checkSolve aa = norm_Inf $ flatten (aa <> x - bb)
        where

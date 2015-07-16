@@ -4,6 +4,12 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 
+{-# LANGUAGE FlexibleContexts, FlexibleInstances #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeFamilies #-}
+
 -----------------------------------------------------------------------------
 {- |
 Module      :  Internal.Algorithms
@@ -32,6 +38,7 @@ import Data.List(foldl1')
 import qualified Data.Array as A
 import Internal.ST
 import Internal.Vectorized(range)
+import Control.DeepSeq
 
 {- | Generic linear algebra functions for double precision real and complex matrices.
 
@@ -43,6 +50,10 @@ class (Numeric t,
        Normed Matrix t,
        Normed Vector t,
        Floating t,
+       Linear t Vector,
+       Linear t Matrix,
+       Additive (Vector t),
+       Additive (Matrix t),
        RealOf t ~ Double) => Field t where
     svd'         :: Matrix t -> (Matrix t, Vector Double, Matrix t)
     thinSVD'     :: Matrix t -> (Matrix t, Vector Double, Matrix t)
@@ -306,25 +317,38 @@ leftSV m  | vertical m = let (u,s,_) = svd m     in (u,s)
 
 --------------------------------------------------------------
 
+-- | LU decomposition of a matrix in a compact format.
+data LU t = LU (Matrix t) [Int] deriving Show
+
+instance (NFData t, Numeric t) => NFData (LU t)
+  where
+    rnf (LU m _) = rnf m
+
 -- | Obtains the LU decomposition of a matrix in a compact data structure suitable for 'luSolve'.
-luPacked :: Field t => Matrix t -> (Matrix t, [Int])
-luPacked = {-# SCC "luPacked" #-} luPacked'
+luPacked :: Field t => Matrix t -> LU t
+luPacked x = {-# SCC "luPacked" #-} LU m p
+  where
+    (m,p) = luPacked' x
 
 -- | Solution of a linear system (for several right hand sides) from the precomputed LU factorization obtained by 'luPacked'.
-luSolve :: Field t => (Matrix t, [Int]) -> Matrix t -> Matrix t
-luSolve = {-# SCC "luSolve" #-} luSolve'
+luSolve :: Field t => LU t -> Matrix t -> Matrix t
+luSolve (LU m p) = {-# SCC "luSolve" #-} luSolve' (m,p)
 
 -- | Solve a linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition. For underconstrained or overconstrained systems use 'linearSolveLS' or 'linearSolveSVD'.
 -- It is similar to 'luSolve' . 'luPacked', but @linearSolve@ raises an error if called on a singular system.
 linearSolve :: Field t => Matrix t -> Matrix t -> Matrix t
 linearSolve = {-# SCC "linearSolve" #-} linearSolve'
 
--- | Solve a linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, returning Nothing for a singular system. For underconstrained or overconstrained systems use 'linearSolveLS' or 'linearSolveSVD'. 
+-- | Solve a linear system (for square coefficient matrix and several right-hand sides) using the LU decomposition, returning Nothing for a singular system. For underconstrained or overconstrained systems use 'linearSolveLS' or 'linearSolveSVD'.
 mbLinearSolve :: Field t => Matrix t -> Matrix t -> Maybe (Matrix t)
 mbLinearSolve = {-# SCC "linearSolve" #-} mbLinearSolve'
 
 -- | Solve a symmetric or Hermitian positive definite linear system using a precomputed Cholesky decomposition obtained by 'chol'.
-cholSolve :: Field t => Matrix t -> Matrix t -> Matrix t
+cholSolve
+    :: Field t
+    => Matrix t -- ^ Cholesky decomposition of the coefficient matrix
+    -> Matrix t -- ^ right hand sides
+    -> Matrix t -- ^ solution
 cholSolve = {-# SCC "cholSolve" #-} cholSolve'
 
 -- | Minimum norm solution of a general linear least squares problem Ax=B using the SVD. Admits rank-deficient systems but it is slower than 'linearSolveLS'. The effective rank of A is determined by treating as zero those singular valures which are less than 'eps' times the largest singular value.
@@ -338,20 +362,28 @@ linearSolveLS = {-# SCC "linearSolveLS" #-} linearSolveLS'
 
 --------------------------------------------------------------------------------
 
+-- | LDL decomposition of a complex Hermitian or real symmetric matrix in a compact format.
+data LDL t = LDL (Matrix t) [Int] deriving Show
+
+instance (NFData t, Numeric t) => NFData (LDL t)
+  where
+    rnf (LDL m _) = rnf m
+
 -- | Similar to 'ldlPacked', without checking that the input matrix is hermitian or symmetric. It works with the lower triangular part.
-ldlPackedSH :: Field t => Matrix t -> (Matrix t, [Int])
-ldlPackedSH = {-# SCC "ldlPacked" #-} ldlPacked'
+ldlPackedSH :: Field t => Matrix t -> LDL t
+ldlPackedSH x = {-# SCC "ldlPacked" #-} LDL m p
+  where
+   (m,p) = ldlPacked' x
 
 -- | Obtains the LDL decomposition of a matrix in a compact data structure suitable for 'ldlSolve'.
-ldlPacked :: Field t => Matrix t -> (Matrix t, [Int])
-ldlPacked m
-    | exactHermitian m = {-# SCC "ldlPacked" #-} ldlPackedSH m
-    | otherwise = error "ldlPacked requires complex Hermitian or real symmetrix matrix"
+ldlPacked :: Field t => Her t -> LDL t
+ldlPacked (Her m) = ldlPackedSH m
 
-
--- | Solution of a linear system (for several right hand sides) from the precomputed LDL factorization obtained by 'ldlPacked'.
-ldlSolve :: Field t => (Matrix t, [Int]) -> Matrix t -> Matrix t
-ldlSolve = {-# SCC "ldlSolve" #-} ldlSolve'
+-- | Solution of a linear system (for several right hand sides) from a precomputed LDL factorization obtained by 'ldlPacked'.
+--
+--   Note: this can be slower than the general solver based on the LU decomposition.
+ldlSolve :: Field t => LDL t -> Matrix t -> Matrix t
+ldlSolve (LDL m p) = {-# SCC "ldlSolve" #-} ldlSolve' (m,p)
 
 --------------------------------------------------------------
 
@@ -429,14 +461,12 @@ fromList [11.344814282762075,0.17091518882717918,-0.5157294715892575]
 3.000  5.000  6.000
 
 -}
-eigSH :: Field t => Matrix t -> (Vector Double, Matrix t)
-eigSH m | exactHermitian m = eigSH' m
-        | otherwise = error "eigSH requires complex hermitian or real symmetric matrix"
+eigSH :: Field t => Her t -> (Vector Double, Matrix t)
+eigSH (Her m) = eigSH' m
 
 -- | Eigenvalues (in descending order) of a complex hermitian or real symmetric matrix.
-eigenvaluesSH :: Field t => Matrix t -> Vector Double
-eigenvaluesSH m | exactHermitian m = eigenvaluesSH' m
-                | otherwise = error "eigenvaluesSH requires complex hermitian or real symmetric matrix"
+eigenvaluesSH :: Field t => Her t -> Vector Double
+eigenvaluesSH (Her m) = eigenvaluesSH' m
 
 --------------------------------------------------------------
 
@@ -490,14 +520,18 @@ mbCholSH = {-# SCC "mbCholSH" #-} mbCholSH'
 
 -- | Similar to 'chol', without checking that the input matrix is hermitian or symmetric. It works with the upper triangular part.
 cholSH      :: Field t => Matrix t -> Matrix t
-cholSH = {-# SCC "cholSH" #-} cholSH'
+cholSH = cholSH'
 
 -- | Cholesky factorization of a positive definite hermitian or symmetric matrix.
 --
 -- If @c = chol m@ then @c@ is upper triangular and @m == tr c \<> c@.
-chol :: Field t => Matrix t ->  Matrix t
-chol m | exactHermitian m = cholSH m
-       | otherwise = error "chol requires positive definite complex hermitian or real symmetric matrix"
+chol :: Field t => Her t ->  Matrix t
+chol (Her m) = {-# SCC "chol" #-} cholSH' m
+
+-- | Similar to 'chol', but instead of an error (e.g., caused by a matrix not positive definite) it returns 'Nothing'.
+mbChol :: Field t => Her t -> Maybe (Matrix t)
+mbChol (Her m) = {-# SCC "mbChol" #-} mbCholSH' m
+
 
 
 -- | Joint computation of inverse and logarithm of determinant of a square matrix.
@@ -507,7 +541,7 @@ invlndet :: Field t
 invlndet m | square m = (im,(ladm,sdm))
            | otherwise = error $ "invlndet of nonsquare "++ shSize m ++ " matrix"
   where
-    lp@(lup,perm) = luPacked m
+    lp@(LU lup perm) = luPacked m
     s = signlp (rows m) perm
     dg = toList $ takeDiag $ lup
     ladm = sum $ map (log.abs) dg
@@ -519,8 +553,9 @@ invlndet m | square m = (im,(ladm,sdm))
 det :: Field t => Matrix t -> t
 det m | square m = {-# SCC "det" #-} s * (product $ toList $ takeDiag $ lup)
       | otherwise = error $ "det of nonsquare "++ shSize m ++ " matrix"
-    where (lup,perm) = luPacked m
-          s = signlp (rows m) perm
+    where
+      LU lup perm = luPacked m
+      s = signlp (rows m) perm
 
 -- | Explicit LU factorization of a general matrix.
 --
@@ -720,7 +755,7 @@ diagonalize m = if rank v == n
                     else Nothing
     where n = rows m
           (l,v) = if exactHermitian m
-                    then let (l',v') = eigSH m in (real l', v')
+                    then let (l',v') = eigSH (trustSym m) in (real l', v')
                     else eig m
 
 -- | Generic matrix functions for diagonalizable matrices. For instance:
@@ -835,8 +870,9 @@ fixPerm' s = res $ mutable f s0
 triang r c h v = (r><c) [el s t | s<-[0..r-1], t<-[0..c-1]]
     where el p q = if q-p>=h then v else 1 - v
 
-luFact (l_u,perm) | r <= c    = (l ,u ,p, s)
-                  | otherwise = (l',u',p, s)
+luFact (LU l_u perm)
+    | r <= c    = (l ,u ,p, s)
+    | otherwise = (l',u',p, s)
   where
     r = rows l_u
     c = cols l_u
@@ -929,7 +965,13 @@ relativeError norm a b = r
 ----------------------------------------------------------------------
 
 -- | Generalized symmetric positive definite eigensystem Av = lBv,
--- for A and B symmetric, B positive definite (conditions not checked).
+-- for A and B symmetric, B positive definite.
+geigSH :: Field t
+        => Her t -- ^ A
+        -> Her t -- ^ B
+        -> (Vector Double, Matrix t)
+geigSH (Her a) (Her b) = geigSH' a b
+
 geigSH' :: Field t
         => Matrix t -- ^ A
         -> Matrix t -- ^ B
@@ -942,4 +984,34 @@ geigSH' a b = (l,v')
     (l,v) = eigSH' c
     v' = iu <> v
     (<>) = mXm
+
+--------------------------------------------------------------------------------
+
+-- | A matrix that, by construction, it is known to be complex Hermitian or real symmetric.
+--
+--   It can be created using 'sym', 'xTx', or 'trustSym', and the matrix can be extracted using 'her'.
+data Her t = Her (Matrix t) deriving Show
+
+-- | Extract the general matrix from a 'Her' structure, forgetting its symmetric or Hermitian property.
+her :: Her t -> Matrix t
+her (Her x) = x
+
+-- | Compute the complex Hermitian or real symmetric part of a square matrix (@(x + tr x)/2@).
+sym :: Field t => Matrix t -> Her t
+sym x = Her (scale 0.5 (tr x `add` x))
+
+-- | Compute the contraction @tr x <> x@ of a general matrix.
+xTx :: Numeric t => Matrix t -> Her t
+xTx x = Her (tr x `mXm` x)
+
+instance Field t => Linear t Her where
+    scale  x (Her m) = Her (scale x m)
+
+instance Field t => Additive (Her t) where
+    add    (Her a) (Her b) = Her (a `add` b)
+
+-- | At your own risk, declare that a matrix is complex Hermitian or real symmetric
+--   for usage in 'chol', 'eigSH', etc. Only a triangular part of the matrix will be used.
+trustSym :: Matrix t -> Her t
+trustSym x = (Her x)
 

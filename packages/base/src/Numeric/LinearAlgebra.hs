@@ -53,11 +53,11 @@ module Numeric.LinearAlgebra (
     --
 
     -- * Products
-    -- ** dot
+    -- ** Dot
     dot, (<.>),
-    -- ** matrix-vector
+    -- ** Matrix-vector
     (#>), (<#), (!#>),
-    -- ** matrix-matrix
+    -- ** Matrix-matrix
     (<>),
     -- | The matrix product is also implemented in the "Data.Monoid" instance, where
     -- single-element matrices (created from numeric literals or using 'scalar')
@@ -73,20 +73,25 @@ module Numeric.LinearAlgebra (
     -- 'mconcat' uses 'optimiseMult' to get the optimal association order.
 
 
-    -- ** other
+    -- ** Other
     outer, kronecker, cross,
-    scale,
+    scale, add,
     sumElements, prodElements,
 
     -- * Linear systems
+    -- ** General
     (<\>),
-    linearSolve,
     linearSolveLS,
     linearSolveSVD,
-    luSolve,
-    luSolve',
+    -- ** Determined
+    linearSolve,
+    luSolve, luPacked,
+    luSolve', luPacked',
+    -- ** Symmetric indefinite
+    ldlSolve, ldlPacked,
+    -- ** Positive definite
     cholSolve,
-    ldlSolve,
+    -- ** Sparse
     cgSolve,
     cgSolve',
 
@@ -113,21 +118,18 @@ module Numeric.LinearAlgebra (
     leftSV, rightSV,
 
     -- * Eigendecomposition
-    eig, eigSH, eigSH',
-    eigenvalues, eigenvaluesSH, eigenvaluesSH',
-    geigSH',
+    eig, eigSH,
+    eigenvalues, eigenvaluesSH,
+    geigSH,
 
     -- * QR
     qr, rq, qrRaw, qrgr,
 
     -- * Cholesky
-    chol, cholSH, mbCholSH,
+    chol, mbChol,
 
     -- * LU
-    lu, luPacked, luPacked', luFact,
-
-    -- * LDL
-    ldlPacked, ldlPackedSH,
+    lu, luFact,
 
     -- * Hessenberg
     hess,
@@ -150,14 +152,16 @@ module Numeric.LinearAlgebra (
     -- * Misc
     meanCov, rowOuters, pairwiseD2, unitary, peps, relativeError, magnit,
     haussholder, optimiseMult, udot, nullspaceSVD, orthSVD, ranksv,
-    iC,
+    iC, sym, xTx, trustSym, her,
     -- * Auxiliary classes
-    Element, Container, Product, Numeric, LSDiv,
+    Element, Container, Product, Numeric, LSDiv, Her,
     Complexable, RealElement,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,
-    Field,
+    Field, Linear(), Additive(),
     Transposable,
+    LU(..),
+    LDL(..),
     CGState(..),
     Testable(..)
 ) where
@@ -169,7 +173,7 @@ import Numeric.Vector()
 import Internal.Matrix
 import Internal.Container hiding ((<>))
 import Internal.Numeric hiding (mul)
-import Internal.Algorithms hiding (linearSolve,Normed,orth,luPacked',linearSolve',luSolve')
+import Internal.Algorithms hiding (linearSolve,Normed,orth,luPacked',linearSolve',luSolve',ldlPacked')
 import qualified Internal.Algorithms as A
 import Internal.Util
 import Internal.Random
@@ -245,5 +249,4 @@ nullspace m = nullspaceSVD (Left (1*eps)) m (rightSV m)
 
 -- | return an orthonormal basis of the range space of a matrix. See also 'orthSVD'.
 orth m = orthSVD (Left (1*eps)) m (leftSV m)
-
 

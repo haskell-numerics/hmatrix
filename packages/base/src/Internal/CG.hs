@@ -32,11 +32,11 @@ v /// b = debugMat b 2 asRow v
 type V = Vector R
 
 data CGState = CGState
-    { cgp  :: V  -- ^ conjugate gradient
-    , cgr  :: V  -- ^ residual
-    , cgr2 :: R  -- ^ squared norm of residual
-    , cgx  :: V  -- ^ current solution
-    , cgdx :: R  -- ^ normalized size of correction
+    { cgp  :: Vector R  -- ^ conjugate gradient
+    , cgr  :: Vector R  -- ^ residual
+    , cgr2 :: R         -- ^ squared norm of residual
+    , cgx  :: Vector R  -- ^ current solution
+    , cgdx :: R         -- ^ normalized size of correction
     }
 
 cg :: Bool -> (V -> V) -> (V -> V) -> CGState -> CGState
@@ -89,23 +89,25 @@ takeUntil q xs = a++ take 1 b
   where
     (a,b) = break q xs
 
+-- | Solve a sparse linear system using the conjugate gradient method with default parameters.
 cgSolve
   :: Bool          -- ^ is symmetric
   -> GMatrix       -- ^ coefficient matrix
-  -> Vector Double -- ^ right-hand side
-  -> Vector Double -- ^ solution
+  -> Vector R      -- ^ right-hand side
+  -> Vector R      -- ^ solution
 cgSolve sym a b  = cgx $ last $ cgSolve' sym 1E-4 1E-3 n a b 0
   where
     n = max 10 (round $ sqrt (fromIntegral (dim b) :: Double))
 
+-- | Solve a sparse linear system using the conjugate gradient method with default parameters.
 cgSolve'
   :: Bool      -- ^ symmetric
   -> R         -- ^ relative tolerance for the residual (e.g. 1E-4)
   -> R         -- ^ relative tolerance for δx (e.g. 1E-3)
   -> Int       -- ^ maximum number of iterations
   -> GMatrix   -- ^ coefficient matrix
-  -> V         -- ^ initial solution
-  -> V         -- ^ right-hand side
+  -> Vector R  -- ^ initial solution
+  -> Vector R  -- ^ right-hand side
   -> [CGState] -- ^ solution
 cgSolve' sym er es n a b x = take n $ conjugrad sym a b x er es
 

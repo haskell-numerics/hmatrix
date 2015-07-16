@@ -63,9 +63,9 @@ import GHC.TypeLits
 import Numeric.LinearAlgebra hiding (
     (<>),(#>),(<.>),Konst(..),diag, disp,(===),(|||),
     row,col,vector,matrix,linspace,toRows,toColumns,
-    (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',
-    eigenvalues,eigenvaluesSH,eigenvaluesSH',build,
-    qr,size,dot,chol,range,R,C)
+    (<\>),fromList,takeDiag,svd,eig,eigSH,
+    eigenvalues,eigenvaluesSH,build,
+    qr,size,dot,chol,range,R,C,Her,her,sym)
 import qualified Numeric.LinearAlgebra as LA
 import Data.Proxy(Proxy)
 import Internal.Static
@@ -292,10 +292,10 @@ her m = Her $ (m + LA.tr m)/2
 
 instance KnownNat n => Eigen (Sym n) (R n) (L n n)
   where
-    eigenvalues (Sym (extract -> m)) =  mkR . LA.eigenvaluesSH' $ m
+    eigenvalues (Sym (extract -> m)) =  mkR . LA.eigenvaluesSH . LA.trustSym $ m
     eigensystem (Sym (extract -> m)) = (mkR l, mkL v)
       where
-        (l,v) = LA.eigSH' m
+        (l,v) = LA.eigSH . LA.trustSym $ m
 
 instance KnownNat n => Eigen (Sq n) (C n) (M n n)
   where
@@ -305,7 +305,7 @@ instance KnownNat n => Eigen (Sq n) (C n) (M n n)
         (l,v) = LA.eig m
 
 chol :: KnownNat n => Sym n -> Sq n
-chol (extract . unSym -> m) = mkL $ LA.cholSH m
+chol (extract . unSym -> m) = mkL $ LA.chol $ LA.trustSym m
 
 --------------------------------------------------------------------------------
 
