@@ -35,8 +35,9 @@ module Numeric.LinearAlgebra (
 
     -- * Autoconformable dimensions
     -- |
-    -- In arithmetic operations single-element vectors and matrices
-    -- (created from numeric literals or using 'scalar') automatically
+    -- In most operations, single-element vectors and matrices
+    -- (created from numeric literals or using 'scalar'), and matrices
+    -- with just one row or column, automatically
     -- expand to match the dimensions of the other operand:
     --
     -- >>> 5 + 2*ident 3 :: Matrix Double
@@ -45,11 +46,12 @@ module Numeric.LinearAlgebra (
     --  , 5.0, 7.0, 5.0
     --  , 5.0, 5.0, 7.0 ]
     --
-    -- >>> matrix 3 [1..9] + matrix 1 [10,20,30]
-    -- (3><3)
-    --  [ 11.0, 12.0, 13.0
-    --  , 24.0, 25.0, 26.0
-    --  , 37.0, 38.0, 39.0 ]
+    -- >>> (4><3) [1..] + row [10,20,30]
+    -- (4><3)
+    --  [ 11.0, 22.0, 33.0
+    --  , 14.0, 25.0, 36.0
+    --  , 17.0, 28.0, 39.0
+    --  , 20.0, 31.0, 42.0 ]
     --
 
     -- * Products
