@@ -500,10 +500,10 @@ sliceTest = utest "slice test" $ and
     , testSlice (test_qrgr 4 tau2) qrr2
     ]
   where
-    (qrr1,tau1) = qrRaw (rec :: Matrix R)
-    (qrr2,tau2) = qrRaw (rec :: Matrix C)
+    QR qrr1 tau1 = qrRaw (rec :: Matrix R)
+    QR qrr2 tau2 = qrRaw (rec :: Matrix C)
 
-    test_qrgr n t x = qrgr n (x,t)
+    test_qrgr n t x = qrgr n (QR x t)
 
     ok_qrgr x = simeq 1E-15 q q'
       where

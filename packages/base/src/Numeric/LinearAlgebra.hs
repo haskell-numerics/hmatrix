@@ -162,6 +162,7 @@ module Numeric.LinearAlgebra (
     Transposable,
     LU(..),
     LDL(..),
+    QR(..),
     CGState(..),
     Testable(..)
 ) where

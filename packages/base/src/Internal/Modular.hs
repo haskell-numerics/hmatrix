@@ -371,7 +371,7 @@ test = (ok, info)
 
     checkLU okf t = norm_Inf $ flatten (l <> u <> p - t)
       where
-        (l,u,p,_ :: Int) = luFact (LU x' p')
+        (l,u,p,_) = luFact (LU x' p')
           where
             (x',p') = mutable (luST okf) t
 

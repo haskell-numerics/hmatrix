@@ -470,17 +470,25 @@ eigenvaluesSH (Her m) = eigenvaluesSH' m
 
 --------------------------------------------------------------
 
+-- | QR decomposition of a matrix in compact form. (The orthogonal matrix is not explicitly formed.)
+data QR t = QR (Matrix t) (Vector t)
+
 -- | QR factorization.
 --
 -- If @(q,r) = qr m@ then @m == q \<> r@, where q is unitary and r is upper triangular.
 qr :: Field t => Matrix t -> (Matrix t, Matrix t)
 qr = {-# SCC "qr" #-} unpackQR . qr'
 
-qrRaw m = qr' m
+-- | Compute the QR decomposition of a matrix in compact form.
+qrRaw :: Field t => Matrix t -> QR t
+qrRaw m = QR x v
+  where
+    (x,v) = qr' m
 
-{- | generate a matrix with k orthogonal columns from the output of qrRaw
--}
-qrgr n (a,t)
+-- | generate a matrix with k orthogonal columns from the compact QR decomposition obtained by 'qrRaw'.
+--
+qrgr :: Field t => Int -> QR t -> Matrix t
+qrgr n (QR a t)
     | dim t > min (cols a) (rows a) || n < 0 || n > dim t = error "qrgr expects k <= min(rows,cols)"
     | otherwise = qrgr' n (a,t)
 
@@ -870,6 +878,8 @@ fixPerm' s = res $ mutable f s0
 triang r c h v = (r><c) [el s t | s<-[0..r-1], t<-[0..c-1]]
     where el p q = if q-p>=h then v else 1 - v
 
+-- | Compute the explicit LU decomposition from the compact one obtained by 'luPacked'.
+luFact :: Numeric t => LU t -> (Matrix t, Matrix t, Matrix t, t)
 luFact (LU l_u perm)
     | r <= c    = (l ,u ,p, s)
     | otherwise = (l',u',p, s)
