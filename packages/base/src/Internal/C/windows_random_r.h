@@ -1,11 +1,9 @@
 #if defined(_WIN32) || defined(WIN32)
 
-#ifndef MYRANDOM_H
-#define MYRANDOM_H
+#ifndef WINDOWS_RANDOM_R_H
+#define WINDOWS_RANDOM_R_H
 
 #include <stddef.h>
-
-#define NULL 0
 
 #define EINVAL 23
 
@@ -13,20 +11,18 @@ typedef int int32_t;
 
 struct random_data
 {
-    int32_t *fptr;      /* Front pointer.  */
-    int32_t *rptr;      /* Rear pointer.  */
-    int32_t *state;     /* Array of state values.  */
+    int *fptr;          /* Front pointer.  */
+    int *rptr;          /* Rear pointer.  */
+    int *state;         /* Array of state values.  */
     int rand_type;      /* Type of random number generator.  */
     int rand_deg;       /* Degree of random number generator.  */
     int rand_sep;       /* Distance between front and rear.  */
-    int32_t *end_ptr;       /* Pointer behind state table.  */
+    int *end_ptr;       /* Pointer behind state table.  */
 };
 
+extern int windows_random_r_errno;
 
-#define errno my_errno
-extern int my_errno;
-
-static inline void __set_errno(int err) { my_errno = err; };
+static inline void __set_errno(int err) { windows_random_r_errno = err; };
 
 int random_r (struct random_data *buf, int32_t *result);
 
