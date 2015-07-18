@@ -25,6 +25,7 @@ build-type:         Simple
 extra-source-files: THANKS.md CHANGELOG
 
 extra-source-files: src/Internal/C/lapack-aux.h
+                    src/C/windows_random_r.h
 
 flag openblas
     description:    Link with OpenBLAS (https://github.com/xianyi/OpenBLAS) optimized libraries.
@@ -77,6 +78,7 @@ library
                         
     C-sources:          src/Internal/C/lapack-aux.c
                         src/Internal/C/vector-aux.c
+                        src/C/windows_random_r.c
 
 
     extensions:         ForeignFunctionInterface,
