@@ -4,12 +4,6 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 
-{-# LANGUAGE FlexibleContexts, FlexibleInstances #-}
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE TypeFamilies #-}
-
 -----------------------------------------------------------------------------
 {- |
 Module      :  Internal.Algorithms
@@ -376,8 +370,8 @@ ldlPackedSH x = {-# SCC "ldlPacked" #-} LDL m p
    (m,p) = ldlPacked' x
 
 -- | Obtains the LDL decomposition of a matrix in a compact data structure suitable for 'ldlSolve'.
-ldlPacked :: Field t => Her t -> LDL t
-ldlPacked (Her m) = ldlPackedSH m
+ldlPacked :: Field t => Herm t -> LDL t
+ldlPacked (Herm m) = ldlPackedSH m
 
 -- | Solution of a linear system (for several right hand sides) from a precomputed LDL factorization obtained by 'ldlPacked'.
 --
@@ -461,17 +455,22 @@ fromList [11.344814282762075,0.17091518882717918,-0.5157294715892575]
 3.000  5.000  6.000
 
 -}
-eigSH :: Field t => Her t -> (Vector Double, Matrix t)
-eigSH (Her m) = eigSH' m
+eigSH :: Field t => Herm t -> (Vector Double, Matrix t)
+eigSH (Herm m) = eigSH' m
 
 -- | Eigenvalues (in descending order) of a complex hermitian or real symmetric matrix.
-eigenvaluesSH :: Field t => Her t -> Vector Double
-eigenvaluesSH (Her m) = eigenvaluesSH' m
+eigenvaluesSH :: Field t => Herm t -> Vector Double
+eigenvaluesSH (Herm m) = eigenvaluesSH' m
 
 --------------------------------------------------------------
 
 -- | QR decomposition of a matrix in compact form. (The orthogonal matrix is not explicitly formed.)
 data QR t = QR (Matrix t) (Vector t)
+
+instance (NFData t, Numeric t) => NFData (QR t)
+  where
+    rnf (QR m _) = rnf m
+
 
 -- | QR factorization.
 --
@@ -533,12 +532,12 @@ cholSH = cholSH'
 -- | Cholesky factorization of a positive definite hermitian or symmetric matrix.
 --
 -- If @c = chol m@ then @c@ is upper triangular and @m == tr c \<> c@.
-chol :: Field t => Her t ->  Matrix t
-chol (Her m) = {-# SCC "chol" #-} cholSH' m
+chol :: Field t => Herm t ->  Matrix t
+chol (Herm m) = {-# SCC "chol" #-} cholSH' m
 
 -- | Similar to 'chol', but instead of an error (e.g., caused by a matrix not positive definite) it returns 'Nothing'.
-mbChol :: Field t => Her t -> Maybe (Matrix t)
-mbChol (Her m) = {-# SCC "mbChol" #-} mbCholSH' m
+mbChol :: Field t => Herm t -> Maybe (Matrix t)
+mbChol (Herm m) = {-# SCC "mbChol" #-} mbCholSH' m
 
 
 
@@ -977,10 +976,10 @@ relativeError norm a b = r
 -- | Generalized symmetric positive definite eigensystem Av = lBv,
 -- for A and B symmetric, B positive definite.
 geigSH :: Field t
-        => Her t -- ^ A
-        -> Her t -- ^ B
+        => Herm t -- ^ A
+        -> Herm t -- ^ B
         -> (Vector Double, Matrix t)
-geigSH (Her a) (Her b) = geigSH' a b
+geigSH (Herm a) (Herm b) = geigSH' a b
 
 geigSH' :: Field t
         => Matrix t -- ^ A
@@ -999,29 +998,33 @@ geigSH' a b = (l,v')
 
 -- | A matrix that, by construction, it is known to be complex Hermitian or real symmetric.
 --
---   It can be created using 'sym', 'xTx', or 'trustSym', and the matrix can be extracted using 'her'.
-data Her t = Her (Matrix t) deriving Show
+--   It can be created using 'sym', 'mTm', or 'trustSym', and the matrix can be extracted using 'unSym'.
+newtype Herm t = Herm (Matrix t) deriving Show
 
--- | Extract the general matrix from a 'Her' structure, forgetting its symmetric or Hermitian property.
-her :: Her t -> Matrix t
-her (Her x) = x
+instance (NFData t, Numeric t) => NFData (Herm t)
+  where
+    rnf (Herm m) = rnf m
+
+-- | Extract the general matrix from a 'Herm' structure, forgetting its symmetric or Hermitian property.
+unSym :: Herm t -> Matrix t
+unSym (Herm x) = x
 
 -- | Compute the complex Hermitian or real symmetric part of a square matrix (@(x + tr x)/2@).
-sym :: Field t => Matrix t -> Her t
-sym x = Her (scale 0.5 (tr x `add` x))
+sym :: Field t => Matrix t -> Herm t
+sym x = Herm (scale 0.5 (tr x `add` x))
 
 -- | Compute the contraction @tr x <> x@ of a general matrix.
-xTx :: Numeric t => Matrix t -> Her t
-xTx x = Her (tr x `mXm` x)
+mTm :: Numeric t => Matrix t -> Herm t
+mTm x = Herm (tr x `mXm` x)
 
-instance Field t => Linear t Her where
-    scale  x (Her m) = Her (scale x m)
+instance Field t => Linear t Herm where
+    scale  x (Herm m) = Herm (scale x m)
 
-instance Field t => Additive (Her t) where
-    add    (Her a) (Her b) = Her (a `add` b)
+instance Field t => Additive (Herm t) where
+    add (Herm a) (Herm b) = Herm (a `add` b)
 
 -- | At your own risk, declare that a matrix is complex Hermitian or real symmetric
 --   for usage in 'chol', 'eigSH', etc. Only a triangular part of the matrix will be used.
-trustSym :: Matrix t -> Her t
-trustSym x = (Her x)
+trustSym :: Matrix t -> Herm t
+trustSym x = (Herm x)
 

@@ -154,9 +154,9 @@ module Numeric.LinearAlgebra (
     -- * Misc
     meanCov, rowOuters, pairwiseD2, unitary, peps, relativeError, magnit,
     haussholder, optimiseMult, udot, nullspaceSVD, orthSVD, ranksv,
-    iC, sym, xTx, trustSym, her,
+    iC, sym, mTm, trustSym, unSym,
     -- * Auxiliary classes
-    Element, Container, Product, Numeric, LSDiv, Her,
+    Element, Container, Product, Numeric, LSDiv, Herm,
     Complexable, RealElement,
     RealOf, ComplexOf, SingleOf, DoubleOf,
     IndexOf,

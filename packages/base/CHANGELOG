@@ -2,9 +2,9 @@
 --------
 
     * eigSH, chol, and other functions that work with Hermitian or symmetric matrices
-      now take a special "Sym" argument that can be created by means of "sym"
+      now take a special "Herm" argument that can be created by means of "sym"
       or "mTm". The unchecked versions of those functions have been removed and we
-      use "trustSym" to create the Sym type when the matrix is known to be Hermitian/symmetric.
+      use "trustSym" to create the Herm type when the matrix is known to be Hermitian/symmetric.
 
     * Improved matrix extraction (??) and rectangular matrix slices without data copy
 

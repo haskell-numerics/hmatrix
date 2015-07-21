@@ -462,7 +462,7 @@ null1 :: Matrix R -> Vector R
 null1 = last . toColumns . snd . rightSV
 
 -- | solution of overconstrained homogeneous symmetric linear system
-null1sym :: Her R -> Vector R
+null1sym :: Herm R -> Vector R
 null1sym = last . toColumns . snd . eigSH
 
 --------------------------------------------------------------------------------

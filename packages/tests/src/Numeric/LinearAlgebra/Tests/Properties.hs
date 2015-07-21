@@ -263,7 +263,7 @@ multProp2 p (a,b) = (tr (a <> b)) :~p~: (tr b <> tr a)
 
 linearSolveProp f m = f m m |~| ident (rows m)
 
-linearSolvePropH f m = f m (her m) |~| ident (rows (her m))
+linearSolvePropH f m = f m (unSym m) |~| ident (rows (unSym m))
 
 linearSolveProp2 f (a,x) = not wc `trivial` (not wc || a <> f a b |~| b)
     where q = min (rows a) (cols a)

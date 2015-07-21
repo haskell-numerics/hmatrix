@@ -81,8 +81,7 @@ instance (Field a, Arbitrary a) => Arbitrary (Rot a) where
 
 
 -- a complex hermitian or real symmetric matrix
---newtype (Her a) = Her (Matrix a) deriving Show
-instance (Field a, Arbitrary a, Num (Vector a)) => Arbitrary (Her a) where
+instance (Field a, Arbitrary a, Num (Vector a)) => Arbitrary (Herm a) where
     arbitrary = do
         Sq m <- arbitrary
         let m' = m/2
@@ -127,7 +126,7 @@ instance (Numeric a, ArbitraryField a, Num (Vector a))
     arbitrary = do
         m <- arbitrary
         let (_,v) = eigSH m
-            n = rows (her m)
+            n = rows (unSym m)
         l <- replicateM n (choose (0,100))
         let s = diag (fromList l)
             p = v <> real s <> tr v
@@ -161,8 +160,8 @@ fM m = m :: FM
 zM m = m :: ZM
 
 
-rHer m = her m :: RM
-cHer m = her m :: CM
+rHer m = unSym m :: RM
+cHer m = unSym m :: CM
 
 rRot (Rot m) = m :: RM
 cRot (Rot m) = m :: CM
@@ -176,8 +175,8 @@ cWC (WC m) = m :: CM
 rSqWC (SqWC m) = m :: RM
 cSqWC (SqWC m) = m :: CM
 
-rSymWC (SqWC m) = sym m :: Her R
-cSymWC (SqWC m) = sym m :: Her C
+rSymWC (SqWC m) = sym m :: Herm R
+cSymWC (SqWC m) = sym m :: Herm C
 
 rPosDef (PosDef m) = m :: RM
 cPosDef (PosDef m) = m :: CM
