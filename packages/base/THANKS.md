@@ -196,3 +196,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - "cruegge" discovered a bug in the conjugate gradient solver for sparse symmetric systems.
 
+- Ilan Godik and Douglas McClean helped with Windows support.
+
