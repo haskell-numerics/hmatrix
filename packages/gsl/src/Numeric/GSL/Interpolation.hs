@@ -117,7 +117,7 @@ evaluate :: InterpolationMethod    -- ^ What method to use to interpolate
             -> Double              -- ^ Point at which to evaluate the function
             -> Double              -- ^ Interpolated result
 evaluate mth pts =
-  applyCFun "evaluate" "spline_eval" c_spline_eval_deriv
+  applyCFun "evaluate" "spline_eval" c_spline_eval
   mth (fromList xs) (fromList ys)
   where
     (xs, ys) = unzip pts
