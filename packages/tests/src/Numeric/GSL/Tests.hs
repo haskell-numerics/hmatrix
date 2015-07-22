@@ -22,7 +22,7 @@ import Test.HUnit (runTestTT, failures, Test(..), errors)
 import Numeric.LinearAlgebra.HMatrix
 import Numeric.GSL
 import Numeric.LinearAlgebra.Tests (qCheck, utest)
-import Numeric.LinearAlgebra.Tests.Properties ((|~|), (~~))
+import Numeric.LinearAlgebra.Tests.Properties ((|~|), (~~), (~=))
 
 ---------------------------------------------------------------------
 
@@ -65,6 +65,44 @@ rootFindingTest = TestList [ utest "root Hybrids" (fst sol1 ~~ [1,1])
           rosenbrock a b [x,y] = [ a*(1-x), b*(y-x**2) ]
           jacobian a b [x,_y] = [ [-a    , 0]
                                 , [-2*b*x, b] ]
+
+--------------------------------------------------------------------
+
+interpolationTest = TestList [
+    utest "interpolation evaluateV" (esol ~= ev)
+  , utest "interpolation evaluate" (esol ~= eval)
+  , utest "interpolation evaluateDerivativeV" (desol ~= dev)
+  , utest "interpolation evaluateDerivative" (desol ~= de)
+  , utest "interpolation evaluateDerivative2V" (d2esol ~= d2ev)
+  , utest "interpolation evaluateDerivative2" (d2esol ~= d2e)
+  , utest "interpolation evaluateIntegralV" (intesol ~= intev)
+  , utest "interpolation evaluateIntegral" (intesol ~= inte)
+  ]
+  where
+    xtest = 2.2
+    applyVec f = f Akima xs ys xtest
+    applyList f = f Akima (zip xs' ys') xtest
+
+    esol = xtest**2
+    ev = applyVec evaluateV
+    eval = applyList evaluate
+
+    desol = 2*xtest
+    dev = applyVec evaluateDerivativeV
+    de = applyList evaluateDerivative
+
+    d2esol = 2
+    d2ev = applyVec evaluateDerivative2V
+    d2e = applyList evaluateDerivative2
+
+    intesol = 1/3 * xtest**3
+    intev = evaluateIntegralV Akima xs ys 0 xtest
+    inte = evaluateIntegral Akima (zip xs' ys') (0, xtest)
+
+    xs' = [-1..10]
+    ys' = map (**2) xs'
+    xs = vector xs'
+    ys = vector ys'
 
 ---------------------------------------------------------------------
 
@@ -123,6 +161,7 @@ runTests n = do
         , odeTest
         , rootFindingTest
         , minimizationTest
+        , interpolationTest
         , utest "deriv" derivTest
         , utest "integrate" (abs (volSphere 2.5 - 4/3*pi*2.5**3) < 1E-8)
         , utest "polySolve" (polySolveProp [1,2,3,4])
