@@ -14,7 +14,7 @@ Testing properties.
 -}
 
 module Numeric.LinearAlgebra.Tests.Properties (
-    dist, (|~|), (~~), (~:), Aprox((:~)),
+    dist, (|~|), (~~), (~:), Aprox((:~)), (~=),
     zeros, ones,
     square,
     unitary,
@@ -44,6 +44,9 @@ module Numeric.LinearAlgebra.Tests.Properties (
 
 import Numeric.LinearAlgebra.HMatrix hiding (Testable,unitary)
 import Test.QuickCheck
+
+(~=) :: Double -> Double -> Bool
+a ~= b = abs (a - b) < 1e-10
 
 trivial :: Testable a => Bool -> a -> Property
 trivial = (`classify` "trivial")
