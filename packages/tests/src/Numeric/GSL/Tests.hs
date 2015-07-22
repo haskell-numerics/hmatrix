@@ -21,6 +21,7 @@ import Test.HUnit (runTestTT, failures, Test(..), errors)
 
 import Numeric.LinearAlgebra.HMatrix
 import Numeric.GSL
+import Numeric.GSL.SimulatedAnnealing
 import Numeric.LinearAlgebra.Tests (qCheck, utest)
 import Numeric.LinearAlgebra.Tests.Properties ((|~|), (~~), (~=))
 
@@ -106,6 +107,21 @@ interpolationTest = TestList [
 
 ---------------------------------------------------------------------
 
+simanTest = TestList [
+  -- We use a slightly more relaxed tolerance here because the
+  -- simulated annealer is randomized
+  utest "simulated annealing manual example" $ abs (result - 1.3631300) < 1e-6
+  ]
+  where
+    -- This is the example from the GSL manual.
+    result = simanSolve 0 1 exampleParams 15.5 exampleE exampleM exampleS Nothing
+    exampleParams = SimulatedAnnealingParams 200 10000 1.0 1.0 0.008 1.003 2.0e-6
+    exampleE x = exp (-(x - 1)**2) * sin (8 * x)
+    exampleM x y = abs $ x - y
+    exampleS rands stepSize current = (rands ! 0) * 2 * stepSize - stepSize + current
+
+---------------------------------------------------------------------
+
 minimizationTest = TestList
     [ utest "minimization conjugatefr" (minim1 f df [5,7] ~~ [1,2])
     , utest "minimization nmsimplex2"  (minim2 f [5,7] `elem` [24,25])
@@ -162,6 +178,7 @@ runTests n = do
         , rootFindingTest
         , minimizationTest
         , interpolationTest
+        , simanTest
         , utest "deriv" derivTest
         , utest "integrate" (abs (volSphere 2.5 - 4/3*pi*2.5**3) < 1E-8)
         , utest "polySolve" (polySolveProp [1,2,3,4])
