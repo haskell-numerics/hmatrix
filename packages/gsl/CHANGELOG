@@ -5,6 +5,7 @@
     
     * Added simulated annealing module
 
+    * Added odeSolveVWith
 
 0.16.0.0
 --------
