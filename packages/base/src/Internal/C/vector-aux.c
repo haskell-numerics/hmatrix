@@ -7,7 +7,6 @@ typedef float  complex TCF;
 #undef complex
 
 #include "lapack-aux.h"
-#include "custom_random_r.h"
 
 #define V(x) x##n,x##p
 
