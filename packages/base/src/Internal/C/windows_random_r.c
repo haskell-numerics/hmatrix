@@ -53,7 +53,7 @@
  * Rewritten to be reentrant by Ulrich Drepper, 1995
  */
 
-#include "windows_random_r.h"
+#include "myrandom.h"
 
 /* An improved random number generation package.  In addition to the standard
    rand()/srand() like interface, this package also has a special state info
@@ -388,5 +388,5 @@ int random_r (struct random_data *buf, int32_t *result)
   return -1;
 }
 
-int windows_random_r;
+int my_errno;
 #endif
