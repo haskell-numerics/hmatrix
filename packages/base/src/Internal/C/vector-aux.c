@@ -716,16 +716,6 @@ int mapValF(int code, float* pval, KFVEC(x), FVEC(r)) {
     }
 }
 
-inline
-int mod (int a, int b) {
-    int m = a % b;
-    if (b>0) {
-        return m >=0 ? m : m+b;
-    } else {
-        return m <=0 ? m : m+b;
-    }
-}
-
 int mapValI(int code, int* pval, KIVEC(x), IVEC(r)) {
     int k;
     int val = *pval;
@@ -739,16 +729,6 @@ int mapValI(int code, int* pval, KIVEC(x), IVEC(r)) {
         OPV(6,mod(val,xp[k]))
         OPV(7,mod(xp[k],val))
         default: ERROR(BAD_CODE);
-    }
-}
-
-inline
-int64_t mod_l (int64_t a, int64_t b) {
-    int64_t m = a % b;
-    if (b>0) {
-        return m >=0 ? m : m+b;
-    } else {
-        return m <=0 ? m : m+b;
     }
 }
 
