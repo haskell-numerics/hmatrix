@@ -55,10 +55,6 @@ typedef float  complex TCF;
 #define NODEFPOS 2006
 #define NOSPRTD  2007
 
-inline int mod (int a, int b);
-
-inline int64_t mod_l (int64_t a, int64_t b);
-
 ////////////////////////////////////////////////////////////////////////////////
 void asm_finit() {
 #ifdef i386
@@ -247,7 +243,7 @@ int svd_l_C(OCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
             ldvt = q;
         }
     }DEBUGMSG("svd_l_C");
-    
+
     double *rwork = (double*) malloc(5*q*sizeof(double));
     CHECK(!rwork,MEM);
     integer lwork = -1;
@@ -423,7 +419,7 @@ int eig_l_R(ODMAT(a),ODMAT(u), CVEC(s),ODMAT(v)) {
 //////////////////// symmetric real eigensystem ////////////
 
 int dsyev_(char *jobz, char *uplo, integer *n, doublereal *a,
-	 integer *lda, doublereal *w, doublereal *work, integer *lwork,
+	integer *lda, doublereal *w, doublereal *work, integer *lwork,
 	integer *info);
 
 int eig_l_S(int wantV,DVEC(s),ODMAT(v)) {
@@ -665,7 +661,7 @@ int linearSolveLSC_l(OCMAT(a),OCMAT(b)) {
 int dgelss_(integer *m, integer *n, integer *nrhs,
 	doublereal *a, integer *lda, doublereal *b, integer *ldb, doublereal *
 	s, doublereal *rcond, integer *rank, doublereal *work, integer *lwork,
-	 integer *info);
+	integer *info);
 
 int linearSolveSVDR_l(double rcond,ODMAT(a),ODMAT(b)) {
     integer m = ar;
@@ -955,7 +951,7 @@ int schur_l_R(ODMAT(u), ODMAT(s)) {
 int zgees_(char *jobvs, char *sort, L_fp select, integer *n,
 	doublecomplex *a, integer *lda, integer *sdim, doublecomplex *w,
 	doublecomplex *vs, integer *ldvs, doublecomplex *work, integer *lwork,
-	 doublereal *rwork, logical *bwork, integer *info);
+	doublereal *rwork, logical *bwork, integer *info);
 
 int schur_l_C(OCMAT(u), OCMAT(s)) {
     integer m = sr;

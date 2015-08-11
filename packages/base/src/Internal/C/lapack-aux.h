@@ -88,3 +88,24 @@ typedef short ftnlen;
 #define AT(m,i,j) (m##p[(i)*m##Xr + (j)*m##Xc])
 #define TRAV(m,i,j) int i,j; for (i=0;i<m##r;i++) for (j=0;j<m##c;j++)
 
+/********************************************************/
+
+inline
+int mod (int a, int b) {
+    int m = a % b;
+    if (b>0) {
+        return m >=0 ? m : m+b;
+    } else {
+        return m <=0 ? m : m+b;
+    }
+}
+
+inline
+int64_t mod_l (int64_t a, int64_t b) {
+    int64_t m = a % b;
+    if (b>0) {
+        return m >=0 ? m : m+b;
+    } else {
+        return m <=0 ? m : m+b;
+    }
+}
