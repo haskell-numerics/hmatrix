@@ -194,7 +194,8 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - "maxc01" solved uninstallability in FreeBSD and improved urandom
 
-- "ntfrgl" added {take,drop}Last{Rows,Columns} and odeSolveVWith with generalized step control function.
+- "ntfrgl" added {take,drop}Last{Rows,Columns} and odeSolveVWith with generalized step control function
+   and fixed link errors related to mod/mod_l.
 
 - "cruegge" discovered a bug in the conjugate gradient solver for sparse symmetric systems.
 

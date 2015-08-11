@@ -90,7 +90,7 @@ typedef short ftnlen;
 
 /********************************************************/
 
-inline
+static inline
 int mod (int a, int b) {
     int m = a % b;
     if (b>0) {
@@ -100,7 +100,7 @@ int mod (int a, int b) {
     }
 }
 
-inline
+static inline
 int64_t mod_l (int64_t a, int64_t b) {
     int64_t m = a % b;
     if (b>0) {
