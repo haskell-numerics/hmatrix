@@ -663,8 +663,8 @@ runTests n = do
     putStrLn "------ chol"
     test (cholProp   . rPosDef)
     test (cholProp   . cPosDef)
-    test (exactProp  . rPosDef)
-    test (exactProp  . cPosDef)
+--    test (exactProp  . rPosDef)
+--    test (exactProp  . cPosDef)
     putStrLn "------ expm"
     test (expmDiagProp . complex. rSqWC)
     test (expmDiagProp . cSqWC)
