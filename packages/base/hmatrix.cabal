@@ -96,13 +96,13 @@ library
 
     cpp-options:        -DBINARY
 
-    if flag(openblas)
-        extra-lib-dirs:     /usr/lib/openblas/lib
-        extra-libraries:    openblas
-    else
-        extra-libraries:    blas lapack
-
     if os(OSX)
+        if flag(openblas)
+            extra-lib-dirs:     /opt/local/lib/openblas/lib
+            extra-libraries:    openblas
+        else
+            extra-libraries:    blas lapack
+
         extra-lib-dirs: /opt/local/lib/
         include-dirs: /opt/local/include/
         extra-lib-dirs: /usr/local/lib/
@@ -112,14 +112,29 @@ library
         frameworks: Accelerate
 
     if os(freebsd)
+        if flag(openblas)
+            extra-lib-dirs:     /usr/local/lib/openblas/lib
+            extra-libraries:    openblas
+        else
+            extra-libraries:    blas lapack
+
        extra-lib-dirs: /usr/local/lib
        include-dirs: /usr/local/include
-       extra-libraries: blas lapack gfortran
+       extra-libraries: gfortran
 
     if os(windows)
-        extra-libraries: blas lapack
+        if flag(openblas)
+            extra-libraries:    libopenblas
+        else
+            extra-libraries:    blas lapack
 
     if os(linux)
+        if flag(openblas)
+            extra-lib-dirs:     /usr/lib/openblas/lib
+            extra-libraries:    openblas
+        else
+            extra-libraries:    blas lapack
+
         if arch(x86_64)
             cc-options: -fPIC
 
