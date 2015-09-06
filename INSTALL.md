@@ -55,6 +55,11 @@ using this method.
 
 [winpack]: https://github.com/downloads/AlbertoRuiz/hmatrix/gsl-lapack-windows.zip
 
+### Alternative Windows build
+1) > cabal update
+2) Download and unzip somewhere OpenBLAS http://www.openblas.net/
+3) > cabal install --flags=openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dir=C:\...\OpenBLAS\include
+
 ## Tests ###############################################
 
 After installation we can verify that the library works as expected:
