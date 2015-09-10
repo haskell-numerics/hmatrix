@@ -61,7 +61,9 @@ using this method.
 
 2) Download and unzip somewhere OpenBLAS http://www.openblas.net/
 
-3) > cabal install --flags=openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dir=C:\...\OpenBLAS\include
+3) In a normal Windows cmd:
+
+     > cabal install --flags=openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dir=C:\...\OpenBLAS\include
 
 ## Tests ###############################################
 
