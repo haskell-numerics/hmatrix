@@ -932,7 +932,7 @@ int vectorScan(char * file, int* n, double**pp){
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#if defined (__APPLE__) || (__FreeBSD__)
+#if defined (__APPLE__) || (__FreeBSD__) || defined(_WIN32) || defined(WIN32)
 /* FreeBSD and Mac OS X do not provide random_r(), thread safety cannot be
    guaranteed.
    For FreeBSD and Mac OS X, nrand48() is much better than random().
