@@ -1,6 +1,6 @@
 flags:
   hmatrix:
-    openblas: true
+    openblas: false
 packages:
 - '.'
 extra-deps: []

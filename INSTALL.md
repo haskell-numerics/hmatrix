@@ -67,13 +67,15 @@ using this method.
 
 ### Stack-based Windows build
 
+1) > cd packages\base
+
 1) > stack setup
 
 2) Download and unzip somewhere OpenBLAS http://www.openblas.net/
 
 3) In a normal Windows cmd:
 
-     > stack install --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dir=C:\...\OpenBLAS\include
+     > stack install --flag hmatrix:openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dir=C:\...\OpenBLAS\include
 	 
 ## Tests ###############################################
 
