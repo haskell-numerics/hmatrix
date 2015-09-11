@@ -65,6 +65,16 @@ using this method.
 
      > cabal install --flags=openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dir=C:\...\OpenBLAS\include
 
+### Stack-based Windows build
+
+1) > stack setup
+
+2) Download and unzip somewhere OpenBLAS http://www.openblas.net/
+
+3) In a normal Windows cmd:
+
+     > stack install --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dir=C:\...\OpenBLAS\include
+	 
 ## Tests ###############################################
 
 After installation we can verify that the library works as expected:
