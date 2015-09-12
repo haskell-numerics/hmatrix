@@ -201,5 +201,6 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Ilan Godik and Douglas McClean helped with Windows support.
 
-- Vassil Keremidchiev fixed the cabal options for OpenBlas.
+- Vassil Keremidchiev fixed the cabal options for OpenBlas, fixed several installation
+  issues, and added support for stack-based build.
 
