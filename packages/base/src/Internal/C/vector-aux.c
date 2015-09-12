@@ -939,7 +939,12 @@ int vectorScan(char * file, int* n, double**pp){
    See: http://www.evanjones.ca/random-thread-safe.html
 */
 #pragma message "randomVector is not thread-safe in OSX and FreeBSD"
+#endif
 
+#if defined (__APPLE__) || (__FreeBSD__) || defined(_WIN32) || defined(WIN32)
+/* Windows use thread-safe random
+   See: http://stackoverflow.com/questions/143108/is-windows-rand-s-thread-safe
+*/
 inline double urandom() {
     /* the probalility of matching will be theoretically p^3(in fact, it is not)
        p is matching probalility of random().
