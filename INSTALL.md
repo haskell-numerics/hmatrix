@@ -57,25 +57,29 @@ using this method.
 
 ### Alternative Windows build
 
-1) > cabal update
+1) 
+
+	> cabal update
 
 2) Download and unzip somewhere OpenBLAS http://www.openblas.net/
 
 3) In a normal Windows cmd:
 
-     > cabal install --flags=openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dir=C:\...\OpenBLAS\include
+    > cabal install --flags=openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dir=C:\...\OpenBLAS\include
 
 ### Stack-based Windows build
 
-1) > cd packages\base
+Similar should be build under other OSes, like Linux and OSX.
 
-1) > stack setup
+1) 
+
+	> stack setup
 
 2) Download and unzip somewhere OpenBLAS http://www.openblas.net/
 
-3) In a normal Windows cmd:
+3) Example in a normal Windows cmd for building hmatrix base lib:
 
-     > stack install --flag hmatrix:openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dir=C:\...\OpenBLAS\include
+     > stack install hmatrix --flag hmatrix:openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dir=C:\...\OpenBLAS\include
 	 
 ## Tests ###############################################
 
