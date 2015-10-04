@@ -1,8 +1,8 @@
 -- The magic of Lie Algebra
 
-import Numeric.LinearAlgebra
+{-# LANGUAGE FlexibleContexts #-}
 
-disp = putStrLn . dispf 5
+import Numeric.LinearAlgebra
 
 rot1 :: Double -> Matrix Double
 rot1 a = (3><3)
@@ -58,8 +58,8 @@ main = do
        exact = rot3 a <> rot1 b <> rot2 c
        lie = scalar a * g3 |+| scalar b * g1 |+| scalar c * g2
    putStrLn "position in the tangent space:"
-   disp lie
+   disp 5 lie
    putStrLn "exponential map back to the group (2 terms):"
-   disp (expm lie)
+   disp 5 (expm lie)
    putStrLn "exact position:"
-   disp exact
+   disp 5 exact

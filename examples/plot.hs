@@ -16,5 +16,5 @@ cumdist x = 0.5 * (1+ erf (x/sqrt 2))
 main = do
     let x = linspace 1000 (-4,4)
     mplot [f x]
-    mplot [x, mapVector cumdist x, mapVector gaussianPDF x]
+    mplot [x, cmap cumdist x, cmap gaussianPDF x]
     mesh (sombrero 40)

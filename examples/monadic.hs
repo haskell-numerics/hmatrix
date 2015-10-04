@@ -1,35 +1,37 @@
 -- monadic computations
 -- (contributed by Vivian McPhail)
 
+{-# LANGUAGE FlexibleContexts #-}
+
 import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra.Devel
 import Control.Monad.State.Strict
-import Control.Monad.Maybe
+import Control.Monad.Trans.Maybe
 import Foreign.Storable(Storable)
 import System.Random(randomIO)
 
 -------------------------------------------
 
 -- an instance of MonadIO, a monad transformer
-type VectorMonadT = StateT Int IO
+type VectorMonadT = StateT I IO
 
-test1 :: Vector Int -> IO (Vector Int)
+test1 :: Vector I -> IO (Vector I)
 test1 = mapVectorM $ \x -> do
     putStr $ (show x) ++ " "
     return (x + 1)
 
 -- we can have an arbitrary monad AND do IO
-addInitialM :: Vector Int -> VectorMonadT ()
+addInitialM :: Vector I -> VectorMonadT ()
 addInitialM = mapVectorM_ $ \x -> do
     i <- get
     liftIO $ putStr $ (show $ x + i) ++ " "
     put $ x + i
 
 -- sum the values of the even indiced elements
-sumEvens :: Vector Int -> Int
+sumEvens :: Vector I -> I
 sumEvens = foldVectorWithIndex (\x a b -> if x `mod` 2 == 0 then a + b else b) 0
 
 -- sum and print running total of evens
-sumEvensAndPrint :: Vector Int -> VectorMonadT ()
 sumEvensAndPrint = mapVectorWithIndexM_ $ \ i x -> do
     when (i `mod` 2 == 0) $ do
         v <- get
@@ -38,7 +40,7 @@ sumEvensAndPrint = mapVectorWithIndexM_ $ \ i x -> do
         liftIO $ putStr $ (show v') ++ " "
 
 
-indexPlusSum :: Vector Int -> VectorMonadT ()
+--indexPlusSum :: Vector I -> VectorMonadT ()
 indexPlusSum v' = do
     let f i x = do
             s <- get
@@ -63,7 +65,7 @@ monoStep d = do
 
 isMonotoneIncreasing :: Vector Double -> Bool
 isMonotoneIncreasing v =
-    let res = evalState (runMaybeT $ (mapVectorM_ monoStep v)) (v @> 0)
+    let res = evalState (runMaybeT $ (mapVectorM_ monoStep v)) (v ! 0)
      in case res of
         Nothing -> False
         Just _  -> True
@@ -72,8 +74,8 @@ isMonotoneIncreasing v =
 -------------------------------------------
 
 -- | apply a test to successive elements of a vector, evaluates to true iff test passes for all pairs
-successive_ :: Storable a => (a -> a -> Bool) -> Vector a -> Bool
-successive_ t v = maybe False (\_ -> True) $ evalState (runMaybeT (mapVectorM_ step (subVector 1 (dim v - 1) v))) (v @> 0)
+successive_ :: (Container Vector a, Indexable (Vector a) a) => (a -> a -> Bool) -> Vector a -> Bool
+successive_ t v = maybe False (\_ -> True) $ evalState (runMaybeT (mapVectorM_ step (subVector 1 (size v - 1) v))) (v ! 0)
    where step e = do
                   ep <- lift $ get
                   if t e ep
@@ -81,8 +83,10 @@ successive_ t v = maybe False (\_ -> True) $ evalState (runMaybeT (mapVectorM_ s
                      else (fail "successive_ test failed")
 
 -- | operate on successive elements of a vector and return the resulting vector, whose length 1 less than that of the input
-successive :: (Storable a, Storable b) => (a -> a -> b) -> Vector a -> Vector b
-successive f v = evalState (mapVectorM step (subVector 1 (dim v - 1) v)) (v @> 0)
+successive
+  :: (Storable b, Container Vector s, Indexable (Vector s) s)
+  => (s -> s -> b) -> Vector s -> Vector b
+successive f v = evalState (mapVectorM step (subVector 1 (size v - 1) v)) (v ! 0)
    where step e = do
                   ep <- get
                   put e
@@ -90,7 +94,7 @@ successive f v = evalState (mapVectorM step (subVector 1 (dim v - 1) v)) (v @> 0
 
 -------------------------------------------
 
-v :: Vector Int
+v :: Vector I
 v = 10 |> [0..]
 
 w = fromList ([1..10]++[10,9..1]) :: Vector Double
@@ -116,3 +120,4 @@ main = do
     print $ successive_ (>) v
     print $ successive_ (>) w
     print $ successive (+) v
+
