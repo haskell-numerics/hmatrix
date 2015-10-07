@@ -945,6 +945,8 @@ int vectorScan(char * file, int* n, double**pp){
 /* Windows use thread-safe random
    See: http://stackoverflow.com/questions/143108/is-windows-rand-s-thread-safe
 */
+#if defined (__APPLE__) || (__FreeBSD__)
+
 inline double urandom() {
     /* the probalility of matching will be theoretically p^3(in fact, it is not)
        p is matching probalility of random().
@@ -958,6 +960,22 @@ inline double urandom() {
     const long max_random = 2147483647; // 2**31 - 1
     return (double)nrand48(state) / (double)max_random;
 }
+
+#else
+
+#define _CRT_RAND_S
+inline double urandom() {
+    unsigned int number;
+    errno_t err;
+    err = rand_s(&number);
+    if (err!=0) {
+        printf("something wrong\n");
+        return -1;
+    }
+    return (double)number / (double)UINT_MAX;
+}
+
+#endif
 
 double gaussrand(int *phase, double *pV1, double *pV2, double *pS)
 {
@@ -985,6 +1003,35 @@ double gaussrand(int *phase, double *pV1, double *pV2, double *pS)
 
 }
 
+#if defined(_WIN32) || defined(WIN32)
+
+int random_vector(unsigned int seed, int code, DVEC(r)) {
+    int phase = 0;
+    double V1,V2,S;
+
+    srand(seed);
+
+    int k;
+    switch (code) {
+      case 0: { // uniform
+        for (k=0; k<rn; k++) {
+            rp[k] = urandom();
+        }
+        OK
+      }
+      case 1: { // gaussian
+        for (k=0; k<rn; k++) {
+            rp[k] = gaussrand(&phase,&V1,&V2,&S);
+        }
+        OK
+      }
+
+      default: ERROR(BAD_CODE);
+    }
+}
+
+#else
+
 int random_vector(unsigned int seed, int code, DVEC(r)) {
     int phase = 0;
     double V1,V2,S;
@@ -1009,6 +1056,8 @@ int random_vector(unsigned int seed, int code, DVEC(r)) {
       default: ERROR(BAD_CODE);
     }
 }
+
+#endif
 
 #else
 
