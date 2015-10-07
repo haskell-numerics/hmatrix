@@ -192,7 +192,8 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Matt Peddie wrote the interfaces to the interpolation and simulated annealing modules.
 
-- "maxc01" solved uninstallability in FreeBSD and improved urandom
+- "maxc01" solved uninstallability in FreeBSD, improved urandom, and fixed a Windows
+  link error using rand_s.
 
 - "ntfrgl" added {take,drop}Last{Rows,Columns} and odeSolveVWith with generalized step control function
    and fixed link errors related to mod/mod_l.
