@@ -23,10 +23,11 @@ int odejac (double t, const double y[], double *dfdy, double dfdt[], void *param
 }
 
 
-int ode(int method, double h, double eps_abs, double eps_rel,
+int ode(int method, int control, double h,
+        double eps_abs, double eps_rel, double a_y, double a_dydt,
         int f(double, int, const double*, int, double*),
         int jac(double, int, const double*, int, int, double*),
-        KRVEC(xi), KRVEC(ts), RMAT(sol)) {
+        KRVEC(sc), KRVEC(xi), KRVEC(ts), RMAT(sol)) {
 
     const gsl_odeiv_step_type * T;
 
@@ -46,8 +47,16 @@ int ode(int method, double h, double eps_abs, double eps_rel,
     }
 
     gsl_odeiv_step * s = gsl_odeiv_step_alloc (T, xin);
-    gsl_odeiv_control * c = gsl_odeiv_control_y_new (eps_abs, eps_rel);
     gsl_odeiv_evolve * e = gsl_odeiv_evolve_alloc (xin);
+    gsl_odeiv_control * c;
+
+    switch(control) {
+        case 0: { c = gsl_odeiv_control_standard_new
+                      (eps_abs, eps_rel, a_y, a_dydt); break; }
+        case 1: { c = gsl_odeiv_control_scaled_new
+                      (eps_abs, eps_rel, a_y, a_dydt, scp, scn); break; }
+        default: ERROR(BAD_CODE);
+    }
 
     Tode P;
     P.f = f;
@@ -112,10 +121,11 @@ int odejac (double t, const double y[], double *dfdy, double dfdt[], void *param
 }
 
 
-int ode(int method, double h, double eps_abs, double eps_rel,
+int ode(int method, int control, double h,
+        double eps_abs, double eps_rel, double a_y, double a_dydt,
         int f(double, int, const double*, int, double*),
         int jac(double, int, const double*, int, int, double*),
-        KRVEC(xi), KRVEC(ts), RMAT(sol)) {
+        KRVEC(sc), KRVEC(xi), KRVEC(ts), RMAT(sol)) {
 
     const gsl_odeiv2_step_type * T;
 
@@ -141,8 +151,15 @@ int ode(int method, double h, double eps_abs, double eps_rel,
 
     gsl_odeiv2_system sys = {odefunc, odejac, xin, &P};
 
-    gsl_odeiv2_driver * d =
-         gsl_odeiv2_driver_alloc_y_new (&sys, T, h, eps_abs, eps_rel);
+    gsl_odeiv2_driver * d;
+
+    switch(control) {
+        case 0: { d = gsl_odeiv2_driver_alloc_standard_new
+                      (&sys, T, h, eps_abs, eps_rel, a_y, a_dydt); break; }
+        case 1: { d = gsl_odeiv2_driver_alloc_scaled_new
+                      (&sys, T, h, eps_abs, eps_rel, a_y, a_dydt, scp); break; }
+        default: ERROR(BAD_CODE);
+    }
 
     double t = tsp[0];
 

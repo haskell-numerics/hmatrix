@@ -14,7 +14,7 @@ module Numeric.LinearProgramming.L1 (
     l1SolveU,
 ) where
 
-import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra.HMatrix
 import Numeric.LinearProgramming
 
 -- | L_inf solution of overconstrained system Ax=b.

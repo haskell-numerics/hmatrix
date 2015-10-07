@@ -1,3 +1,33 @@
+0.17.0.0
+--------
+
+    * eigSH, chol, and other functions that work with Hermitian or symmetric matrices
+      now take a special "Herm" argument that can be created by means of "sym"
+      or "mTm". The unchecked versions of those functions have been removed and we
+      use "trustSym" to create the Herm type when the matrix is known to be Hermitian/symmetric.
+
+    * Improved matrix extraction (??) and rectangular matrix slices without data copy
+
+    * Basic support of Int32 and Int64 elements
+
+    * remap, more general cond, sortIndex
+
+    * Experimental support of type safe modular arithmetic, including linear
+      system solver and LU factorization
+
+    * Elementary row operations and inplace matrix slice products in the ST monad
+
+    * Improved development tools.
+
+    * Old compatibility modules removed, simpler organization of internal modules
+
+    * unitary, pairwiseD2, tr'
+
+    * ldlPacked, ldlSolve for indefinite symmetric systems (apparently not faster
+      than the general solver based on the LU)
+
+    * LU, LDL, and QR types for these compact decompositions.
+
 0.16.1.0
 --------
 

@@ -22,21 +22,20 @@ module Numeric.GSL.Internal(
     aux_vTom,
     createV,
     createMIO,
-    module Data.Packed.Development,
-    check,
+    module Numeric.LinearAlgebra.Devel,
+    check,(#),vec, ww2,
     Res,TV,TM,TCV,TCM
 ) where
 
-import Data.Packed
-import Data.Packed.Development hiding (check)
-import Data.Complex
+import Numeric.LinearAlgebra.HMatrix
+import Numeric.LinearAlgebra.Devel hiding (check)
 
 import Foreign.Marshal.Array(copyArray)
 import Foreign.Ptr(Ptr, FunPtr)
 import Foreign.C.Types
 import Foreign.C.String(peekCString)
 import System.IO.Unsafe(unsafePerformIO)
-import Data.Vector.Storable(unsafeWith)
+import Data.Vector.Storable as V (unsafeWith,length)
 import Control.Monad(when)
 
 iv :: (Vector Double -> Double) -> (CInt -> Ptr Double -> Double)
@@ -87,12 +86,12 @@ aux_vTom f n p rr cr r = g where
 
 createV n fun msg = unsafePerformIO $ do
     r <- createVector n
-    app1 fun vec r msg
+    fun # r #| msg
     return r
 
 createMIO r c fun msg = do
     res <- createMatrix RowMajor r c
-    app1 fun mat res msg
+    fun # res #| msg
     return res
 
 --------------------------------------------------------------------------------
@@ -123,4 +122,16 @@ type TCM x = CInt -> CInt -> PC -> x
 
 type TVV = TV (TV Res)
 type TVM = TV (TM Res)
+
+ww2 w1 o1 w2 o2 f = w1 o1 $ \a1 -> w2 o2 $ \a2 -> f a1 a2
+
+vec x f = unsafeWith x $ \p -> do
+    let v g = do
+        g (fi $ V.length x) p
+    f v
+{-# INLINE vec #-}
+
+infixl 1 #
+a # b = applyRaw a b
+{-# INLINE (#) #-}
 

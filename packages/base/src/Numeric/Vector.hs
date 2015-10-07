@@ -19,9 +19,10 @@
 
 module Numeric.Vector () where
 
-import Numeric.Vectorized
-import Data.Packed.Vector
-import Data.Packed.Internal.Numeric
+import Internal.Vectorized
+import Internal.Vector
+import Internal.Numeric
+import Internal.Conversion
 
 -------------------------------------------------------------------
 
@@ -31,6 +32,22 @@ adaptScalar f1 f2 f3 x y
     | otherwise = f2 x y
 
 ------------------------------------------------------------------
+
+instance Num (Vector I) where
+    (+) = adaptScalar addConstant add (flip addConstant)
+    negate = scale (-1)
+    (*) = adaptScalar scale mul (flip scale)
+    signum = vectorMapI Sign
+    abs = vectorMapI Abs
+    fromInteger = fromList . return . fromInteger
+
+instance Num (Vector Z) where
+    (+) = adaptScalar addConstant add (flip addConstant)
+    negate = scale (-1)
+    (*) = adaptScalar scale mul (flip scale)
+    signum = vectorMapL Sign
+    abs = vectorMapL Abs
+    fromInteger = fromList . return . fromInteger
 
 instance Num (Vector Float) where
     (+) = adaptScalar addConstant add (flip addConstant)
@@ -66,7 +83,7 @@ instance Num (Vector (Complex Float)) where
 
 ---------------------------------------------------
 
-instance (Container Vector a, Num (Vector a)) => Fractional (Vector a) where
+instance (Container Vector a, Num (Vector a), Fractional a) => Fractional (Vector a) where
     fromRational n = fromList [fromRational n]
     (/) = adaptScalar f divide g where
         r `f` v = scaleRecip r v

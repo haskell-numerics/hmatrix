@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeFamilies #-}
+
 {- |
 Module      : Numeric.GSL.Fourier
 Copyright   :  (c) Alberto Ruiz 2006
@@ -16,15 +18,14 @@ module Numeric.GSL.Fourier (
     ifft
 ) where
 
-import Data.Packed
+import Numeric.LinearAlgebra.HMatrix
 import Numeric.GSL.Internal
-import Data.Complex
 import Foreign.C.Types
 import System.IO.Unsafe (unsafePerformIO)
 
 genfft code v = unsafePerformIO $ do
-    r <- createVector (dim v)
-    app2 (c_fft code) vec v vec r "fft"
+    r <- createVector (size v)
+    c_fft code # v # r #|"fft"
     return r
 
 foreign import ccall unsafe "gsl-aux.h fft" c_fft ::  CInt -> TCV (TCV Res)
@@ -42,3 +43,4 @@ fft = genfft 0
 -- | The inverse of 'fft', using /gsl_fft_complex_inverse/.
 ifft :: Vector (Complex Double) -> Vector (Complex Double)
 ifft = genfft 1
+

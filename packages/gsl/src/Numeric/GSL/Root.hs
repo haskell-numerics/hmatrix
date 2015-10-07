@@ -1,3 +1,5 @@
+{-# LANGUAGE  FlexibleContexts #-}
+
 {- |
 Module      :  Numeric.GSL.Root
 Copyright   :  (c) Alberto Ruiz 2009
@@ -39,7 +41,7 @@ module Numeric.GSL.Root (
     rootJ, RootMethodJ(..),
 ) where
 
-import Data.Packed
+import Numeric.LinearAlgebra.HMatrix
 import Numeric.GSL.Internal
 import Foreign.Ptr(FunPtr, freeHaskellFunPtr)
 import Foreign.C.Types
@@ -69,7 +71,7 @@ uniRootGen m f xl xu epsrel maxit = unsafePerformIO $ do
     rawpath <- createMIO maxit 4
                          (c_root m fp epsrel (fi maxit) xl xu)
                          "root"
-    let it = round (rawpath @@> (maxit-1,0))
+    let it = round (rawpath `atIndex` (maxit-1,0))
         path = takeRows it rawpath
         [sol] = toLists $ dropRows (it-1) path
     freeHaskellFunPtr fp
@@ -100,7 +102,7 @@ uniRootJGen m f df x epsrel maxit = unsafePerformIO $ do
     rawpath <- createMIO maxit 2
                          (c_rootj m fp dfp epsrel (fi maxit) x)
                          "rootj"
-    let it = round (rawpath @@> (maxit-1,0))
+    let it = round (rawpath `atIndex` (maxit-1,0))
         path = takeRows it rawpath
         [sol] = toLists $ dropRows (it-1) path
     freeHaskellFunPtr fp
@@ -132,13 +134,13 @@ root method epsabs maxit fun xinit = rootGen (fi (fromEnum method)) fun xinit ep
 
 rootGen m f xi epsabs maxit = unsafePerformIO $ do
     let xiv = fromList xi
-        n   = dim xiv
+        n   = size xiv
     fp <- mkVecVecfun (aux_vTov (checkdim1 n . fromList . f . toList))
     rawpath <- vec xiv $ \xiv' ->
                    createMIO maxit (2*n+1)
                          (c_multiroot m fp epsabs (fi maxit) // xiv')
                          "multiroot"
-    let it = round (rawpath @@> (maxit-1,0))
+    let it = round (rawpath `atIndex` (maxit-1,0))
         path = takeRows it rawpath
         [sol] = toLists $ dropRows (it-1) path
     freeHaskellFunPtr fp
@@ -169,14 +171,14 @@ rootJ method epsabs maxit fun jac xinit = rootJGen (fi (fromEnum method)) fun ja
 
 rootJGen m f jac xi epsabs maxit = unsafePerformIO $ do
     let xiv = fromList xi
-        n   = dim xiv
+        n   = size xiv
     fp <- mkVecVecfun (aux_vTov (checkdim1 n . fromList . f . toList))
     jp <- mkVecMatfun (aux_vTom (checkdim2 n . fromLists . jac . toList))
     rawpath <- vec xiv $ \xiv' ->
                    createMIO maxit (2*n+1)
                          (c_multirootj m fp jp epsabs (fi maxit) // xiv')
                          "multiroot"
-    let it = round (rawpath @@> (maxit-1,0))
+    let it = round (rawpath `atIndex` (maxit-1,0))
         path = takeRows it rawpath
         [sol] = toLists $ dropRows (it-1) path
     freeHaskellFunPtr fp
@@ -189,7 +191,7 @@ foreign import ccall safe "multirootj"
 -------------------------------------------------------
 
 checkdim1 n v
-    | dim v == n = v
+    | size v == n = v
     | otherwise = error $ "Error: "++ show n
                         ++ " components expected in the result of the function supplied to root"
 

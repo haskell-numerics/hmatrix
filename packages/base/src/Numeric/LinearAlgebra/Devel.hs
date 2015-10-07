@@ -17,16 +17,23 @@ module Numeric.LinearAlgebra.Devel(
     --
     -- @ glUniformMatrix4fv 0 1 (fromIntegral gl_TRUE) \`appMatrix\` perspective 0.01 100 (pi\/2) (4\/3)
     -- @
-    module Data.Packed.Foreign,
+    module Internal.Foreign,
 
     -- * FFI tools
-    -- | Illustrative usage examples can be found
-    --   in the @examples\/devel@ folder included in the package.
-    module Data.Packed.Development,
+    -- | See @examples/devel@ in the repository.
+    
+    createVector, createMatrix,
+    TransArray(..),
+    MatrixOrder(..), orderOf, cmat, fmat,
+    matrixFromVector,
+    unsafeFromForeignPtr,
+    unsafeToForeignPtr,
+    check, (//), (#|),
+    at', atM', fi, ti,
 
     -- * ST
     -- | In-place manipulation inside the ST monad.
-    -- See examples\/inplace.hs in the distribution.
+    -- See @examples/inplace.hs@ in the repository.
     
     -- ** Mutable Vectors
     STVector, newVector, thawVector, freezeVector, runSTVector,
@@ -34,6 +41,7 @@ module Numeric.LinearAlgebra.Devel(
     -- ** Mutable Matrices
     STMatrix, newMatrix, thawMatrix, freezeMatrix, runSTMatrix,
     readMatrix, writeMatrix, modifyMatrix, liftSTMatrix,
+    mutable, extractMatrix, setMatrix, rowOper, RowOper(..), RowRange(..), ColRange(..), gemmm, Slice(..),
     -- ** Unsafe functions
     newUndefinedVector,
     unsafeReadVector, unsafeWriteVector,
@@ -54,13 +62,15 @@ module Numeric.LinearAlgebra.Devel(
     GMatrix(..),
 
     -- * Misc
-    toByteString, fromByteString
+    toByteString, fromByteString, showInternal
 
 ) where
 
-import Data.Packed.Foreign
-import Data.Packed.Development
-import Data.Packed.ST
-import Data.Packed
-import Numeric.Sparse
+import Internal.Foreign
+import Internal.Devel
+import Internal.ST
+import Internal.Vector
+import Internal.Matrix
+import Internal.Element
+import Internal.Sparse
 

@@ -1,3 +1,6 @@
+{-# LANGUAGE FlexibleContexts #-}
+
+
 {- |
 Module      :  Numeric.GSL.Minimization
 Copyright   :  (c) Alberto Ruiz 2006-9
@@ -56,7 +59,7 @@ module Numeric.GSL.Minimization (
 ) where
 
 
-import Data.Packed
+import Numeric.LinearAlgebra.HMatrix hiding(step)
 import Numeric.GSL.Internal
 
 import Foreign.Ptr(Ptr, FunPtr, freeHaskellFunPtr)
@@ -99,7 +102,7 @@ uniMinimizeGen m f xmin xl xu epsrel maxit = unsafePerformIO $ do
     rawpath <- createMIO maxit 4
                          (c_uniMinize m fp epsrel (fi maxit) xmin xl xu)
                          "uniMinimize"
-    let it = round (rawpath @@> (maxit-1,0))
+    let it = round (rawpath `atIndex` (maxit-1,0))
         path = takeRows it rawpath
         [sol] = toLists $ dropRows (it-1) path
     freeHaskellFunPtr fp
@@ -134,16 +137,16 @@ minimizeV :: MinimizeMethod
 minimize method eps maxit sz f xi = v2l $ minimizeV method eps maxit (fromList sz) (f.toList) (fromList xi)
     where v2l (v,m) = (toList v, m)
 
-ww2 w1 o1 w2 o2 f = w1 o1 $ \a1 -> w2 o2 $ \a2 -> f a1 a2
+
 
 minimizeV method eps maxit szv f xiv = unsafePerformIO $ do
-    let n   = dim xiv
+    let n   = size xiv
     fp <- mkVecfun (iv f)
     rawpath <- ww2 vec xiv vec szv $ \xiv' szv' ->
                    createMIO maxit (n+3)
                          (c_minimize (fi (fromEnum method)) fp eps (fi maxit) // xiv' // szv')
                          "minimize"
-    let it = round (rawpath @@> (maxit-1,0))
+    let it = round (rawpath `atIndex` (maxit-1,0))
         path = takeRows it rawpath
         sol = flatten $ dropColumns 3 $ dropRows (it-1) path
     freeHaskellFunPtr fp
@@ -191,7 +194,7 @@ minimizeD method eps maxit istep tol f df xi = v2l $ minimizeVD
 
 
 minimizeVD method eps maxit istep tol f df xiv = unsafePerformIO $ do
-    let n = dim xiv
+    let n = size xiv
         f' = f
         df' = (checkdim1 n . df)
     fp <- mkVecfun (iv f')
@@ -200,7 +203,7 @@ minimizeVD method eps maxit istep tol f df xiv = unsafePerformIO $ do
                     createMIO maxit (n+2)
                          (c_minimizeD (fi (fromEnum method)) fp dfp istep tol eps (fi maxit) // xiv')
                          "minimizeD"
-    let it = round (rawpath @@> (maxit-1,0))
+    let it = round (rawpath `atIndex` (maxit-1,0))
         path = takeRows it rawpath
         sol = flatten $ dropColumns 2 $ dropRows (it-1) path
     freeHaskellFunPtr fp
@@ -217,6 +220,6 @@ foreign import ccall safe "gsl-aux.h minimizeD"
 ---------------------------------------------------------------------
 
 checkdim1 n v
-    | dim v == n = v
+    | size v == n = v
     | otherwise = error $ "Error: "++ show n
                         ++ " components expected in the result of the gradient supplied to minimizeD"

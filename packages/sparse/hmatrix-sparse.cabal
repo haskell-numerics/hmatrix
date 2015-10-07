@@ -29,7 +29,13 @@ library
 
     c-sources:          src/Numeric/LinearAlgebra/sparse.c
 
-    cc-options:         -O4 -msse2 -Wall
+    cc-options:         -O4 -Wall
+
+    if arch(x86_64)
+       cc-options:     -msse2
+
+    if arch(i386)
+       cc-options:     -msse2
 
     extra-libraries:    mkl_intel mkl_sequential mkl_core
 

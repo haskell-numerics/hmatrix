@@ -1,5 +1,5 @@
 Name:               hmatrix-gsl
-Version:            0.16.0.3
+Version:            0.17.0.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -25,7 +25,7 @@ flag onlygsl
 
 library
 
-    Build-Depends:      base<5, hmatrix>=0.16, array, vector,
+    Build-Depends:      base<5, hmatrix>=0.17, array, vector,
                         process, random
 
 
@@ -44,6 +44,7 @@ library
                         Numeric.GSL,
                         Numeric.GSL.LinearAlgebra,
                         Numeric.GSL.Interpolation,
+                        Numeric.GSL.SimulatedAnnealing,
                         Graphics.Plot
     other-modules:      Numeric.GSL.Internal,
                         Numeric.GSL.Vector,
@@ -53,7 +54,12 @@ library
 
     C-sources:          src/Numeric/GSL/gsl-aux.c
 
-    cc-options:         -O4 -msse2 -Wall
+    cc-options:         -O4 -Wall
+
+    if arch(x86_64)
+        cc-options:     -msse2
+    if arch(i386)
+        cc-options:     -msse2
 
     ghc-options:  -Wall -fno-warn-missing-signatures
                         -fno-warn-orphans

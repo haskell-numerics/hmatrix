@@ -1,3 +1,6 @@
+{-# LANGUAGE FlexibleContexts #-}
+
+
 {- |
 Module      :  Numeric.GSL.ODE
 Copyright   :  (c) Alberto Ruiz 2010
@@ -29,10 +32,10 @@ main = mplot (ts : toColumns sol)
 -----------------------------------------------------------------------------
 
 module Numeric.GSL.ODE (
-    odeSolve, odeSolveV, ODEMethod(..), Jacobian
+    odeSolve, odeSolveV, odeSolveVWith, ODEMethod(..), Jacobian, StepControl(..)
 ) where
 
-import Data.Packed
+import Numeric.LinearAlgebra.HMatrix
 import Numeric.GSL.Internal
 
 import Foreign.Ptr(FunPtr, nullFunPtr, freeHaskellFunPtr)
@@ -41,9 +44,10 @@ import System.IO.Unsafe(unsafePerformIO)
 
 -------------------------------------------------------------------------
 
-type TVV  = TV (TV Res)
-type TVM  = TV (TM Res)
-type TVVM = TV (TV (TM Res))
+type TVV   = TV (TV Res)
+type TVM   = TV (TM Res)
+type TVVM  = TV (TV (TM Res))
+type TVVVM = TV (TV (TV (TM Res)))
 
 type Jacobian = Double -> Vector Double -> Matrix Double
 
@@ -60,73 +64,105 @@ data ODEMethod = RK2 -- ^ Embedded Runge-Kutta (2, 3) method.
                | MSAdams -- ^ A variable-coefficient linear multistep Adams method in Nordsieck form. This stepper uses explicit Adams-Bashforth (predictor) and implicit Adams-Moulton (corrector) methods in P(EC)^m functional iteration mode. Method order varies dynamically between 1 and 12. 
                | MSBDF Jacobian -- ^ A variable-coefficient linear multistep backward differentiation formula (BDF) method in Nordsieck form. This stepper uses the explicit BDF formula as predictor and implicit BDF formula as corrector. A modified Newton iteration method is used to solve the system of non-linear equations. Method order varies dynamically between 1 and 5. The method is generally suitable for stiff problems.
 
+-- | Adaptive step-size control functions
+data StepControl = X     Double Double -- ^ abs. and rel. tolerance for x(t)
+                 | X'    Double Double -- ^ abs. and rel. tolerance for x'(t)
+                 | XX'   Double Double Double Double -- ^ include both via rel. tolerance scaling factors a_x, a_x'
+                 | ScXX' Double Double Double Double (Vector Double) -- ^ scale abs. tolerance of x(t) components
 
 -- | A version of 'odeSolveV' with reasonable default parameters and system of equations defined using lists.
 odeSolve
-    :: (Double -> [Double] -> [Double])        -- ^ xdot(t,x)
+    :: (Double -> [Double] -> [Double])        -- ^ x'(t,x)
     -> [Double]        -- ^ initial conditions
     -> Vector Double   -- ^ desired solution times
     -> Matrix Double   -- ^ solution
 odeSolve xdot xi ts = odeSolveV RKf45 hi epsAbs epsRel (l2v xdot) (fromList xi) ts
-    where hi = (ts@>1 - ts@>0)/100
+    where hi = (ts!1 - ts!0)/100
           epsAbs = 1.49012e-08
-          epsRel = 1.49012e-08
-          l2v f = \t -> fromList  . f t . toList
+          epsRel = epsAbs
+          l2v f  = \t -> fromList . f t . toList
 
--- | Evolution of the system with adaptive step-size control.
+-- | A version of 'odeSolveVWith' with reasonable default step control.
 odeSolveV
     :: ODEMethod
-    -> Double -- ^ initial step size
-    -> Double -- ^ absolute tolerance for the state vector
-    -> Double -- ^ relative tolerance for the state vector
-    -> (Double -> Vector Double -> Vector Double)   -- ^ xdot(t,x)
+    -> Double            -- ^ initial step size
+    -> Double            -- ^ absolute tolerance for the state vector
+    -> Double            -- ^ relative tolerance for the state vector
+    -> (Double -> Vector Double -> Vector Double)   -- ^ x'(t,x)
     -> Vector Double     -- ^ initial conditions
     -> Vector Double     -- ^ desired solution times
     -> Matrix Double     -- ^ solution
-odeSolveV RK2 = odeSolveV' 0 Nothing
-odeSolveV RK4 = odeSolveV' 1 Nothing
-odeSolveV RKf45 = odeSolveV' 2 Nothing
-odeSolveV RKck = odeSolveV' 3 Nothing
-odeSolveV RK8pd = odeSolveV' 4 Nothing
-odeSolveV (RK2imp jac) = odeSolveV' 5 (Just jac)
-odeSolveV (RK4imp jac) = odeSolveV' 6 (Just jac)
-odeSolveV (BSimp jac) = odeSolveV' 7 (Just jac)
-odeSolveV (RK1imp jac) = odeSolveV' 8 (Just jac)
-odeSolveV MSAdams = odeSolveV' 9 Nothing
-odeSolveV (MSBDF jac) = odeSolveV' 10 (Just jac)
+odeSolveV meth hi epsAbs epsRel = odeSolveVWith meth (XX' epsAbs epsRel 1 1) hi
 
+-- | Evolution of the system with adaptive step-size control.
+odeSolveVWith
+    :: ODEMethod
+    -> StepControl
+    -> Double            -- ^ initial step size
+    -> (Double -> Vector Double -> Vector Double)   -- ^ x'(t,x)
+    -> Vector Double     -- ^ initial conditions
+    -> Vector Double     -- ^ desired solution times
+    -> Matrix Double     -- ^ solution
+odeSolveVWith method control = odeSolveVWith' m mbj c epsAbs epsRel aX aX' mbsc
+    where (m, mbj) = case method of
+              RK2        -> (0 , Nothing )
+              RK4        -> (1 , Nothing )
+              RKf45      -> (2 , Nothing )
+              RKck       -> (3 , Nothing )
+              RK8pd      -> (4 , Nothing )
+              RK2imp jac -> (5 , Just jac)
+              RK4imp jac -> (6 , Just jac)
+              BSimp  jac -> (7 , Just jac)
+              RK1imp jac -> (8 , Just jac)
+              MSAdams    -> (9 , Nothing )
+              MSBDF  jac -> (10, Just jac)
+          (c, epsAbs, epsRel, aX, aX', mbsc) = case control of
+              X     ea er           -> (0, ea, er, 1 , 0  , Nothing)
+              X'    ea er           -> (0, ea, er, 0 , 1  , Nothing)
+              XX'   ea er ax ax'    -> (0, ea, er, ax, ax', Nothing)
+              ScXX' ea er ax ax' sc -> (1, ea, er, ax, ax', Just sc)
 
-odeSolveV'
-    :: CInt
+odeSolveVWith'
+    :: CInt     -- ^ stepping function
     -> Maybe (Double -> Vector Double -> Matrix Double)   -- ^ optional jacobian
-    -> Double -- ^ initial step size
-    -> Double -- ^ absolute tolerance for the state vector
-    -> Double -- ^ relative tolerance for the state vector
-    -> (Double -> Vector Double -> Vector Double)   -- ^ xdot(t,x)
-    -> Vector Double     -- ^ initial conditions
-    -> Vector Double     -- ^ desired solution times
-    -> Matrix Double     -- ^ solution
-odeSolveV' method mbjac h epsAbs epsRel f  xiv ts = unsafePerformIO $ do
-    let n   = dim xiv
-    fp <- mkDoubleVecVecfun (\t -> aux_vTov (checkdim1 n . f t))
-    jp <- case mbjac of
-        Just jac -> mkDoubleVecMatfun (\t -> aux_vTom (checkdim2 n . jac t))
-        Nothing  -> return nullFunPtr
-    sol <- vec xiv $ \xiv' ->
-            vec (checkTimes ts) $ \ts' ->
-             createMIO (dim ts) n
-              (ode_c (method) h epsAbs epsRel fp jp // xiv' // ts' )
-              "ode"
-    freeHaskellFunPtr fp
-    return sol
+    -> CInt     -- ^ step-size control function
+    -> Double   -- ^ absolute tolerance for step-size control
+    -> Double   -- ^ relative tolerance for step-size control
+    -> Double   -- ^ scaling factor for relative tolerance of x(t)
+    -> Double   -- ^ scaling factor for relative tolerance of x'(t)
+    -> Maybe (Vector Double)    -- ^ optional scaling for absolute error
+    -> Double   -- ^ initial step size
+    -> (Double -> Vector Double -> Vector Double)        -- ^ x'(t,x)
+    -> Vector Double  -- ^ initial conditions
+    -> Vector Double  -- ^ desired solution times
+    -> Matrix Double  -- ^ solution
+odeSolveVWith' method mbjac control epsAbs epsRel aX aX' mbsc h f xiv ts =
+    unsafePerformIO $ do
+        let n  = size xiv
+            sc = case mbsc of
+                Just scv -> checkdim1 n scv
+                Nothing  -> xiv
+        fp <- mkDoubleVecVecfun (\t -> aux_vTov (checkdim1 n . f t))
+        jp <- case mbjac of
+            Just jac -> mkDoubleVecMatfun (\t -> aux_vTom (checkdim2 n . jac t))
+            Nothing  -> return nullFunPtr
+        sol <- vec sc $ \sc' -> vec xiv $ \xiv' ->
+            vec (checkTimes ts) $ \ts' -> createMIO (size ts) n
+                (ode_c method control h epsAbs epsRel aX aX' fp jp
+                // sc' // xiv' // ts' )
+                "ode"
+        freeHaskellFunPtr fp
+        return sol
 
 foreign import ccall safe "ode"
-    ode_c :: CInt -> Double -> Double -> Double -> FunPtr (Double -> TVV) -> FunPtr (Double -> TVM) -> TVVM
+    ode_c :: CInt -> CInt -> Double
+          -> Double -> Double -> Double -> Double
+          -> FunPtr (Double -> TVV) -> FunPtr (Double -> TVM) -> TVVVM
 
 -------------------------------------------------------
 
 checkdim1 n v
-    | dim v == n = v
+    | size v == n = v
     | otherwise = error $ "Error: "++ show n
                         ++ " components expected in the result of the function supplied to odeSolve"
 
@@ -135,6 +171,6 @@ checkdim2 n m
     | otherwise = error $ "Error: "++ show n ++ "x" ++ show n
                         ++ " Jacobian expected in odeSolve"
 
-checkTimes ts | dim ts > 1 && all (>0) (zipWith subtract ts' (tail ts')) = ts
+checkTimes ts | size ts > 1 && all (>0) (zipWith subtract ts' (tail ts')) = ts
               | otherwise = error "odeSolve requires increasing times"
     where ts' = toList ts

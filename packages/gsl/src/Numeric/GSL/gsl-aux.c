@@ -36,6 +36,8 @@
 #include <gsl/gsl_roots.h>
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_multifit_nlin.h>
+#include <gsl/gsl_siman.h>
+
 #include <string.h>
 #include <stdio.h>
 
@@ -475,7 +477,30 @@ int uniMinimize(int method, double f(double),
    OK
 }
 
-   
+int siman(int seed,
+          gsl_siman_params_t *params, void *xp0,
+          double energy(void *), double metric(void *, void *),
+          void step(const gsl_rng *, void *, double),
+          void copy(void *, void *), void *copycons(void *),
+          void destroy(void *), void print(void *)) {
+  DEBUGMSG("siman");
+  gsl_rng *gen = gsl_rng_alloc (gsl_rng_mt19937);
+  gsl_rng_set(gen, seed);
+
+  // The simulated annealing routine doesn't indicate with a return
+  // code how things went -- there's little notion of convergence for
+  // a randomized minimizer on a potentially non-convex problem, and I
+  // suppose it doesn't detect egregious failures like malloc errors
+  // in the copy-constructor.
+  gsl_siman_solve(gen, xp0,
+                  energy, step,
+                  metric, print,
+                  copy, copycons,
+                  destroy, 0, *params);
+
+  gsl_rng_free(gen);
+  OK
+}
 
 // this version returns info about intermediate steps
 int minimize(int method, double f(int, double*), double tolsize, int maxit, 

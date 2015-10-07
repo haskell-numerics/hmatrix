@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 {- |
 Module      :  Numeric.GSL.Fitting
 Copyright   :  (c) Alberto Ruiz 2010
@@ -50,7 +52,7 @@ module Numeric.GSL.Fitting (
     fitModelScaled, fitModel
 ) where
 
-import Numeric.LinearAlgebra
+import Numeric.LinearAlgebra.HMatrix
 import Numeric.GSL.Internal
 
 import Foreign.Ptr(FunPtr, freeHaskellFunPtr)
@@ -80,13 +82,13 @@ nlFitting :: FittingMethod
 nlFitting method epsabs epsrel maxit fun jac xinit = nlFitGen (fi (fromEnum method)) fun jac xinit epsabs epsrel maxit
 
 nlFitGen m f jac xiv epsabs epsrel maxit = unsafePerformIO $ do
-    let p   = dim xiv
-        n   = dim (f xiv)
+    let p   = size xiv
+        n   = size (f xiv)
     fp <- mkVecVecfun (aux_vTov (checkdim1 n p . f))
     jp <- mkVecMatfun (aux_vTom (checkdim2 n p . jac))
     rawpath <- createMatrix RowMajor maxit (2+p)
-    app2 (c_nlfit m fp jp epsabs epsrel (fi maxit) (fi n)) vec xiv mat rawpath "c_nlfit"
-    let it = round (rawpath @@> (maxit-1,0))
+    c_nlfit m fp jp epsabs epsrel (fi maxit) (fi n) # xiv # rawpath #|"c_nlfit"
+    let it = round (rawpath `atIndex` (maxit-1,0))
         path = takeRows it rawpath
         [sol] = toRows $ dropRows (it-1) path
     freeHaskellFunPtr fp
@@ -99,7 +101,7 @@ foreign import ccall safe "nlfit"
 -------------------------------------------------------
 
 checkdim1 n _p v
-    | dim v == n = v
+    | size v == n = v
     | otherwise = error $ "Error: "++ show n
                         ++ " components expected in the result of the function supplied to nlFitting"
 
@@ -114,9 +116,9 @@ err (model,deriv) dat vsol = zip sol errs where
     sol = toList vsol
     c = max 1 (chi/sqrt (fromIntegral dof))
     dof = length dat - (rows cov)
-    chi = norm2 (fromList $ cost (resMs model) dat sol)
+    chi = norm_2 (fromList $ cost (resMs model) dat sol)
     js = fromLists $ jacobian (resDs deriv) dat sol
-    cov = inv $ trans js <> js
+    cov = inv $ tr js <> js
     errs = toList $ scalar c * sqrt (takeDiag cov)
 
 

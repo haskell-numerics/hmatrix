@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.16.1.5
+Version:            0.17.0.1
 License:            BSD3
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -7,17 +7,11 @@ Maintainer:         Alberto Ruiz
 Stability:          provisional
 Homepage:           https://github.com/albertoruiz/hmatrix
 Synopsis:           Numeric Linear Algebra
-Description:        Linear algebra based on BLAS and LAPACK.
+Description:        Linear systems, matrix decompositions, and other numerical computations based on BLAS and LAPACK.
                     .
-                    The package is organized as follows:
+                    Standard interface: "Numeric.LinearAlgebra".
                     .
-                    ["Numeric.LinearAlgebra.HMatrix"] Starting point and recommended import module for most applications.
-                    .
-                    ["Numeric.LinearAlgebra.Static"] Experimental alternative interface.
-                    .
-                    ["Numeric.LinearAlgebra.Devel"] Tools for extending the library.
-                    .
-                    (Other modules are exposed with hidden documentation for backwards compatibility.)
+                    Safer interface with statically checked dimensions: "Numeric.LinearAlgebra.Static".
                     .
                     Code examples: <http://dis.um.es/~alberto/hmatrix/hmatrix.html>
 
@@ -30,16 +24,16 @@ build-type:         Simple
 
 extra-source-files: THANKS.md CHANGELOG
 
-extra-source-files: src/C/lapack-aux.h
+extra-source-files: src/Internal/C/lapack-aux.h
 
 flag openblas
     description:    Link with OpenBLAS (https://github.com/xianyi/OpenBLAS) optimized libraries.
     default:        False
-    manual: True 
+    manual: True
 
 library
 
-    Build-Depends:      base >= 4 && < 5,
+    Build-Depends:      base >= 4.8 && < 5,
                         binary,
                         array,
                         deepseq,
@@ -51,47 +45,38 @@ library
 
     hs-source-dirs:     src
 
-    exposed-modules:    Data.Packed,
-                        Data.Packed.Vector,
-                        Data.Packed.Matrix,
-                        Data.Packed.Foreign,
-                        Data.Packed.ST,
-                        Data.Packed.Development,
-
-                        Numeric.LinearAlgebra
-                        Numeric.LinearAlgebra.LAPACK
-                        Numeric.LinearAlgebra.Algorithms
-                        Numeric.Container
-                        Numeric.LinearAlgebra.Util
-
+    exposed-modules:    Numeric.LinearAlgebra
                         Numeric.LinearAlgebra.Devel
                         Numeric.LinearAlgebra.Data
                         Numeric.LinearAlgebra.HMatrix
                         Numeric.LinearAlgebra.Static
-                        
 
-
-    other-modules:      Data.Packed.Internal,
-                        Data.Packed.Internal.Common
-                        Data.Packed.Internal.Signatures
-                        Data.Packed.Internal.Vector
-                        Data.Packed.Internal.Matrix
-                        Data.Packed.IO
-                        Numeric.Chain
-                        Numeric.Vectorized
+    other-modules:      Internal.Vector
+                        Internal.Devel
+                        Internal.Vectorized
+                        Internal.Matrix
+                        Internal.Foreign
+                        Internal.ST
+                        Internal.IO
+                        Internal.Element
+                        Internal.Conversion
+                        Internal.LAPACK
+                        Internal.Numeric
+                        Internal.Algorithms
+                        Internal.Random
+                        Internal.Container
+                        Internal.Sparse
+                        Internal.Convolution
+                        Internal.Chain
                         Numeric.Vector
+                        Internal.CG
                         Numeric.Matrix
-                        Data.Packed.Internal.Numeric
-                        Data.Packed.Numeric
-                        Numeric.LinearAlgebra.Util.Convolution
-                        Numeric.LinearAlgebra.Util.CG
-                        Numeric.LinearAlgebra.Random
-                        Numeric.Conversion
-                        Numeric.Sparse
-                        Numeric.LinearAlgebra.Static.Internal
+                        Internal.Util
+                        Internal.Modular
+                        Internal.Static
 
-    C-sources:          src/C/lapack-aux.c
-                        src/C/vector-aux.c
+    C-sources:          src/Internal/C/lapack-aux.c
+                        src/Internal/C/vector-aux.c
 
 
     extensions:         ForeignFunctionInterface,
@@ -100,18 +85,24 @@ library
     ghc-options:        -Wall
                         -fno-warn-missing-signatures
                         -fno-warn-orphans
+                        -fprof-auto
 
-    cc-options:         -O4 -msse2 -Wall
+    cc-options:         -O4 -Wall
+
+    if arch(x86_64)
+        cc-options:     -msse2
+    if arch(i386)
+        cc-options:     -msse2
 
     cpp-options:        -DBINARY
 
-    if flag(openblas)
-        extra-lib-dirs:     /usr/lib/openblas/lib    
-        extra-libraries:    openblas
-    else 
-        extra-libraries:    blas lapack
-
     if os(OSX)
+        if flag(openblas)
+            extra-lib-dirs:     /opt/local/lib/openblas/lib
+            extra-libraries:    openblas
+        else
+            extra-libraries:    blas lapack
+
         extra-lib-dirs: /opt/local/lib/
         include-dirs: /opt/local/include/
         extra-lib-dirs: /usr/local/lib/
@@ -121,14 +112,29 @@ library
         frameworks: Accelerate
 
     if os(freebsd)
+        if flag(openblas)
+            extra-lib-dirs:     /usr/local/lib/openblas/lib
+            extra-libraries:    openblas
+        else
+            extra-libraries:    blas lapack
+
        extra-lib-dirs: /usr/local/lib
        include-dirs: /usr/local/include
-       extra-libraries: blas lapack gfortran
+       extra-libraries: gfortran
 
     if os(windows)
-        extra-libraries: blas lapack
+        if flag(openblas)
+            extra-libraries:    libopenblas
+        else
+            extra-libraries:    blas lapack
 
     if os(linux)
+        if flag(openblas)
+            extra-lib-dirs:     /usr/lib/openblas/lib
+            extra-libraries:    openblas
+        else
+            extra-libraries:    blas lapack
+
         if arch(x86_64)
             cc-options: -fPIC
 

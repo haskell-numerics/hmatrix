@@ -1,5 +1,3 @@
-#if __GLASGOW_HASKELL__ >= 708
-
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -13,7 +11,6 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE OverlappingInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 
 
@@ -25,19 +22,19 @@ Stability   :  experimental
 
 Experimental interface with statically checked dimensions.
 
-This module is under active development and the interface is subject to changes.
+See code examples at http://dis.um.es/~alberto/hmatrix/static.html.
 
 -}
 
 module Numeric.LinearAlgebra.Static(
     -- * Vector
-    ℝ, R,
+       ℝ, R,
     vec2, vec3, vec4, (&), (#), split, headTail,
     vector,
     linspace, range, dim,
     -- * Matrix
     L, Sq, build,
-    row, col, (¦),(——), splitRows, splitCols,
+    row, col, (|||),(===), splitRows, splitCols,
     unrow, uncol,
     tr,
     eye,
@@ -47,7 +44,7 @@ module Numeric.LinearAlgebra.Static(
     -- * Complex
     C, M, Her, her, 𝑖,
     -- * Products
-    (<>),(#>),(<·>),
+    (<>),(#>),(<.>),
     -- * Linear Systems
     linSolve, (<\>),
     -- * Factorizations
@@ -58,25 +55,21 @@ module Numeric.LinearAlgebra.Static(
     Disp(..), Domain(..),
     withVector, withMatrix,
     toRows, toColumns,
-    Sized(..), Diag(..), Sym, sym, mTm, unSym
+    Sized(..), Diag(..), Sym, sym, mTm, unSym, (<·>)
 ) where
 
 
 import GHC.TypeLits
-import Numeric.LinearAlgebra.HMatrix hiding (
-    (<>),(#>),(<·>),Konst(..),diag, disp,(¦),(——),
+import Numeric.LinearAlgebra hiding (
+    (<>),(#>),(<.>),Konst(..),diag, disp,(===),(|||),
     row,col,vector,matrix,linspace,toRows,toColumns,
-    (<\>),fromList,takeDiag,svd,eig,eigSH,eigSH',
-    eigenvalues,eigenvaluesSH,eigenvaluesSH',build,
-    qr,size,app,mul,dot,chol)
-import qualified Numeric.LinearAlgebra.HMatrix as LA
+    (<\>),fromList,takeDiag,svd,eig,eigSH,
+    eigenvalues,eigenvaluesSH,build,
+    qr,size,dot,chol,range,R,C,sym,mTm,unSym)
+import qualified Numeric.LinearAlgebra as LA
 import Data.Proxy(Proxy)
-import Numeric.LinearAlgebra.Static.Internal
+import Internal.Static
 import Control.Arrow((***))
-
-
-
-
 
 ud1 :: R n -> Vector ℝ
 ud1 (R (Dim v)) = v
@@ -171,21 +164,22 @@ unrow = mkR . head . LA.toRows . ud2
 uncol v = unrow . tr $ v
 
 
-infixl 2 ——
-(——) :: (KnownNat r1, KnownNat r2, KnownNat c) => L r1 c -> L r2 c -> L (r1+r2) c
-a —— b = mkL (extract a LA.—— extract b)
+infixl 2 ===
+(===) :: (KnownNat r1, KnownNat r2, KnownNat c) => L r1 c -> L r2 c -> L (r1+r2) c
+a === b = mkL (extract a LA.=== extract b)
 
 
-infixl 3 ¦
--- (¦) :: (KnownNat r, KnownNat c1, KnownNat c2) => L r c1 -> L r c2 -> L r (c1+c2)
-a ¦ b = tr (tr a —— tr b)
+infixl 3 |||
+-- (|||) :: (KnownNat r, KnownNat c1, KnownNat c2) => L r c1 -> L r c2 -> L r (c1+c2)
+a ||| b = tr (tr a === tr b)
 
 
 type Sq n  = L n n
 --type CSq n = CL n n
 
-type GL = forall n m. (KnownNat n, KnownNat m) => L m n
-type GSq = forall n. KnownNat n => Sq n
+
+type GL = forall n m . (KnownNat n, KnownNat m) => L m n
+type GSq = forall n . KnownNat n => Sq n
 
 isKonst :: forall m n . (KnownNat m, KnownNat n) => L m n -> Maybe (ℝ,(Int,Int))
 isKonst s@(unwrap -> x)
@@ -212,6 +206,10 @@ infixr 8 #>
 infixr 8 <·>
 (<·>) :: R n -> R n -> ℝ
 (<·>) = dotR
+
+infixr 8 <.>
+(<.>) :: R n -> R n -> ℝ
+(<.>) = dotR
 
 --------------------------------------------------------------------------------
 
@@ -294,10 +292,10 @@ her m = Her $ (m + LA.tr m)/2
 
 instance KnownNat n => Eigen (Sym n) (R n) (L n n)
   where
-    eigenvalues (Sym (extract -> m)) =  mkR . LA.eigenvaluesSH' $ m
+    eigenvalues (Sym (extract -> m)) =  mkR . LA.eigenvaluesSH . LA.trustSym $ m
     eigensystem (Sym (extract -> m)) = (mkR l, mkL v)
       where
-        (l,v) = LA.eigSH' m
+        (l,v) = LA.eigSH . LA.trustSym $ m
 
 instance KnownNat n => Eigen (Sq n) (C n) (M n n)
   where
@@ -307,7 +305,7 @@ instance KnownNat n => Eigen (Sq n) (C n) (M n n)
         (l,v) = LA.eig m
 
 chol :: KnownNat n => Sym n -> Sq n
-chol (extract . unSym -> m) = mkL $ LA.cholSH m
+chol (extract . unSym -> m) = mkL $ LA.chol $ LA.trustSym m
 
 --------------------------------------------------------------------------------
 
@@ -502,7 +500,7 @@ appC m v = mkC (extract m LA.#> extract v)
 dotC :: KnownNat n => C n -> C n -> ℂ
 dotC (unwrap -> u) (unwrap -> v)
     | singleV u || singleV v = sumElements (conj u * v)
-    | otherwise = u LA.<·> v
+    | otherwise = u LA.<.> v
 
 
 crossC :: C 3 -> C 3 -> C 3
@@ -590,12 +588,12 @@ test = (ok,info)
       where
         q = tm :: L 10 3
 
-    thingD = vjoin [ud1 u, 1] LA.<·> tr m LA.#> m LA.#> ud1 v
+    thingD = vjoin [ud1 u, 1] LA.<.> tr m LA.#> m LA.#> ud1 v
       where
         m = LA.matrix 3 [1..30]
 
     precS = (1::Double) + (2::Double) * ((1 :: R 3) * (u & 6)) <·> konst 2 #> v
-    precD = 1 + 2 * vjoin[ud1 u, 6] LA.<·> LA.konst 2 (LA.size (ud1 u) +1, LA.size (ud1 v)) LA.#> ud1 v
+    precD = 1 + 2 * vjoin[ud1 u, 6] LA.<.> LA.konst 2 (LA.size (ud1 u) +1, LA.size (ud1 v)) LA.#> ud1 v
 
 
 splittest
@@ -617,24 +615,4 @@ splittest
 instance (KnownNat n', KnownNat m') => Testable (L n' m')
   where
     checkT _ = test
-
-#else
-
-{- |
-Module      :  Numeric.LinearAlgebra.Static
-Copyright   :  (c) Alberto Ruiz 2014
-License     :  BSD3
-Stability   :  experimental
-
-Experimental interface with statically checked dimensions.
-
-This module requires GHC >= 7.8
-
--}
-
-module Numeric.LinearAlgebra.Static
-{-# WARNING "This module requires GHC >= 7.8" #-}
-where
-
-#endif
 

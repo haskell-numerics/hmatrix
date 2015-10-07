@@ -14,8 +14,7 @@ module Numeric.GSL.Vector (
     fwriteVector, freadVector, fprintfVector, fscanfVector
 ) where
 
-import Data.Packed
-import Numeric.LinearAlgebra(RandDist(..))
+import Numeric.LinearAlgebra.HMatrix hiding(randomVector, saveMatrix)
 import Numeric.GSL.Internal hiding (TV,TM,TCV,TCM)
 
 import Foreign.Marshal.Alloc(free)
@@ -35,7 +34,7 @@ randomVector :: Int      -- ^ seed
              -> Vector Double
 randomVector seed dist n = unsafePerformIO $ do
     r <- createVector n
-    app1 (c_random_vector_GSL (fi seed) ((fi.fromEnum) dist)) vec r "randomVectorGSL"
+    c_random_vector_GSL (fi seed) ((fi.fromEnum) dist) # r #|"randomVectorGSL"
     return r
 
 foreign import ccall unsafe "random_vector_GSL" c_random_vector_GSL :: CInt -> CInt -> TV
@@ -51,7 +50,7 @@ saveMatrix filename fmt m = do
     charname <- newCString filename
     charfmt <- newCString fmt
     let o = if orderOf m == RowMajor then 1 else 0
-    app1 (matrix_fprintf charname charfmt o) mat m "matrix_fprintf"
+    matrix_fprintf charname charfmt o # m #|"matrix_fprintf"
     free charname
     free charfmt
 
@@ -64,7 +63,7 @@ fscanfVector :: FilePath -> Int -> IO (Vector Double)
 fscanfVector filename n = do
     charname <- newCString filename
     res <- createVector n
-    app1 (gsl_vector_fscanf charname) vec res "gsl_vector_fscanf"
+    gsl_vector_fscanf charname # res #|"gsl_vector_fscanf"
     free charname
     return res
 
@@ -75,7 +74,7 @@ fprintfVector :: FilePath -> String -> Vector Double -> IO ()
 fprintfVector filename fmt v = do
     charname <- newCString filename
     charfmt <- newCString fmt
-    app1 (gsl_vector_fprintf charname charfmt) vec v "gsl_vector_fprintf"
+    gsl_vector_fprintf charname charfmt # v #|"gsl_vector_fprintf"
     free charname
     free charfmt
 
@@ -86,7 +85,7 @@ freadVector :: FilePath -> Int -> IO (Vector Double)
 freadVector filename n = do
     charname <- newCString filename
     res <- createVector n
-    app1 (gsl_vector_fread charname) vec res "gsl_vector_fread"
+    gsl_vector_fread charname # res #|"gsl_vector_fread"
     free charname
     return res
 
@@ -96,7 +95,7 @@ foreign import ccall unsafe "vector_fread" gsl_vector_fread:: Ptr CChar -> TV
 fwriteVector :: FilePath -> Vector Double -> IO ()
 fwriteVector filename v = do
     charname <- newCString filename
-    app1 (gsl_vector_fwrite charname) vec v "gsl_vector_fwrite"
+    gsl_vector_fwrite charname # v #|"gsl_vector_fwrite"
     free charname
 
 foreign import ccall unsafe "vector_fwrite" gsl_vector_fwrite :: Ptr CChar -> TV

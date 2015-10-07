@@ -5,9 +5,9 @@ A purely functional interface to linear algebra and other numerical algorithms, 
 
 This package includes matrix decompositions (eigensystems, singular values, Cholesky, QR, etc.), linear solvers, numeric integration, root finding, etc.
 
-Version 0.16 (june 2014) has [new features][changes].
+- [What's new][changes] in version 0.17 (July 2015)
 
-- [Code examples (in construction)][examples]
+- [Code examples][examples]
 
 - Source code and documentation (Hackage)
     - linear algebra: [hmatrix](http://hackage.haskell.org/package/hmatrix)

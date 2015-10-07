@@ -26,18 +26,20 @@ module Numeric.Matrix (
 
 -------------------------------------------------------------------
 
-import Data.Packed
-import Data.Packed.Internal.Numeric
+import Internal.Vector
+import Internal.Matrix
+import Internal.Element
+import Internal.Numeric
 import qualified Data.Monoid as M
 import Data.List(partition)
-import Numeric.Chain
+import Internal.Chain
 
 -------------------------------------------------------------------
 
 instance Container Matrix a => Eq (Matrix a) where
     (==) = equal
 
-instance (Container Matrix a, Num (Vector a)) => Num (Matrix a) where
+instance (Container Matrix a, Num a, Num (Vector a)) => Num (Matrix a) where
     (+) = liftMatrix2Auto (+)
     (-) = liftMatrix2Auto (-)
     negate = liftMatrix negate
@@ -48,7 +50,7 @@ instance (Container Matrix a, Num (Vector a)) => Num (Matrix a) where
 
 ---------------------------------------------------
 
-instance (Container Vector a, Fractional (Vector a), Num (Matrix a)) => Fractional (Matrix a) where
+instance (Container Vector a, Fractional a, Fractional (Vector a), Num (Matrix a)) => Fractional (Matrix a) where
     fromRational n = (1><1) [fromRational n]
     (/) = liftMatrix2Auto (/)
 

@@ -20,7 +20,7 @@ partialDerivative n f v = fst (derivCentral 0.01 g (v!!n)) where
     g x = f (concat [a,x:b])
     (a,_:b) = splitAt n v
 
-disp = putStrLn . format "  " (printf "%.3f")
+disp' = putStrLn . format "  " (printf "%.3f")
 
 allMethods :: (Enum a, Bounded a) => [a]
 allMethods = [minBound .. maxBound]
@@ -29,22 +29,23 @@ test method = do
     print method
     let (s,p) = minimize method 1E-2 30 [1,1] f [5,7]
     print s
-    disp p
+    disp' p
 
 testD method = do
     print method
     let (s,p) = minimizeD method 1E-3 30 1E-2 1E-4 f df [5,7]
     print s
-    disp p
+    disp' p
 
 testD' method = do
     putStrLn $ show method ++ " with estimated gradient"
     let (s,p) = minimizeD method 1E-3 30 1E-2 1E-4 f (gradient f) [5,7]
     print s
-    disp p
+    disp' p
 
 main = do
     mapM_ test [NMSimplex, NMSimplex2]
     mapM_ testD allMethods
     testD' ConjugateFR
     mplot $ drop 3 . toColumns . snd $ minimizeS f [5,7]
+

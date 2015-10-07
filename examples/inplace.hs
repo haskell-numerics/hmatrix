@@ -1,7 +1,9 @@
 -- some tests of the interface for pure
 -- computations with inplace updates
 
-import Numeric.LinearAlgebra.HMatrix
+{-# LANGUAGE FlexibleContexts #-}
+
+import Numeric.LinearAlgebra
 import Numeric.LinearAlgebra.Devel
 
 import Data.Array.Unboxed

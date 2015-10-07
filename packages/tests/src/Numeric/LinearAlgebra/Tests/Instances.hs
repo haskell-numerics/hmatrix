@@ -1,5 +1,4 @@
-{-# LANGUAGE FlexibleContexts, UndecidableInstances, CPP, FlexibleInstances #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# LANGUAGE FlexibleContexts, UndecidableInstances, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Tests.Instances
@@ -15,9 +14,9 @@ Arbitrary instances for vectors, matrices.
 module Numeric.LinearAlgebra.Tests.Instances(
     Sq(..),     rSq,cSq,
     Rot(..),    rRot,cRot,
-    Her(..),    rHer,cHer,
+                rHer,cHer,
     WC(..),     rWC,cWC,
-    SqWC(..),   rSqWC, cSqWC,
+    SqWC(..),   rSqWC, cSqWC, rSymWC, cSymWC,
     PosDef(..), rPosDef, cPosDef,
     Consistent(..), rConsist, cConsist,
     RM,CM, rM,cM,
@@ -26,15 +25,11 @@ module Numeric.LinearAlgebra.Tests.Instances(
 
 import System.Random
 
-import Numeric.LinearAlgebra
-import Numeric.LinearAlgebra.Devel
-import Numeric.Container
+import Numeric.LinearAlgebra.HMatrix hiding (vector)
 import Control.Monad(replicateM)
-import Test.QuickCheck(Arbitrary,arbitrary,coarbitrary,choose,vector
-                      ,sized,classify,Testable,Property
-                      ,quickCheckWith,maxSize,stdArgs,shrink)
+import Test.QuickCheck(Arbitrary,arbitrary,choose,vector,sized,shrink)
 
-#if MIN_VERSION_QuickCheck(2,0,0)
+
 shrinkListElementwise :: (Arbitrary a) => [a] -> [[a]]
 shrinkListElementwise []     = []
 shrinkListElementwise (x:xs) = [ y:xs | y  <- shrink x                 ]
@@ -42,25 +37,6 @@ shrinkListElementwise (x:xs) = [ y:xs | y  <- shrink x                 ]
 
 shrinkPair :: (Arbitrary a, Arbitrary b) => (a,b) -> [(a,b)]
 shrinkPair (a,b) = [ (a,x) | x <- shrink b ] ++ [ (x,b) | x <- shrink a ]
-#endif
-
-#if MIN_VERSION_QuickCheck(2,1,1)
-#else
-instance (Arbitrary a, RealFloat a) => Arbitrary (Complex a) where
-    arbitrary = do
-        re <- arbitrary
-        im <- arbitrary
-        return (re :+ im)
-
-#if MIN_VERSION_QuickCheck(2,0,0)
-    shrink (re :+ im) = 
-        [ u :+ v | (u,v) <- shrinkPair (re,im) ]
-#else
-    -- this has been moved to the 'Coarbitrary' class in QuickCheck 2
-    coarbitrary = undefined 
-#endif
-
-#endif
 
 chooseDim = sized $ \m -> choose (1,max 1 m)
 
@@ -68,14 +44,8 @@ instance (Field a, Arbitrary a) => Arbitrary (Vector a) where
     arbitrary = do m <- chooseDim
                    l <- vector m
                    return $ fromList l
-
-#if MIN_VERSION_QuickCheck(2,0,0)
     -- shrink any one of the components
     shrink = map fromList . shrinkListElementwise . toList
-
-#else
-    coarbitrary = undefined
-#endif
 
 instance (Element a, Arbitrary a) => Arbitrary (Matrix a) where 
     arbitrary = do
@@ -84,16 +54,11 @@ instance (Element a, Arbitrary a) => Arbitrary (Matrix a) where
         l <- vector (m*n)
         return $ (m><n) l
 
-#if MIN_VERSION_QuickCheck(2,0,0)
     -- shrink any one of the components
     shrink a = map (rows a >< cols a)
                . shrinkListElementwise
                . concat . toLists 
                      $ a
-#else
-    coarbitrary = undefined
-#endif
-
 
 -- a square matrix
 newtype (Sq a) = Sq (Matrix a) deriving Show
@@ -103,11 +68,7 @@ instance (Element a, Arbitrary a) => Arbitrary (Sq a) where
         l <- vector (n*n)
         return $ Sq $ (n><n) l
 
-#if MIN_VERSION_QuickCheck(2,0,0)
     shrink (Sq a) = [ Sq b | b <- shrink a ]
-#else
-    coarbitrary = undefined
-#endif
 
 
 -- a unitary matrix
@@ -118,24 +79,14 @@ instance (Field a, Arbitrary a) => Arbitrary (Rot a) where
         let (q,_) = qr m
         return (Rot q)
 
-#if MIN_VERSION_QuickCheck(2,0,0)
-#else
-    coarbitrary = undefined
-#endif
-
 
 -- a complex hermitian or real symmetric matrix
-newtype (Her a) = Her (Matrix a) deriving Show
-instance (Field a, Arbitrary a, Num (Vector a)) => Arbitrary (Her a) where
+instance (Field a, Arbitrary a, Num (Vector a)) => Arbitrary (Herm a) where
     arbitrary = do
         Sq m <- arbitrary
         let m' = m/2
-        return $ Her (m' + ctrans m')
+        return $ sym m'
 
-#if MIN_VERSION_QuickCheck(2,0,0)
-#else
-    coarbitrary = undefined
-#endif
 
 class (Field a, Arbitrary a, Element (RealOf a), Random (RealOf a)) => ArbitraryField a
 instance ArbitraryField Double
@@ -144,7 +95,7 @@ instance ArbitraryField (Complex Double)
 
 -- a well-conditioned general matrix (the singular values are between 1 and 100)
 newtype (WC a) = WC (Matrix a) deriving Show
-instance (ArbitraryField a) => Arbitrary (WC a) where
+instance (Numeric a, ArbitraryField a) => Arbitrary (WC a) where
     arbitrary = do
         m <- arbitrary
         let (u,_,v) = svd m
@@ -153,48 +104,33 @@ instance (ArbitraryField a) => Arbitrary (WC a) where
             n = min r c
         sv' <- replicateM n (choose (1,100))
         let s = diagRect 0 (fromList sv') r c
-        return $ WC (u `mXm` real s `mXm` trans v)
-
-#if MIN_VERSION_QuickCheck(2,0,0)
-#else
-    coarbitrary = undefined
-#endif
+        return $ WC (u <> real s <> tr v)
 
 
 -- a well-conditioned square matrix (the singular values are between 1 and 100)
 newtype (SqWC a) = SqWC (Matrix a) deriving Show
-instance (ArbitraryField a) => Arbitrary (SqWC a) where
+instance (ArbitraryField a, Numeric a) => Arbitrary (SqWC a) where
     arbitrary = do
         Sq m <- arbitrary
         let (u,_,v) = svd m
             n = rows m
         sv' <- replicateM n (choose (1,100))
         let s = diag (fromList sv')
-        return $ SqWC (u `mXm` real s `mXm` trans v)
-
-#if MIN_VERSION_QuickCheck(2,0,0)
-#else
-    coarbitrary = undefined
-#endif
+        return $ SqWC (u <> real s <> tr v)
 
 
 -- a positive definite square matrix (the eigenvalues are between 0 and 100)
 newtype (PosDef a) = PosDef (Matrix a) deriving Show
-instance (ArbitraryField a, Num (Vector a)) 
+instance (Numeric a, ArbitraryField a, Num (Vector a)) 
     => Arbitrary (PosDef a) where
     arbitrary = do
-        Her m <- arbitrary
+        m <- arbitrary
         let (_,v) = eigSH m
-            n = rows m
+            n = rows (unSym m)
         l <- replicateM n (choose (0,100))
         let s = diag (fromList l)
-            p = v `mXm` real s `mXm` ctrans v
-        return $ PosDef (0.5 * p + 0.5 * ctrans p)
-
-#if MIN_VERSION_QuickCheck(2,0,0)
-#else
-    coarbitrary = undefined
-#endif
+            p = v <> real s <> tr v
+        return $ PosDef (0.5 * p + 0.5 * tr p)
 
 
 -- a pair of matrices that can be multiplied
@@ -208,11 +144,7 @@ instance (Field a, Arbitrary a) => Arbitrary (Consistent a) where
         lb <- vector (k*m)
         return $ Consistent ((n><k) la, (k><m) lb)
 
-#if MIN_VERSION_QuickCheck(2,0,0)
     shrink (Consistent (x,y)) = [ Consistent (u,v) | (u,v) <- shrinkPair (x,y) ]
-#else
-    coarbitrary = undefined
-#endif
 
 
 
@@ -228,8 +160,8 @@ fM m = m :: FM
 zM m = m :: ZM
 
 
-rHer (Her m) = m :: RM
-cHer (Her m) = m :: CM
+rHer m = unSym m :: RM
+cHer m = unSym m :: CM
 
 rRot (Rot m) = m :: RM
 cRot (Rot m) = m :: CM
@@ -242,6 +174,9 @@ cWC (WC m) = m :: CM
 
 rSqWC (SqWC m) = m :: RM
 cSqWC (SqWC m) = m :: CM
+
+rSymWC (SqWC m) = sym m :: Herm R
+cSymWC (SqWC m) = sym m :: Herm C
 
 rPosDef (PosDef m) = m :: RM
 cPosDef (PosDef m) = m :: CM

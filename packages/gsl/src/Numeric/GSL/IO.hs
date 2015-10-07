@@ -14,7 +14,7 @@ module Numeric.GSL.IO (
     fileDimensions, loadMatrix, fromFile
 ) where
 
-import Data.Packed
+import Numeric.LinearAlgebra.HMatrix hiding(saveMatrix, loadMatrix)
 import Numeric.GSL.Vector
 import System.Process(readProcess)
 

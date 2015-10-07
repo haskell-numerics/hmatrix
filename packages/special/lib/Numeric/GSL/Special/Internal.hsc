@@ -33,7 +33,7 @@ import Foreign.Storable
 import Foreign.Ptr
 import Foreign.Marshal
 import System.IO.Unsafe(unsafePerformIO)
-import Data.Packed.Development(check,(//))
+import Numeric.LinearAlgebra.Devel(check,(//))
 import Foreign.C.Types
 
 data Precision = PrecDouble | PrecSingle | PrecApprox

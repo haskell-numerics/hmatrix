@@ -1,17 +1,15 @@
 import Numeric.LinearAlgebra
 import Graphics.Plot
 
-vector l = fromList l :: Vector Double
-matrix ls = fromLists ls :: Matrix Double
-diagl = diag . vector
+f = fromLists
+    [[1,0,0,0],
+     [1,1,0,0],
+     [0,0,1,0],
+     [0,0,0,1]]
 
-f = matrix [[1,0,0,0],
-            [1,1,0,0],
-            [0,0,1,0],
-            [0,0,0,1]]
-
-h = matrix [[0,-1,1,0],
-            [0,-1,0,1]]
+h = fromLists
+    [[0,-1,1,0],
+     [0,-1,0,1]]
 
 q = diagl [1,1,0,0]
 
@@ -25,13 +23,13 @@ type Measurement = Vector Double
 
 kalman :: System -> State -> Measurement -> State
 kalman (System f h q r) (State x p) z = State x' p' where
-    px = f <> x                            -- prediction
-    pq = f <> p <> trans f + q             -- its covariance
-    y  = z - h <> px                       -- residue
-    cy = h <> pq <> trans h + r            -- its covariance
-    k  = pq <> trans h <> inv cy           -- kalman gain
-    x' = px + k <> y                       -- new state
-    p' = (ident (dim x) - k <> h) <> pq    -- its covariance
+    px = f #> x                            -- prediction
+    pq = f <> p <> tr f + q             -- its covariance
+    y  = z - h #> px                       -- residue
+    cy = h <> pq <> tr h + r            -- its covariance
+    k  = pq <> tr h <> inv cy           -- kalman gain
+    x' = px + k #> y                       -- new state
+    p' = (ident (size x) - k <> h) <> pq    -- its covariance
 
 sys = System f h q r
 
@@ -49,3 +47,4 @@ main = do
     print $ fromRows $ take 10 (map sX xs)
     mapM_ (print . sP) $ take 10 xs
     mplot (evolution 20 (xs,des))
+

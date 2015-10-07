@@ -22,10 +22,10 @@ instance Container Vector t => Scaling t (Vector t) (Vector t) where
 instance Container Vector t => Scaling (Vector t) t (Vector t) where
     (⋅) = flip scale
 
-instance Container Vector t => Scaling t (Matrix t) (Matrix t) where
+instance (Num t, Container Vector t) => Scaling t (Matrix t) (Matrix t) where
     (⋅) = scale
 
-instance Container Vector t => Scaling (Matrix t) t (Matrix t) where
+instance (Num t, Container Vector t) => Scaling (Matrix t) t (Matrix t) where
     (⋅) = flip scale
 
 
@@ -42,14 +42,14 @@ class Mul a b c | a b -> c, a c -> b, b c -> a where
 instance Product t => Mul (Vector t) (Vector t) t where
     (×) = udot
 
-instance Product t => Mul (Matrix t) (Vector t) (Vector t) where
-    (×) = mXv
+instance (Numeric t, Product t) => Mul (Matrix t) (Vector t) (Vector t) where
+    (×) = (#>)
 
-instance Product t => Mul (Vector t) (Matrix t) (Vector t) where
-    (×) = vXm
+instance (Numeric t, Product t) => Mul (Vector t) (Matrix t) (Vector t) where
+    (×) = (<#)
 
-instance Product t => Mul (Matrix t) (Matrix t) (Matrix t) where
-    (×) = mXm
+instance (Numeric t, Product t) => Mul (Matrix t) (Matrix t) (Matrix t) where
+    (×) = (<>)
 
 
 --instance Scaling a b c => Contraction a b c where
@@ -92,9 +92,9 @@ u = fromList [3,0,5]
 w = konst 1 (2,3) :: Matrix Double
 
 main = do
-    print $ (scale s v <> m) `udot` v
-    print $ scale s v `udot` (m <> v)
-    print $ s * ((v <> m) `udot` v)
+    print $ (scale s v <# m) `udot` v
+    print $ scale s v `udot` (m #> v)
+    print $ s * ((v <# m) `udot` v)
     print $ s ⋅ v × m × v
     print a
 --    print (b == c)

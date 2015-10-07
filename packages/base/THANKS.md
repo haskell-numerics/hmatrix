@@ -190,3 +190,17 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Thomas M. DuBuisson fixed a C include file.
 
+- Matt Peddie wrote the interfaces to the interpolation and simulated annealing modules.
+
+- "maxc01" solved uninstallability in FreeBSD and improved urandom
+
+- "ntfrgl" added {take,drop}Last{Rows,Columns} and odeSolveVWith with generalized step control function
+   and fixed link errors related to mod/mod_l.
+
+- "cruegge" discovered a bug in the conjugate gradient solver for sparse symmetric systems.
+
+- Ilan Godik and Douglas McClean helped with Windows support.
+
+- Vassil Keremidchiev fixed the cabal options for OpenBlas, fixed several installation
+  issues, and added support for stack-based build.
+

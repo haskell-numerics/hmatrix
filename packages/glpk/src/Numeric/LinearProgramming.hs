@@ -85,8 +85,8 @@ module Numeric.LinearProgramming(
     Solution(..)
 ) where
 
-import Data.Packed
-import Data.Packed.Development
+import Numeric.LinearAlgebra.HMatrix
+import Numeric.LinearAlgebra.Devel hiding (Dense)
 import Foreign(Ptr)
 import System.IO.Unsafe(unsafePerformIO)
 import Foreign.C.Types
@@ -180,16 +180,17 @@ exact opt constr@(General _) bnds = exact opt (sparseOfGeneral constr) bnds
 
 adapt :: Optimization -> (Int, Double, [Double])
 adapt opt = case opt of
-    Maximize x -> (size x, 1 ,x)
-    Minimize x -> (size x, -1, (map negate x))
- where size x | null x = error "simplex: objective function with zero variables"
-              | otherwise = length x
+    Maximize x -> (sz x, 1 ,x)
+    Minimize x -> (sz x, -1, (map negate x))
+  where
+    sz x | null x = error "simplex: objective function with zero variables"
+         | otherwise = length x
 
 extract :: Double -> Vector Double -> Solution
 extract sg sol = r where
-    z = sg * (sol@>1)
-    v = toList $ subVector 2 (dim sol -2) sol
-    r = case round(sol@>0)::Int of
+    z = sg * (sol!1)
+    v = toList $ subVector 2 (size sol -2) sol
+    r = case round(sol!0)::Int of
           1 -> Undefined
           2 -> Feasible (z,v)
           3 -> Infeasible (z,v)
@@ -261,7 +262,7 @@ mkConstrD n f b1 | ok = fromLists (ob ++ co)
        ok = all (==n) ls
        den = fromLists cs
        ob = map (([0,0]++).return) f
-       co = [[fromIntegral i, fromIntegral j,den@@>(i-1,j-1)]| i<-[1 ..rows den], j<-[1 .. cols den]]
+       co = [[fromIntegral i, fromIntegral j,den `atIndex` (i-1,j-1)]| i<-[1 ..rows den], j<-[1 .. cols den]]
 
 mkConstrS :: Int -> [Double] -> [Bound [(Double, Int)]] -> Matrix Double
 mkConstrS n objfun b1 = fromLists (ob ++ co) where
@@ -274,6 +275,11 @@ mkConstrS n objfun b1 = fromLists (ob ++ co) where
 
 -----------------------------------------------------
 
+(##) :: TransArray c => TransRaw c b -> c -> b
+infixl 1 ##
+a ## b = applyRaw a b
+{-# INLINE (##) #-}
+
 foreign import ccall unsafe "c_simplex_sparse" c_simplex_sparse
     :: CInt -> CInt                  -- rows and cols
     -> CInt -> CInt -> Ptr Double    -- coeffs
@@ -284,7 +290,7 @@ foreign import ccall unsafe "c_simplex_sparse" c_simplex_sparse
 simplexSparse :: Int -> Int -> Matrix Double -> Matrix Double -> Vector Double
 simplexSparse m n c b = unsafePerformIO $ do
     s <- createVector (2+n)
-    app3 (c_simplex_sparse (fi m) (fi n)) mat (cmat c) mat (cmat b) vec s "c_simplex_sparse"
+    c_simplex_sparse (fi m) (fi n) ## (cmat c) ## (cmat b) ## s #|"c_simplex_sparse"
     return s
 
 foreign import ccall unsafe "c_exact_sparse" c_exact_sparse
@@ -297,7 +303,7 @@ foreign import ccall unsafe "c_exact_sparse" c_exact_sparse
 exactSparse :: Int -> Int -> Matrix Double -> Matrix Double -> Vector Double
 exactSparse m n c b = unsafePerformIO $ do
     s <- createVector (2+n)
-    app3 (c_exact_sparse (fi m) (fi n)) mat (cmat c) mat (cmat b) vec s "c_exact_sparse"
+    c_exact_sparse (fi m) (fi n) ## (cmat c) ## (cmat b) ## s #|"c_exact_sparse"
     return s
 
 glpFR, glpLO, glpUP, glpDB, glpFX :: Double

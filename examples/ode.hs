@@ -43,7 +43,7 @@ vanderpol' mu = do
         jac t (toList->[x,v]) = (2><2) [ 0          ,          1
                                        , -1-2*x*v*mu, mu*(1-x**2) ]
         ts = linspace 1000 (0,50)
-        hi = (ts@>1 - ts@>0)/100
+        hi = (ts!1 - ts!0)/100
         sol = toColumns $ odeSolveV (MSBDF jac) hi 1E-8 1E-8 (xdot mu) (fromList [1,0]) ts
     mplot sol
 
