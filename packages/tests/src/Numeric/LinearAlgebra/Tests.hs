@@ -137,7 +137,7 @@ randomTestGaussian = c :~1~: snd (meanCov dat) where
                 2,4,0,
                -2,2,1]
     m = 3 |> [1,2,3]
-    c = a <> tr a
+    c = mTm a
     dat = gaussianSample 7 (10^6) m c
 
 randomTestUniform = c :~1~: snd (meanCov dat) where
@@ -944,5 +944,3 @@ luBench_2 = do
     luBenchN_2 luSolve' luPacked' 500 (5::R)          "luSolve'.luPacked' Double    "
     luBenchN_2 luSolve' luPacked' 500 (5::Mod 9973 I) "luSolve'.luPacked' I mod 9973"
     luBenchN_2 luSolve' luPacked' 500 (5::Mod 9973 Z) "luSolve'.luPacked' Z mod 9973"
-
-
