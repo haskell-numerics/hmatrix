@@ -39,13 +39,13 @@ type Seed = Int
 gaussianSample :: Seed
                -> Int -- ^ number of rows
                -> Vector Double -- ^ mean vector
-               -> Matrix Double -- ^ covariance matrix
+               -> Herm   Double -- ^ covariance matrix
                -> Matrix Double -- ^ result
 gaussianSample seed n med cov = m where
     c = size med
     meds = konst 1 n `outer` med
     rs = reshape c $ randomVector seed Gaussian (c * n)
-    m = rs <> cholSH cov + meds
+    m = rs <> chol cov + meds
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
 -- uniform distribution.
@@ -87,4 +87,3 @@ rand = randm Uniform
 -}
 randn :: Int -> Int -> IO (Matrix Double)
 randn = randm Gaussian
-

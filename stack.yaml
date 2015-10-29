@@ -8,11 +8,11 @@ flags:
   hmatrix-gsl:
     onlygsl: false
 packages:
-- packages\tests\
-- packages\special\
-- packages\sparse\
-- packages\gsl\
-- packages\glpk\
-- packages\base\
+- packages/tests/
+- packages/special/
+- packages/sparse/
+- packages/gsl/
+- packages/glpk/
+- packages/base/
 extra-deps: []
 resolver: lts-3.3

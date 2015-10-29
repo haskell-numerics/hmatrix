@@ -28,7 +28,7 @@ import Internal.Vector
 import Internal.Matrix
 import Internal.Element
 import Internal.Numeric
-import Internal.Algorithms(Field,linearSolveSVD)
+import Internal.Algorithms(Field,linearSolveSVD,Herm,mTm)
 
 ------------------------------------------------------------------
 
@@ -206,14 +206,14 @@ optimiseMult = mconcat
  , -1.0127225830525157e-2,     3.0373954915729318 ])
 
 -}
-meanCov :: Matrix Double -> (Vector Double, Matrix Double)
+meanCov :: Matrix Double -> (Vector Double, Herm Double)
 meanCov x = (med,cov) where
     r    = rows x
     k    = 1 / fromIntegral r
     med  = konst k r `vXm` x
     meds = konst 1 r `outer` med
     xc   = x `sub` meds
-    cov  = scale (recip (fromIntegral (r-1))) (trans xc `mXm` xc)
+    cov  = scale (recip (fromIntegral (r-1))) (mTm xc)
 
 --------------------------------------------------------------------------------
 
@@ -293,5 +293,3 @@ remap i j m
     | otherwise = error $ "out of range index in remap"
   where
     [i',j'] = conformMs [i,j]
-    
-
