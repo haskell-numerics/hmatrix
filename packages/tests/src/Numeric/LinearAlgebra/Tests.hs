@@ -132,7 +132,8 @@ mbCholTest = utest "mbCholTest" (ok1 && ok2) where
 
 ---------------------------------------------------------------------
 
-randomTestGaussian = c :~1~: snd (meanCov dat) where
+randomTestGaussian = (unSym c) :~3~: unSym (snd (meanCov dat))
+  where
     a = (3><3) [1,2,3,
                 2,4,0,
                -2,2,1]
@@ -140,7 +141,8 @@ randomTestGaussian = c :~1~: snd (meanCov dat) where
     c = mTm a
     dat = gaussianSample 7 (10^6) m c
 
-randomTestUniform = c :~1~: snd (meanCov dat) where
+randomTestUniform = c :~2~: unSym (snd (meanCov dat))
+  where
     c = diag $ 3 |> map ((/12).(^2)) [1,2,3]
     dat = uniformSample 7 (10^6) [(0,1),(1,3),(3,6)]
 

@@ -31,13 +31,13 @@ import System.Random(randomIO)
 gaussianSample :: Seed
                -> Int -- ^ number of rows
                -> Vector Double -- ^ mean vector
-               -> Matrix Double -- ^ covariance matrix
+               -> Herm Double   -- ^ covariance matrix
                -> Matrix Double -- ^ result
 gaussianSample seed n med cov = m where
     c = dim med
     meds = konst' 1 n `outer` med
     rs = reshape c $ randomVector seed Gaussian (c * n)
-    m = rs `mXm` cholSH cov `add` meds
+    m = rs `mXm` chol cov `add` meds
 
 -- | Obtains a matrix whose rows are pseudorandom samples from a multivariate
 -- uniform distribution.

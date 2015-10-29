@@ -1,5 +1,5 @@
 Name:               hmatrix-gsl
-Version:            0.17.0.0
+Version:            0.18.0.0
 License:            GPL
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -25,7 +25,7 @@ flag onlygsl
 
 library
 
-    Build-Depends:      base<5, hmatrix>=0.17, array, vector,
+    Build-Depends:      base<5, hmatrix>=0.18, array, vector,
                         process, random
 
 

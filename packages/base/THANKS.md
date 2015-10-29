@@ -205,3 +205,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - Vassil Keremidchiev fixed the cabal options for OpenBlas, fixed several installation
   issues, and added support for stack-based build.
 
+- Patrik Jansson changed meanCov and gaussianSample to use Herm type. Fixed stack.yaml.
+
