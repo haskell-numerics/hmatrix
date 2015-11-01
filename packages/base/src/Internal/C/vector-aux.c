@@ -1285,13 +1285,24 @@ int sort_indexL(KLVEC(v),LVEC(r)) {
     SORTIDX_IMP(II,compare_longs_i)
 }
 
+static double round_hack (double x) {
+  double fpart, ipart;
+
+  fpart = modf(x, &ipart);
+
+  if (fpart > 0.5) {
+    return ipart + 1;
+  } else {
+    return ipart;
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
 int round_vector(KDVEC(v),DVEC(r)) {
     int k;
     for(k=0; k<vn; k++) {
-        rp[k] = round(vp[k]);
+        rp[k] = round_hack(vp[k]);
     }
     OK
 }
@@ -1301,7 +1312,7 @@ int round_vector(KDVEC(v),DVEC(r)) {
 int round_vector_i(KDVEC(v),IVEC(r)) {
     int k;
     for(k=0; k<vn; k++) {
-        rp[k] = round(vp[k]);
+        rp[k] = round_hack(vp[k]);
     }
     OK
 }
@@ -1337,7 +1348,7 @@ int range_vector(IVEC(r)) {
 int round_vector_l(KDVEC(v),LVEC(r)) {
     int k;
     for(k=0; k<vn; k++) {
-        rp[k] = round(vp[k]);
+        rp[k] = round_hack(vp[k]);
     }
     OK
 }
