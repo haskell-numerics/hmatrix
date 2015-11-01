@@ -780,6 +780,12 @@ inline doublecomplex complex_add(doublecomplex a, doublecomplex b) {
 }
 
 #define OPVb(C,E) case C: { for(k=0;k<xn;k++) r2p[k] = E; OK }
+
+int mapValC(int code, doublecomplex* pval, KCVEC(x), CVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+/*
 int mapValC(int code, doublecomplex* pval, KCVEC(x), CVEC(r)) {
     TCD* x2p = (TCD*)xp;
     TCD* r2p = (TCD*)rp;
@@ -797,8 +803,13 @@ int mapValC(int code, doublecomplex* pval, KCVEC(x), CVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
+*/
 
+int mapValQ(int code, complex* pval, KQVEC(x), QVEC(r)) {
+    ERROR(BAD_CODE);
+}
 
+/*
 int mapValQ(int code, complex* pval, KQVEC(x), QVEC(r)) {
     TCF* x2p = (TCF*)xp;
     TCF* r2p = (TCF*)rp;
@@ -816,7 +827,7 @@ int mapValQ(int code, complex* pval, KQVEC(x), QVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-
+*/
 
 
 #define OPZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = E(ap[k],bp[k]); OK }
