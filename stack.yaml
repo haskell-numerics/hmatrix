@@ -1,18 +1,18 @@
 flags:
-  hmatrix-special:
-    safe-cheap: false
+#  hmatrix-special:
+#    safe-cheap: false
   hmatrix-tests:
     gsl: true
   hmatrix:
     openblas: false
-  hmatrix-gsl:
-    onlygsl: false
+#  hmatrix-gsl:
+#    onlygsl: false
 packages:
 - packages/tests/
-- packages/special/
-- packages/sparse/
-- packages/gsl/
-- packages/glpk/
+#- packages/special/
+#- packages/sparse/
+#- packages/gsl/
+#- packages/glpk/
 - packages/base/
 extra-deps: []
-resolver: lts-3.3
+resolver: lts-3.11
