@@ -4,7 +4,7 @@ flags:
   hmatrix-tests:
     gsl: false
   hmatrix:
-    openblas: false
+    openblas: true
 #  hmatrix-gsl:
 #    onlygsl: false
 packages:
