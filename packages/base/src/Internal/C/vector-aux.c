@@ -37,8 +37,6 @@ typedef float  complex TCF;
 #define MEM      2002
 #define BAD_FILE 2003
 
-#define atanh ERROR(BAD_CODE);
-
 int sumF(KFVEC(x),FVEC(r)) {
     DEBUGMSG("sumF");
     REQUIRES(rn==1,BAD_SIZE);
@@ -521,7 +519,8 @@ int mapR(int code, KDVEC(x), DVEC(r)) {
         OP(9,tanh)
         OP(10,asinh)
         OP(11,acosh)
-        OP(12,atanh)
+//        OP(12,atanh)
+        case 12: ERROR(BAD_CODE);
         OP(13,exp)
         OP(14,log)
         OP(15,sign)
@@ -547,7 +546,8 @@ int mapF(int code, KFVEC(x), FVEC(r)) {
         OP(9,tanh)
         OP(10,asinh)
         OP(11,acosh)
-        OP(12,atanh)
+//        OP(12,atanh)
+        case 12: ERROR(BAD_CODE);
         OP(13,exp)
         OP(14,log)
         OP(15,sign)
