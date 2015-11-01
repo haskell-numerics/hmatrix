@@ -615,6 +615,12 @@ inline doublecomplex complex_signum_complex(doublecomplex z) {
 }
 
 #define OPb(C,F) case C: { for(k=0;k<xn;k++) r2p[k] = F(x2p[k]); OK }
+
+int mapC(int cod, KCVEC(x), CVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+/*
 int mapC(int code, KCVEC(x), CVEC(r)) {
     TCD* x2p = (TCD*)xp;
     TCD* r2p = (TCD*)rp;
@@ -642,7 +648,7 @@ int mapC(int code, KCVEC(x), CVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-
+*/
 
 
 inline complex complex_f_math_fun(doublecomplex (*cf)(doublecomplex), complex a)
@@ -665,6 +671,12 @@ inline complex complex_f_math_fun(doublecomplex (*cf)(doublecomplex), complex a)
 
 
 #define OPC(C,F) case C: { for(k=0;k<xn;k++) rp[k] = complex_f_math_fun(&F,xp[k]); OK }
+
+int mapQ(int code, KQVEC(x), QVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+/*
 int mapQ(int code, KQVEC(x), QVEC(r)) {
     TCF* x2p = (TCF*)xp;
     TCF* r2p = (TCF*)rp;
@@ -692,7 +704,7 @@ int mapQ(int code, KQVEC(x), QVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-
+*/
 
 int mapValR(int code, double* pval, KDVEC(x), DVEC(r)) {
     int k;
