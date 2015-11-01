@@ -893,6 +893,12 @@ REQUIRES(an == bn && an == rn, BAD_SIZE);
 
 #define OPZOb(C,msg,O) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) r2p[k] = a2p[k] O b2p[k]; OK }
 #define OPZEb(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) r2p[k] = E(a2p[k],b2p[k]); OK }
+
+int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+/*
 int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
     REQUIRES(an == bn && an == rn, BAD_SIZE);
     TCD* a2p = (TCD*)ap;
@@ -908,13 +914,18 @@ int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-
+*/
 
 
 
 
 #define OPCZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = complex_f_math_op(&E,ap[k],bp[k]); OK }
 
+int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+/*
 int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
     REQUIRES(an == bn && an == rn, BAD_SIZE);
     TCF* a2p = (TCF*)ap;
@@ -931,6 +942,7 @@ int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////
 
