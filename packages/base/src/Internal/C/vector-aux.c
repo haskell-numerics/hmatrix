@@ -502,6 +502,16 @@ inline float float_sign(float x) {
 
 #define OP(C,F) case C: { for(k=0;k<xn;k++) rp[k] = F(xp[k]); OK }
 #define OPV(C,E) case C: { for(k=0;k<xn;k++) rp[k] = E; OK }
+
+int mapR(int code, KDVEC(k), DVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+int mapF(int code, KDVEC(k), DVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+/*
 int mapR(int code, KDVEC(x), DVEC(r)) {
     int k;
     REQUIRES(xn == rn,BAD_SIZE);
@@ -519,8 +529,7 @@ int mapR(int code, KDVEC(x), DVEC(r)) {
         OP(9,tanh)
         OP(10,asinh)
         OP(11,acosh)
-//        OP(12,atanh)
-        case 12: ERROR(BAD_CODE);
+        OP(12,atanh)
         OP(13,exp)
         OP(14,log)
         OP(15,sign)
@@ -546,7 +555,6 @@ int mapF(int code, KFVEC(x), FVEC(r)) {
         OP(9,tanh)
         OP(10,asinh)
         OP(11,acosh)
-//        OP(12,atanh)
         case 12: ERROR(BAD_CODE);
         OP(13,exp)
         OP(14,log)
@@ -555,6 +563,7 @@ int mapF(int code, KFVEC(x), FVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
+*/
 
 
 int mapI(int code, KIVEC(x), IVEC(r)) {
