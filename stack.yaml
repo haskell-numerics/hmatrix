@@ -2,7 +2,7 @@ flags:
 #  hmatrix-special:
 #    safe-cheap: false
   hmatrix-tests:
-    gsl: true
+    gsl: false
   hmatrix:
     openblas: false
 #  hmatrix-gsl:
