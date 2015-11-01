@@ -37,6 +37,7 @@ typedef float  complex TCF;
 #define MEM      2002
 #define BAD_FILE 2003
 
+#define atanh ERROR(BAD_CODE);
 
 int sumF(KFVEC(x),FVEC(r)) {
     DEBUGMSG("sumF");
