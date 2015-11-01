@@ -31,6 +31,11 @@ flag openblas
     default:        False
     manual: True
 
+flag windowshack
+    description:    Disable some functions from vector_aux.c to prevent linker errors on Windows
+    default:        False
+    manual:         True
+
 library
 
     Build-Depends:      base >= 4.8 && < 5,
@@ -95,6 +100,8 @@ library
         cc-options:     -msse2
 
     cpp-options:        -DBINARY
+    if flag(windowshack)
+      cpp-options: -DWINDOWS_LINKER_HACK
 
     if os(OSX)
         if flag(openblas)

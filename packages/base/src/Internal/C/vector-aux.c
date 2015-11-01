@@ -503,6 +503,8 @@ inline float float_sign(float x) {
 #define OP(C,F) case C: { for(k=0;k<xn;k++) rp[k] = F(xp[k]); OK }
 #define OPV(C,E) case C: { for(k=0;k<xn;k++) rp[k] = E; OK }
 
+#ifdef WINDOWS_LINKER_HACK
+
 int mapR(int code, KDVEC(k), DVEC(r)) {
     ERROR(BAD_CODE);
 }
@@ -511,7 +513,8 @@ int mapF(int code, KDVEC(k), DVEC(r)) {
     ERROR(BAD_CODE);
 }
 
-/*
+#else
+
 int mapR(int code, KDVEC(x), DVEC(r)) {
     int k;
     REQUIRES(xn == rn,BAD_SIZE);
@@ -563,7 +566,8 @@ int mapF(int code, KFVEC(x), FVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-*/
+
+#endif /* WINDOWS_LINKER_HACK */
 
 
 int mapI(int code, KIVEC(x), IVEC(r)) {
@@ -616,11 +620,14 @@ inline doublecomplex complex_signum_complex(doublecomplex z) {
 
 #define OPb(C,F) case C: { for(k=0;k<xn;k++) r2p[k] = F(x2p[k]); OK }
 
+#ifdef WINDOWS_LINKER_HACK
+
 int mapC(int cod, KCVEC(x), CVEC(r)) {
     ERROR(BAD_CODE);
 }
 
-/*
+#else 
+
 int mapC(int code, KCVEC(x), CVEC(r)) {
     TCD* x2p = (TCD*)xp;
     TCD* r2p = (TCD*)rp;
@@ -648,7 +655,8 @@ int mapC(int code, KCVEC(x), CVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-*/
+
+#endif /* WINDOWS_LINKER_HACK */
 
 
 inline complex complex_f_math_fun(doublecomplex (*cf)(doublecomplex), complex a)
@@ -672,11 +680,14 @@ inline complex complex_f_math_fun(doublecomplex (*cf)(doublecomplex), complex a)
 
 #define OPC(C,F) case C: { for(k=0;k<xn;k++) rp[k] = complex_f_math_fun(&F,xp[k]); OK }
 
+#ifdef WINDOWS_LINKER_HACK
+
 int mapQ(int code, KQVEC(x), QVEC(r)) {
     ERROR(BAD_CODE);
 }
 
-/*
+#else 
+
 int mapQ(int code, KQVEC(x), QVEC(r)) {
     TCF* x2p = (TCF*)xp;
     TCF* r2p = (TCF*)rp;
@@ -704,7 +715,8 @@ int mapQ(int code, KQVEC(x), QVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-*/
+
+#endif /* WINDOWS_LINKER_HACK */
 
 int mapValR(int code, double* pval, KDVEC(x), DVEC(r)) {
     int k;
@@ -781,11 +793,18 @@ inline doublecomplex complex_add(doublecomplex a, doublecomplex b) {
 
 #define OPVb(C,E) case C: { for(k=0;k<xn;k++) r2p[k] = E; OK }
 
+#ifdef WINDOWS_LINKER_HACK
+
 int mapValC(int code, doublecomplex* pval, KCVEC(x), CVEC(r)) {
     ERROR(BAD_CODE);
 }
 
-/*
+int mapValQ(int code, complex* pval, KQVEC(x), QVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+#else 
+
 int mapValC(int code, doublecomplex* pval, KCVEC(x), CVEC(r)) {
     TCD* x2p = (TCD*)xp;
     TCD* r2p = (TCD*)rp;
@@ -803,13 +822,7 @@ int mapValC(int code, doublecomplex* pval, KCVEC(x), CVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-*/
 
-int mapValQ(int code, complex* pval, KQVEC(x), QVEC(r)) {
-    ERROR(BAD_CODE);
-}
-
-/*
 int mapValQ(int code, complex* pval, KQVEC(x), QVEC(r)) {
     TCF* x2p = (TCF*)xp;
     TCF* r2p = (TCF*)rp;
@@ -827,8 +840,8 @@ int mapValQ(int code, complex* pval, KQVEC(x), QVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-*/
 
+#endif /* WINDOWS_LINKER_HACK */
 
 #define OPZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = E(ap[k],bp[k]); OK }
 #define OPZV(C,msg,E) case C: {DEBUGMSG(msg) res = E(V(r),V(b)); CHECK(res,res); OK }
@@ -894,11 +907,18 @@ REQUIRES(an == bn && an == rn, BAD_SIZE);
 #define OPZOb(C,msg,O) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) r2p[k] = a2p[k] O b2p[k]; OK }
 #define OPZEb(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) r2p[k] = E(a2p[k],b2p[k]); OK }
 
+#ifdef WINDOWS_LINKER_HACK
+
 int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
     ERROR(BAD_CODE);
 }
 
-/*
+int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+#else 
+
 int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
     REQUIRES(an == bn && an == rn, BAD_SIZE);
     TCD* a2p = (TCD*)ap;
@@ -914,18 +934,9 @@ int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-*/
-
-
-
 
 #define OPCZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = complex_f_math_op(&E,ap[k],bp[k]); OK }
 
-int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
-    ERROR(BAD_CODE);
-}
-
-/*
 int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
     REQUIRES(an == bn && an == rn, BAD_SIZE);
     TCF* a2p = (TCF*)ap;
@@ -942,7 +953,8 @@ int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-*/
+
+#endif /* WINDOWS_LINKER_HACK */
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1285,7 +1297,14 @@ int sort_indexL(KLVEC(v),LVEC(r)) {
     SORTIDX_IMP(II,compare_longs_i)
 }
 
-static double round_hack (double x) {
+inline static double round_hack (double x) {
+
+#ifndef WINDOWS_LINKER_HACK
+
+  return round(x);
+
+#else 
+
   double fpart, ipart;
 
   fpart = modf(x, &ipart);
@@ -1295,6 +1314,8 @@ static double round_hack (double x) {
   } else {
     return ipart;
   }
+
+#endif /* WINDOWS_LINKER_HACK */
 }
 
 ////////////////////////////////////////////////////////////////////////////////
