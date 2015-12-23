@@ -416,6 +416,9 @@ class Domain field vec mat | mat -> vec field, vec -> mat field, field -> mat ve
     dot :: forall n . (KnownNat n) => vec n -> vec n -> field
     cross :: vec 3 -> vec 3 -> vec 3
     diagR ::  forall m n k . (KnownNat m, KnownNat n, KnownNat k) => field -> vec k -> mat m n
+    dvmap :: forall n. (field -> field) -> vec n -> vec n
+    dmmap :: forall n m. (field -> field) -> mat n m -> mat n m
+    outer :: forall n m. vec n -> vec m -> mat n m
 
 
 instance Domain ℝ R L
@@ -425,6 +428,9 @@ instance Domain ℝ R L
     dot = dotR
     cross = crossR
     diagR = diagRectR
+    dvmap = mapR
+    dmmap = mapL
+    outer = outerR
 
 instance Domain ℂ C M
   where
@@ -433,6 +439,9 @@ instance Domain ℂ C M
     dot = dotC
     cross = crossC
     diagR = diagRectC
+    dvmap = mapC
+    dmmap = mapM'
+    outer = outerC
 
 --------------------------------------------------------------------------------
 
@@ -472,6 +481,15 @@ crossR (extract -> x) (extract -> y) = vec3 z1 z2 z3
     z2 = x!2*y!0-x!0*y!2
     z3 = x!0*y!1-x!1*y!0
 
+outerR :: R n -> R m -> L n m
+outerR (R (Dim x)) (R (Dim y)) = mkL (LA.outer x y)
+
+mapR :: (ℝ -> ℝ) -> R n -> R n
+mapR f (R (Dim v)) = R (Dim (LA.cmap f v))
+
+mapM' :: (ℂ -> ℂ) -> M n m -> M n m
+mapM' f (M (Dim (Dim m))) = M (Dim (Dim (LA.cmap f m)))
+
 --------------------------------------------------------------------------------
 
 mulC :: forall m k n. (KnownNat m, KnownNat k, KnownNat n) => M m k -> M k n -> M m n
@@ -509,6 +527,15 @@ crossC (extract -> x) (extract -> y) = mkC (LA.fromList [z1, z2, z3])
     z1 = x!1*y!2-x!2*y!1
     z2 = x!2*y!0-x!0*y!2
     z3 = x!0*y!1-x!1*y!0
+
+outerC :: C n -> C m -> M n m
+outerC (C (Dim x)) (C (Dim y)) = mkM (LA.outer x y)
+
+mapC :: (ℂ -> ℂ) -> C n -> C n
+mapC f (C (Dim v)) = C (Dim (LA.cmap f v))
+
+mapL :: (ℝ -> ℝ) -> L n m -> L n m
+mapL f (L (Dim (Dim m))) = L (Dim (Dim (LA.cmap f m)))
 
 --------------------------------------------------------------------------------
 
