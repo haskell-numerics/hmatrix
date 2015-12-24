@@ -11,6 +11,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE BangPatterns #-}
 
 {- |
 Module      :  Internal.Static
@@ -28,6 +29,7 @@ import qualified Numeric.LinearAlgebra as LA
 import Numeric.LinearAlgebra hiding (konst,size,R,C)
 import Internal.Vector as D hiding (R,C)
 import Internal.ST
+import Control.DeepSeq
 import Data.Proxy(Proxy)
 import Foreign.Storable(Storable)
 import Text.Printf
@@ -49,6 +51,9 @@ lift2F
   :: (c t -> c t -> c t)
   -> Dim n (c t) -> Dim n (c t) -> Dim n (c t)
 lift2F f (Dim u) (Dim v) = Dim (f u v)
+
+instance NFData t => NFData (Dim n t) where
+    rnf (Dim (force -> !_)) = ()
 
 --------------------------------------------------------------------------------
 
@@ -74,6 +79,18 @@ mkL x = L (Dim (Dim x))
 
 mkM :: Matrix ℂ -> M m n
 mkM x = M (Dim (Dim x))
+
+instance NFData (R n) where
+    rnf (R (force -> !_)) = ()
+
+instance NFData (C n) where
+    rnf (C (force -> !_)) = ()
+
+instance NFData (L n m) where
+    rnf (L (force -> !_)) = ()
+
+instance NFData (M n m) where
+    rnf (M (force -> !_)) = ()
 
 --------------------------------------------------------------------------------
 
