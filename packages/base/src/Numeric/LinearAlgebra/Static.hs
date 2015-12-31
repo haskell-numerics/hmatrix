@@ -643,3 +643,18 @@ instance (KnownNat n', KnownNat m') => Testable (L n' m')
   where
     checkT _ = test
 
+--------------------------------------------------------------------------------
+
+instance KnownNat n => Normed (R n)
+  where
+    norm_0 v = norm_0 (extract v)
+    norm_1 v = norm_1 (extract v)
+    norm_2 v = norm_2 (extract v)
+    norm_Inf v = norm_Inf (extract v)
+
+instance (KnownNat m, KnownNat n) => Normed (L m n)
+  where
+    norm_0 m = norm_0 (extract m)
+    norm_1 m = norm_1 (extract m)
+    norm_2 m = norm_2 (extract m)
+    norm_Inf m = norm_Inf (extract m)
