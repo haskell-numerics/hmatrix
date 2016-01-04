@@ -10,7 +10,6 @@ flags:
 packages:
 - packages/tests/
 - packages/special/
-- packages/sparse/
 - packages/gsl/
 - packages/glpk/
 - packages/base/
