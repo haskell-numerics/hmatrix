@@ -49,7 +49,7 @@ module Numeric.LinearAlgebra.Static(
     linSolve, (<\>),
     -- * Factorizations
     svd, withCompactSVD, svdTall, svdFlat, Eigen(..),
-    withNullspace, qr, chol,
+    withNullspace, withOrth, qr, chol,
     -- * Norms
     Normed(..),
     -- * Random arrays
@@ -326,6 +326,15 @@ withNullspace (LA.nullspace . extract -> a) f =
        Nothing -> error "static/dynamic mismatch"
        Just (SomeNat (_ :: Proxy k)) -> f (mkL a :: L n k)
 
+withOrth
+    :: forall m n z . (KnownNat m, KnownNat n)
+    => L m n
+    -> (forall k. (KnownNat k) => L n k -> z)
+    -> z
+withOrth (LA.orth . extract -> a) f =
+    case someNatVal $ fromIntegral $ cols a of
+       Nothing -> error "static/dynamic mismatch"
+       Just (SomeNat (_ :: Proxy k)) -> f (mkL a :: L n k)
 
 withCompactSVD
     :: forall m n z . (KnownNat m, KnownNat n)
