@@ -595,13 +595,14 @@ outerR :: (KnownNat m, KnownNat n) => R n -> R m -> L n m
 outerR (extract -> x) (extract -> y) = mkL (LA.outer x y)
 
 mapR :: KnownNat n => (ℝ -> ℝ) -> R n -> R n
-mapR f (extract -> v) = mkR (LA.cmap f v)
+mapR f (unwrap -> v) = mkR (LA.cmap f v)
 
 zipWithR :: KnownNat n => (ℝ -> ℝ -> ℝ) -> R n -> R n -> R n
 zipWithR f (extract -> x) (extract -> y) = mkR (LA.zipVectorWith f x y)
 
-mapM' :: (KnownNat n, KnownNat m) => (ℂ -> ℂ) -> M n m -> M n m
-mapM' f (extract -> m) = mkM (LA.cmap f m)
+mapL :: (KnownNat n, KnownNat m) => (ℝ -> ℝ) -> L n m -> L n m
+mapL f (unwrap -> m) = mkL (LA.cmap f m)
+
 
 --------------------------------------------------------------------------------
 
@@ -645,13 +646,14 @@ outerC :: (KnownNat m, KnownNat n) => C n -> C m -> M n m
 outerC (extract -> x) (extract -> y) = mkM (LA.outer x y)
 
 mapC :: KnownNat n => (ℂ -> ℂ) -> C n -> C n
-mapC f (extract -> v) = mkC (LA.cmap f v)
+mapC f (unwrap -> v) = mkC (LA.cmap f v)
 
 zipWithC :: KnownNat n => (ℂ -> ℂ -> ℂ) -> C n -> C n -> C n
 zipWithC f (extract -> x) (extract -> y) = mkC (LA.zipVectorWith f x y)
 
-mapL :: (KnownNat n, KnownNat m) => (ℝ -> ℝ) -> L n m -> L n m
-mapL f (extract -> m) = mkL (LA.cmap f m)
+mapM' :: (KnownNat n, KnownNat m) => (ℂ -> ℂ) -> M n m -> M n m
+mapM' f (unwrap -> m) = mkM (LA.cmap f m)
+
 
 --------------------------------------------------------------------------------
 
