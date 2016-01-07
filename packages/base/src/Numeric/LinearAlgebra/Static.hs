@@ -50,6 +50,8 @@ module Numeric.LinearAlgebra.Static(
     -- * Factorizations
     svd, withCompactSVD, svdTall, svdFlat, Eigen(..),
     withNullspace, qr, chol,
+    -- * Norms
+    Normed(..),
     -- * Misc
     mean,
     Disp(..), Domain(..),
@@ -418,7 +420,7 @@ class Domain field vec mat | mat -> vec field, vec -> mat field, field -> mat ve
     diagR ::  forall m n k . (KnownNat m, KnownNat n, KnownNat k) => field -> vec k -> mat m n
     dvmap :: forall n. (field -> field) -> vec n -> vec n
     dmmap :: forall n m. (field -> field) -> mat n m -> mat n m
-    outer :: forall n m. vec n -> vec m -> mat n m
+    outer :: forall n m. (KnownNat m, KnownNat n) => vec n -> vec m -> mat n m
 
 
 instance Domain ℝ R L
@@ -481,8 +483,8 @@ crossR (extract -> x) (extract -> y) = vec3 z1 z2 z3
     z2 = x!2*y!0-x!0*y!2
     z3 = x!0*y!1-x!1*y!0
 
-outerR :: R n -> R m -> L n m
-outerR (R (Dim x)) (R (Dim y)) = mkL (LA.outer x y)
+outerR :: (KnownNat m, KnownNat n) => R n -> R m -> L n m
+outerR (extract -> x) (extract -> y) = mkL (LA.outer x y)
 
 mapR :: (ℝ -> ℝ) -> R n -> R n
 mapR f (R (Dim v)) = R (Dim (LA.cmap f v))
@@ -528,8 +530,8 @@ crossC (extract -> x) (extract -> y) = mkC (LA.fromList [z1, z2, z3])
     z2 = x!2*y!0-x!0*y!2
     z3 = x!0*y!1-x!1*y!0
 
-outerC :: C n -> C m -> M n m
-outerC (C (Dim x)) (C (Dim y)) = mkM (LA.outer x y)
+outerC :: (KnownNat m, KnownNat n) => C n -> C m -> M n m
+outerC (extract -> x) (extract -> y) = mkM (LA.outer x y)
 
 mapC :: (ℂ -> ℂ) -> C n -> C n
 mapC f (C (Dim v)) = C (Dim (LA.cmap f v))
@@ -643,3 +645,18 @@ instance (KnownNat n', KnownNat m') => Testable (L n' m')
   where
     checkT _ = test
 
+--------------------------------------------------------------------------------
+
+instance KnownNat n => Normed (R n)
+  where
+    norm_0 v = norm_0 (extract v)
+    norm_1 v = norm_1 (extract v)
+    norm_2 v = norm_2 (extract v)
+    norm_Inf v = norm_Inf (extract v)
+
+instance (KnownNat m, KnownNat n) => Normed (L m n)
+  where
+    norm_0 m = norm_0 (extract m)
+    norm_1 m = norm_1 (extract m)
+    norm_2 m = norm_2 (extract m)
+    norm_Inf m = norm_Inf (extract m)

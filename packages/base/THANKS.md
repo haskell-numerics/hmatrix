@@ -207,3 +207,5 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Patrik Jansson changed meanCov and gaussianSample to use Herm type. Fixed stack.yaml.
 
+- Justin Le added NFData instances for Static types and added mapping and outer product methods to Domain.
+
