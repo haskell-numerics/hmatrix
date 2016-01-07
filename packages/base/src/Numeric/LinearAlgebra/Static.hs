@@ -56,7 +56,7 @@ module Numeric.LinearAlgebra.Static(
     Seed, RandDist(..),
     randomVector, rand, randn, gaussianSample, uniformSample,
     -- * Misc
-    mean,
+    mean, meanCov,
     Disp(..), Domain(..),
     withVector, exactLength, withMatrix, exactDims,
     toRows, toColumns,
@@ -71,7 +71,7 @@ import Numeric.LinearAlgebra hiding (
     (<\>),fromList,takeDiag,svd,eig,eigSH,
     eigenvalues,eigenvaluesSH,build,
     qr,size,dot,chol,range,R,C,sym,mTm,unSym,
-    randomVector,rand,randn,gaussianSample,uniformSample)
+    randomVector,rand,randn,gaussianSample,uniformSample,meanCov)
 import qualified Numeric.LinearAlgebra as LA
 import qualified Numeric.LinearAlgebra.Devel as LA
 import Data.Proxy(Proxy(..))
@@ -479,6 +479,11 @@ uniformSample s (extract -> mins) (extract -> maxs) =
     mkL $ LA.uniformSample s (fromInteger (natVal (Proxy :: Proxy m)))
                            (zip (LA.toList mins) (LA.toList maxs))
 
+meanCov
+    :: forall m n . (KnownNat m, KnownNat n)
+    => L m n
+    -> (R n, Sym n)
+meanCov (extract -> vs) = mkR *** (Sym . mkL . LA.unSym) $ LA.meanCov vs
 
 --------------------------------------------------------------------------------
 
