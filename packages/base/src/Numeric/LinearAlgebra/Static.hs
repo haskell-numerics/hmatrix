@@ -49,14 +49,17 @@ module Numeric.LinearAlgebra.Static(
     linSolve, (<\>),
     -- * Factorizations
     svd, withCompactSVD, svdTall, svdFlat, Eigen(..),
-    withNullspace, qr, chol,
+    withNullspace, withOrth, qr, chol,
     -- * Norms
     Normed(..),
+    -- * Random arrays
+    Seed, RandDist(..),
+    randomVector, rand, randn, gaussianSample, uniformSample,
     -- * Misc
-    mean,
+    mean, meanCov,
     Disp(..), Domain(..),
-    withVector, withMatrix,
-    toRows, toColumns,
+    withVector, withMatrix, exactLength, exactDims,
+    toRows, toColumns, withRows, withColumns,
     Sized(..), Diag(..), Sym, sym, mTm, unSym, (<·>)
 ) where
 
@@ -67,9 +70,11 @@ import Numeric.LinearAlgebra hiding (
     row,col,vector,matrix,linspace,toRows,toColumns,
     (<\>),fromList,takeDiag,svd,eig,eigSH,
     eigenvalues,eigenvaluesSH,build,
-    qr,size,dot,chol,range,R,C,sym,mTm,unSym)
+    qr,size,dot,chol,range,R,C,sym,mTm,unSym,
+    randomVector,rand,randn,gaussianSample,uniformSample,meanCov)
 import qualified Numeric.LinearAlgebra as LA
-import Data.Proxy(Proxy)
+import qualified Numeric.LinearAlgebra.Devel as LA
+import Data.Proxy(Proxy(..))
 import Internal.Static
 import Control.Arrow((***))
 
@@ -321,6 +326,15 @@ withNullspace (LA.nullspace . extract -> a) f =
        Nothing -> error "static/dynamic mismatch"
        Just (SomeNat (_ :: Proxy k)) -> f (mkL a :: L n k)
 
+withOrth
+    :: forall m n z . (KnownNat m, KnownNat n)
+    => L m n
+    -> (forall k. (KnownNat k) => L n k -> z)
+    -> z
+withOrth (LA.orth . extract -> a) f =
+    case someNatVal $ fromIntegral $ cols a of
+       Nothing -> error "static/dynamic mismatch"
+       Just (SomeNat (_ :: Proxy k)) -> f (mkL a :: L n k)
 
 withCompactSVD
     :: forall m n z . (KnownNat m, KnownNat n)
@@ -367,9 +381,29 @@ splitCols = (tr *** tr) . splitRows . tr
 toRows :: forall m n . (KnownNat m, KnownNat n) => L m n -> [R n]
 toRows (LA.toRows . extract -> vs) = map mkR vs
 
+withRows
+    :: forall n z . KnownNat n
+    => [R n]
+    -> (forall m . KnownNat m => L m n -> z)
+    -> z
+withRows (LA.fromRows . map extract -> m) f =
+    case someNatVal $ fromIntegral $ LA.rows m of
+       Nothing -> error "static/dynamic mismatch"
+       Just (SomeNat (_ :: Proxy m)) -> f (mkL m :: L m n)
 
 toColumns :: forall m n . (KnownNat m, KnownNat n) => L m n -> [R m]
 toColumns (LA.toColumns . extract -> vs) = map mkR vs
+
+withColumns
+    :: forall m z . KnownNat m
+    => [R m]
+    -> (forall n . KnownNat n => L m n -> z)
+    -> z
+withColumns (LA.fromColumns . map extract -> m) f =
+    case someNatVal $ fromIntegral $ LA.cols m of
+       Nothing -> error "static/dynamic mismatch"
+       Just (SomeNat (_ :: Proxy n)) -> f (mkL m :: L m n)
+
 
 
 --------------------------------------------------------------------------------
@@ -394,6 +428,17 @@ withVector v f =
        Nothing -> error "static/dynamic mismatch"
        Just (SomeNat (_ :: Proxy m)) -> f (mkR v :: R m)
 
+-- | Useful for constraining two dependently typed vectors to match each
+-- other in length when they are unknown at compile-time.
+exactLength
+    :: forall n m . (KnownNat n, KnownNat m)
+    => R m
+    -> Maybe (R n)
+exactLength v
+    | natVal (Proxy :: Proxy n) == natVal (Proxy :: Proxy m)
+        = Just (mkR (unwrap v))
+    | otherwise
+        = Nothing
 
 withMatrix
     :: forall z
@@ -409,6 +454,66 @@ withMatrix a f =
                Just (SomeNat (_ :: Proxy n)) ->
                   f (mkL a :: L m n)
 
+-- | Useful for constraining two dependently typed matrices to match each
+-- other in dimensions when they are unknown at compile-time.
+exactDims
+    :: forall n m j k . (KnownNat n, KnownNat m, KnownNat j, KnownNat k)
+    => L m n
+    -> Maybe (L j k)
+exactDims m
+    | natVal (Proxy :: Proxy m) == natVal (Proxy :: Proxy j)
+   && natVal (Proxy :: Proxy n) == natVal (Proxy :: Proxy k)
+        = Just (mkL (unwrap m))
+    | otherwise
+        = Nothing
+
+randomVector
+    :: forall n . KnownNat n
+    => Seed
+    -> RandDist
+    -> R n
+randomVector s d = mkR (LA.randomVector s d
+                          (fromInteger (natVal (Proxy :: Proxy n)))
+                       )
+
+rand
+    :: forall m n . (KnownNat m, KnownNat n)
+    => IO (L m n)
+rand = mkL <$> LA.rand (fromInteger (natVal (Proxy :: Proxy m)))
+                       (fromInteger (natVal (Proxy :: Proxy n)))
+
+randn
+    :: forall m n . (KnownNat m, KnownNat n)
+    => IO (L m n)
+randn = mkL <$> LA.randn (fromInteger (natVal (Proxy :: Proxy m)))
+                         (fromInteger (natVal (Proxy :: Proxy n)))
+
+gaussianSample
+    :: forall m n . (KnownNat m, KnownNat n)
+    => Seed
+    -> R n
+    -> Sym n
+    -> L m n
+gaussianSample s (extract -> mu) (Sym (extract -> sigma)) =
+    mkL $ LA.gaussianSample s (fromInteger (natVal (Proxy :: Proxy m)))
+                            mu (LA.trustSym sigma)
+
+uniformSample
+    :: forall m n . (KnownNat m, KnownNat n)
+    => Seed
+    -> R n    -- ^ minimums of each row
+    -> R n    -- ^ maximums of each row
+    -> L m n
+uniformSample s (extract -> mins) (extract -> maxs) =
+    mkL $ LA.uniformSample s (fromInteger (natVal (Proxy :: Proxy m)))
+                           (zip (LA.toList mins) (LA.toList maxs))
+
+meanCov
+    :: forall m n . (KnownNat m, KnownNat n)
+    => L m n
+    -> (R n, Sym n)
+meanCov (extract -> vs) = mkR *** (Sym . mkL . LA.unSym) $ LA.meanCov vs
+
 --------------------------------------------------------------------------------
 
 class Domain field vec mat | mat -> vec field, vec -> mat field, field -> mat vec
@@ -418,9 +523,10 @@ class Domain field vec mat | mat -> vec field, vec -> mat field, field -> mat ve
     dot :: forall n . (KnownNat n) => vec n -> vec n -> field
     cross :: vec 3 -> vec 3 -> vec 3
     diagR ::  forall m n k . (KnownNat m, KnownNat n, KnownNat k) => field -> vec k -> mat m n
-    dvmap :: forall n. (field -> field) -> vec n -> vec n
-    dmmap :: forall n m. (field -> field) -> mat n m -> mat n m
+    dvmap :: forall n. KnownNat n => (field -> field) -> vec n -> vec n
+    dmmap :: forall n m. (KnownNat m, KnownNat n) => (field -> field) -> mat n m -> mat n m
     outer :: forall n m. (KnownNat m, KnownNat n) => vec n -> vec m -> mat n m
+    zipWith :: forall n. KnownNat n => (field -> field -> field) -> vec n -> vec n -> vec n
 
 
 instance Domain ℝ R L
@@ -433,6 +539,7 @@ instance Domain ℝ R L
     dvmap = mapR
     dmmap = mapL
     outer = outerR
+    zipWith = zipWithR
 
 instance Domain ℂ C M
   where
@@ -444,6 +551,7 @@ instance Domain ℂ C M
     dvmap = mapC
     dmmap = mapM'
     outer = outerC
+    zipWith = zipWithC
 
 --------------------------------------------------------------------------------
 
@@ -486,11 +594,15 @@ crossR (extract -> x) (extract -> y) = vec3 z1 z2 z3
 outerR :: (KnownNat m, KnownNat n) => R n -> R m -> L n m
 outerR (extract -> x) (extract -> y) = mkL (LA.outer x y)
 
-mapR :: (ℝ -> ℝ) -> R n -> R n
-mapR f (R (Dim v)) = R (Dim (LA.cmap f v))
+mapR :: KnownNat n => (ℝ -> ℝ) -> R n -> R n
+mapR f (unwrap -> v) = mkR (LA.cmap f v)
 
-mapM' :: (ℂ -> ℂ) -> M n m -> M n m
-mapM' f (M (Dim (Dim m))) = M (Dim (Dim (LA.cmap f m)))
+zipWithR :: KnownNat n => (ℝ -> ℝ -> ℝ) -> R n -> R n -> R n
+zipWithR f (extract -> x) (extract -> y) = mkR (LA.zipVectorWith f x y)
+
+mapL :: (KnownNat n, KnownNat m) => (ℝ -> ℝ) -> L n m -> L n m
+mapL f (unwrap -> m) = mkL (LA.cmap f m)
+
 
 --------------------------------------------------------------------------------
 
@@ -533,11 +645,15 @@ crossC (extract -> x) (extract -> y) = mkC (LA.fromList [z1, z2, z3])
 outerC :: (KnownNat m, KnownNat n) => C n -> C m -> M n m
 outerC (extract -> x) (extract -> y) = mkM (LA.outer x y)
 
-mapC :: (ℂ -> ℂ) -> C n -> C n
-mapC f (C (Dim v)) = C (Dim (LA.cmap f v))
+mapC :: KnownNat n => (ℂ -> ℂ) -> C n -> C n
+mapC f (unwrap -> v) = mkC (LA.cmap f v)
 
-mapL :: (ℝ -> ℝ) -> L n m -> L n m
-mapL f (L (Dim (Dim m))) = L (Dim (Dim (LA.cmap f m)))
+zipWithC :: KnownNat n => (ℂ -> ℂ -> ℂ) -> C n -> C n -> C n
+zipWithC f (extract -> x) (extract -> y) = mkC (LA.zipVectorWith f x y)
+
+mapM' :: (KnownNat n, KnownNat m) => (ℂ -> ℂ) -> M n m -> M n m
+mapM' f (unwrap -> m) = mkM (LA.cmap f m)
+
 
 --------------------------------------------------------------------------------
 
