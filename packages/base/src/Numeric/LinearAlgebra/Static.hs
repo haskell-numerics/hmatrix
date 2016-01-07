@@ -58,8 +58,8 @@ module Numeric.LinearAlgebra.Static(
     -- * Misc
     mean, meanCov,
     Disp(..), Domain(..),
-    withVector, exactLength, withMatrix, exactDims,
-    toRows, toColumns,
+    withVector, withMatrix, exactLength, exactDims,
+    toRows, toColumns, withRows, withColumns,
     Sized(..), Diag(..), Sym, sym, mTm, unSym, (<·>)
 ) where
 
@@ -381,9 +381,29 @@ splitCols = (tr *** tr) . splitRows . tr
 toRows :: forall m n . (KnownNat m, KnownNat n) => L m n -> [R n]
 toRows (LA.toRows . extract -> vs) = map mkR vs
 
+withRows
+    :: forall n z . KnownNat n
+    => [R n]
+    -> (forall m . KnownNat m => L m n -> z)
+    -> z
+withRows (LA.fromRows . map extract -> m) f =
+    case someNatVal $ fromIntegral $ LA.rows m of
+       Nothing -> error "static/dynamic mismatch"
+       Just (SomeNat (_ :: Proxy m)) -> f (mkL m :: L m n)
 
 toColumns :: forall m n . (KnownNat m, KnownNat n) => L m n -> [R m]
 toColumns (LA.toColumns . extract -> vs) = map mkR vs
+
+withColumns
+    :: forall m z . KnownNat m
+    => [R m]
+    -> (forall n . KnownNat n => L m n -> z)
+    -> z
+withColumns (LA.fromColumns . map extract -> m) f =
+    case someNatVal $ fromIntegral $ LA.cols m of
+       Nothing -> error "static/dynamic mismatch"
+       Just (SomeNat (_ :: Proxy n)) -> f (mkL m :: L m n)
+
 
 
 --------------------------------------------------------------------------------
