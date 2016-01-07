@@ -55,7 +55,7 @@ module Numeric.LinearAlgebra.Static(
     -- * Misc
     mean,
     Disp(..), Domain(..),
-    withVector, withMatrix,
+    withVector, exactLength, withMatrix, exactDims,
     toRows, toColumns,
     Sized(..), Diag(..), Sym, sym, mTm, unSym, (<·>)
 ) where
@@ -70,7 +70,7 @@ import Numeric.LinearAlgebra hiding (
     qr,size,dot,chol,range,R,C,sym,mTm,unSym)
 import qualified Numeric.LinearAlgebra as LA
 import qualified Numeric.LinearAlgebra.Devel as LA
-import Data.Proxy(Proxy)
+import Data.Proxy(Proxy(..))
 import Internal.Static
 import Control.Arrow((***))
 
@@ -395,6 +395,18 @@ withVector v f =
        Nothing -> error "static/dynamic mismatch"
        Just (SomeNat (_ :: Proxy m)) -> f (mkR v :: R m)
 
+-- | Useful for constraining two dependently typed vectors to match each
+-- other in length when they are unknown at compile-time.
+exactLength
+    :: forall n m. (KnownNat n, KnownNat m)
+    => R m
+    -> Maybe (R n)
+exactLength v
+    | natVal (Proxy :: Proxy n) == natVal (Proxy :: Proxy m)
+        = Just (mkR (unwrap v))
+    | otherwise
+        = Nothing
+
 withMatrix
     :: forall z
      . Matrix ℝ
@@ -408,6 +420,20 @@ withMatrix a f =
                Nothing -> error "static/dynamic mismatch"
                Just (SomeNat (_ :: Proxy n)) ->
                   f (mkL a :: L m n)
+
+-- | Useful for constraining two dependently typed matrices to match each
+-- other in dimensions when they are unknown at compile-time.
+exactDims
+    :: forall n m j k. (KnownNat n, KnownNat m, KnownNat j, KnownNat k)
+    => L m n
+    -> Maybe (L j k)
+exactDims m
+    | natVal (Proxy :: Proxy m) == natVal (Proxy :: Proxy j)
+   && natVal (Proxy :: Proxy n) == natVal (Proxy :: Proxy k)
+        = Just (mkL (unwrap m))
+    | otherwise
+        = Nothing
+
 
 --------------------------------------------------------------------------------
 
