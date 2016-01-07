@@ -71,7 +71,7 @@ import Numeric.LinearAlgebra hiding (
     (<\>),fromList,takeDiag,svd,eig,eigSH,
     eigenvalues,eigenvaluesSH,build,
     qr,size,dot,chol,range,R,C,sym,mTm,unSym,
-    randomVector, rand, randn, gaussianSample, uniformSample)
+    randomVector,rand,randn,gaussianSample,uniformSample)
 import qualified Numeric.LinearAlgebra as LA
 import qualified Numeric.LinearAlgebra.Devel as LA
 import Data.Proxy(Proxy(..))
