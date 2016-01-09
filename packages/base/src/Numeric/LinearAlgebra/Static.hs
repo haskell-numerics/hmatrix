@@ -526,7 +526,7 @@ class Domain field vec mat | mat -> vec field, vec -> mat field, field -> mat ve
     dvmap :: forall n. KnownNat n => (field -> field) -> vec n -> vec n
     dmmap :: forall n m. (KnownNat m, KnownNat n) => (field -> field) -> mat n m -> mat n m
     outer :: forall n m. (KnownNat m, KnownNat n) => vec n -> vec m -> mat n m
-    zipWith :: forall n. KnownNat n => (field -> field -> field) -> vec n -> vec n -> vec n
+    zipWithVector :: forall n. KnownNat n => (field -> field -> field) -> vec n -> vec n -> vec n
 
 
 instance Domain ℝ R L
@@ -539,7 +539,7 @@ instance Domain ℝ R L
     dvmap = mapR
     dmmap = mapL
     outer = outerR
-    zipWith = zipWithR
+    zipWithVector = zipWithR
 
 instance Domain ℂ C M
   where
@@ -551,7 +551,7 @@ instance Domain ℂ C M
     dvmap = mapC
     dmmap = mapM'
     outer = outerC
-    zipWith = zipWithC
+    zipWithVector = zipWithC
 
 --------------------------------------------------------------------------------
 
