@@ -225,19 +225,14 @@ class Diag m d | m -> d
     takeDiag :: m -> d
 
 
-instance forall n . (KnownNat n) => Diag (L n n) (R n)
+instance KnownNat n => Diag (L n n) (R n)
   where
-    takeDiag m = mkR (LA.takeDiag (extract m))
+    takeDiag x = mkR (LA.takeDiag (extract x))
 
 
-instance forall m n . (KnownNat m, KnownNat n, m <= n+1) => Diag (L m n) (R m)
+instance KnownNat n => Diag (M n n) (C n)
   where
-    takeDiag m = mkR (LA.takeDiag (extract m))
-
-
-instance forall m n . (KnownNat m, KnownNat n, n <= m+1) => Diag (L m n) (R n)
-  where
-    takeDiag m = mkR (LA.takeDiag (extract m))
+    takeDiag x = mkC (LA.takeDiag (extract x))
 
 
 --------------------------------------------------------------------------------
