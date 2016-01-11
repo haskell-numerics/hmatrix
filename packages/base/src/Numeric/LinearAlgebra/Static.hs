@@ -77,6 +77,7 @@ import qualified Numeric.LinearAlgebra.Devel as LA
 import Data.Proxy(Proxy(..))
 import Internal.Static
 import Control.Arrow((***))
+import Text.Printf
 
 ud1 :: R n -> Vector ℝ
 ud1 (R (Dim v)) = v
@@ -295,6 +296,20 @@ newtype Her n = Her (M n n)
 her :: KnownNat n => M n n -> Her n
 her m = Her $ (m + LA.tr m)/2
 
+
+instance (KnownNat n) => Disp (Sym n)
+  where
+    disp n (Sym x) = do
+        let a = extract x
+        let su = LA.dispf n a
+        printf "Sym %d" (cols a) >> putStr (dropWhile (/='\n') $ su)
+
+instance (KnownNat n) => Disp (Her n)
+  where
+    disp n (Her x) = do
+        let a = extract x
+        let su = LA.dispcf n a
+        printf "Her %d" (cols a) >> putStr (dropWhile (/='\n') $ su)
 
 
 instance KnownNat n => Eigen (Sym n) (R n) (L n n)
