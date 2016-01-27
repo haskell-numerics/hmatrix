@@ -802,10 +802,11 @@ instance KnownNat n =>  Num (Sym n)
 
 instance KnownNat n => Fractional (Sym n)
   where
-    fromRational = Sym . L . Dim . Dim . fromRational
+    fromRational = Sym . fromRational
     (/) = mkSym2 (/)
 
-instance KnownNat n => Floating (Sym n) where
+instance KnownNat n => Floating (Sym n)
+  where
     sin   = mkSym sin
     cos   = mkSym cos
     tan   = mkSym tan
