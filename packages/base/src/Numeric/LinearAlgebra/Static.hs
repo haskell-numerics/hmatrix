@@ -786,3 +786,41 @@ instance (KnownNat m, KnownNat n) => Normed (L m n)
     norm_1 m = norm_1 (extract m)
     norm_2 m = norm_2 (extract m)
     norm_Inf m = norm_Inf (extract m)
+
+mkSym f = Sym . f . unSym
+mkSym2 f x y = Sym (f (unSym x) (unSym y))
+
+instance KnownNat n =>  Num (Sym n)
+  where
+    (+) = mkSym2 (+)
+    (*) = mkSym2 (*)
+    (-) = mkSym2 (-)
+    abs = mkSym abs
+    signum = mkSym signum
+    negate = mkSym negate
+    fromInteger = Sym . fromInteger
+
+instance KnownNat n => Fractional (Sym n)
+  where
+    fromRational = Sym . fromRational
+    (/) = mkSym2 (/)
+
+instance KnownNat n => Floating (Sym n)
+  where
+    sin   = mkSym sin
+    cos   = mkSym cos
+    tan   = mkSym tan
+    asin  = mkSym asin
+    acos  = mkSym acos
+    atan  = mkSym atan
+    sinh  = mkSym sinh
+    cosh  = mkSym cosh
+    tanh  = mkSym tanh
+    asinh = mkSym asinh
+    acosh = mkSym acosh
+    atanh = mkSym atanh
+    exp   = mkSym exp
+    log   = mkSym log
+    sqrt  = mkSym sqrt
+    (**)  = mkSym2 (**)
+    pi    = Sym pi
