@@ -29,8 +29,7 @@ flag safe-cheap
 library
     Build-Depends:  base <5, hmatrix>=0.17, hmatrix-gsl
 
-    Extensions:     ForeignFunctionInterface,
-                    CPP
+    Extensions:     ForeignFunctionInterface
 
     hs-source-dirs:     lib
 
@@ -67,7 +66,7 @@ library
     other-modules:      Numeric.GSL.Special.Internal
 
     ghc-options:  -Wall -fno-warn-unused-binds
-                            
+
     if flag(safe-cheap)
         cpp-options: -DSAFE_CHEAP=safe
     else

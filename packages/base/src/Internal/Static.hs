@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 #if __GLASGOW_HASKELL__ >= 708
 
 {-# LANGUAGE DataKinds #-}
@@ -12,6 +13,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 {- |
 Module      :  Internal.Static
@@ -33,6 +35,8 @@ import Control.DeepSeq
 import Data.Proxy(Proxy)
 import Foreign.Storable(Storable)
 import Text.Printf
+import Data.Binary
+import GHC.Generics (Generic)
 
 --------------------------------------------------------------------------------
 
@@ -40,7 +44,14 @@ type ℝ = Double
 type ℂ = Complex Double
 
 newtype Dim (n :: Nat) t = Dim t
-  deriving Show
+  deriving (Show, Generic)
+
+instance Binary a => Binary (Complex a)
+  where
+    put (r :+ i) = put (r, i)
+    get = (\(r,i) -> r :+ i) <$> get
+
+instance (Binary a) => Binary (Dim n a)
 
 lift1F
   :: (c t -> c t)
@@ -58,15 +69,21 @@ instance NFData t => NFData (Dim n t) where
 --------------------------------------------------------------------------------
 
 newtype R n = R (Dim n (Vector ℝ))
-  deriving (Num,Fractional,Floating)
+  deriving (Num,Fractional,Floating,Generic)
 
 newtype C n = C (Dim n (Vector ℂ))
-  deriving (Num,Fractional,Floating)
+  deriving (Num,Fractional,Floating,Generic)
 
 newtype L m n = L (Dim m (Dim n (Matrix ℝ)))
+  deriving (Generic)
 
-newtype M m n = M (Dim m (Dim n (Matrix  ℂ)))
+newtype M m n = M (Dim m (Dim n (Matrix ℂ)))
+  deriving (Generic)
 
+instance (KnownNat n) => Binary (R n)
+instance (KnownNat n) => Binary (C n)
+instance (KnownNat m, KnownNat n) => Binary (L m n)
+instance (KnownNat m, KnownNat n) => Binary (M m n)
 
 mkR :: Vector ℝ -> R n
 mkR = R . Dim
