@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 ------------------------------------------------------------
 -- |
 -- Module      :  Numeric.GSL.Special.Laguerre

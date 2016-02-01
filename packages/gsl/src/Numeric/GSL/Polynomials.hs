@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {- |
 Module      :  Numeric.GSL.Polynomials
 Copyright   :  (c) Alberto Ruiz 2006
@@ -24,7 +25,7 @@ import System.IO.Unsafe (unsafePerformIO)
 import Foreign.C.Types (CInt(..))
 #endif
 
-{- | Solution of general polynomial equations, using /gsl_poly_complex_solve/. 
+{- | Solution of general polynomial equations, using /gsl_poly_complex_solve/.
 
 For example, the three solutions of x^3 + 8 = 0
 
@@ -41,7 +42,7 @@ The example in the GSL manual: To find the roots of x^5 -1 = 0:
 0.30901699437494756 :+ (-0.9510565162951535),
 1.0000000000000002 :+ 0.0]
 
--}  
+-}
 polySolve :: [Double] -> [Complex Double]
 polySolve = toList . polySolve' . fromList
 

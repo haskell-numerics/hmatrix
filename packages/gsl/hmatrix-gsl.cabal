@@ -29,8 +29,7 @@ library
                         process, random
 
 
-    Extensions:         ForeignFunctionInterface,
-                        CPP
+    Extensions:         ForeignFunctionInterface
 
     hs-source-dirs:     src
     Exposed-modules:    Numeric.GSL.Differentiation,
