@@ -79,8 +79,7 @@ library
                         src/Internal/C/vector-aux.c
 
 
-    extensions:         ForeignFunctionInterface,
-                        CPP
+    extensions:         ForeignFunctionInterface
 
     ghc-options:        -Wall
                         -fno-warn-missing-signatures
