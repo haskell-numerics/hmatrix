@@ -16,7 +16,7 @@ Description:        Linear systems, matrix decompositions, and other numerical c
                     Code examples: <http://dis.um.es/~alberto/hmatrix/hmatrix.html>
 
 Category:           Math
-tested-with:        GHC==7.10
+tested-with:        GHC==8.0
 
 cabal-version:      >=1.8
 

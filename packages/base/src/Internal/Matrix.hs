@@ -5,8 +5,7 @@
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE ViewPatterns             #-}
-
-
+{-# LANGUAGE ConstrainedClassMethods  #-}
 
 -- |
 -- Module      :  Internal.Matrix
