@@ -1,0 +1,3 @@
+The package "sparse" depends on MKL but it is not needed by the other packages,
+it is only intended for testing.
+
