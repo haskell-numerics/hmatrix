@@ -56,11 +56,9 @@ instance KnownNat n => Arbitrary (Static.R n) where
       l <- vector n
       return (Static.fromList l)
 
-      where proxy :: Proxy n
-            proxy = proxy
-
-            n :: Int
-            n = fromIntegral (natVal proxy)
+      where
+        n :: Int
+        n = fromIntegral (natVal (Proxy :: Proxy n))
 
     shrink v = []
 
