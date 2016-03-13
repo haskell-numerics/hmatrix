@@ -35,8 +35,10 @@ import Control.DeepSeq
 import Data.Proxy(Proxy)
 import Foreign.Storable(Storable)
 import Text.Printf
+
 import Data.Binary
 import GHC.Generics (Generic)
+import Data.Proxy (Proxy(..))
 
 --------------------------------------------------------------------------------
 
@@ -51,7 +53,17 @@ instance Binary a => Binary (Complex a)
     put (r :+ i) = put (r, i)
     get = (\(r,i) -> r :+ i) <$> get
 
-instance (Binary a) => Binary (Dim n a)
+instance (KnownNat n, Binary a) => Binary (Dim n a) where
+  get = do
+    k <- get
+    let n = natVal (Proxy :: Proxy n)
+    if n == k
+      then Dim <$> get
+      else fail ("Expected dimension " ++ (show n) ++ ", but found dimension " ++ (show k))
+
+  put (Dim x) = do
+    put (natVal (Proxy :: Proxy n))
+    put x
 
 lift1F
   :: (c t -> c t)
