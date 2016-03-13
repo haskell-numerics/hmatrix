@@ -69,21 +69,16 @@ instance NFData t => NFData (Dim n t) where
 --------------------------------------------------------------------------------
 
 newtype R n = R (Dim n (Vector ℝ))
-  deriving (Num,Fractional,Floating,Generic)
+  deriving (Num,Fractional,Floating,Generic,Binary)
 
 newtype C n = C (Dim n (Vector ℂ))
-  deriving (Num,Fractional,Floating,Generic)
+  deriving (Num,Fractional,Floating,Generic,Binary)
 
 newtype L m n = L (Dim m (Dim n (Matrix ℝ)))
-  deriving (Generic)
+  deriving (Generic, Binary)
 
 newtype M m n = M (Dim m (Dim n (Matrix ℂ)))
-  deriving (Generic)
-
-instance (KnownNat n) => Binary (R n)
-instance (KnownNat n) => Binary (C n)
-instance (KnownNat m, KnownNat n) => Binary (L m n)
-instance (KnownNat m, KnownNat n) => Binary (M m n)
+  deriving (Generic, Binary)
 
 mkR :: Vector ℝ -> R n
 mkR = R . Dim
