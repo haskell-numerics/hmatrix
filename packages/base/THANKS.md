@@ -205,7 +205,13 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - Vassil Keremidchiev fixed the cabal options for OpenBlas, fixed several installation
   issues, and added support for stack-based build.
 
+- Greg Nwosu fixed arm compilation
+
 - Patrik Jansson changed meanCov and gaussianSample to use Herm type. Fixed stack.yaml.
 
-- Justin Le added NFData instances for Static types and added mapping and outer product methods to Domain.
+- Justin Le added NFData instances for Static types, added mapping and outer product
+  methods to Domain, and many other functions to the Static module.
+
+- Sidharth Kapur added Normed and numeric instances for several Static types, and
+fixed the CPP issue in cabal files.
 

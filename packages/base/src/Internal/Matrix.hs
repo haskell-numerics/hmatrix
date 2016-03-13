@@ -6,8 +6,7 @@
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE ViewPatterns             #-}
 {-# LANGUAGE DeriveGeneric            #-}
-
-
+{-# LANGUAGE ConstrainedClassMethods  #-}
 
 -- |
 -- Module      :  Internal.Matrix

@@ -72,7 +72,7 @@ instance (Ord t, KnownNat m) => Ord (Mod m t)
   where
     compare a b = compare (unMod a) (unMod b)
 
-instance (Real t, KnownNat m, Integral (Mod m t)) => Real (Mod m t)
+instance (Integral t, Real t, KnownNat m, Integral (Mod m t)) => Real (Mod m t)
   where
     toRational x = toInteger x % 1
 
@@ -114,7 +114,7 @@ instance Show t => Show (Mod n t)
   where
     show = show . unMod
 
-instance forall n t . (Integral t, KnownNat n) => Num (Mod n t)
+instance (Integral t, KnownNat n) => Num (Mod n t)
   where
     (+) = l2 (\m a b -> (a + b) `mod` (fromIntegral m))
     (*) = l2 (\m a b -> (a * b) `mod` (fromIntegral m))
@@ -159,11 +159,11 @@ instance KnownNat m => Element (Mod m Z)
         m' = fromIntegral . natVal $ (undefined :: Proxy m)
 
 
-instance forall m . KnownNat m => CTrans (Mod m I)
-instance forall m . KnownNat m => CTrans (Mod m Z)
+instance KnownNat m => CTrans (Mod m I)
+instance KnownNat m => CTrans (Mod m Z)
 
 
-instance forall m . KnownNat m => Container Vector (Mod m I)
+instance KnownNat m => Container Vector (Mod m I)
   where
     conj' = id
     size' = dim
@@ -203,7 +203,7 @@ instance forall m . KnownNat m => Container Vector (Mod m I)
     fromZ'   = vmod . fromZ'
     toZ'     = toZ' . f2i
 
-instance forall m . KnownNat m => Container Vector (Mod m Z)
+instance KnownNat m => Container Vector (Mod m Z)
   where
     conj' = id
     size' = dim
@@ -311,7 +311,7 @@ lift2 f a b = vmod (f (f2i a) (f2i b))
 
 lift2m f a b = liftMatrix vmod (f (f2iM a) (f2iM b))
 
-instance forall m . KnownNat m => Num (Vector (Mod m I))
+instance KnownNat m => Num (Vector (Mod m I))
   where
     (+) = lift2 (+)
     (*) = lift2 (*)
@@ -321,7 +321,7 @@ instance forall m . KnownNat m => Num (Vector (Mod m I))
     negate = lift1 negate
     fromInteger x = fromInt (fromInteger x)
 
-instance forall m . KnownNat m => Num (Vector (Mod m Z))
+instance KnownNat m => Num (Vector (Mod m Z))
   where
     (+) = lift2 (+)
     (*) = lift2 (*)

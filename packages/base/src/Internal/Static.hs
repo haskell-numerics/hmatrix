@@ -207,7 +207,7 @@ singleV v = LA.size v == 1
 singleM m = rows m == 1 && cols m == 1
 
 
-instance forall n. KnownNat n => Sized ℂ (C n) Vector
+instance KnownNat n => Sized ℂ (C n) Vector
   where
     size _ = fromIntegral . natVal $ (undefined :: Proxy n)
     konst x = mkC (LA.scalar x)
@@ -223,7 +223,7 @@ instance forall n. KnownNat n => Sized ℂ (C n) Vector
         r = mkC v :: C n
 
 
-instance forall n. KnownNat n => Sized ℝ (R n) Vector
+instance KnownNat n => Sized ℝ (R n) Vector
   where
     size _ = fromIntegral . natVal $ (undefined :: Proxy n)
     konst x = mkR (LA.scalar x)
@@ -240,7 +240,7 @@ instance forall n. KnownNat n => Sized ℝ (R n) Vector
 
 
 
-instance forall m n . (KnownNat m, KnownNat n) => Sized ℝ (L m n) Matrix
+instance (KnownNat m, KnownNat n) => Sized ℝ (L m n) Matrix
   where
     size _ = ((fromIntegral . natVal) (undefined :: Proxy m)
              ,(fromIntegral . natVal) (undefined :: Proxy n))
@@ -258,7 +258,7 @@ instance forall m n . (KnownNat m, KnownNat n) => Sized ℝ (L m n) Matrix
         r = mkL x :: L m n
 
 
-instance forall m n . (KnownNat m, KnownNat n) => Sized ℂ (M m n) Matrix
+instance (KnownNat m, KnownNat n) => Sized ℂ (M m n) Matrix
   where
     size _ = ((fromIntegral . natVal) (undefined :: Proxy m)
              ,(fromIntegral . natVal) (undefined :: Proxy n))
@@ -316,7 +316,7 @@ isDiagg (Dim (Dim x))
 
 --------------------------------------------------------------------------------
 
-instance forall n . KnownNat n => Show (R n)
+instance KnownNat n => Show (R n)
   where
     show s@(R (Dim v))
       | singleV v = "("++show (v!0)++" :: R "++show d++")"
@@ -324,7 +324,7 @@ instance forall n . KnownNat n => Show (R n)
       where
         d = size s
 
-instance forall n . KnownNat n => Show (C n)
+instance KnownNat n => Show (C n)
   where
     show s@(C (Dim v))
       | singleV v = "("++show (v!0)++" :: C "++show d++")"
@@ -332,7 +332,7 @@ instance forall n . KnownNat n => Show (C n)
       where
         d = size s
 
-instance forall m n . (KnownNat m, KnownNat n) => Show (L m n)
+instance (KnownNat m, KnownNat n) => Show (L m n)
   where
     show (isDiag -> Just (z,y,(m',n'))) = printf "(diag %s %s :: L %d %d)" (show z) (drop 9 $ show y) m' n'
     show s@(L (Dim (Dim x)))
@@ -341,7 +341,7 @@ instance forall m n . (KnownNat m, KnownNat n) => Show (L m n)
       where
         (m',n') = size s
 
-instance forall m n . (KnownNat m, KnownNat n) => Show (M m n)
+instance (KnownNat m, KnownNat n) => Show (M m n)
   where
     show (isDiagC -> Just (z,y,(m',n'))) = printf "(diag %s %s :: M %d %d)" (show z) (drop 9 $ show y) m' n'
     show s@(M (Dim (Dim x)))
@@ -352,7 +352,7 @@ instance forall m n . (KnownNat m, KnownNat n) => Show (M m n)
 
 --------------------------------------------------------------------------------
 
-instance forall n t . (Num (Vector t), Numeric t )=> Num (Dim n (Vector t))
+instance (Num (Vector t), Numeric t )=> Num (Dim n (Vector t))
   where
     (+) = lift2F (+)
     (*) = lift2F (*)
