@@ -30,7 +30,7 @@ import Control.Monad(replicateM)
 import Test.QuickCheck(Arbitrary,arbitrary,choose,vector,sized,shrink)
 
 import GHC.TypeLits
-import Data.Proxy (Proxy)
+import Data.Proxy (Proxy(..))
 import qualified Numeric.LinearAlgebra.Static as Static
 
 
@@ -82,17 +82,12 @@ instance (KnownNat n, KnownNat m) => Arbitrary (Static.L m n) where
       l <- vector (m * n)
       return (Static.fromList l)
 
-      where proxyM :: Proxy m
-            proxyM = proxyM
+      where
+        m :: Int
+        m = fromIntegral (natVal (Proxy :: Proxy m))
 
-            proxyN :: Proxy n
-            proxyN = proxyN
-
-            m :: Int
-            m = fromIntegral (natVal proxyM)
-
-            n :: Int
-            n = fromIntegral (natVal proxyN)
+        n :: Int
+        n = fromIntegral (natVal (Proxy :: Proxy n))
 
     shrink mat = []
 
