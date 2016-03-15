@@ -5,6 +5,7 @@
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE ViewPatterns             #-}
+{-# LANGUAGE DeriveGeneric            #-}
 {-# LANGUAGE ConstrainedClassMethods  #-}
 
 -- |

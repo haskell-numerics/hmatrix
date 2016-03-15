@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DataKinds #-}
 
 -----------------------------------------------------------------------------
 {- |
@@ -39,11 +40,24 @@ module Numeric.LinearAlgebra.Tests.Properties (
     expmDiagProp,
     multProp1, multProp2,
     subProp,
-    linearSolveProp, linearSolvePropH, linearSolveProp2
+    linearSolveProp, linearSolvePropH, linearSolveProp2,
+
+    -- Binary properties
+    vectorBinaryRoundtripProp
+  , staticVectorBinaryRoundtripProp
+  , matrixBinaryRoundtripProp
+  , staticMatrixBinaryRoundtripProp
+  , staticVectorBinaryFailProp
 ) where
 
 import Numeric.LinearAlgebra.HMatrix hiding (Testable,unitary)
+import qualified Numeric.LinearAlgebra.Static as Static
 import Test.QuickCheck
+
+import Data.Binary
+import Data.Binary.Get (runGet)
+import Data.Either (isLeft)
+import Debug.Trace (traceShowId)
 
 (~=) :: Double -> Double -> Bool
 a ~= b = abs (a - b) < 1e-10
@@ -275,3 +289,31 @@ linearSolveProp2 f (a,x) = not wc `trivial` (not wc || a <> f a b |~| b)
 
 subProp m = m == (conj . tr . fromColumns . toRows) m
 
+------------------------------------------------------------------
+
+vectorBinaryRoundtripProp :: Vector Double -> Bool
+vectorBinaryRoundtripProp vec = decode (encode vec) == vec
+
+staticVectorBinaryRoundtripProp :: Static.R 5 -> Bool
+staticVectorBinaryRoundtripProp vec =
+  let
+    decoded = decode (encode vec) :: Static.R 500
+  in
+    Static.extract decoded == Static.extract vec
+
+matrixBinaryRoundtripProp :: Matrix Double -> Bool
+matrixBinaryRoundtripProp mat = decode (encode mat) == mat
+
+staticMatrixBinaryRoundtripProp :: Static.L 100 200 -> Bool
+staticMatrixBinaryRoundtripProp mat =
+  let
+    decoded = decode (encode mat) :: Static.L 100 200
+  in
+    (Static.extract decoded) == (Static.extract mat)
+
+staticVectorBinaryFailProp :: Static.R 20 -> Bool
+staticVectorBinaryFailProp vec =
+  let
+    decoded = runGet get (encode vec) :: Either String (Static.R 50)
+  in
+    isLeft decoded

@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, UndecidableInstances, FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts, UndecidableInstances, FlexibleInstances, ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Tests.Instances
@@ -29,6 +29,10 @@ import Numeric.LinearAlgebra.HMatrix hiding (vector)
 import Control.Monad(replicateM)
 import Test.QuickCheck(Arbitrary,arbitrary,choose,vector,sized,shrink)
 
+import GHC.TypeLits
+import Data.Proxy (Proxy(..))
+import qualified Numeric.LinearAlgebra.Static as Static
+
 
 shrinkListElementwise :: (Arbitrary a) => [a] -> [[a]]
 shrinkListElementwise []     = []
@@ -40,14 +44,25 @@ shrinkPair (a,b) = [ (a,x) | x <- shrink b ] ++ [ (x,b) | x <- shrink a ]
 
 chooseDim = sized $ \m -> choose (1,max 1 m)
 
-instance (Field a, Arbitrary a) => Arbitrary (Vector a) where 
+instance (Field a, Arbitrary a) => Arbitrary (Vector a) where
     arbitrary = do m <- chooseDim
                    l <- vector m
                    return $ fromList l
     -- shrink any one of the components
     shrink = map fromList . shrinkListElementwise . toList
 
-instance (Element a, Arbitrary a) => Arbitrary (Matrix a) where 
+instance KnownNat n => Arbitrary (Static.R n) where
+    arbitrary = do
+      l <- vector n
+      return (Static.fromList l)
+
+      where
+        n :: Int
+        n = fromIntegral (natVal (Proxy :: Proxy n))
+
+    shrink v = []
+
+instance (Element a, Arbitrary a) => Arbitrary (Matrix a) where
     arbitrary = do
         m <- chooseDim
         n <- chooseDim
@@ -57,8 +72,22 @@ instance (Element a, Arbitrary a) => Arbitrary (Matrix a) where
     -- shrink any one of the components
     shrink a = map (rows a >< cols a)
                . shrinkListElementwise
-               . concat . toLists 
+               . concat . toLists
                      $ a
+
+instance (KnownNat n, KnownNat m) => Arbitrary (Static.L m n) where
+    arbitrary = do
+      l <- vector (m * n)
+      return (Static.fromList l)
+
+      where
+        m :: Int
+        m = fromIntegral (natVal (Proxy :: Proxy m))
+
+        n :: Int
+        n = fromIntegral (natVal (Proxy :: Proxy n))
+
+    shrink mat = []
 
 -- a square matrix
 newtype (Sq a) = Sq (Matrix a) deriving Show
@@ -121,7 +150,7 @@ instance (ArbitraryField a, Numeric a) => Arbitrary (SqWC a) where
 
 -- a positive definite square matrix (the eigenvalues are between 0 and 100)
 newtype (PosDef a) = PosDef (Matrix a) deriving Show
-instance (Numeric a, ArbitraryField a, Num (Vector a)) 
+instance (Numeric a, ArbitraryField a, Num (Vector a))
     => Arbitrary (PosDef a) where
     arbitrary = do
         m <- arbitrary

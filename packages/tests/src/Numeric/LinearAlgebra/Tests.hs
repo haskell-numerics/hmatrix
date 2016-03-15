@@ -26,6 +26,7 @@ module Numeric.LinearAlgebra.Tests(
    utest,
    runTests,
    runBenchmarks
+ , binaryTests
 -- , findNaN
 --, runBigTests
 ) where
@@ -742,6 +743,15 @@ runTests n = do
 makeUnitary v | realPart n > 1    = v / scalar n
               | otherwise = v
     where n = sqrt (v `dot` v)
+
+binaryTests :: IO ()
+binaryTests = do
+  let test :: forall t . T.Testable t => t -> IO ()
+      test = qCheck 100
+  test vectorBinaryRoundtripProp
+  test staticVectorBinaryRoundtripProp
+  qCheck 30 matrixBinaryRoundtripProp
+  qCheck 30 staticMatrixBinaryRoundtripProp
 
 -- -- | Some additional tests on big matrices. They take a few minutes.
 -- runBigTests :: IO ()
