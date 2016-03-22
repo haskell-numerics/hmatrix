@@ -93,7 +93,6 @@ library
     if arch(i386)
         cc-options:     -msse2
 
-    cpp-options:        -DBINARY
 
     if os(OSX)
         if flag(openblas)

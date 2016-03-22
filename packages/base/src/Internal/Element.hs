@@ -3,7 +3,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE CPP #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -35,7 +34,6 @@ import Control.Monad(liftM)
 
 -------------------------------------------------------------------
 
-#ifdef BINARY
 
 import Data.Binary
 
@@ -48,7 +46,6 @@ instance (Binary (Vector a), Element a) => Binary (Matrix a) where
           v <- get
           return (reshape c v)
 
-#endif
 
 -------------------------------------------------------------------
 

@@ -1,4 +1,4 @@
-{-# LANGUAGE MagicHash, CPP, UnboxedTuples, BangPatterns, FlexibleContexts #-}
+{-# LANGUAGE MagicHash, UnboxedTuples, BangPatterns, FlexibleContexts #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 
@@ -39,12 +39,10 @@ import GHC.Base(realWorld#, IO(IO), when)
 import qualified Data.Vector.Storable as Vector
 import Data.Vector.Storable(Vector, fromList, unsafeToForeignPtr, unsafeFromForeignPtr, unsafeWith)
 
-#ifdef BINARY
 import Data.Binary
 import Control.Monad(replicateM)
 import qualified Data.ByteString.Internal as BS
 import Data.Vector.Storable.Internal(updPtr)
-#endif
 
 type I = CInt
 type Z = Int64
@@ -380,7 +378,6 @@ mapVectorWithIndex f v = unsafePerformIO $ do
 --------------------------------------------------------------------------------
 
 
-#ifdef BINARY
 
 -- a 64K cache, with a Double taking 13 bytes in Bytestring,
 -- implies a chunk size of 5041
@@ -432,7 +429,6 @@ instance (Binary a, Storable a) => Binary (Vector a) where
 
     -- get = fmap bs2v get
 
-#endif
 
 
 -------------------------------------------------------------------
