@@ -48,11 +48,6 @@ type ℂ = Complex Double
 newtype Dim (n :: Nat) t = Dim t
   deriving (Show, Generic)
 
-instance Binary a => Binary (Complex a)
-  where
-    put (r :+ i) = put (r, i)
-    get = (\(r,i) -> r :+ i) <$> get
-
 instance (KnownNat n, Binary a) => Binary (Dim n a) where
   get = do
     k <- get
@@ -84,13 +79,13 @@ newtype R n = R (Dim n (Vector ℝ))
   deriving (Num,Fractional,Floating,Generic,Binary)
 
 newtype C n = C (Dim n (Vector ℂ))
-  deriving (Num,Fractional,Floating,Generic,Binary)
+  deriving (Num,Fractional,Floating,Generic)
 
 newtype L m n = L (Dim m (Dim n (Matrix ℝ)))
   deriving (Generic, Binary)
 
 newtype M m n = M (Dim m (Dim n (Matrix ℂ)))
-  deriving (Generic, Binary)
+  deriving (Generic)
 
 mkR :: Vector ℝ -> R n
 mkR = R . Dim
