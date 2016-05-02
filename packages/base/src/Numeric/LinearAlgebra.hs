@@ -22,7 +22,8 @@ module Numeric.LinearAlgebra (
 
     -- * Numeric classes
     -- |
-    -- The standard numeric classes are defined elementwise:
+    -- The standard numeric classes are defined elementwise (commonly referred to
+    -- as the Hadamard product or the Schur product):
     --
     -- >>>  vector [1,2,3] * vector [3,0,-2]
     -- fromList [3.0,0.0,-6.0]
