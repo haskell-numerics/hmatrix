@@ -567,6 +567,17 @@ instance KnownNat n => Disp (C n)
 
 --------------------------------------------------------------------------------
 
+overMatL' :: (KnownNat m, KnownNat n)
+          => (LA.Matrix ℝ -> LA.Matrix ℝ) -> L m n -> L m n
+overMatL' f = mkL . f . unwrap
+{-# INLINE overMatL' #-}
+
+overMatM' :: (KnownNat m, KnownNat n)
+          => (LA.Matrix ℂ -> LA.Matrix ℂ) -> M m n -> M m n
+overMatM' f = mkM . f . unwrap
+{-# INLINE overMatM' #-}
+
+
 #else
 
 module Numeric.LinearAlgebra.Static.Internal where

@@ -537,6 +537,8 @@ class Domain field vec mat | mat -> vec field, vec -> mat field, field -> mat ve
     zipWithVector :: forall n. KnownNat n => (field -> field -> field) -> vec n -> vec n -> vec n
     det :: forall n. KnownNat n => mat n n -> field
     invlndet :: forall n. KnownNat n => mat n n -> (mat n n, (field, field))
+    expm :: forall n. KnownNat n => mat n n -> mat n n
+    sqrtm :: forall n. KnownNat n => mat n n -> mat n n
 
 
 instance Domain ℝ R L
@@ -552,6 +554,8 @@ instance Domain ℝ R L
     zipWithVector = zipWithR
     det = detL
     invlndet = invlndetL
+    expm = expmL
+    sqrtm = sqrtmL
 
 instance Domain ℂ C M
   where
@@ -566,6 +570,8 @@ instance Domain ℂ C M
     zipWithVector = zipWithC
     det = detM
     invlndet = invlndetM
+    expm = expmM
+    sqrtm = sqrtmM
 
 --------------------------------------------------------------------------------
 
@@ -615,13 +621,19 @@ zipWithR :: KnownNat n => (ℝ -> ℝ -> ℝ) -> R n -> R n -> R n
 zipWithR f (extract -> x) (extract -> y) = mkR (LA.zipVectorWith f x y)
 
 mapL :: (KnownNat n, KnownNat m) => (ℝ -> ℝ) -> L n m -> L n m
-mapL f (unwrap -> m) = mkL (LA.cmap f m)
+mapL f = overMatL' (LA.cmap f)
 
 detL :: KnownNat n => Sq n -> ℝ
 detL = LA.det . unwrap
 
 invlndetL :: KnownNat n => Sq n -> (L n n, (ℝ, ℝ))
 invlndetL = first mkL . LA.invlndet . unwrap
+
+expmL :: KnownNat n => Sq n -> Sq n
+expmL = overMatL' LA.expm
+
+sqrtmL :: KnownNat n => Sq n -> Sq n
+sqrtmL = overMatL' LA.sqrtm
 
 --------------------------------------------------------------------------------
 
@@ -671,13 +683,19 @@ zipWithC :: KnownNat n => (ℂ -> ℂ -> ℂ) -> C n -> C n -> C n
 zipWithC f (extract -> x) (extract -> y) = mkC (LA.zipVectorWith f x y)
 
 mapM' :: (KnownNat n, KnownNat m) => (ℂ -> ℂ) -> M n m -> M n m
-mapM' f (unwrap -> m) = mkM (LA.cmap f m)
+mapM' f = overMatM' (LA.cmap f)
 
 detM :: KnownNat n => M n n -> ℂ
 detM = LA.det . unwrap
 
 invlndetM :: KnownNat n => M n n -> (M n n, (ℂ, ℂ))
 invlndetM = first mkM . LA.invlndet . unwrap
+
+expmM :: KnownNat n => M n n -> M n n
+expmM = overMatM' LA.expm
+
+sqrtmM :: KnownNat n => M n n -> M n n
+sqrtmM = overMatM' LA.sqrtm
 
 
 --------------------------------------------------------------------------------
