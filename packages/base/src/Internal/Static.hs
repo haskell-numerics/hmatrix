@@ -518,6 +518,18 @@ instance (KnownNat n, KnownNat m) => Floating (M n m) where
     (**)  = lift2MD (**)
     pi    = M pi
 
+instance Additive (R n) where
+    add = (+)
+
+instance Additive (C n) where
+    add = (+)
+
+instance (KnownNat m, KnownNat n) => Additive (L m n) where
+    add = (+)
+
+instance (KnownNat m, KnownNat n) => Additive (M m n) where
+    add = (+)
+
 --------------------------------------------------------------------------------
 
 

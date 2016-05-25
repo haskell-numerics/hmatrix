@@ -821,3 +821,10 @@ instance KnownNat n => Floating (Sym n)
     sqrt  = mkSym sqrt
     (**)  = mkSym2 (**)
     pi    = Sym pi
+
+instance KnownNat n => Additive (Sym n) where
+    add = (+)
+
+instance KnownNat n => Transposable (Sym n) (Sym n) where
+    tr (Sym m) = Sym (tr m)
+    tr' = id
