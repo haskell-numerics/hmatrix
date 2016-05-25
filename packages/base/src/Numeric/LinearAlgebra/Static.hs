@@ -844,8 +844,8 @@ instance KnownNat n => Additive (Sym n) where
     add = (+)
 
 instance KnownNat n => Transposable (Sym n) (Sym n) where
-    tr (Sym m) = Sym (tr m)
-    tr'        = id
+    tr  = id
+    tr' = id
 
 instance KnownNat n => Transposable (Her n) (Her n) where
     tr          = id
