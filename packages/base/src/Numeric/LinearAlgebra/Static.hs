@@ -42,7 +42,7 @@ module Numeric.LinearAlgebra.Static(
     blockAt,
     matrix,
     -- * Complex
-    C, M, Her, her, 𝑖,
+    ℂ, C, M, Her, her, 𝑖,
     -- * Products
     (<>),(#>),(<.>),
     -- * Linear Systems
