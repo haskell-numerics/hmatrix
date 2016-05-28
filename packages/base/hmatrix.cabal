@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.17.0.1
+Version:            0.17.0.2
 License:            BSD3
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -16,7 +16,7 @@ Description:        Linear systems, matrix decompositions, and other numerical c
                     Code examples: <http://dis.um.es/~alberto/hmatrix/hmatrix.html>
 
 Category:           Math
-tested-with:        GHC==7.8
+tested-with:        GHC==8.0
 
 cabal-version:      >=1.8
 
