@@ -42,7 +42,7 @@ module Numeric.LinearAlgebra.Static(
     blockAt,
     matrix,
     -- * Complex
-    C, M, Her, her, 𝑖,
+    ℂ, C, M, Her, her, 𝑖,
     -- * Products
     (<>),(#>),(<.>),
     -- * Linear Systems
@@ -78,6 +78,8 @@ import Data.Proxy(Proxy(..))
 import Internal.Static
 import Control.Arrow((***))
 import Text.Printf
+import Data.Type.Equality ((:~:)(Refl))
+import Data.Bifunctor (first)
 
 ud1 :: R n -> Vector ℝ
 ud1 (R (Dim v)) = v
@@ -444,11 +446,9 @@ exactLength
     :: forall n m . (KnownNat n, KnownNat m)
     => R m
     -> Maybe (R n)
-exactLength v
-    | natVal (Proxy :: Proxy n) == natVal (Proxy :: Proxy m)
-        = Just (mkR (unwrap v))
-    | otherwise
-        = Nothing
+exactLength v = do
+    Refl <- sameNat (Proxy :: Proxy n) (Proxy :: Proxy m)
+    return $ mkR (unwrap v)
 
 withMatrix
     :: forall z
@@ -470,12 +470,10 @@ exactDims
     :: forall n m j k . (KnownNat n, KnownNat m, KnownNat j, KnownNat k)
     => L m n
     -> Maybe (L j k)
-exactDims m
-    | natVal (Proxy :: Proxy m) == natVal (Proxy :: Proxy j)
-   && natVal (Proxy :: Proxy n) == natVal (Proxy :: Proxy k)
-        = Just (mkL (unwrap m))
-    | otherwise
-        = Nothing
+exactDims m = do
+    Refl <- sameNat (Proxy :: Proxy m) (Proxy :: Proxy j)
+    Refl <- sameNat (Proxy :: Proxy n) (Proxy :: Proxy k)
+    return $ mkL (unwrap m)
 
 randomVector
     :: forall n . KnownNat n
@@ -537,6 +535,10 @@ class Domain field vec mat | mat -> vec field, vec -> mat field, field -> mat ve
     dmmap :: forall n m. (KnownNat m, KnownNat n) => (field -> field) -> mat n m -> mat n m
     outer :: forall n m. (KnownNat m, KnownNat n) => vec n -> vec m -> mat n m
     zipWithVector :: forall n. KnownNat n => (field -> field -> field) -> vec n -> vec n -> vec n
+    det :: forall n. KnownNat n => mat n n -> field
+    invlndet :: forall n. KnownNat n => mat n n -> (mat n n, (field, field))
+    expm :: forall n. KnownNat n => mat n n -> mat n n
+    sqrtm :: forall n. KnownNat n => mat n n -> mat n n
 
 
 instance Domain ℝ R L
@@ -550,6 +552,10 @@ instance Domain ℝ R L
     dmmap = mapL
     outer = outerR
     zipWithVector = zipWithR
+    det = detL
+    invlndet = invlndetL
+    expm = expmL
+    sqrtm = sqrtmL
 
 instance Domain ℂ C M
   where
@@ -562,6 +568,10 @@ instance Domain ℂ C M
     dmmap = mapM'
     outer = outerC
     zipWithVector = zipWithC
+    det = detM
+    invlndet = invlndetM
+    expm = expmM
+    sqrtm = sqrtmM
 
 --------------------------------------------------------------------------------
 
@@ -611,8 +621,19 @@ zipWithR :: KnownNat n => (ℝ -> ℝ -> ℝ) -> R n -> R n -> R n
 zipWithR f (extract -> x) (extract -> y) = mkR (LA.zipVectorWith f x y)
 
 mapL :: (KnownNat n, KnownNat m) => (ℝ -> ℝ) -> L n m -> L n m
-mapL f (unwrap -> m) = mkL (LA.cmap f m)
+mapL f = overMatL' (LA.cmap f)
 
+detL :: KnownNat n => Sq n -> ℝ
+detL = LA.det . unwrap
+
+invlndetL :: KnownNat n => Sq n -> (L n n, (ℝ, ℝ))
+invlndetL = first mkL . LA.invlndet . unwrap
+
+expmL :: KnownNat n => Sq n -> Sq n
+expmL = overMatL' LA.expm
+
+sqrtmL :: KnownNat n => Sq n -> Sq n
+sqrtmL = overMatL' LA.sqrtm
 
 --------------------------------------------------------------------------------
 
@@ -662,7 +683,19 @@ zipWithC :: KnownNat n => (ℂ -> ℂ -> ℂ) -> C n -> C n -> C n
 zipWithC f (extract -> x) (extract -> y) = mkC (LA.zipVectorWith f x y)
 
 mapM' :: (KnownNat n, KnownNat m) => (ℂ -> ℂ) -> M n m -> M n m
-mapM' f (unwrap -> m) = mkM (LA.cmap f m)
+mapM' f = overMatM' (LA.cmap f)
+
+detM :: KnownNat n => M n n -> ℂ
+detM = LA.det . unwrap
+
+invlndetM :: KnownNat n => M n n -> (M n n, (ℂ, ℂ))
+invlndetM = first mkM . LA.invlndet . unwrap
+
+expmM :: KnownNat n => M n n -> M n n
+expmM = overMatM' LA.expm
+
+sqrtmM :: KnownNat n => M n n -> M n n
+sqrtmM = overMatM' LA.sqrtm
 
 
 --------------------------------------------------------------------------------
@@ -824,3 +857,14 @@ instance KnownNat n => Floating (Sym n)
     sqrt  = mkSym sqrt
     (**)  = mkSym2 (**)
     pi    = Sym pi
+
+instance KnownNat n => Additive (Sym n) where
+    add = (+)
+
+instance KnownNat n => Transposable (Sym n) (Sym n) where
+    tr  = id
+    tr' = id
+
+instance KnownNat n => Transposable (Her n) (Her n) where
+    tr          = id
+    tr' (Her m) = Her (tr' m)

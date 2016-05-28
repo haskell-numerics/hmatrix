@@ -518,6 +518,18 @@ instance (KnownNat n, KnownNat m) => Floating (M n m) where
     (**)  = lift2MD (**)
     pi    = M pi
 
+instance Additive (R n) where
+    add = (+)
+
+instance Additive (C n) where
+    add = (+)
+
+instance (KnownNat m, KnownNat n) => Additive (L m n) where
+    add = (+)
+
+instance (KnownNat m, KnownNat n) => Additive (M m n) where
+    add = (+)
+
 --------------------------------------------------------------------------------
 
 
@@ -554,6 +566,17 @@ instance KnownNat n => Disp (C n)
         putStr "C " >> putStr (tail . dropWhile (/='x') $ su)
 
 --------------------------------------------------------------------------------
+
+overMatL' :: (KnownNat m, KnownNat n)
+          => (LA.Matrix ℝ -> LA.Matrix ℝ) -> L m n -> L m n
+overMatL' f = mkL . f . unwrap
+{-# INLINE overMatL' #-}
+
+overMatM' :: (KnownNat m, KnownNat n)
+          => (LA.Matrix ℂ -> LA.Matrix ℂ) -> M m n -> M m n
+overMatM' f = mkM . f . unwrap
+{-# INLINE overMatM' #-}
+
 
 #else
 
