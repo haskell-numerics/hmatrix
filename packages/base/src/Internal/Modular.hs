@@ -72,7 +72,7 @@ instance (Ord t, KnownNat m) => Ord (Mod m t)
   where
     compare a b = compare (unMod a) (unMod b)
 
-instance (Real t, KnownNat m, Integral (Mod m t)) => Real (Mod m t)
+instance (Integral t, KnownNat m, Integral (Mod m t)) => Real (Mod m t)
   where
     toRational x = toInteger x % 1
 
