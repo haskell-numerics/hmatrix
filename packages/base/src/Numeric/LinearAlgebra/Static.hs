@@ -517,7 +517,7 @@ uniformSample s (extract -> mins) (extract -> maxs) =
                            (zip (LA.toList mins) (LA.toList maxs))
 
 meanCov
-    :: forall m n . (KnownNat m, KnownNat n)
+    :: forall m n . (KnownNat m, KnownNat n, 1 <= m)
     => L m n
     -> (R n, Sym n)
 meanCov (extract -> vs) = mkR *** (Sym . mkL . LA.unSym) $ LA.meanCov vs
