@@ -42,11 +42,11 @@ the dlls contributed by Gilberto Camara available in [gsl-lapack-windows.zip][wi
 
 3.a) In a msys shell:
 
-    $ cabal install hmatrix-0.13.1.0 --extra-lib-dir=${GSL} --extra-include-dir=${GSL}
+    $ cabal install hmatrix-0.13.1.0 --extra-lib-dir=${GSL} --extra-include-dirs=${GSL}
 
 3.b) In a normal windows cmd:
 
-     > cabal install --extra-lib-dir=%GSL% --extra-include-dir=%GSL%
+     > cabal install --extra-lib-dir=%GSL% --extra-include-dirs=%GSL%
 
 It may be necessary to put the dlls in the search path.
 
@@ -65,7 +65,7 @@ using this method.
 
 3) In a normal Windows cmd:
 
-    > cabal install --flags=openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dir=C:\...\OpenBLAS\include
+    > cabal install --flags=openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dirs=C:\...\OpenBLAS\include
 
 ### Stack-based Windows build
 
@@ -79,7 +79,7 @@ Similar should be build under other OSes, like Linux and OSX.
 
 3) Example in a normal Windows cmd for building hmatrix base lib:
 
-     > stack install hmatrix --flag hmatrix:openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dir=C:\...\OpenBLAS\include
+     > stack install hmatrix --flag hmatrix:openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dirs=C:\...\OpenBLAS\include
 	 
 ## Tests ###############################################
 
