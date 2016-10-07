@@ -66,9 +66,8 @@ dim = Vector.length
 
 -- C-Haskell vector adapter
 {-# INLINE avec #-}
-avec :: Storable a => (CInt -> Ptr a -> b) -> Vector a -> b
-avec f v = inlinePerformIO (unsafeWith v (return . f (fromIntegral (Vector.length v))))
-infixl 1 `avec`
+avec :: Storable a => Vector a -> (f -> IO r) -> ((CInt -> Ptr a -> f) -> IO r)
+avec v f g = unsafeWith v $ \ptr -> f (g (fromIntegral (Vector.length v)) ptr)
 
 -- allocates memory for a new vector
 createVector :: Storable a => Int -> IO (Vector a)
@@ -199,7 +198,7 @@ takesV ms w | sum ms > dim w = error $ "takesV " ++ show ms ++ " on dim = " ++ (
 
 ---------------------------------------------------------------
 
--- | transforms a complex vector into a real vector with alternating real and imaginary parts 
+-- | transforms a complex vector into a real vector with alternating real and imaginary parts
 asReal :: (RealFloat a, Storable a) => Vector (Complex a) -> Vector a
 asReal v = unsafeFromForeignPtr (castForeignPtr fp) (2*i) (2*n)
     where (fp,i,n) = unsafeToForeignPtr v
@@ -244,7 +243,7 @@ zipVectorWith f u v = unsafePerformIO $ do
 {-# INLINE zipVectorWith #-}
 
 -- | unzipWith for Vectors
-unzipVectorWith :: (Storable (a,b), Storable c, Storable d) 
+unzipVectorWith :: (Storable (a,b), Storable c, Storable d)
                    => ((a,b) -> (c,d)) -> Vector (a,b) -> (Vector c,Vector d)
 unzipVectorWith f u = unsafePerformIO $ do
       let n = dim u
@@ -255,7 +254,7 @@ unzipVectorWith f u = unsafePerformIO $ do
               unsafeWith w $ \pw -> do
                   let go (-1) = return ()
                       go !k   = do z <- peekElemOff pu k
-                                   let (x,y) = f z 
+                                   let (x,y) = f z
                                    pokeElemOff      pv k x
                                    pokeElemOff      pw k y
                                    go (k-1)
@@ -303,11 +302,11 @@ mapVectorM f v = do
     return w
     where mapVectorM' w' !k !t
               | k == t               = do
-                                       x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k 
+                                       x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k
                                        y <- f x
                                        return $! inlinePerformIO $! unsafeWith w' $! \q -> pokeElemOff q k y
               | otherwise            = do
-                                       x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k 
+                                       x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k
                                        y <- f x
                                        _ <- return $! inlinePerformIO $! unsafeWith w' $! \q -> pokeElemOff q k y
                                        mapVectorM' w' (k+1) t
@@ -322,7 +321,7 @@ mapVectorM_ f v = do
                                     x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k
                                     f x
               | otherwise         = do
-                                    x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k 
+                                    x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k
                                     _ <- f x
                                     mapVectorM' (k+1) t
 {-# INLINE mapVectorM_ #-}
@@ -336,11 +335,11 @@ mapVectorWithIndexM f v = do
     return w
     where mapVectorM' w' !k !t
               | k == t               = do
-                                       x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k 
+                                       x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k
                                        y <- f k x
                                        return $! inlinePerformIO $! unsafeWith w' $! \q -> pokeElemOff q k y
               | otherwise            = do
-                                       x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k 
+                                       x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k
                                        y <- f k x
                                        _ <- return $! inlinePerformIO $! unsafeWith w' $! \q -> pokeElemOff q k y
                                        mapVectorM' w' (k+1) t
@@ -355,7 +354,7 @@ mapVectorWithIndexM_ f v = do
                                     x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k
                                     f k x
               | otherwise         = do
-                                    x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k 
+                                    x <- return $! inlinePerformIO $! unsafeWith v $! \p -> peekElemOff p k
                                     _ <- f k x
                                     mapVectorM' (k+1) t
 {-# INLINE mapVectorWithIndexM_ #-}
@@ -454,4 +453,3 @@ unzipVector :: (Storable a, Storable b, Storable (a,b)) => Vector (a,b) -> (Vect
 unzipVector = unzipVectorWith id
 
 -------------------------------------------------------------------
-

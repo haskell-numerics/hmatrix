@@ -144,13 +144,13 @@ gmXv :: GMatrix -> Vector Double -> Vector Double
 gmXv SparseR { gmCSR = CSR{..}, .. } v = unsafePerformIO $ do
     dim v /= nCols ~!~ printf "gmXv (CSR): incorrect sizes: (%d,%d) x %d" nRows nCols (dim v)
     r <- createVector nRows
-    c_smXv # csrVals # csrCols # csrRows # v # r #|"CSRXv"
+    (csrVals # csrCols # csrRows # v #! r) c_smXv #|"CSRXv"
     return r
 
 gmXv SparseC { gmCSC = CSC{..}, .. } v = unsafePerformIO $ do
     dim v /= nCols ~!~ printf "gmXv (CSC): incorrect sizes: (%d,%d) x %d" nRows nCols (dim v)
     r <- createVector nRows
-    c_smTXv # cscVals # cscRows # cscCols # v # r #|"CSCXv"
+    (cscVals # cscRows # cscCols # v #! r) c_smTXv #|"CSCXv"
     return r
 
 gmXv Diag{..} v
@@ -211,4 +211,3 @@ instance Transposable GMatrix GMatrix
     tr (Diag v n m) = Diag v m n
     tr (Dense a n m) = Dense (tr a) m n
     tr' = tr
-

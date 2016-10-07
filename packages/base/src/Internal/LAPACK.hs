@@ -18,7 +18,7 @@ module Internal.LAPACK where
 
 import Internal.Devel
 import Internal.Vector
-import Internal.Matrix hiding ((#))
+import Internal.Matrix hiding ((#), (#!))
 import Internal.Conversion
 import Internal.Element
 import Foreign.Ptr(nullPtr)
@@ -28,9 +28,12 @@ import System.IO.Unsafe(unsafePerformIO)
 
 -----------------------------------------------------------------------------------
 
-infixl 1 #
+infixr 1 #
 a # b = apply a b
 {-# INLINE (#) #-}
+
+a #! b = a # b # id
+{-# INLINE (#!) #-}
 
 -----------------------------------------------------------------------------------
 
@@ -56,7 +59,7 @@ multiplyAux f st a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $ "inconsistent dimensions in matrix product "++
                                        show (rows a,cols a) ++ " x " ++ show (rows b, cols b)
     s <- createMatrix ColumnMajor (rows a) (cols b)
-    f (isT a) (isT b) # (tt a) # (tt b) # s #| st
+    ((tt a) # (tt b) #! s) (f (isT a) (isT b)) #| st
     return s
 
 -- | Matrix product based on BLAS's /dgemm/.
@@ -80,7 +83,7 @@ multiplyI m a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $
         "inconsistent dimensions in matrix product "++ shSize a ++ " x " ++ shSize b
     s <- createMatrix ColumnMajor (rows a) (cols b)
-    c_multiplyI m # a # b # s #|"c_multiplyI"
+    (a # b #! s) (c_multiplyI m) #|"c_multiplyI"
     return s
 
 multiplyL :: Z -> Matrix Z -> Matrix Z -> Matrix Z
@@ -88,7 +91,7 @@ multiplyL m a b = unsafePerformIO $ do
     when (cols a /= rows b) $ error $
         "inconsistent dimensions in matrix product "++ shSize a ++ " x " ++ shSize b
     s <- createMatrix ColumnMajor (rows a) (cols b)
-    c_multiplyL m # a # b # s #|"c_multiplyL"
+    (a # b #! s) (c_multiplyL m) #|"c_multiplyL"
     return s
 
 -----------------------------------------------------------------------------
@@ -121,7 +124,7 @@ svdAux f st x = unsafePerformIO $ do
     u <- createMatrix ColumnMajor r r
     s <- createVector (min r c)
     v <- createMatrix ColumnMajor c c
-    f # a # u # s # v #| st
+    (a # u # s #! v) f #| st
     return (u,s,v)
   where
     r = rows x
@@ -149,7 +152,7 @@ thinSVDAux f st x = unsafePerformIO $ do
     u <- createMatrix ColumnMajor r q
     s <- createVector q
     v <- createMatrix ColumnMajor q c
-    f # a # u # s # v #| st
+    (a # u # s #! v) f #| st
     return (u,s,v)
   where
     r = rows x
@@ -176,7 +179,7 @@ svCd = svAux zgesdd "svCd"
 svAux f st x = unsafePerformIO $ do
     a <- copy ColumnMajor x
     s <- createVector q
-    g # a # s #| st
+    (a #! s) g #| st
     return s
   where
     r = rows x
@@ -197,7 +200,7 @@ rightSVAux f st x = unsafePerformIO $ do
     a <- copy ColumnMajor x
     s <- createVector q
     v <- createMatrix ColumnMajor c c
-    g # a # s # v #| st
+    (a # s #! v) g #| st
     return (s,v)
   where
     r = rows x
@@ -218,7 +221,7 @@ leftSVAux f st x = unsafePerformIO $ do
     a <- copy ColumnMajor x
     u <- createMatrix ColumnMajor r r
     s <- createVector q
-    g # a # u # s #| st
+    (a # u #! s) g #| st
     return (u,s)
   where
     r = rows x
@@ -237,7 +240,7 @@ eigAux f st m = unsafePerformIO $ do
     a <- copy ColumnMajor m
     l <- createVector r
     v <- createMatrix ColumnMajor r r
-    g # a # l # v #| st
+    (a # l #! v) g #| st
     return (l,v)
   where
     r = rows m
@@ -252,7 +255,7 @@ eigC = eigAux zgeev "eigC"
 eigOnlyAux f st m = unsafePerformIO $ do
     a <- copy ColumnMajor m
     l <- createVector r
-    g # a # l #| st
+    (a #! l) g #| st
     return l
   where
     r = rows m
@@ -277,7 +280,7 @@ eigRaux m = unsafePerformIO $ do
     a <- copy ColumnMajor m
     l <- createVector r
     v <- createMatrix ColumnMajor r r
-    g # a # l # v #| "eigR"
+    (a # l #! v) g #| "eigR"
     return (l,v)
   where
     r = rows m
@@ -305,7 +308,7 @@ eigOnlyR = fixeig1 . eigOnlyAux dgeev "eigOnlyR"
 eigSHAux f st m = unsafePerformIO $ do
     l <- createVector r
     v <- copy ColumnMajor m
-    f # l # v #| st
+    (l #! v) f #| st
     return (l,v)
   where
     r = rows m
@@ -356,7 +359,7 @@ linearSolveSQAux g f st a b
     | n1==n2 && n1==r = unsafePerformIO . g $ do
         a' <- copy ColumnMajor a
         s  <- copy ColumnMajor b
-        f # a' # s #| st
+        (a' #! s) f #| st
         return s
     | otherwise = error $ st ++ " of nonsquare matrix"
   where
@@ -387,7 +390,7 @@ foreign import ccall unsafe "cholSolveC_l" zpotrs  :: C ::> C ::> Ok
 linearSolveSQAux2 g f st a b
     | n1==n2 && n1==r = unsafePerformIO . g $ do
         s <- copy ColumnMajor b
-        f # a # s #| st
+        (a #! s) f #| st
         return s
     | otherwise = error $ st ++ " of nonsquare matrix"
   where
@@ -415,7 +418,7 @@ linearSolveAux f st a b
         a' <- copy ColumnMajor a
         r  <- createMatrix ColumnMajor (max m n) nrhs
         setRect 0 0 b r
-        f # a' # r #| st
+        (a' #! r) f #| st
         return r
     | otherwise = error $ "different number of rows in linearSolve ("++st++")"
   where
@@ -458,7 +461,7 @@ foreign import ccall unsafe "chol_l_S" dpotrf :: R ::> Ok
 
 cholAux f st a = do
     r <- copy ColumnMajor a
-    f # r #| st
+    (r # id) f #| st
     return r
 
 -- | Cholesky factorization of a complex Hermitian positive definite matrix, using LAPACK's /zpotrf/.
@@ -495,7 +498,7 @@ qrC = qrAux zgeqr2 "qrC"
 qrAux f st a = unsafePerformIO $ do
     r <- copy ColumnMajor a
     tau <- createVector mn
-    f # tau # r #| st
+    (tau #! r) f #| st
     return (r,tau)
   where
     m = rows a
@@ -514,7 +517,7 @@ qrgrC = qrgrAux zungqr "qrgrC"
 
 qrgrAux f st n (a, tau) = unsafePerformIO $ do
     res <- copy ColumnMajor (subMatrix (0,0) (rows a,n) a)
-    f # (subVector 0 n tau') # res #| st
+    ((subVector 0 n tau') #! res) f #| st
     return res
   where
     tau' = vjoin [tau, constantD 0 n]
@@ -534,7 +537,7 @@ hessC = hessAux zgehrd "hessC"
 hessAux f st a = unsafePerformIO $ do
     r <- copy ColumnMajor a
     tau <- createVector (mn-1)
-    f # tau # r #| st
+    (tau #! r) f #| st
     return (r,tau)
   where
     m = rows a
@@ -556,7 +559,7 @@ schurC = schurAux zgees "schurC"
 schurAux f st a = unsafePerformIO $ do
     u <- createMatrix ColumnMajor n n
     s <- copy ColumnMajor a
-    f # u # s #| st
+    (u #! s) f #| st
     return (u,s)
   where
     n = rows a
@@ -576,7 +579,7 @@ luC = luAux zgetrf "luC"
 luAux f st a = unsafePerformIO $ do
     lu <- copy ColumnMajor a
     piv <- createVector (min n m)
-    f # piv # lu #| st
+    (piv #! lu) f #| st
     return (lu, map (pred.round) (toList piv))
   where
     n = rows a
@@ -598,7 +601,7 @@ lusC a piv b = lusAux zgetrs "lusC" (fmat a) piv b
 lusAux f st a piv b
     | n1==n2 && n2==n =unsafePerformIO $ do
          x <- copy ColumnMajor b
-         f # a # piv' # x #| st
+         (a # piv' #! x) f #| st
          return x
     | otherwise = error st
   where
@@ -622,7 +625,7 @@ ldlC = ldlAux zhetrf "ldlC"
 ldlAux f st a = unsafePerformIO $ do
     ldl <- copy ColumnMajor a
     piv <- createVector (rows a)
-    f # piv # ldl #| st
+    (piv #! ldl) f #| st
     return (ldl, map (pred.round) (toList piv))
 
 -----------------------------------------------------------------------------------
@@ -637,4 +640,3 @@ ldlsR a piv b = lusAux dsytrs "ldlsR" (fmat a) piv b
 -- | Solve a complex linear system from a precomputed LDL decomposition ('ldlC'), using LAPACK's /zsytrs/.
 ldlsC :: Matrix (Complex Double) -> [Int] -> Matrix (Complex Double) -> Matrix (Complex Double)
 ldlsC a piv b = lusAux zsytrs "ldlsC" (fmat a) piv b
-

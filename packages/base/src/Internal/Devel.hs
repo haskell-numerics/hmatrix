@@ -80,8 +80,8 @@ class TransArray c
   where
     type Trans c b
     type TransRaw c b
-    apply      :: (Trans c b) -> c -> b
-    applyRaw   :: (TransRaw c b) -> c -> b
+    apply      :: c -> (b -> IO r) -> (Trans c b) -> IO r
+    applyRaw   :: c -> (b -> IO r) -> (TransRaw c b) -> IO r
     infixl 1 `apply`, `applyRaw`
 
 instance Storable t => TransArray (Vector t)
@@ -92,4 +92,3 @@ instance Storable t => TransArray (Vector t)
     {-# INLINE apply #-}
     applyRaw = avec
     {-# INLINE applyRaw #-}
-
