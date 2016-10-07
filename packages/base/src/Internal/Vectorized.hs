@@ -27,9 +27,12 @@ import Foreign.C.String
 import System.IO.Unsafe(unsafePerformIO)
 import Control.Monad(when)
 
-infixl 1 #
+infixr 1 #
 a # b = applyRaw a b
 {-# INLINE (#) #-}
+
+a #! b = a # b # id
+{-# INLINE (#!) #-}
 
 fromei x = fromIntegral (fromEnum x) :: CInt
 
@@ -103,7 +106,7 @@ sumL m = sumg (c_sumL m)
 
 sumg f x = unsafePerformIO $ do
     r <- createVector 1
-    f # x # r #| "sum"
+    (x #! r) f #| "sum"
     return $ r @> 0
 
 type TVV t = t :> t :> Ok
@@ -139,7 +142,7 @@ prodL = prodg . c_prodL
 
 prodg f x = unsafePerformIO $ do
     r <- createVector 1
-    f # x # r #| "prod"
+    (x #! r) f #| "prod"
     return $ r @> 0
 
 
@@ -154,24 +157,24 @@ foreign import ccall unsafe "prodL" c_prodL :: Z -> TVV Z
 
 toScalarAux fun code v = unsafePerformIO $ do
     r <- createVector 1
-    fun (fromei code) # v # r #|"toScalarAux"
+    (v #! r) (fun (fromei code)) #|"toScalarAux"
     return (r @> 0)
 
 vectorMapAux fun code v = unsafePerformIO $ do
     r <- createVector (dim v)
-    fun (fromei code) # v # r #|"vectorMapAux"
+    (v #! r) (fun (fromei code)) #|"vectorMapAux"
     return r
 
 vectorMapValAux fun code val v = unsafePerformIO $ do
     r <- createVector (dim v)
     pval <- newArray [val]
-    fun (fromei code) pval # v # r #|"vectorMapValAux"
+    (v #! r) (fun (fromei code) pval) #|"vectorMapValAux"
     free pval
     return r
 
 vectorZipAux fun code u v = unsafePerformIO $ do
     r <- createVector (dim u)
-    fun (fromei code) # u # v # r #|"vectorZipAux"
+    (u # v #! r) (fun (fromei code)) #|"vectorZipAux"
     return r
 
 ---------------------------------------------------------------------
@@ -368,7 +371,7 @@ randomVector :: Seed
              -> Vector Double
 randomVector seed dist n = unsafePerformIO $ do
     r <- createVector n
-    c_random_vector (fi seed) ((fi.fromEnum) dist) # r #|"randomVector"
+    (r # id) (c_random_vector (fi seed) ((fi.fromEnum) dist)) #|"randomVector"
     return r
 
 foreign import ccall unsafe "random_vector" c_random_vector :: CInt -> CInt -> Double :> Ok
@@ -377,7 +380,7 @@ foreign import ccall unsafe "random_vector" c_random_vector :: CInt -> CInt -> D
 
 roundVector v = unsafePerformIO $ do
     r <- createVector (dim v)
-    c_round_vector # v # r #|"roundVector"
+    (v #! r) c_round_vector #|"roundVector"
     return r
 
 foreign import ccall unsafe "round_vector" c_round_vector :: TVV Double
@@ -391,7 +394,7 @@ foreign import ccall unsafe "round_vector" c_round_vector :: TVV Double
 range :: Int -> Vector I
 range n = unsafePerformIO $ do
     r <- createVector n
-    c_range_vector # r #|"range"
+    (r # id) c_range_vector #|"range"
     return r
 
 foreign import ccall unsafe "range_vector" c_range_vector :: CInt :> Ok
@@ -431,7 +434,7 @@ long2intV = tog c_long2int
 
 tog f v = unsafePerformIO $ do
     r <- createVector (dim v)
-    f # v # r #|"tog"
+    (v #! r) f #|"tog"
     return r
 
 foreign import ccall unsafe "float2double" c_float2double :: Float :> Double :> Ok
@@ -450,7 +453,7 @@ foreign import ccall unsafe "long2int"    c_long2int    :: Z :> I :> Ok
 
 stepg f v = unsafePerformIO $ do
     r <- createVector (dim v)
-    f # v # r #|"step"
+    (v #! r) f #|"step"
     return r
 
 stepD :: Vector Double -> Vector Double
@@ -475,7 +478,7 @@ foreign import ccall unsafe "stepL" c_stepL :: TVV Z
 
 conjugateAux fun x = unsafePerformIO $ do
     v <- createVector (dim x)
-    fun # x # v #|"conjugateAux"
+    (x #! v) fun #|"conjugateAux"
     return v
 
 conjugateQ :: Vector (Complex Float) -> Vector (Complex Float)
@@ -493,7 +496,7 @@ cloneVector v = do
         let n = dim v
         r <- createVector n
         let f _ s _ d =  copyArray d s n >> return 0
-        f # v # r #|"cloneVector"
+        (v #! r) f #|"cloneVector"
         return r
 
 --------------------------------------------------------------------------------
@@ -501,7 +504,7 @@ cloneVector v = do
 constantAux fun x n = unsafePerformIO $ do
     v <- createVector n
     px <- newArray [x]
-    fun px # v #|"constantAux"
+    (v # id) (fun px) #|"constantAux"
     free px
     return v
 
@@ -515,4 +518,3 @@ foreign import ccall unsafe "constantI" cconstantI :: TConst CInt
 foreign import ccall unsafe "constantL" cconstantL :: TConst Z
 
 ----------------------------------------------------------------------
-
