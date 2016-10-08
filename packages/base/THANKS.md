@@ -212,6 +212,14 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - Justin Le added NFData instances for Static types, added mapping and outer product
   methods to Domain, and many other functions to the Static module.
 
-- Sidharth Kapur added Normed and numeric instances for several Static types, and
-fixed the CPP issue in cabal files.
+- Sidharth Kapur added Normed and numeric instances for several Static types,
+fixed the CPP issue in cabal files, and made many other contributions.
+
+- Matt Renaud improved the documentation.
+
+- Joshua Moerman fixed cabal/stack flags for windows.
+
+- Francesco Mazzoli, Niklas Hambüchen, Patrick Chilton, and Andras Slemmer
+  discovered a serious and subtle bug in the wrapper helpers causing memory corruption.
+  Andras Slemmer fixed the bug. Thank you all.
 

@@ -55,7 +55,6 @@ library
                         Internal.Devel
                         Internal.Vectorized
                         Internal.Matrix
-                        Internal.Foreign
                         Internal.ST
                         Internal.IO
                         Internal.Element
