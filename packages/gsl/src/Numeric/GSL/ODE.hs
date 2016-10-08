@@ -17,7 +17,7 @@ A simple example:
 @
 import Numeric.GSL.ODE
 import Numeric.LinearAlgebra
-import Numeric.LinearAlgebra.Util(mplot)
+import Graphics.Plot(mplot)
 
 xdot t [x,v] = [v, -0.95*x - 0.1*v]
 
