@@ -12,13 +12,6 @@ The library can be easily extended using the tools in this module.
 --------------------------------------------------------------------------------
 
 module Numeric.LinearAlgebra.Devel(
-    -- * FFI helpers
-    -- | Sample usage, to upload a perspective matrix to a shader.
-    --
-    -- @ glUniformMatrix4fv 0 1 (fromIntegral gl_TRUE) \`appMatrix\` perspective 0.01 100 (pi\/2) (4\/3)
-    -- @
-    module Internal.Foreign,
-
     -- * FFI tools
     -- | See @examples/devel@ in the repository.
     
@@ -66,7 +59,6 @@ module Numeric.LinearAlgebra.Devel(
 
 ) where
 
-import Internal.Foreign
 import Internal.Devel
 import Internal.ST
 import Internal.Vector
