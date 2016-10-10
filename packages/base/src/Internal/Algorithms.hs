@@ -30,6 +30,7 @@ import Internal.LAPACK as LAPACK
 import Internal.Numeric
 import Data.List(foldl1')
 import qualified Data.Array as A
+import qualified Data.Vector.Storable as Vector
 import Internal.ST
 import Internal.Vectorized(range)
 import Control.DeepSeq
@@ -475,8 +476,13 @@ instance (NFData t, Numeric t) => NFData (QR t)
 -- | QR factorization.
 --
 -- If @(q,r) = qr m@ then @m == q \<> r@, where q is unitary and r is upper triangular.
+-- Note: the current implementation is very slow for large matrices. 'thinQR' is much faster.
 qr :: Field t => Matrix t -> (Matrix t, Matrix t)
 qr = {-# SCC "qr" #-} unpackQR . qr'
+
+-- | A version of 'qr' which returns only the @min (rows m) (cols m)@ columns of @q@ and rows of @r@.
+thinQR :: Field t => Matrix t -> (Matrix t, Matrix t)
+thinQR = {-# SCC "thinQR" #-} thinUnpackQR . qr'
 
 -- | Compute the QR decomposition of a matrix in compact form.
 qrRaw :: Field t => Matrix t -> QR t
@@ -494,9 +500,17 @@ qrgr n (QR a t)
 -- | RQ factorization.
 --
 -- If @(r,q) = rq m@ then @m == r \<> q@, where q is unitary and r is upper triangular.
+-- Note: the current implementation is very slow for large matrices. 'thinRQ' is much faster.
 rq :: Field t => Matrix t -> (Matrix t, Matrix t)
-rq m =  {-# SCC "rq" #-} (r,q) where
-    (q',r') = qr $ trans $ rev1 m
+rq = {-# SCC "rq" #-} rqFromQR qr
+
+-- | A version of 'rq' which returns only the @min (rows m) (cols m)@ columns of @r@ and rows of @q@.
+thinRQ :: Field t => Matrix t -> (Matrix t, Matrix t)
+thinRQ = {-# SCC "thinQR" #-} rqFromQR thinQR
+
+rqFromQR :: Field t => (Matrix t -> (Matrix t, Matrix t)) -> Matrix t -> (Matrix t, Matrix t)
+rqFromQR qr0 m = (r,q) where
+    (q',r') = qr0 $ trans $ rev1 m
     r = rev2 (trans r')
     q = rev2 (trans q')
     rev1 = flipud . fliprl
@@ -723,6 +737,12 @@ unpackQR (pq, tau) =  {-# SCC "unpackQR" #-} (q,r)
           vs = zipWith zh [1..mn] cs
           hs = zipWith haussholder (toList tau) vs
           q = foldl1' mXm hs
+
+thinUnpackQR :: (Field t) => (Matrix t, Vector t) -> (Matrix t, Matrix t)
+thinUnpackQR (pq, tau) = (q, r)
+  where mn = uncurry min $ size pq
+        q = qrgr mn $ QR pq tau
+        r = fromRows $ zipWith (\i v -> Vector.replicate i 0 Vector.++ Vector.drop i v) [0..mn-1] (toRows pq)
 
 unpackHess :: (Field t) => (Matrix t -> (Matrix t,Vector t)) -> Matrix t -> (Matrix t, Matrix t)
 unpackHess hf m

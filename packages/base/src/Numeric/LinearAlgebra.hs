@@ -126,7 +126,7 @@ module Numeric.LinearAlgebra (
     geigSH,
 
     -- * QR
-    qr, rq, qrRaw, qrgr,
+    qr, thinQR, rq, thinRQ, qrRaw, qrgr,
 
     -- * Cholesky
     chol, mbChol,
