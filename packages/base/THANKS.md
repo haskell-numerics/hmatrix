@@ -223,3 +223,5 @@ fixed the CPP issue in cabal files, and made many other contributions.
   discovered a serious and subtle bug in the wrapper helpers causing memory corruption.
   Andras Slemmer fixed the bug. Thank you all.
 
+- Kevin Slagle implemented thinQR and thinRQ, much faster than the original qr.
+
