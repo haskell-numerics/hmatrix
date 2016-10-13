@@ -117,6 +117,7 @@ module Numeric.LinearAlgebra (
     svd,
     thinSVD,
     compactSVD,
+    compactSVDTol,
     singularValues,
     leftSV, rightSV,
 
