@@ -292,9 +292,13 @@ fromList [35.18264833189422,1.4769076999800903]
 
 -}
 compactSVD :: Field t  => Matrix t -> (Matrix t, Vector Double, Matrix t)
-compactSVD m = (u', subVector 0 d s, v') where
+compactSVD = compactSVDTol 1
+
+-- | @compactSVDTol r@ is similar to 'compactSVDTol', but uses tolerance @tol=r*g*eps*(max rows cols)@ to distinguish nonzero singular values, where @g@ is the greatest singular value.
+compactSVDTol :: Field t  => Double -> Matrix t -> (Matrix t, Vector Double, Matrix t)
+compactSVDTol r m = (u', subVector 0 d s, v') where
     (u,s,v) = thinSVD m
-    d = rankSVD (1*eps) m s `max` 1
+    d = rankSVD (r*eps) m s `max` 1
     u' = takeColumns d u
     v' = takeColumns d v
 
