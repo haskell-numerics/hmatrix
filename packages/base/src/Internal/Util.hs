@@ -255,6 +255,7 @@ norm :: Vector Double -> Double
 -- ^ 2-norm of real vector
 norm = pnorm PNorm2
 
+-- | p-norm for vectors, operator norm for matrices
 class Normed a
   where
     norm_0   :: a -> R
@@ -319,10 +320,11 @@ instance Normed (Vector (Complex Float))
     norm_2 = norm_2 . double
     norm_Inf = norm_Inf . double
 
-
+-- | Frobenius norm (Schatten p-norm with p=2)
 norm_Frob :: (Normed (Vector t), Element t) => Matrix t -> R
 norm_Frob = norm_2 . flatten
 
+-- | Sum of singular values (Schatten p-norm with p=1)
 norm_nuclear :: Field t => Matrix t -> R
 norm_nuclear = sumElements . singularValues
 
