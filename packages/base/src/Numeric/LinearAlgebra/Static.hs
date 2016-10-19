@@ -79,7 +79,7 @@ import Internal.Static
 import Control.Arrow((***))
 import Text.Printf
 import Data.Type.Equality ((:~:)(Refl))
-import Data.Bifunctor (first)
+import qualified Data.Bifunctor as BF (first)
 
 ud1 :: R n -> Vector ℝ
 ud1 (R (Dim v)) = v
@@ -517,7 +517,7 @@ uniformSample s (extract -> mins) (extract -> maxs) =
                            (zip (LA.toList mins) (LA.toList maxs))
 
 meanCov
-    :: forall m n . (KnownNat m, KnownNat n)
+    :: forall m n . (KnownNat m, KnownNat n, 1 <= m)
     => L m n
     -> (R n, Sym n)
 meanCov (extract -> vs) = mkR *** (Sym . mkL . LA.unSym) $ LA.meanCov vs
@@ -539,6 +539,7 @@ class Domain field vec mat | mat -> vec field, vec -> mat field, field -> mat ve
     invlndet :: forall n. KnownNat n => mat n n -> (mat n n, (field, field))
     expm :: forall n. KnownNat n => mat n n -> mat n n
     sqrtm :: forall n. KnownNat n => mat n n -> mat n n
+    inv :: forall n. KnownNat n => mat n n -> mat n n
 
 
 instance Domain ℝ R L
@@ -556,6 +557,7 @@ instance Domain ℝ R L
     invlndet = invlndetL
     expm = expmL
     sqrtm = sqrtmL
+    inv = invL
 
 instance Domain ℂ C M
   where
@@ -572,6 +574,7 @@ instance Domain ℂ C M
     invlndet = invlndetM
     expm = expmM
     sqrtm = sqrtmM
+    inv = invM
 
 --------------------------------------------------------------------------------
 
@@ -627,13 +630,16 @@ detL :: KnownNat n => Sq n -> ℝ
 detL = LA.det . unwrap
 
 invlndetL :: KnownNat n => Sq n -> (L n n, (ℝ, ℝ))
-invlndetL = first mkL . LA.invlndet . unwrap
+invlndetL = BF.first mkL . LA.invlndet . unwrap
 
 expmL :: KnownNat n => Sq n -> Sq n
 expmL = overMatL' LA.expm
 
 sqrtmL :: KnownNat n => Sq n -> Sq n
 sqrtmL = overMatL' LA.sqrtm
+
+invL :: KnownNat n => Sq n -> Sq n
+invL = overMatL' LA.inv
 
 --------------------------------------------------------------------------------
 
@@ -689,7 +695,7 @@ detM :: KnownNat n => M n n -> ℂ
 detM = LA.det . unwrap
 
 invlndetM :: KnownNat n => M n n -> (M n n, (ℂ, ℂ))
-invlndetM = first mkM . LA.invlndet . unwrap
+invlndetM = BF.first mkM . LA.invlndet . unwrap
 
 expmM :: KnownNat n => M n n -> M n n
 expmM = overMatM' LA.expm
@@ -697,6 +703,8 @@ expmM = overMatM' LA.expm
 sqrtmM :: KnownNat n => M n n -> M n n
 sqrtmM = overMatM' LA.sqrtm
 
+invM :: KnownNat n => M n n -> M n n
+invM = overMatM' LA.inv
 
 --------------------------------------------------------------------------------
 
