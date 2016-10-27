@@ -62,6 +62,7 @@ ti = fromIntegral
 -- | Number of elements
 dim :: (Storable t) => Vector t -> Int
 dim = Vector.length
+{-# INLINE dim #-}
 
 
 -- C-Haskell vector adapter
@@ -139,6 +140,7 @@ subVector :: Storable t => Int       -- ^ index of the starting element
                         -> Vector t  -- ^ source
                         -> Vector t  -- ^ result
 subVector = Vector.slice
+{-# INLINE subVector #-}
 
 
 
