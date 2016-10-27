@@ -294,7 +294,7 @@ fromList [35.18264833189422,1.4769076999800903]
 compactSVD :: Field t  => Matrix t -> (Matrix t, Vector Double, Matrix t)
 compactSVD = compactSVDTol 1
 
--- | @compactSVDTol r@ is similar to 'compactSVD', but uses tolerance @tol=r*g*eps*(max rows cols)@ to distinguish nonzero singular values, where @g@ is the greatest singular value.
+-- | @compactSVDTol r@ is similar to 'compactSVD' (for which @r=1@), but uses tolerance @tol=r*g*eps*(max rows cols)@ to distinguish nonzero singular values, where @g@ is the greatest singular value. If @g<r*eps@, then only one singular value is returned.
 compactSVDTol :: Field t  => Double -> Matrix t -> (Matrix t, Vector Double, Matrix t)
 compactSVDTol r m = (u', subVector 0 d s, v') where
     (u,s,v) = thinSVD m
