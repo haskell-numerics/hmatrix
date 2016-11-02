@@ -41,7 +41,7 @@ module Internal.Util(
     ℕ,ℤ,ℝ,ℂ,iC,
     Normed(..), norm_Frob, norm_nuclear,
     magnit,
-    unitary,
+    normalize,
     mt,
     (~!~),
     pairwiseD2,
@@ -343,8 +343,8 @@ magnit e x = norm_1 (fromList [x]) > e
 
 
 -- | Obtains a vector in the same direction with 2-norm=1
-unitary :: Vector Double -> Vector Double
-unitary v = v / scalar (norm v)
+normalize :: (Normed (Vector t), Num (Vector t), Field t) => Vector t -> Vector t
+normalize v = v / real (scalar (norm_2 v))
 
 
 -- | trans . inv
