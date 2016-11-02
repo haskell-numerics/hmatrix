@@ -226,3 +226,5 @@ fixed the CPP issue in cabal files, and made many other contributions.
 - Kevin Slagle implemented thinQR and thinRQ, much faster than the original qr,
   and added compactSVDTol.
 
+- "fedeinthemix" suggested a better name and a more general type for unitary.
+

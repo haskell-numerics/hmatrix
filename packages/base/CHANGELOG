@@ -1,10 +1,16 @@
 0.18.0.0
 --------
 
-    * meanCov and gaussianSample use Herm type.
+    * Many new functions and instances in the Static module
+    
+    * meanCov and gaussianSample use Herm type
 
-    * New functions and instances in the Static module.
+    * thinQR, thinRQ
+    
+    * compactSVDTol
 
+    * unitary changed to normalize, also admits Vector (Complex Double)
+  
 0.17.0.0
 --------
 
