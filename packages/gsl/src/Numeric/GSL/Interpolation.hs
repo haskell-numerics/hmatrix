@@ -1,3 +1,5 @@
+{-# LANGUAGE MagicHash, UnboxedTuples #-}
+
 {- |
 Module      :  Numeric.GSL.Interpolation
 Copyright   :  (c) Matthew Peddie 2015
@@ -40,6 +42,10 @@ import Foreign.Storable(peek)
 import Numeric.GSL.Internal
 import System.IO.Unsafe(unsafePerformIO)
 
+-- FIXME
+import qualified Data.Vector.Storable as S
+import GHC.Base (IO(..), realWorld#)
+
 data InterpolationMethod = Linear
                          | Polynomial
                          | CSpline
@@ -58,6 +64,12 @@ methodToInt AkimaPeriodic = 5
 
 dim :: Numeric t => Vector t -> Int
 dim = size
+
+-- FIXME
+appVector f x = unsafeInlinePerformIO (S.unsafeWith x (return . f))
+
+unsafeInlinePerformIO (IO f) = case f realWorld# of
+    (# _, x #) -> x
 
 applyCFun hsname cname fun mth xs ys x
   | dim xs /= dim ys = error $
