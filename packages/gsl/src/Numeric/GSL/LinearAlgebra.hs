@@ -40,7 +40,7 @@ randomVector :: Int      -- ^ seed
              -> Vector Double
 randomVector seed dist n = unsafePerformIO $ do
     r <- createVector n
-    c_random_vector (fi seed) ((fi.fromEnum) dist) # r #|"randomVector"
+    (r `applyRaw` id) (c_random_vector (fi seed) ((fi.fromEnum) dist))  #|"randomVector"
     return r
 
 foreign import ccall unsafe "random_vector" c_random_vector :: CInt -> CInt -> TV
@@ -56,7 +56,7 @@ saveMatrix filename fmt m = do
     charname <- newCString filename
     charfmt <- newCString fmt
     let o = if orderOf m == RowMajor then 1 else 0
-    matrix_fprintf charname charfmt o # m #|"matrix_fprintf"
+    (m `applyRaw` id) (matrix_fprintf charname charfmt o)  #|"matrix_fprintf"
     free charname
     free charfmt
 
@@ -69,7 +69,7 @@ fscanfVector :: FilePath -> Int -> IO (Vector Double)
 fscanfVector filename n = do
     charname <- newCString filename
     res <- createVector n
-    gsl_vector_fscanf charname # res #|"gsl_vector_fscanf"
+    (res `applyRaw` id) (gsl_vector_fscanf charname) #|"gsl_vector_fscanf"
     free charname
     return res
 
@@ -80,7 +80,7 @@ fprintfVector :: FilePath -> String -> Vector Double -> IO ()
 fprintfVector filename fmt v = do
     charname <- newCString filename
     charfmt <- newCString fmt
-    gsl_vector_fprintf charname charfmt # v #|"gsl_vector_fprintf"
+    (v `applyRaw` id) (gsl_vector_fprintf charname charfmt) #|"gsl_vector_fprintf"
     free charname
     free charfmt
 
@@ -91,7 +91,7 @@ freadVector :: FilePath -> Int -> IO (Vector Double)
 freadVector filename n = do
     charname <- newCString filename
     res <- createVector n
-    gsl_vector_fread charname # res #| "gsl_vector_fread"
+    (res `applyRaw` id) (gsl_vector_fread charname) #| "gsl_vector_fread"
     free charname
     return res
 
@@ -101,7 +101,7 @@ foreign import ccall unsafe "vector_fread" gsl_vector_fread:: Ptr CChar -> TV
 fwriteVector :: FilePath -> Vector Double -> IO ()
 fwriteVector filename v = do
     charname <- newCString filename
-    gsl_vector_fwrite charname # v #|"gsl_vector_fwrite"
+    (v `applyRaw` id) (gsl_vector_fwrite charname) #|"gsl_vector_fwrite"
     free charname
 
 foreign import ccall unsafe "vector_fwrite" gsl_vector_fwrite :: Ptr CChar -> TV

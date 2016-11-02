@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 -- |
 -- Module      :  Numeric.GSL.Internal
 -- Copyright   :  (c) Alberto Ruiz 2009
@@ -23,7 +25,7 @@ module Numeric.GSL.Internal(
     createV,
     createMIO,
     module Numeric.LinearAlgebra.Devel,
-    check,(#),vec, ww2,
+    check,(#),(#!),vec, ww2,
     Res,TV,TM,TCV,TCM
 ) where
 
@@ -86,12 +88,12 @@ aux_vTom f n p rr cr r = g where
 
 createV n fun msg = unsafePerformIO $ do
     r <- createVector n
-    fun # r #| msg
+    (r # id) fun #| msg
     return r
 
 createMIO r c fun msg = do
     res <- createMatrix RowMajor r c
-    fun # res #| msg
+    (res # id) fun #| msg
     return res
 
 --------------------------------------------------------------------------------
@@ -134,4 +136,11 @@ vec x f = unsafeWith x $ \p -> do
 infixl 1 #
 a # b = applyRaw a b
 {-# INLINE (#) #-}
+
+--infixr 1 #
+--a # b = apply a b
+--{-# INLINE (#) #-}
+
+a #! b = a # b # id
+{-# INLINE (#!) #-}
 

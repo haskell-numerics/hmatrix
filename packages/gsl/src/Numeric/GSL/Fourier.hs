@@ -25,7 +25,7 @@ import System.IO.Unsafe (unsafePerformIO)
 
 genfft code v = unsafePerformIO $ do
     r <- createVector (size v)
-    c_fft code # v # r #|"fft"
+    (v `applyRaw` (r `applyRaw` id)) (c_fft code) #|"fft"
     return r
 
 foreign import ccall unsafe "gsl-aux.h fft" c_fft ::  CInt -> TCV (TCV Res)
