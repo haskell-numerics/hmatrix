@@ -571,7 +571,7 @@ int mapL(int code, KLVEC(x), LVEC(r)) {
     int k;
     REQUIRES(xn == rn,BAD_SIZE);
     switch (code) {
-        OP(3,abs)
+        OP(3,labs)
         OP(15,sign)
         default: ERROR(BAD_CODE);
     }
