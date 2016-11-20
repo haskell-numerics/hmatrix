@@ -938,7 +938,7 @@ int vectorScan(char * file, int* n, double**pp){
    For FreeBSD and Mac OS X, nrand48() is much better than random().
    See: http://www.evanjones.ca/random-thread-safe.html
 */
-#pragma message "randomVector is not thread-safe in OSX and FreeBSD"
+// #pragma message "randomVector is not thread-safe in OSX and FreeBSD"
 #endif
 
 #if defined (__APPLE__) || (__FreeBSD__) || defined(_WIN32) || defined(WIN32)
