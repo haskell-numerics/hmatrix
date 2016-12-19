@@ -604,7 +604,7 @@ foreign import ccall unsafe "reorderL" c_reorderL :: Reorder Z
 
 -- | Transpose an array with dimensions @dims@ by making a copy using @strides@. For example, for an array with 3 indices,
 --   @(reorderVector strides dims v) ! ((i * dims ! 1 + j) * dims ! 2 + k) == v ! (i * strides ! 0 + j * strides ! 1 + k * strides ! 2)@
---   This function is intended to be used internally by tensor libraries..
+--   This function is intended to be used internally by tensor libraries.
 reorderVector :: Element a
                     => Vector CInt -- ^ @strides@: array strides
                     -> Vector CInt -- ^ @dims@: array dimensions of new array @v@
