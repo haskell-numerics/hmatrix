@@ -55,7 +55,7 @@ module Numeric.LinearAlgebra.Devel(
     GMatrix(..),
 
     -- * Misc
-    toByteString, fromByteString, showInternal
+    toByteString, fromByteString, showInternal, reorderVector
 
 ) where
 
