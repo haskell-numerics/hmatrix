@@ -1533,3 +1533,54 @@ int chooseQ(KIVEC(cond),KQVEC(lt),KQVEC(eq),KQVEC(gt),QVEC(r)) {
     CHOOSE_IMP
 }
 
+//////////////////// reorder /////////////////////////
+
+#define REORDER_IMP                                                                     \
+    REQUIRES(kn == stridesn && stridesn == dimsn ,BAD_SIZE);                            \
+    int i,j,l;                                                                          \
+    for (i=1,j=0,l=0;l<kn;++l) {                                                        \
+        kp[l] = 0;                                                                      \
+        i *= dimsp[l];                                                                  \
+        j += (dimsp[l]-1) * stridesp[l];                                                \
+    }                                                                                   \
+    REQUIRES(i <= vn && j < rn ,BAD_SIZE);                                              \
+    for (i=0,j=0;;i++) {                                                                \
+        rp[i] = vp[j];                                                                  \
+        for(l=kn-1;;l--) {                                                              \
+            ++kp[l];                                                                    \
+            if (kp[l] < dimsp[l]) {                                                     \
+                j += stridesp[l];                                                       \
+                break;                                                                  \
+            } else {                                                                    \
+                if (l == 0) {                                                           \
+                    return 0;                                                           \
+                }                                                                       \
+                kp[l] = 0;                                                              \
+                j -= (dimsp[l]-1) * stridesp[l];                                        \
+            }                                                                           \
+        }                                                                               \
+    }
+
+int reorderF(IVEC(k), KIVEC(strides),KIVEC(dims),KFVEC(v),FVEC(r)) {
+    REORDER_IMP
+}
+
+int reorderD(IVEC(k), KIVEC(strides),KIVEC(dims),KDVEC(v),DVEC(r)) {
+    REORDER_IMP
+}
+
+int reorderI(IVEC(k), KIVEC(strides),KIVEC(dims),KIVEC(v),IVEC(r)) {
+    REORDER_IMP
+}
+
+int reorderL(IVEC(k), KIVEC(strides),KIVEC(dims),KLVEC(v),LVEC(r)) {
+    REORDER_IMP
+}
+
+int reorderC(IVEC(k), KIVEC(strides),KIVEC(dims),KCVEC(v),CVEC(r)) {
+    REORDER_IMP
+}
+
+int reorderQ(IVEC(k), KIVEC(strides),KIVEC(dims),KQVEC(v),QVEC(r)) {
+    REORDER_IMP
+}
