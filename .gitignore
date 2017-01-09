@@ -1,5 +1,6 @@
 _darcs
 dist
+dist-newstyle
 experiments
 examples/session
 examples/mnist.txt
@@ -19,3 +20,5 @@ title.md
 /base-reinstall.sh
 .cabal-sandbox
 cabal.sandbox.config
+cabal.project.local
+.stack-work

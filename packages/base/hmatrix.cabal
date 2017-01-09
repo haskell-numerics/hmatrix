@@ -93,20 +93,15 @@ library
         cc-options:     -msse2
 
 
-    if os(OSX)
+    if os(darwin)
         if flag(openblas)
             extra-lib-dirs:     /opt/local/lib/openblas/lib
             extra-libraries:    openblas
         else
-            extra-libraries:    blas lapack
+            frameworks: Accelerate
 
-        extra-lib-dirs: /opt/local/lib/
-        include-dirs: /opt/local/include/
-        extra-lib-dirs: /usr/local/lib/
-        include-dirs: /usr/local/include/
         if arch(i386)
             cc-options: -arch i386
-        frameworks: Accelerate
 
     if os(freebsd)
         if flag(openblas)
