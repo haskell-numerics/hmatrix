@@ -1,7 +1,10 @@
+resolver: lts-7.8
+
 flags:
   hmatrix:
     openblas: false
+
 packages:
 - '.'
+
 extra-deps: []
-resolver: lts-3.3
