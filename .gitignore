@@ -22,3 +22,4 @@ title.md
 cabal.sandbox.config
 cabal.project.local
 .stack-work
+result
