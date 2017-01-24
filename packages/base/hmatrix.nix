@@ -1,6 +1,6 @@
 { mkDerivation, array, base, binary, bytestring, deepseq, random
 , split, stdenv, storable-complex, vector
-, openblas
+, openblasCompat
 , darwin
 }:
 let
@@ -24,7 +24,7 @@ mkDerivation {
   librarySystemDepends =
     if stdenv.isDarwin
       then [ accelerateFramework ]
-      else [ openblas ];
+      else [ openblasCompat ];
   configureFlags = if stdenv.isDarwin then [] else [ "-fopenblas" ];
 
   homepage = "https://github.com/albertoruiz/hmatrix";

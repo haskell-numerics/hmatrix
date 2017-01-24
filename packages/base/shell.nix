@@ -31,7 +31,7 @@ in haskell.lib.buildStackProject {
       which            # To issue 'which' in build script
       nix              # So that `stack --nix` can find `nix-shell`
       (if stdenv.isLinux
-         then openblas
+         then openblasCompat
          else darwin.apple_sdk.frameworks.Accelerate)
     ];
   LANG = "en_US.UTF-8";  # Without this, tests fail!
