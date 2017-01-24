@@ -1,4 +1,4 @@
-resolver: lts-7.8
+resolver: lts-7.14
 
 packages:
 - '.'
@@ -6,4 +6,5 @@ packages:
 extra-deps: []
 
 nix:
+  enable: true
   shell-file: shell.nix
