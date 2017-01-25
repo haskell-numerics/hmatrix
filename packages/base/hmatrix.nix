@@ -1,12 +1,13 @@
 { mkDerivation, array, base, binary, bytestring, deepseq, random
 , split, stdenv, storable-complex, vector
-, openblas
+, openblasCompat
 , darwin
 }:
-let accelerateFramework =
-      if stdenv.isDarwin
-        then darwin.apple_sdk.frameworks.Accelerate
-        else null;
+let
+  accelerateFramework =
+   if stdenv.isDarwin
+     then darwin.apple_sdk.frameworks.Accelerate
+     else null;
 in
 mkDerivation {
   pname = "hmatrix";
@@ -16,11 +17,14 @@ mkDerivation {
     array base binary bytestring deepseq random split storable-complex
     vector
   ];
-  preConfigure = "sed -i hmatrix.cabal -e 's@/usr/@/dont/hardcode/paths/@'";
-  buildDepends =
+  preConfigure = ''
+    sed -i hmatrix.cabal -e 's@/usr/@/dont/hardcode/paths/@'
+    sed -i hmatrix.cabal -e 's@/opt/@/dont/hardcode/paths/@'
+  '';
+  librarySystemDepends =
     if stdenv.isDarwin
       then [ accelerateFramework ]
-      else [ openblas ];
+      else [ openblasCompat ];
   configureFlags = if stdenv.isDarwin then [] else [ "-fopenblas" ];
 
   homepage = "https://github.com/albertoruiz/hmatrix";
