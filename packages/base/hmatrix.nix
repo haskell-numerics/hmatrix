@@ -18,8 +18,7 @@ mkDerivation {
     vector
   ];
   preConfigure = ''
-    sed -i hmatrix.cabal -e 's@/usr/@/dont/hardcode/paths/@'
-    sed -i hmatrix.cabal -e 's@/opt/@/dont/hardcode/paths/@'
+    sed -i hmatrix.cabal -e 's@extra-lib-dirs@-- extra-lib-dirs@'
   '';
   librarySystemDepends =
     if stdenv.isDarwin
