@@ -25,6 +25,7 @@ import Internal.Conversion
 import Internal.Vectorized
 import Internal.LAPACK(multiplyR,multiplyC,multiplyF,multiplyQ,multiplyI,multiplyL)
 import Data.List.Split(chunksOf)
+import qualified Data.Vector.Storable as V
 
 --------------------------------------------------------------------------------
 
@@ -102,8 +103,8 @@ instance Container Vector I
     add' = vectorZipI Add
     sub = vectorZipI Sub
     mul = vectorZipI Mul
-    equal u v = dim u == dim v && maxElement' (vectorMapI Abs (sub u v)) == 0
-    scalar' x = fromList [x]
+    equal = (==)
+    scalar' = V.singleton
     konst' = constantD
     build' = buildV
     cmap' = mapVector
@@ -141,8 +142,8 @@ instance Container Vector Z
     add' = vectorZipL Add
     sub = vectorZipL Sub
     mul = vectorZipL Mul
-    equal u v = dim u == dim v && maxElement' (vectorMapL Abs (sub u v)) == 0
-    scalar' x = fromList [x]
+    equal = (==)
+    scalar' = V.singleton
     konst' = constantD
     build' = buildV
     cmap' = mapVector
@@ -181,8 +182,8 @@ instance Container Vector Float
     add' = vectorZipF Add
     sub = vectorZipF Sub
     mul = vectorZipF Mul
-    equal u v = dim u == dim v && maxElement (vectorMapF Abs (sub u v)) == 0.0
-    scalar' x = fromList [x]
+    equal = (==)
+    scalar' = V.singleton
     konst' = constantD
     build' = buildV
     cmap' = mapVector
@@ -218,8 +219,8 @@ instance Container Vector Double
     add' = vectorZipR Add
     sub = vectorZipR Sub
     mul = vectorZipR Mul
-    equal u v = dim u == dim v && maxElement (vectorMapR Abs (sub u v)) == 0.0
-    scalar' x = fromList [x]
+    equal = (==)
+    scalar' = V.singleton
     konst' = constantD
     build' = buildV
     cmap' = mapVector
@@ -255,8 +256,8 @@ instance Container Vector (Complex Double)
     add' = vectorZipC Add
     sub = vectorZipC Sub
     mul = vectorZipC Mul
-    equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
-    scalar' x = fromList [x]
+    equal = (==)
+    scalar' = V.singleton
     konst' = constantD
     build' = buildV
     cmap' = mapVector
@@ -291,8 +292,8 @@ instance Container Vector (Complex Float)
     add' = vectorZipQ Add
     sub = vectorZipQ Sub
     mul = vectorZipQ Mul
-    equal u v = dim u == dim v && maxElement (mapVector magnitude (sub u v)) == 0.0
-    scalar' x = fromList [x]
+    equal = (==)
+    scalar' = V.singleton
     konst' = constantD
     build' = buildV
     cmap' = mapVector
