@@ -406,6 +406,36 @@ cholSolveR a b = linearSolveSQAux2 id dpotrs "cholSolveR" (fmat a) b
 cholSolveC :: Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
 cholSolveC a b = linearSolveSQAux2 id zpotrs "cholSolveC" (fmat a) b
 
+--------------------------------------------------------------------------------
+foreign import ccall unsafe "triSolveR_l_u" dtrtrs_u  :: R ::> R ::> Ok
+foreign import ccall unsafe "triSolveC_l_u" ztrtrs_u  :: C ::> C ::> Ok
+foreign import ccall unsafe "triSolveR_l_l" dtrtrs_l  :: R ::> R ::> Ok
+foreign import ccall unsafe "triSolveC_l_l" ztrtrs_l  :: C ::> C ::> Ok
+
+
+linearSolveTRAux2 g f st a b
+    | n1==n2 && n1==r = unsafePerformIO . g $ do
+        s <- copy ColumnMajor b
+        (a #! s) f #| st
+        return s
+    | otherwise = error $ st ++ " of nonsquare matrix"
+  where
+    n1 = rows a
+    n2 = cols a
+    r  = rows b
+
+data UpLo = Lower | Upper
+
+-- | Solves a triangular system of linear equations.
+triSolveR :: UpLo -> Matrix Double -> Matrix Double -> Matrix Double
+triSolveR Lower a b = linearSolveTRAux2 id dtrtrs_l "triSolveR" (fmat a) b
+triSolveR Upper a b = linearSolveTRAux2 id dtrtrs_u "triSolveR" (fmat a) b
+
+-- | Solves a triangular system of linear equations.
+triSolveC :: UpLo -> Matrix (Complex Double) -> Matrix (Complex Double) -> Matrix (Complex Double)
+triSolveC Lower a b = linearSolveTRAux2 id ztrtrs_l "triSolveC" (fmat a) b
+triSolveC Upper a b = linearSolveTRAux2 id ztrtrs_u "triSolveC" (fmat a) b
+
 -----------------------------------------------------------------------------------
 
 foreign import ccall unsafe "linearSolveLSR_l"   dgels ::           R ::> R ::> Ok

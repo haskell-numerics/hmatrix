@@ -20,13 +20,16 @@ imported from "Numeric.LinearAlgebra.LAPACK".
 -}
 -----------------------------------------------------------------------------
 
-module Internal.Algorithms where
+module Internal.Algorithms (
+  module Internal.Algorithms,
+  UpLo(..)
+) where
 
 import Internal.Vector
 import Internal.Matrix
 import Internal.Element
 import Internal.Conversion
-import Internal.LAPACK as LAPACK
+import Internal.LAPACK
 import Internal.Numeric
 import Data.List(foldl1')
 import qualified Data.Array as A
@@ -58,6 +61,7 @@ class (Numeric t,
     mbLinearSolve' :: Matrix t -> Matrix t -> Maybe (Matrix t)
     linearSolve' :: Matrix t -> Matrix t -> Matrix t
     cholSolve'   :: Matrix t -> Matrix t -> Matrix t
+    triSolve'   :: UpLo -> Matrix t -> Matrix t -> Matrix t
     ldlPacked'   :: Matrix t -> (Matrix t, [Int])
     ldlSolve'    :: (Matrix t, [Int]) -> Matrix t -> Matrix t
     linearSolveSVD' :: Matrix t -> Matrix t -> Matrix t
@@ -83,6 +87,7 @@ instance Field Double where
     linearSolve' = linearSolveR                 -- (luSolve . luPacked) ??
     mbLinearSolve' = mbLinearSolveR
     cholSolve' = cholSolveR
+    triSolve' = triSolveR
     linearSolveLS' = linearSolveLSR
     linearSolveSVD' = linearSolveSVDR Nothing
     eig' = eigR
@@ -112,6 +117,7 @@ instance Field (Complex Double) where
     linearSolve' = linearSolveC
     mbLinearSolve' = mbLinearSolveC
     cholSolve' = cholSolveC
+    triSolve' = triSolveC
     linearSolveLS' = linearSolveLSC
     linearSolveSVD' = linearSolveSVDC Nothing
     eig' = eigC
@@ -349,6 +355,10 @@ cholSolve
     -> Matrix t -- ^ right hand sides
     -> Matrix t -- ^ solution
 cholSolve = {-# SCC "cholSolve" #-} cholSolve'
+
+-- | Solve a triangular linear system.
+triSolve :: Field t => UpLo -> Matrix t -> Matrix t -> Matrix t
+triSolve = {-# SCC "triSolve" #-} triSolve'
 
 -- | Minimum norm solution of a general linear least squares problem Ax=B using the SVD. Admits rank-deficient systems but it is slower than 'linearSolveLS'. The effective rank of A is determined by treating as zero those singular valures which are less than 'eps' times the largest singular value.
 linearSolveSVD :: Field t => Matrix t -> Matrix t -> Matrix t
