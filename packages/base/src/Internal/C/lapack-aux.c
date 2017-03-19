@@ -584,6 +584,90 @@ int cholSolveC_l(KOCMAT(a),OCMAT(b)) {
     OK
 }
 
+//////// triangular real linear system ////////////
+
+int dtrtrs_(char *uplo, char *trans, char *diag, integer *n, integer *nrhs,
+	doublereal *a, integer *lda, doublereal *b, integer *ldb, integer *
+	info);
+
+int triSolveR_l_u(KODMAT(a),ODMAT(b)) {
+    integer n = ar;
+    integer lda = aXc;
+    integer nhrs = bc;
+    REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
+    DEBUGMSG("triSolveR_l_u");
+    integer res;
+    dtrtrs_ ("U",
+             "N",
+             "N",
+             &n,&nhrs,
+             (double*)ap, &lda,
+             bp, &n,
+             &res);
+    CHECK(res,res);
+    OK
+}
+
+int triSolveR_l_l(KODMAT(a),ODMAT(b)) {
+    integer n = ar;
+    integer lda = aXc;
+    integer nhrs = bc;
+    REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
+    DEBUGMSG("triSolveR_l_l");
+    integer res;
+    dtrtrs_ ("L",
+             "N",
+             "N",
+             &n,&nhrs,
+             (double*)ap, &lda,
+             bp, &n,
+             &res);
+    CHECK(res,res);
+    OK
+}
+
+//////// triangular complex linear system ////////////
+
+int ztrtrs_(char *uplo, char *trans, char *diag, integer *n, integer *nrhs,
+	doublecomplex *a, integer *lda, doublecomplex *b, integer *ldb,
+	integer *info);
+
+int triSolveC_l_u(KOCMAT(a),OCMAT(b)) {
+    integer n = ar;
+    integer lda = aXc;
+    integer nhrs = bc;
+    REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
+    DEBUGMSG("triSolveC_l_u");
+    integer res;
+    ztrtrs_ ("U",
+             "N",
+             "N",
+             &n,&nhrs,
+             (doublecomplex*)ap, &lda,
+             bp, &n,
+             &res);
+    CHECK(res,res);
+    OK
+}
+
+int triSolveC_l_l(KOCMAT(a),OCMAT(b)) {
+    integer n = ar;
+    integer lda = aXc;
+    integer nhrs = bc;
+    REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
+    DEBUGMSG("triSolveC_l_u");
+    integer res;
+    ztrtrs_ ("L",
+             "N",
+             "N",
+             &n,&nhrs,
+             (doublecomplex*)ap, &lda,
+             bp, &n,
+             &res);
+    CHECK(res,res);
+    OK
+}
+
 //////////////////// least squares real linear system ////////////
 
 int dgels_(char *trans, integer *m, integer *n, integer *
