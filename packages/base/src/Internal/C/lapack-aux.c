@@ -668,6 +668,78 @@ int triSolveC_l_l(KOCMAT(a),OCMAT(b)) {
     OK
 }
 
+//////// tridiagonal real linear system ////////////
+
+int dgttrf_(integer *n,
+            doublereal *dl, doublereal *d, doublereal *du, doublereal *du2,
+            integer *ipiv,
+            integer *info);
+
+int dgttrs_(char *trans, integer *n, integer *nrhs,
+            doublereal *dl, doublereal *d, doublereal *du, doublereal *du2,
+            integer *ipiv, doublereal *b, integer *ldb,
+            integer *info);
+
+int triDiagSolveR_l(DVEC(dl), DVEC(d), DVEC(du), ODMAT(b)) {
+    integer n = dn;
+    integer nhrs = bc;
+    REQUIRES(n >= 1 && dln == dn - 1 && dun == dn - 1 && br == n, BAD_SIZE);
+    DEBUGMSG("triDiagSolveR_l");
+    integer res;
+    integer* ipiv = (integer*)malloc(n*sizeof(integer));
+    double* du2  = (double*)malloc((n - 2)*sizeof(double));
+    dgttrf_ (&n,
+             dlp, dp, dup, du2,
+             ipiv,
+             &res);
+    CHECK(res,res);
+    dgttrs_ ("N",
+             &n,&nhrs,
+             dlp, dp, dup, du2,
+             ipiv, bp, &n,
+             &res);
+    CHECK(res,res);
+    free(ipiv);
+    free(du2);
+    OK
+}
+
+//////// tridiagonal complex linear system ////////////
+
+int zgttrf_(integer *n,
+            doublecomplex *dl, doublecomplex *d, doublecomplex *du, doublecomplex *du2,
+            integer *ipiv,
+            integer *info);
+
+int zgttrs_(char *trans, integer *n, integer *nrhs,
+            doublecomplex *dl, doublecomplex *d, doublecomplex *du, doublecomplex *du2,
+            integer *ipiv, doublecomplex *b, integer *ldb,
+            integer *info);
+
+int triDiagSolveC_l(CVEC(dl), CVEC(d), CVEC(du), OCMAT(b)) {
+    integer n = dn;
+    integer nhrs = bc;
+    REQUIRES(n >= 1 && dln == dn - 1 && dun == dn - 1 && br == n, BAD_SIZE);
+    DEBUGMSG("triDiagSolveC_l");
+    integer res;
+    integer* ipiv = (integer*)malloc(n*sizeof(integer));
+    doublecomplex* du2 = (doublecomplex*)malloc((n - 2)*sizeof(doublecomplex));
+    zgttrf_ (&n,
+             dlp, dp, dup, du2,
+             ipiv,
+             &res);
+    CHECK(res,res);
+    zgttrs_ ("N",
+             &n,&nhrs,
+             dlp, dp, dup, du2,
+             ipiv, bp, &n,
+             &res);
+    CHECK(res,res);
+    free(ipiv);
+    free(du2);
+    OK
+}
+
 //////////////////// least squares real linear system ////////////
 
 int dgels_(char *trans, integer *m, integer *n, integer *
