@@ -436,6 +436,28 @@ triSolveC :: UpLo -> Matrix (Complex Double) -> Matrix (Complex Double) -> Matri
 triSolveC Lower a b = linearSolveTRAux2 id ztrtrs_l "triSolveC" (fmat a) b
 triSolveC Upper a b = linearSolveTRAux2 id ztrtrs_u "triSolveC" (fmat a) b
 
+--------------------------------------------------------------------------------
+foreign import ccall unsafe "triDiagSolveR_l" dgttrs  :: R :> R :> R :> R ::> Ok
+foreign import ccall unsafe "triDiagSolveC_l" zgttrs  :: C :> C :> C :> C ::> Ok
+
+linearSolveGTAux2 g f st dl d du b
+    | ndl  == nd - 1 &&
+      ndu  == nd - 1 &&
+      nd   == r = unsafePerformIO . g $ do
+        s <- copy ColumnMajor b
+        (dl # d # du #! s) f #| st
+        return s
+    | otherwise = error $ st ++ " of nonsquare matrix"
+  where
+    ndl  = dim dl
+    nd   = dim d
+    ndu  = dim du
+    r    = rows b
+
+-- | Solves a tridiagonal system of linear equations.
+triDiagSolveR dl d du b = linearSolveGTAux2 id dgttrs "triDiagSolveR" dl d du b
+triDiagSolveC dl d du b = linearSolveGTAux2 id zgttrs "triDiagSolveC" dl d du b
+
 -----------------------------------------------------------------------------------
 
 foreign import ccall unsafe "linearSolveLSR_l"   dgels ::           R ::> R ::> Ok

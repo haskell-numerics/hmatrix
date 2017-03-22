@@ -97,6 +97,8 @@ module Numeric.LinearAlgebra (
     -- ** Triangular
     UpLo(..),
     triSolve,
+    -- ** Tridiagonal
+    triDiagSolve,
     -- ** Sparse
     cgSolve,
     cgSolve',
