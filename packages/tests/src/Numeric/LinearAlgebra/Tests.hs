@@ -165,7 +165,7 @@ triTest = utest "triTest" ok1 where
        1.0000,  6.0000
     ]
 
-  ok1 = (maximum $ map abs $ concat $ toLists $ e - v) <= 1e-14
+  ok1 = (norm_Inf . flatten $ e - v) <= 1e-13
 
 -----------------------------------------------------
 
