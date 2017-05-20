@@ -54,7 +54,8 @@ module Numeric.LinearAlgebra.Static(
     Normed(..),
     -- * Random arrays
     Seed, RandDist(..),
-    randomVector, rand, randn, gaussianSample, uniformSample,
+    -- randomVector,
+    rand, randn, gaussianSample, uniformSample,
     -- * Misc
     mean, meanCov,
     Disp(..), Domain(..),
@@ -71,7 +72,8 @@ import Numeric.LinearAlgebra hiding (
     (<\>),fromList,takeDiag,svd,eig,eigSH,
     eigenvalues,eigenvaluesSH,build,
     qr,size,dot,chol,range,R,C,sym,mTm,unSym,
-    randomVector,rand,randn,gaussianSample,uniformSample,meanCov)
+    -- randomVector,
+    rand,randn,gaussianSample,uniformSample,meanCov)
 import qualified Numeric.LinearAlgebra as LA
 import qualified Numeric.LinearAlgebra.Devel as LA
 import Data.Proxy(Proxy(..))
@@ -475,6 +477,7 @@ exactDims m = do
     Refl <- sameNat (Proxy :: Proxy n) (Proxy :: Proxy k)
     return $ mkL (unwrap m)
 
+{-
 randomVector
     :: forall n . KnownNat n
     => Seed
@@ -483,6 +486,7 @@ randomVector
 randomVector s d = mkR (LA.randomVector s d
                           (fromInteger (natVal (Proxy :: Proxy n)))
                        )
+-}
 
 rand
     :: forall m n . (KnownNat m, KnownNat n)

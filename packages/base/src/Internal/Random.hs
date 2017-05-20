@@ -13,7 +13,7 @@
 module Internal.Random (
     Seed,
     RandDist(..),
-    randomVector,
+    -- randomVector,
     gaussianSample,
     uniformSample,
     rand, randn

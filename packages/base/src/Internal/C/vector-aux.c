@@ -571,7 +571,7 @@ int mapL(int code, KLVEC(x), LVEC(r)) {
     int k;
     REQUIRES(xn == rn,BAD_SIZE);
     switch (code) {
-        OP(3,abs)
+        OP(3,labs)
         OP(15,sign)
         default: ERROR(BAD_CODE);
     }
@@ -938,7 +938,7 @@ int vectorScan(char * file, int* n, double**pp){
    For FreeBSD and Mac OS X, nrand48() is much better than random().
    See: http://www.evanjones.ca/random-thread-safe.html
 */
-#pragma message "randomVector is not thread-safe in OSX and FreeBSD"
+// #pragma message "randomVector is not thread-safe in OSX and FreeBSD"
 #endif
 
 #if defined (__APPLE__) || (__FreeBSD__) || defined(_WIN32) || defined(WIN32)

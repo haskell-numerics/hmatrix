@@ -156,7 +156,8 @@ module Numeric.LinearAlgebra (
 
     -- * Random arrays
 
-    Seed, RandDist(..), randomVector, rand, randn, gaussianSample, uniformSample,
+    Seed, RandDist(..), -- randomVector,
+    rand, randn, gaussianSample, uniformSample,
 
     -- * Misc
     meanCov, rowOuters, pairwiseD2, normalize, peps, relativeError, magnit,
