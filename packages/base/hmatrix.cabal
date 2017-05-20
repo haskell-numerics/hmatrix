@@ -40,7 +40,6 @@ library
                         random,
                         split,
                         bytestring,
-                        storable-complex,
                         vector >= 0.8
 
     hs-source-dirs:     src

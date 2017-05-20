@@ -1,5 +1,5 @@
 { mkDerivation, array, base, binary, bytestring, deepseq, random
-, split, stdenv, storable-complex, vector
+, split, stdenv, vector
 , openblasCompat
 , darwin
 }:
@@ -14,7 +14,7 @@ mkDerivation {
   version = "0.18.0.0";
   src = ./.;
   libraryHaskellDepends = [
-    array base binary bytestring deepseq random split storable-complex
+    array base binary bytestring deepseq random split
     vector
   ];
   preConfigure = ''
