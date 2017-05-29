@@ -121,7 +121,7 @@ library
 
     if os(windows)
         if flag(openblas)
-            extra-libraries:    libopenblas, libgcc_s_seh-1, libgfortran-3, libquadmath-0
+            extra-libraries:    libopenblas, libgcc_s_seh-1, libgfortran, libquadmath-0
         else
             extra-libraries:    blas lapack
 

@@ -33,6 +33,31 @@ Via MacPorts:
 
 ## Windows ###############################################
 
+### Stack-based build (prefered)
+
+Similar should be build under other OSes, like Linux and OSX. This recipe is for stack 1.4.0 - tested and working.
+
+1) 
+
+	> stack setup
+
+2) Download and unzip somewhere OpenBLAS http://www.openblas.net/
+
+3) In MSYS2 console of Stack, i.e.: C:\Users\{User}\AppData\Local\Programs\stack\x86_64-windows\msys2-{version}\msys2_shell.bat
+
+    > cd /.../OpenBLAS
+    > pacman -Sy
+    > pacman -S make perl gcc-fortran
+    > make clean
+    > make
+    > make install
+
+3) Then in normal Windows console for building hmatrix base lib (fill in user name, versions and check if paths are different on your machine):
+
+    > stack install --flag hmatrix:openblas --extra-include-dirs=C:\Users\{User}\AppData\Local\Programs\stack\x86_64-windows\msys2-20150512\opt\OpenBLAS\include --extra-lib-dirs=C:\Users\{User}\AppData\Local\Programs\stack\x86_64-windows\msys2-20150512\opt\OpenBLAS\bin --extra-lib-dirs=C:\Users\{User}\AppData\Local\Programs\stack\x86_64-windows\msys2-20150512\usr\lib\gcc\x86_64-pc-msys\6.3.0\
+
+### Cabal-based build
+	 
 (Not tested). It should be possible to install the new package hmatrix >= 0.16 using
 the dlls contributed by Gilberto Camara available in [gsl-lapack-windows.zip][winpack].
 
@@ -67,20 +92,6 @@ using this method.
 
     > cabal install --flags=openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dirs=C:\...\OpenBLAS\include
 
-### Stack-based Windows build
-
-Similar should be build under other OSes, like Linux and OSX.
-
-1) 
-
-	> stack setup
-
-2) Download and unzip somewhere OpenBLAS http://www.openblas.net/
-
-3) Example in a normal Windows cmd for building hmatrix base lib:
-
-     > stack install hmatrix --flag hmatrix:openblas --extra-lib-dirs=C:\...\OpenBLAS\lib --extra-include-dirs=C:\...\OpenBLAS\include
-	 
 ## Tests ###############################################
 
 After installation we can verify that the library works as expected:
