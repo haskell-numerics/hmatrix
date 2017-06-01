@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.18.0.0
+Version:            0.18.0.1
 License:            BSD3
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -121,7 +121,7 @@ library
 
     if os(windows)
         if flag(openblas)
-            extra-libraries:    libopenblas, libgcc_s_seh-1, libgfortran-3, libquadmath-0
+            extra-libraries:    libopenblas, libgcc_s_seh-1, libgfortran, libquadmath-0
         else
             extra-libraries:    blas lapack
 
