@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns #-}
 
 
@@ -613,6 +614,9 @@ gaussElim_1 x y = dropColumns (rows x) (flipud $ fromRows s2)
     s1 = fromRows $ pivotDown (rows x) 0 rs      -- interesting
     s2 = pivotUp (rows x-1) (toRows $ flipud s1)
 
+pivotDown
+  :: forall t . (Fractional t, Num (Vector t), Ord t, Indexable (Vector t) t, Numeric t)
+  => Int -> Int -> [Vector t] -> [Vector t]
 pivotDown t n xs
     | t == n    = []
     | otherwise = y : pivotDown t (n+1) ys
@@ -622,6 +626,7 @@ pivotDown t n xs
     pivot k = (const k &&& id)
             . sortBy (flip compare `on` (abs. (!k)))
 
+    redu :: (Int, [Vector t]) -> [Vector t]
     redu (k,x:zs)
         | p == 0 = error "gauss: singular!"  -- FIXME
         | otherwise = u : map f zs
@@ -632,12 +637,16 @@ pivotDown t n xs
     redu (_,[]) = []
 
 
+pivotUp
+  :: forall t . (Fractional t, Num (Vector t), Ord t, Indexable (Vector t) t, Numeric t)
+  => Int -> [Vector t] -> [Vector t]
 pivotUp n xs
     | n == -1 = []
     | otherwise = y : pivotUp (n-1) ys
   where
     y:ys = redu' (n,xs)
 
+    redu' :: (Int, [Vector t]) -> [Vector t]
     redu' (k,x:zs) = u : map f zs
       where
         u = x
