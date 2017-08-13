@@ -160,7 +160,7 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - Denis Laxalde separated the gsl tests from the base ones.
 
 - Dominic Steinitz (idontgetoutmuch) reported a bug in the static diagonal creation functions and
-  added Cholesky to Static.
+  added Cholesky to Static. He also added support for tridiagonal matrix solver.
 
 - Dylan Thurston reported an error in the glpk documentation and ambiguity in
   the description of linearSolve.
@@ -170,7 +170,8 @@ module reorganization, monadic mapVectorM, and many other improvements.
 
 - Ian Ross reported the max/minIndex bug.
 
-- Niklas Hambüchen improved the documentation.
+- Niklas Hambüchen improved the documentation and fixed compilation with GHC-8.2
+  adding type signatures.
 
 - "erdeszt" optimized "conv" using a direct vector reverse.
 
@@ -203,7 +204,8 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - Ilan Godik and Douglas McClean helped with Windows support.
 
 - Vassil Keremidchiev fixed the cabal options for OpenBlas, fixed several installation
-  issues, and added support for stack-based build.
+  issues, and added support for stack-based build. He also added support for LTS 8.15
+  under Windows.
 
 - Greg Nwosu fixed arm compilation
 
@@ -224,7 +226,9 @@ fixed the CPP issue in cabal files, and made many other contributions.
   Andras Slemmer fixed the bug. Thank you all.
 
 - Kevin Slagle implemented thinQR and thinRQ, much faster than the original qr,
-  and added compactSVDTol.
+  and added compactSVDTol. He also added an optimized reorderVector for hTensor.
 
 - "fedeinthemix" suggested a better name and a more general type for unitary.
+
+- Huw Campbell fixed a bug in equal.
 
