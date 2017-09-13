@@ -37,7 +37,6 @@ typedef float  complex TCF;
 #define MEM      2002
 #define BAD_FILE 2003
 
-
 int sumF(KFVEC(x),FVEC(r)) {
     DEBUGMSG("sumF");
     REQUIRES(rn==1,BAD_SIZE);
@@ -503,6 +502,19 @@ inline float float_sign(float x) {
 
 #define OP(C,F) case C: { for(k=0;k<xn;k++) rp[k] = F(xp[k]); OK }
 #define OPV(C,E) case C: { for(k=0;k<xn;k++) rp[k] = E; OK }
+
+#ifdef WINDOWS_LINKER_HACK
+
+int mapR(int code, KDVEC(k), DVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+int mapF(int code, KDVEC(k), DVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+#else
+
 int mapR(int code, KDVEC(x), DVEC(r)) {
     int k;
     REQUIRES(xn == rn,BAD_SIZE);
@@ -546,7 +558,7 @@ int mapF(int code, KFVEC(x), FVEC(r)) {
         OP(9,tanh)
         OP(10,asinh)
         OP(11,acosh)
-        OP(12,atanh)
+        case 12: ERROR(BAD_CODE);
         OP(13,exp)
         OP(14,log)
         OP(15,sign)
@@ -554,6 +566,8 @@ int mapF(int code, KFVEC(x), FVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
+
+#endif /* WINDOWS_LINKER_HACK */
 
 
 int mapI(int code, KIVEC(x), IVEC(r)) {
@@ -605,6 +619,15 @@ inline doublecomplex complex_signum_complex(doublecomplex z) {
 }
 
 #define OPb(C,F) case C: { for(k=0;k<xn;k++) r2p[k] = F(x2p[k]); OK }
+
+#ifdef WINDOWS_LINKER_HACK
+
+int mapC(int cod, KCVEC(x), CVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+#else 
+
 int mapC(int code, KCVEC(x), CVEC(r)) {
     TCD* x2p = (TCD*)xp;
     TCD* r2p = (TCD*)rp;
@@ -633,6 +656,7 @@ int mapC(int code, KCVEC(x), CVEC(r)) {
     }
 }
 
+#endif /* WINDOWS_LINKER_HACK */
 
 
 inline complex complex_f_math_fun(doublecomplex (*cf)(doublecomplex), complex a)
@@ -655,6 +679,15 @@ inline complex complex_f_math_fun(doublecomplex (*cf)(doublecomplex), complex a)
 
 
 #define OPC(C,F) case C: { for(k=0;k<xn;k++) rp[k] = complex_f_math_fun(&F,xp[k]); OK }
+
+#ifdef WINDOWS_LINKER_HACK
+
+int mapQ(int code, KQVEC(x), QVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+#else 
+
 int mapQ(int code, KQVEC(x), QVEC(r)) {
     TCF* x2p = (TCF*)xp;
     TCF* r2p = (TCF*)rp;
@@ -683,6 +716,7 @@ int mapQ(int code, KQVEC(x), QVEC(r)) {
     }
 }
 
+#endif /* WINDOWS_LINKER_HACK */
 
 int mapValR(int code, double* pval, KDVEC(x), DVEC(r)) {
     int k;
@@ -758,6 +792,19 @@ inline doublecomplex complex_add(doublecomplex a, doublecomplex b) {
 }
 
 #define OPVb(C,E) case C: { for(k=0;k<xn;k++) r2p[k] = E; OK }
+
+#ifdef WINDOWS_LINKER_HACK
+
+int mapValC(int code, doublecomplex* pval, KCVEC(x), CVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+int mapValQ(int code, complex* pval, KQVEC(x), QVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+#else 
+
 int mapValC(int code, doublecomplex* pval, KCVEC(x), CVEC(r)) {
     TCD* x2p = (TCD*)xp;
     TCD* r2p = (TCD*)rp;
@@ -775,7 +822,6 @@ int mapValC(int code, doublecomplex* pval, KCVEC(x), CVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-
 
 int mapValQ(int code, complex* pval, KQVEC(x), QVEC(r)) {
     TCF* x2p = (TCF*)xp;
@@ -795,7 +841,7 @@ int mapValQ(int code, complex* pval, KQVEC(x), QVEC(r)) {
     }
 }
 
-
+#endif /* WINDOWS_LINKER_HACK */
 
 #define OPZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = E(ap[k],bp[k]); OK }
 #define OPZV(C,msg,E) case C: {DEBUGMSG(msg) res = E(V(r),V(b)); CHECK(res,res); OK }
@@ -860,6 +906,19 @@ REQUIRES(an == bn && an == rn, BAD_SIZE);
 
 #define OPZOb(C,msg,O) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) r2p[k] = a2p[k] O b2p[k]; OK }
 #define OPZEb(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) r2p[k] = E(a2p[k],b2p[k]); OK }
+
+#ifdef WINDOWS_LINKER_HACK
+
+int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
+    ERROR(BAD_CODE);
+}
+
+#else 
+
 int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
     REQUIRES(an == bn && an == rn, BAD_SIZE);
     TCD* a2p = (TCD*)ap;
@@ -875,10 +934,6 @@ int zipC(int code, KCVEC(a), KCVEC(b), CVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
-
-
-
-
 
 #define OPCZE(C,msg,E) case C: {DEBUGMSG(msg) for(k=0;k<an;k++) rp[k] = complex_f_math_op(&E,ap[k],bp[k]); OK }
 
@@ -898,6 +953,8 @@ int zipQ(int code, KQVEC(a), KQVEC(b), QVEC(r)) {
         default: ERROR(BAD_CODE);
     }
 }
+
+#endif /* WINDOWS_LINKER_HACK */
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1240,13 +1297,33 @@ int sort_indexL(KLVEC(v),LVEC(r)) {
     SORTIDX_IMP(II,compare_longs_i)
 }
 
+inline static double round_hack (double x) {
+
+#ifndef WINDOWS_LINKER_HACK
+
+  return round(x);
+
+#else 
+
+  double fpart, ipart;
+
+  fpart = modf(x, &ipart);
+
+  if (fpart > 0.5) {
+    return ipart + 1;
+  } else {
+    return ipart;
+  }
+
+#endif /* WINDOWS_LINKER_HACK */
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
 int round_vector(KDVEC(v),DVEC(r)) {
     int k;
     for(k=0; k<vn; k++) {
-        rp[k] = round(vp[k]);
+        rp[k] = round_hack(vp[k]);
     }
     OK
 }
@@ -1256,7 +1333,7 @@ int round_vector(KDVEC(v),DVEC(r)) {
 int round_vector_i(KDVEC(v),IVEC(r)) {
     int k;
     for(k=0; k<vn; k++) {
-        rp[k] = round(vp[k]);
+        rp[k] = round_hack(vp[k]);
     }
     OK
 }
@@ -1292,7 +1369,7 @@ int range_vector(IVEC(r)) {
 int round_vector_l(KDVEC(v),LVEC(r)) {
     int k;
     for(k=0; k<vn; k++) {
-        rp[k] = round(vp[k]);
+        rp[k] = round_hack(vp[k]);
     }
     OK
 }
