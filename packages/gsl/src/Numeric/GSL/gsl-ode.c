@@ -178,11 +178,16 @@ int ode(int method, int control, double h,
            status = gsl_odeiv2_driver_apply (d, &t, ti, y);
      
            if (status != GSL_SUCCESS) {
-         	  printf ("error in ode, return value=%d\n", status);
-         	  break;
-        	}
-
-//           printf ("%.5e %.5e %.5e\n", t, y[0], y[1]);
+             int k;
+             printf ("error in ode, return value=%d\n", status);
+             printf("last successful values are:\n");
+             printf("t = %.5e\n", t);
+             for (k=0; k < xin; k++)
+               {
+                 printf("y[%d] = %.5e\n", k, y[k]);
+               }
+             break;
+           }
            
            for(j=0; j<xin; j++) {
                solp[i*xin + j] = y[j];
