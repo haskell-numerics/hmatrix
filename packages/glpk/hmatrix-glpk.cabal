@@ -22,6 +22,11 @@ extra-source-files:     examples/simplex1.hs
                         examples/simplex4.hs
                         examples/simplex5.hs
 
+flag disable-default-paths
+    description:    When enabled, don't add default hardcoded include/link dirs by default. Needed for hermetic builds like in nix.
+    default:        False
+    manual: True
+
 library
     Build-Depends:      base <5, hmatrix >= 0.17, containers
 
@@ -37,11 +42,12 @@ library
     extra-libraries:    glpk
 
     if os(OSX)
-        extra-lib-dirs: /usr/lib
-        extra-lib-dirs: /opt/local/lib/
-        include-dirs: /opt/local/include/
-        extra-lib-dirs: /usr/local/lib/
-        include-dirs: /usr/local/include/
+        if !flag(disable-default-paths)
+            extra-lib-dirs: /usr/lib
+            extra-lib-dirs: /opt/local/lib/
+            include-dirs: /opt/local/include/
+            extra-lib-dirs: /usr/local/lib/
+            include-dirs: /usr/local/include/
         if arch(i386)
             cc-options: -arch i386
 

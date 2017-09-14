@@ -23,6 +23,11 @@ flag onlygsl
     description:    don't link gslcblas
     default:        False
 
+flag disable-default-paths
+    description:    When enabled, don't add default hardcoded include/link dirs by default. Needed for hermetic builds like in nix.
+    default:        False
+    manual: True
+
 library
 
     Build-Depends:      base<5, hmatrix>=0.18, array, vector,
@@ -65,19 +70,21 @@ library
                         -fno-warn-unused-binds
 
     if os(OSX)
-        extra-lib-dirs: /opt/local/lib/
-        include-dirs: /opt/local/include/
-        extra-lib-dirs: /usr/local/lib/
-        include-dirs: /usr/local/include/
+        if !flag(disable-default-paths)
+            extra-lib-dirs: /opt/local/lib/
+            include-dirs: /opt/local/include/
+            extra-lib-dirs: /usr/local/lib/
+            include-dirs: /usr/local/include/
         extra-libraries: gsl
         if arch(i386)
             cc-options: -arch i386
         frameworks: Accelerate
 
     if os(freebsd)
-       extra-lib-dirs: /usr/local/lib
-       include-dirs: /usr/local/include
-       extra-libraries: gsl
+        if !flag(disable-default-paths)
+            extra-lib-dirs: /usr/local/lib
+            include-dirs: /usr/local/include
+        extra-libraries: gsl
 
     if os(windows)
         extra-libraries: gsl-0

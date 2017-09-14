@@ -31,6 +31,11 @@ flag openblas
     default:        False
     manual: True
 
+flag disable-default-paths
+    description:    When enabled, don't add default hardcoded include/link dirs by default. Needed for hermetic builds like in nix.
+    default:        False
+    manual: True
+
 library
 
     Build-Depends:      base >= 4.8 && < 5,
@@ -95,29 +100,33 @@ library
 
     if os(OSX)
         if flag(openblas)
-            extra-lib-dirs:     /opt/local/lib/openblas/lib
+            if !flag(disable-default-paths)
+                extra-lib-dirs:     /opt/local/lib/openblas/lib
             extra-libraries:    openblas
         else
             extra-libraries:    blas lapack
 
-        extra-lib-dirs: /opt/local/lib/
-        include-dirs: /opt/local/include/
-        extra-lib-dirs: /usr/local/lib/
-        include-dirs: /usr/local/include/
+        if !flag(disable-default-paths)
+            extra-lib-dirs: /opt/local/lib/
+            include-dirs: /opt/local/include/
+            extra-lib-dirs: /usr/local/lib/
+            include-dirs: /usr/local/include/
         if arch(i386)
             cc-options: -arch i386
         frameworks: Accelerate
 
     if os(freebsd)
         if flag(openblas)
-            extra-lib-dirs:     /usr/local/lib/openblas/lib
+            if !flag(disable-default-paths)
+                extra-lib-dirs:     /usr/local/lib/openblas/lib
             extra-libraries:    openblas
         else
             extra-libraries:    blas lapack
 
-       extra-lib-dirs: /usr/local/lib
-       include-dirs: /usr/local/include
-       extra-libraries: gfortran
+        if !flag(disable-default-paths)
+            extra-lib-dirs: /usr/local/lib
+            include-dirs: /usr/local/include
+        extra-libraries: gfortran
 
     if os(windows)
         if flag(openblas)
@@ -127,7 +136,8 @@ library
 
     if os(linux)
         if flag(openblas)
-            extra-lib-dirs:     /usr/lib/openblas/lib
+            if !flag(disable-default-paths)
+                extra-lib-dirs:     /usr/lib/openblas/lib
             extra-libraries:    openblas
         else
             extra-libraries:    blas lapack
