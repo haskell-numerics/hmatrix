@@ -40,9 +40,9 @@ int ode(int method, int control, double h,
         case 5 : {T = gsl_odeiv_step_rk2imp; break; }
         case 6 : {T = gsl_odeiv_step_rk4imp; break; }
         case 7 : {T = gsl_odeiv_step_bsimp; break; }
-        case 8 : { printf("Sorry: ODE rk1imp not available in this GSL version\n"); exit(0); }
-        case 9 : { printf("Sorry: ODE msadams not available in this GSL version\n"); exit(0); }
-        case 10: { printf("Sorry: ODE msbdf not available in this GSL version\n"); exit(0); }
+        case 8 : { fprintf(stderr,"Sorry: ODE rk1imp not available in this GSL version\n"); exit(0); }
+        case 9 : { fprintf(stderr,"Sorry: ODE msadams not available in this GSL version\n"); exit(0); }
+        case 10: { fprintf(stderr,"Sorry: ODE msbdf not available in this GSL version\n"); exit(0); }
         default: ERROR(BAD_CODE);
     }
 
@@ -180,11 +180,11 @@ int ode(int method, int control, double h,
            if (status != GSL_SUCCESS) {
              int k;
              printf ("error in ode, return value=%d\n", status);
-             printf("last successful values are:\n");
-             printf("t = %.5e\n", t);
+             fprintf(stderr,"last successful values are:\n");
+             fprintf(stderr,"t = %.5e\n", t);
              for (k=0; k < xin; k++)
                {
-                 printf("y[%d] = %.5e\n", k, y[k]);
+                 fprintf(stderr,"y[%d] = %.5e\n", k, y[k]);
                }
              break;
            }
