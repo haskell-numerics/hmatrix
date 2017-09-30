@@ -214,11 +214,11 @@ infixr 8 #>
 
 
 infixr 8 <·>
-(<·>) :: R n -> R n -> ℝ
+(<·>) :: KnownNat n => R n -> R n -> ℝ
 (<·>) = dotR
 
 infixr 8 <.>
-(<.>) :: R n -> R n -> ℝ
+(<.>) :: KnownNat n => R n -> R n -> ℝ
 (<.>) = dotR
 
 --------------------------------------------------------------------------------
@@ -601,10 +601,8 @@ appR (isDiag -> Just (0, w, _)) v = mkR (w * subVector 0 (LA.size w) (extract v)
 appR m v = mkR (extract m LA.#> extract v)
 
 
-dotR :: R n -> R n -> ℝ
-dotR (ud1 -> u) (ud1 -> v)
-    | singleV u || singleV v = sumElements (u * v)
-    | otherwise = udot u v
+dotR :: KnownNat n => R n -> R n -> ℝ
+dotR (extract -> u) (extract -> v) = LA.dot u v
 
 
 crossR :: R 3 -> R 3 -> R 3
@@ -667,9 +665,7 @@ appC m v = mkC (extract m LA.#> extract v)
 
 
 dotC :: KnownNat n => C n -> C n -> ℂ
-dotC (unwrap -> u) (unwrap -> v)
-    | singleV u || singleV v = sumElements (conj u * v)
-    | otherwise = u LA.<.> v
+dotC (extract -> u) (extract -> v) = LA.dot u v
 
 
 crossC :: C 3 -> C 3 -> C 3
