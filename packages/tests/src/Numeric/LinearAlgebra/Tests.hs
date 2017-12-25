@@ -39,7 +39,11 @@ import Numeric.LinearAlgebra.Tests.Properties
 import Test.HUnit hiding ((~:),test,Testable,State)
 import System.Info
 import Data.List(foldl1')
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((^),(<>))
+#else
 import Prelude hiding ((^))
+#endif
 import qualified Prelude
 import System.CPUTime
 import System.Exit

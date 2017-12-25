@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 {- |
@@ -58,6 +59,9 @@ import Numeric.GSL.Internal
 import Foreign.Ptr(FunPtr, freeHaskellFunPtr)
 import Foreign.C.Types
 import System.IO.Unsafe(unsafePerformIO)
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 -------------------------------------------------------------------------
 

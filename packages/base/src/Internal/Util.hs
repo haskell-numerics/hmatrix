@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -80,6 +81,9 @@ import Control.Arrow((&&&),(***))
 import Data.Complex
 import Data.Function(on)
 import Internal.ST
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 type ℝ = Double
 type ℕ = Int

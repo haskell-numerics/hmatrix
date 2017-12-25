@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -80,6 +81,9 @@ import Control.Arrow((***))
 import Text.Printf
 import Data.Type.Equality ((:~:)(Refl))
 import qualified Data.Bifunctor as BF (first)
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 ud1 :: R n -> Vector ℝ
 ud1 (R (Dim v)) = v

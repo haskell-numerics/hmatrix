@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 -----------------------------------------------------------------------------
@@ -190,6 +191,9 @@ import Internal.Random
 import Internal.Sparse((!#>))
 import Internal.CG
 import Internal.Conversion
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 {- | dense matrix product
 

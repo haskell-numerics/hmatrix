@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -38,13 +39,20 @@ import Internal.Util(Normed(..),Indexable(..),
                      gaussElim, gaussElim_1, gaussElim_2,
                      luST, luSolve', luPacked', magnit, invershur)
 import Internal.ST(mutable)
+#if MIN_VERSION_base(4,11,0)
+import GHC.TypeLits hiding (Mod)
+#else
 import GHC.TypeLits
+#endif
 import Data.Proxy(Proxy)
 import Foreign.ForeignPtr(castForeignPtr)
 import Foreign.Storable
 import Data.Ratio
 import Data.Complex
 import Control.DeepSeq ( NFData(..) )
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 
 

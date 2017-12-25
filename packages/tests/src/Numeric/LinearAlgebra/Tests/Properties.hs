@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DataKinds #-}
@@ -58,6 +59,9 @@ import Data.Binary
 import Data.Binary.Get (runGet)
 import Data.Either (isLeft)
 import Debug.Trace (traceShowId)
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 (~=) :: Double -> Double -> Bool
 a ~= b = abs (a - b) < 1e-10
