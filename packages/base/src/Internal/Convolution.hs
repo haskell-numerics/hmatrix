@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 -----------------------------------------------------------------------------
 {- |
@@ -23,6 +24,9 @@ import Internal.Numeric
 import Internal.Element
 import Internal.Conversion
 import Internal.Container
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 
 vectSS :: Element t => Int -> Vector t -> Matrix t

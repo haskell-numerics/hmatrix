@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.GSL.Random
@@ -30,7 +31,9 @@ import Numeric.LinearAlgebra.HMatrix hiding (
     randn
     )
 import System.Random(randomIO)
-
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 type Seed = Int
 

@@ -32,7 +32,10 @@ import Internal.Element
 import Internal.Numeric
 import qualified Data.Monoid as M
 import Data.List(partition)
+import qualified Data.Foldable as F
+import qualified Data.Semigroup as S
 import Internal.Chain
+
 
 -------------------------------------------------------------------
 
@@ -83,6 +86,11 @@ adaptScalarM f1 f2 f3 x y
     | isScalar x = f1   (x @@>(0,0) ) y
     | isScalar y = f3 x (y @@>(0,0) )
     | otherwise = f2 x y
+
+instance (Container Vector t, Eq t, Num (Vector t), Product t) => S.Semigroup (Matrix t)
+  where
+    (<>) = mappend
+    sconcat = mconcat . F.toList
 
 instance (Container Vector t, Eq t, Num (Vector t), Product t) => M.Monoid (Matrix t)
   where

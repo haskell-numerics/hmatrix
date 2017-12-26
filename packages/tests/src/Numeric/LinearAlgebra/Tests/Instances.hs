@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, UndecidableInstances, FlexibleInstances, ScopedTypeVariables #-}
+{-# LANGUAGE CPP, FlexibleContexts, UndecidableInstances, FlexibleInstances, ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Tests.Instances
@@ -32,7 +32,9 @@ import Test.QuickCheck(Arbitrary,arbitrary,choose,vector,sized,shrink)
 import GHC.TypeLits
 import Data.Proxy (Proxy(..))
 import qualified Numeric.LinearAlgebra.Static as Static
-
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 
 shrinkListElementwise :: (Arbitrary a) => [a] -> [[a]]
 shrinkListElementwise []     = []

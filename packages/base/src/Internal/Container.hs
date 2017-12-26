@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -29,7 +30,9 @@ import Internal.Matrix
 import Internal.Element
 import Internal.Numeric
 import Internal.Algorithms(Field,linearSolveSVD,Herm,mTm)
-
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
 ------------------------------------------------------------------
 
 {- | Creates a real vector containing a range of values:
