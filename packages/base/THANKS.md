@@ -160,7 +160,7 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - Denis Laxalde separated the gsl tests from the base ones.
 
 - Dominic Steinitz (idontgetoutmuch) reported a bug in the static diagonal creation functions and
-  added Cholesky to Static. He also added support for tridiagonal matrix solver.
+  added Cholesky to Static. He also added support for tridiagonal matrix solver and fixed several bugs.
 
 - Dylan Thurston reported an error in the glpk documentation and ambiguity in
   the description of linearSolve.
@@ -171,7 +171,7 @@ module reorganization, monadic mapVectorM, and many other improvements.
 - Ian Ross reported the max/minIndex bug.
 
 - Niklas Hambüchen improved the documentation and fixed compilation with GHC-8.2
-  adding type signatures.
+  adding type signatures. Added disable-default-paths flag.
 
 - "erdeszt" optimized "conv" using a direct vector reverse.
 
@@ -231,4 +231,6 @@ fixed the CPP issue in cabal files, and made many other contributions.
 - "fedeinthemix" suggested a better name and a more general type for unitary.
 
 - Huw Campbell fixed a bug in equal.
+
+- Hiromi Ishii fixed compilation problems for ghc-8.4
 
