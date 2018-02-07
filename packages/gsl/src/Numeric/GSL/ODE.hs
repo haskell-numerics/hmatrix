@@ -152,6 +152,7 @@ odeSolveVWith' method mbjac control epsAbs epsRel aX aX' mbsc h f xiv ts =
                 // sc' // xiv' // ts' )
                 "ode"
         freeHaskellFunPtr fp
+        if (jp /= nullFunPtr) then freeHaskellFunPtr jp else pure ()
         return sol
 
 foreign import ccall safe "ode"
