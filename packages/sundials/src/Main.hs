@@ -150,15 +150,45 @@ C.include "helpers.h"
 -- }
 
 main = do
-  res <- [C.block| int { sunindextype NEQ = 1;        /* number of dependent vars. */
-                         N_Vector y = NULL;           /* empty vector for storing solution */
-                         void *arkode_mem = NULL;     /* empty ARKode memory structure */
+  res <- [C.block| int { /* general problem variables */
+                         int flag;                       /* reusable error-checking flag */
+                         N_Vector y = NULL;              /* empty vector for storing solution */
+                         SUNMatrix A = NULL;             /* empty matrix for linear solver */
+                         SUNLinearSolver LS = NULL;      /* empty linear solver object */
+                         void *arkode_mem = NULL;        /* empty ARKode memory structure */
+                         FILE *UFID;
+                         realtype t, tout;
+                         long int nst, nst_a, nfe, nfi, nsetups, nje, nfeLS, nni, ncfn, netf;
+
+                         /* general problem parameters */
+                         realtype T0 = RCONST(0.0);    /* initial time */
+                         realtype Tf = RCONST(10.0);   /* final time */
+                         realtype dTout = RCONST(1.0); /* time between outputs */
+                         sunindextype NEQ = 1;         /* number of dependent vars. */
+                         realtype reltol = 1.0e-6;     /* tolerances */
+                         realtype abstol = 1.0e-10;
+                         realtype lamda  = -100.0;     /* stiffness parameter */
+  
+                         /* Initial diagnostics output */
+                         printf("\nAnalytical ODE test problem:\n");
+                         printf("    lamda = %"GSYM"\n",    lamda);
+                         printf("   reltol = %.1"ESYM"\n",  reltol);
+                         printf("   abstol = %.1"ESYM"\n\n",abstol);
+
+                         /* Initialize data structures */
                          y = N_VNew_Serial(NEQ);      /* Create serial vector for solution */
                          if (check_flag((void *)y, "N_VNew_Serial", 0)) return 1;
-
                          N_VConst(0.0, y);            /* Specify initial condition */
                          arkode_mem = ARKodeCreate(); /* Create the solver memory */
                          if (check_flag((void *)arkode_mem, "ARKodeCreate", 0)) return 1;
+
+                         /* Call ARKodeInit to initialize the integrator memory and specify the */
+                         /*    right-hand side function in y'=f(t,y), the inital time T0, and */
+                         /*    the initial dependent variable vector y.  Note: since this */
+                         /*    problem is fully implicit, we set f_E to NULL and f_I to f. */
+                         flag = ARKodeInit(arkode_mem, NULL, f, T0, y);
+                         if (check_flag(&flag, "ARKodeInit", 1)) return 1;
+
                          return 0;
                        } |]
   putStrLn $ show res
