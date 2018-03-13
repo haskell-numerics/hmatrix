@@ -189,6 +189,58 @@ main = do
                          flag = ARKodeInit(arkode_mem, NULL, f, T0, y);
                          if (check_flag(&flag, "ARKodeInit", 1)) return 1;
 
+                         /* Set routines */
+                         flag = ARKodeSetUserData(arkode_mem, (void *) &lamda);  /* Pass lamda to user functions */
+                         if (check_flag(&flag, "ARKodeSetUserData", 1)) return 1;
+                         flag = ARKodeSStolerances(arkode_mem, reltol, abstol);  /* Specify tolerances */
+                         if (check_flag(&flag, "ARKodeSStolerances", 1)) return 1;
+
+                         /* Initialize dense matrix data structure and solver */
+                         A = SUNDenseMatrix(NEQ, NEQ);
+                         if (check_flag((void *)A, "SUNDenseMatrix", 0)) return 1;
+                         LS = SUNDenseLinearSolver(y, A);
+                         if (check_flag((void *)LS, "SUNDenseLinearSolver", 0)) return 1;
+
+                         /* Linear solver interface */
+                         flag = ARKDlsSetLinearSolver(arkode_mem, LS, A);        /* Attach matrix and linear solver */
+                         if (check_flag(&flag, "ARKDlsSetLinearSolver", 1)) return 1;
+                         flag = ARKDlsSetJacFn(arkode_mem, Jac);                 /* Set Jacobian routine */
+                         if (check_flag(&flag, "ARKDlsSetJacFn", 1)) return 1;
+
+                         /* Specify linearly implicit RHS, with non-time-dependent Jacobian */
+                         flag = ARKodeSetLinear(arkode_mem, 0);
+                         if (check_flag(&flag, "ARKodeSetLinear", 1)) return 1;
+
+                         /* Open output stream for results, output comment line */
+                         UFID = fopen("solution.txt","w");
+                         fprintf(UFID,"# t u\n");
+
+                         /* output initial condition to disk */
+                         fprintf(UFID," %.16"ESYM" %.16"ESYM"\n", T0, NV_Ith_S(y,0));  
+
+                         /* Main time-stepping loop: calls ARKode to perform the integration, then
+                            prints results.  Stops when the final time has been reached */
+                         t = T0;
+                         tout = T0+dTout;
+                         printf("        t           u\n");
+                         printf("   ---------------------\n");
+                         while (Tf - t > 1.0e-15) {
+
+                           flag = ARKode(arkode_mem, tout, y, &t, ARK_NORMAL);      /* call integrator */
+                           if (check_flag(&flag, "ARKode", 1)) break;
+                           printf("  %10.6"FSYM"  %10.6"FSYM"\n", t, NV_Ith_S(y,0));          /* access/print solution */
+                           fprintf(UFID," %.16"ESYM" %.16"ESYM"\n", t, NV_Ith_S(y,0));  
+                           if (flag >= 0) {                                         /* successful solve: update time */
+                             tout += dTout;
+                             tout = (tout > Tf) ? Tf : tout;
+                           } else {                                                 /* unsuccessful solve: break */
+                             fprintf(stderr,"Solver failure, stopping integration\n");
+                             break;
+                           }
+                         }
+                         printf("   ---------------------\n");
+                         fclose(UFID);
+
                          return 0;
                        } |]
   putStrLn $ show res
