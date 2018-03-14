@@ -241,6 +241,45 @@ main = do
                          printf("   ---------------------\n");
                          fclose(UFID);
 
-                         return 0;
+                         /* Get/print some final statistics on how the solve progressed */
+                         flag = ARKodeGetNumSteps(arkode_mem, &nst);
+                         check_flag(&flag, "ARKodeGetNumSteps", 1);
+                         flag = ARKodeGetNumStepAttempts(arkode_mem, &nst_a);
+                         check_flag(&flag, "ARKodeGetNumStepAttempts", 1);
+                         flag = ARKodeGetNumRhsEvals(arkode_mem, &nfe, &nfi);
+                         check_flag(&flag, "ARKodeGetNumRhsEvals", 1);
+                         flag = ARKodeGetNumLinSolvSetups(arkode_mem, &nsetups);
+                         check_flag(&flag, "ARKodeGetNumLinSolvSetups", 1);
+                         flag = ARKodeGetNumErrTestFails(arkode_mem, &netf);
+                         check_flag(&flag, "ARKodeGetNumErrTestFails", 1);
+                         flag = ARKodeGetNumNonlinSolvIters(arkode_mem, &nni);
+                         check_flag(&flag, "ARKodeGetNumNonlinSolvIters", 1);
+                         flag = ARKodeGetNumNonlinSolvConvFails(arkode_mem, &ncfn);
+                         check_flag(&flag, "ARKodeGetNumNonlinSolvConvFails", 1);
+                         flag = ARKDlsGetNumJacEvals(arkode_mem, &nje);
+                         check_flag(&flag, "ARKDlsGetNumJacEvals", 1);
+                         flag = ARKDlsGetNumRhsEvals(arkode_mem, &nfeLS);
+                         check_flag(&flag, "ARKDlsGetNumRhsEvals", 1);
+                       
+                         printf("\nFinal Solver Statistics:\n");
+                         printf("   Internal solver steps = %li (attempted = %li)\n", nst, nst_a);
+                         printf("   Total RHS evals:  Fe = %li,  Fi = %li\n", nfe, nfi);
+                         printf("   Total linear solver setups = %li\n", nsetups);
+                         printf("   Total RHS evals for setting up the linear system = %li\n", nfeLS);
+                         printf("   Total number of Jacobian evaluations = %li\n", nje);
+                         printf("   Total number of Newton iterations = %li\n", nni);
+                         printf("   Total number of linear solver convergence failures = %li\n", ncfn);
+                         printf("   Total number of error test failures = %li\n\n", netf);
+
+                         /* check the solution error */
+                         flag = check_ans(y, t, reltol, abstol);
+
+                         /* Clean up and return */
+                         N_VDestroy(y);            /* Free y vector */
+                         ARKodeFree(&arkode_mem);  /* Free integrator memory */
+                         SUNLinSolFree(LS);        /* Free linear solver */
+                         SUNMatDestroy(A);         /* Free A matrix */
+ 
+                         return flag;
                        } |]
   putStrLn $ show res
