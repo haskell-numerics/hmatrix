@@ -55,9 +55,22 @@ vectorToC vec len ptr = do
   ptr' <- newForeignPtr_ ptr
   V.copy (VM.unsafeFromForeignPtr0 ptr' len) vec
 
-solve :: CDouble -> CInt
-solve lambda = unsafePerformIO $ do
-  res <- [C.block| int { /* general problem variables */
+solve :: (CDouble -> V.Vector CDouble -> V.Vector CDouble) ->
+         V.Vector Double ->
+         CDouble ->
+         CInt
+solve fun f0 lambda = unsafePerformIO $ do
+  let dim = V.length f0
+  let funIO x y f _ptr = do
+        -- Convert the pointer we get from C (y) to a vector, and then
+        -- apply the user-supplied function.
+        fImm <- fun x <$> vectorFromC dim y
+        -- Fill in the provided pointer with the resulting vector.
+        vectorToC fImm dim f
+        -- Unsafe since the function will be called many times.
+        [CU.exp| int{ 0 } |]
+  res <- [C.block| int {
+                         /* general problem variables */
                          int flag;                       /* reusable error-checking flag */
                          N_Vector y = NULL;              /* empty vector for storing solution */
                          SUNMatrix A = NULL;             /* empty matrix for linear solver */
@@ -75,7 +88,30 @@ solve lambda = unsafePerformIO $ do
                          realtype reltol = 1.0e-6;     /* tolerances */
                          realtype abstol = 1.0e-10;
                          realtype lamda  = -100.0;     /* stiffness parameter */
-  
+
+                         /* Beginning of stolen code from the Fortran interface */
+
+                         N_Vector F2C_ARKODE_vec;
+                         F2C_ARKODE_vec = NULL;
+                         F2C_ARKODE_vec = N_VNewEmpty_Serial(NEQ); /* was *N */
+                         if (F2C_ARKODE_vec == NULL) return 1;
+
+                         /* Check for required vector operations */
+                         if(F2C_ARKODE_vec->ops->nvgetarraypointer == NULL) {
+                           fprintf(stderr, "Error: getarraypointer vector operation is not implemented.\n\n");
+                           return 1;
+                         }
+                         if(F2C_ARKODE_vec->ops->nvsetarraypointer == NULL) {
+                           fprintf(stderr, "Error: setarraypointer vector operation is not implemented.\n\n");
+                           return 1;
+                         }
+                         if(F2C_ARKODE_vec->ops->nvcloneempty == NULL) {
+                           fprintf(stderr, "Error: cloneempty vector operation is not implemented.\n\n");
+                           return 1;
+                         }
+
+                         /* End of stolen code from the Fortran interface */
+                         
                          /* Initial diagnostics output */
                          printf("\nAnalytical ODE test problem:\n");
                          printf("    lamda = %"GSYM"\n",    lamda);
