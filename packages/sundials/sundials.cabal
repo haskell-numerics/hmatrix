@@ -18,6 +18,16 @@ cabal-version:       >=1.10
 
 extra-source-files:  src/helpers.c, src/helpers.h
 
+executable ExportAndImport.dylib
+  main-is: ExportAndImport.hs
+  other-extensions:    ForeignFunctionInterface
+  build-depends:       base >=4.10
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+  include-dirs:        src
+  ghc-options:         -O2 -shared -fPIC -dynamic
+  extra-libraries:     HSrts-ghc8.2.2
+
 executable sundials
   main-is:             Main.hs
   -- other-modules:       
@@ -30,4 +40,19 @@ executable sundials
   hs-source-dirs:      src
   default-language:    Haskell2010
   extra-libraries:     sundials_arkode
+  C-sources:           src/helpers.c src/helpers.h
+
+executable hsundials.dylib
+  main-is:             Main.hs
+  -- other-modules:       
+  other-extensions:    QuasiQuotes, TemplateHaskell, MultiWayIf, OverloadedStrings
+  build-depends:       base >=4.10 && <4.11,
+                       inline-c >=0.6 && <0.7,
+                       vector >=0.12 && <0.13,
+                       template-haskell >=2.12 && <2.13,
+                       containers >=0.5 && <0.6
+  hs-source-dirs:      src
+  ghc-options:         -O2 -shared -fPIC -dynamic
+  default-language:    Haskell2010
+  extra-libraries:     sundials_arkode, HSrts-ghc8.2.2
   C-sources:           src/helpers.c src/helpers.h

@@ -8,6 +8,12 @@
 #include <sundials/sundials_types.h>       /* definition of type realtype          */
 #include <sundials/sundials_math.h>
 
+#include "farkode.h"
+
+#include <HsFFI.h>
+#include "Main_stub.h"
+
+
 /* Check function return value...
     opt == 0 means SUNDIALS function allocates memory so check if
              returned NULL pointer
@@ -54,6 +60,31 @@ int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
   NV_Ith_S(ydot,0) = lamda*u + 1.0/(1.0+t*t) - lamda*atan(t);
 
   return 0;                                   /* return with success */
+}
+
+int FARK_IMP_FUN(realtype *T, realtype *Y, realtype *YDOT,
+		 long int *IPAR, realtype *RPAR, int *IER) {
+  realtype t = *T;
+  realtype u = Y[0];
+  realtype lamda = -100.0;
+  YDOT[0] = singleEq(t, u);
+  return 0;
+}
+
+/* C interface to user-supplied FORTRAN function FARKIFUN; see
+   farkode.h for further details */
+int FARKfi(realtype t, N_Vector y, N_Vector ydot, void *user_data) {
+
+  int ier;
+  realtype *ydata, *dydata;
+  FARKUserData ARK_userdata;
+  ydata  = N_VGetArrayPointer(y);
+  dydata = N_VGetArrayPointer(ydot);
+  ARK_userdata = (FARKUserData) user_data;
+
+  FARK_IMP_FUN(&t, ydata, dydata, ARK_userdata->ipar,
+	       ARK_userdata->rpar, &ier);
+  return(ier);
 }
 
 /* Jacobian routine to compute J(t,y) = df/dy. */

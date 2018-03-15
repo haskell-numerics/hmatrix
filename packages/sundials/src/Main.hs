@@ -55,6 +55,13 @@ vectorToC vec len ptr = do
   ptr' <- newForeignPtr_ ptr
   V.copy (VM.unsafeFromForeignPtr0 ptr' len) vec
 
+foreign export ccall singleEq :: Double -> Double -> IO Double
+
+singleEq :: Double -> Double -> IO Double
+singleEq t u = return $ lamda * u + 1.0 / (1.0 + t * t) - lamda * atan t
+  where
+    lamda = -100.0
+
 solve :: (CDouble -> V.Vector CDouble -> V.Vector CDouble) ->
          V.Vector Double ->
          CDouble ->
@@ -89,29 +96,6 @@ solve fun f0 lambda = unsafePerformIO $ do
                          realtype abstol = 1.0e-10;
                          realtype lamda  = -100.0;     /* stiffness parameter */
 
-                         /* Beginning of stolen code from the Fortran interface */
-
-                         N_Vector F2C_ARKODE_vec;
-                         F2C_ARKODE_vec = NULL;
-                         F2C_ARKODE_vec = N_VNewEmpty_Serial(NEQ); /* was *N */
-                         if (F2C_ARKODE_vec == NULL) return 1;
-
-                         /* Check for required vector operations */
-                         if(F2C_ARKODE_vec->ops->nvgetarraypointer == NULL) {
-                           fprintf(stderr, "Error: getarraypointer vector operation is not implemented.\n\n");
-                           return 1;
-                         }
-                         if(F2C_ARKODE_vec->ops->nvsetarraypointer == NULL) {
-                           fprintf(stderr, "Error: setarraypointer vector operation is not implemented.\n\n");
-                           return 1;
-                         }
-                         if(F2C_ARKODE_vec->ops->nvcloneempty == NULL) {
-                           fprintf(stderr, "Error: cloneempty vector operation is not implemented.\n\n");
-                           return 1;
-                         }
-
-                         /* End of stolen code from the Fortran interface */
-                         
                          /* Initial diagnostics output */
                          printf("\nAnalytical ODE test problem:\n");
                          printf("    lamda = %"GSYM"\n",    lamda);
@@ -130,7 +114,7 @@ solve fun f0 lambda = unsafePerformIO $ do
                          /*    right-hand side function in y'=f(t,y), the inital time T0, and */
                          /*    the initial dependent variable vector y.  Note: since this */
                          /*    problem is fully implicit, we set f_E to NULL and f_I to f. */
-                         flag = ARKodeInit(arkode_mem, NULL, f, T0, y);
+                         flag = ARKodeInit(arkode_mem, NULL, FARKfi, T0, y);
                          if (check_flag(&flag, "ARKodeInit", 1)) return 1;
 
                          /* Set routines */
