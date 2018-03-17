@@ -64,10 +64,7 @@ int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 
 int FARK_IMP_FUN(realtype *T, realtype *Y, realtype *YDOT,
 		 long int *IPAR, realtype *RPAR, int *IER) {
-  realtype t = *T;
-  realtype u = Y[0];
-  realtype lamda = -100.0;
-  YDOT[0] = singleEq(t, u);
+  multiEq(T, Y, YDOT, IPAR, RPAR, IER);
   return 0;
 }
 

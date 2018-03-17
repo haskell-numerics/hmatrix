@@ -28,7 +28,13 @@ import qualified Language.C.Types as CT
 import qualified Data.Map as Map
 import           Language.C.Inline.Context
 
-C.context (C.baseCtx <> C.vecCtx <> C.funCtx)
+import           Foreign.C.String
+import           Foreign.Storable (peek, poke, peekByteOff)
+import           Data.Int
+
+import qualified Types as T
+
+C.context (C.baseCtx <> C.vecCtx <> C.funCtx <> T.sunCtx)
 
 -- C includes
 C.include "<stdio.h>"
@@ -43,6 +49,21 @@ C.include "<sundials/sundials_math.h>"
 C.include "helpers.h"
 
 
+-- These were semi-generated using hsc2hs with Bar.hsc as the
+-- template. They are probably very fragile and could easily break on
+-- different architectures and / or changes in the sundials package.
+
+getContentPtr :: Storable a => Ptr b -> IO a
+getContentPtr ptr = ((\hsc_ptr -> peekByteOff hsc_ptr 0)) ptr
+
+getData :: Storable a => Ptr b -> IO a
+getData ptr = ((\hsc_ptr -> peekByteOff hsc_ptr 16)) ptr
+
+getDataFromContents :: Storable a => Ptr b -> IO a
+getDataFromContents ptr = do
+  qtr <- getContentPtr ptr
+  getData qtr
+
 -- Utils
 
 vectorFromC :: Storable a => Int -> Ptr a -> IO (V.Vector a)
@@ -55,11 +76,23 @@ vectorToC vec len ptr = do
   ptr' <- newForeignPtr_ ptr
   V.copy (VM.unsafeFromForeignPtr0 ptr' len) vec
 
-foreign export ccall singleEq :: Double -> Double -> IO Double
+-- Provided you always call your function 'multiEq' then we can
+-- probably solve any set of ODEs! But of course we don't want to
+-- follow the Fortran way of interacting with sundials.
 
-singleEq :: Double -> Double -> IO Double
-singleEq t u = return $ lamda * u + 1.0 / (1.0 + t * t) - lamda * atan t
+-- foreign export ccall multiEq :: Ptr CDouble -> Ptr CDouble -> Ptr CDouble -> Ptr CLong -> Ptr CDouble -> Ptr CInt -> IO ()
+
+multiEq :: Ptr CDouble -> Ptr CDouble -> Ptr CDouble -> Ptr CLong -> Ptr CDouble -> Ptr CInt -> IO ()
+multiEq tPtr yPtr yDotPtr iParPtr rParPtr ierPtr = do
+  t <- peek tPtr
+  y <- vectorFromC 1 yPtr
+  vectorToC (V.map realToFrac $ stiffish (realToFrac t) (V.map realToFrac y)) 1 yDotPtr
+  poke ierPtr 0
+
+stiffish :: Double -> V.Vector Double -> V.Vector Double
+stiffish t v = V.fromList [ lamda * u + 1.0 / (1.0 + t * t) - lamda * atan t ]
   where
+    u = v V.! 0
     lamda = -100.0
 
 solve :: (CDouble -> V.Vector CDouble -> V.Vector CDouble) ->
@@ -68,12 +101,16 @@ solve :: (CDouble -> V.Vector CDouble -> V.Vector CDouble) ->
          CInt
 solve fun f0 lambda = unsafePerformIO $ do
   let dim = V.length f0
-  let funIO x y f _ptr = do
+  -- We need the types that sundials expects. These are tied together
+  -- in 'Types'. The Haskell type is currently empty!
+  let funIO :: CDouble -> Ptr T.BarType -> Ptr T.BarType -> Ptr () -> IO CInt
+      funIO x y f _ptr = do
+        error $ show x
         -- Convert the pointer we get from C (y) to a vector, and then
         -- apply the user-supplied function.
-        fImm <- fun x <$> vectorFromC dim y
+        -- fImm <- fun x <$> vectorFromC dim y
         -- Fill in the provided pointer with the resulting vector.
-        vectorToC fImm dim f
+        -- vectorToC fImm dim f
         -- Unsafe since the function will be called many times.
         [CU.exp| int{ 0 } |]
   res <- [C.block| int {
@@ -114,7 +151,11 @@ solve fun f0 lambda = unsafePerformIO $ do
                          /*    right-hand side function in y'=f(t,y), the inital time T0, and */
                          /*    the initial dependent variable vector y.  Note: since this */
                          /*    problem is fully implicit, we set f_E to NULL and f_I to f. */
-                         flag = ARKodeInit(arkode_mem, NULL, FARKfi, T0, y);
+
+                         /* Here we use the C types defined in helpers.h which tie up with */
+                         /* the Haskell types defined in Types                             */
+                         flag = ARKodeInit(arkode_mem, NULL, $fun:(int (* funIO) (double t, BarType y[], BarType dydt[], void * params)), T0, y);
+                         /* flag = ARKodeInit(arkode_mem, NULL, FARKfi, T0, y); */
                          if (check_flag(&flag, "ARKodeInit", 1)) return 1;
 
                          /* Set routines */

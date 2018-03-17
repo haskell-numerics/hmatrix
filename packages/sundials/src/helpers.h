@@ -8,6 +8,9 @@
 #define FSYM "f"
 #endif
 
+typedef struct _generic_N_Vector BarType;
+typedef struct _N_VectorContent_Serial BazType;
+
 /* Check function return value...
     opt == 0 means SUNDIALS function allocates memory so check if
              returned NULL pointer
