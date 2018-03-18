@@ -2,6 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 import qualified Language.C.Inline as C
 import qualified Language.C.Inline.Unsafe as CU
@@ -95,20 +96,23 @@ stiffish t v = V.fromList [ lamda * u + 1.0 / (1.0 + t * t) - lamda * atan t ]
     u = v V.! 0
     lamda = -100.0
 
-solve :: (CDouble -> V.Vector CDouble -> V.Vector CDouble) ->
-         V.Vector Double ->
-         CDouble ->
-         CInt
-solve fun f0 lambda = unsafePerformIO $ do
+solveOdeC :: (CDouble -> V.Vector CDouble -> V.Vector CDouble) ->
+             V.Vector Double ->
+             CDouble ->
+             CInt
+solveOdeC fun f0 lambda = unsafePerformIO $ do
   let dim = V.length f0
   -- We need the types that sundials expects. These are tied together
   -- in 'Types'. The Haskell type is currently empty!
   let funIO :: CDouble -> Ptr T.BarType -> Ptr T.BarType -> Ptr () -> IO CInt
       funIO x y f _ptr = do
-        error $ show x
+        z :: (Ptr (Ptr (CDouble))) <- getContentPtr y
+        u :: (Ptr (CDouble)) <- getDataFromContents y
+        v <- vectorFromC 1 u
+        error $ show y ++ " " ++ show z ++ " " ++ show u ++ " " ++ show v ++ " " ++ show dim
         -- Convert the pointer we get from C (y) to a vector, and then
         -- apply the user-supplied function.
-        -- fImm <- fun x <$> vectorFromC dim y
+        fImm <- fun x <$> vectorFromC dim u
         -- Fill in the provided pointer with the resulting vector.
         -- vectorToC fImm dim f
         -- Unsafe since the function will be called many times.
@@ -246,5 +250,5 @@ solve fun f0 lambda = unsafePerformIO $ do
   return res
 
 main = do
-  let res = solve undefined undefined (coerce (100.0 :: Double))
+  let res = solveOdeC undefined (V.fromList [17.0]) (coerce (100.0 :: Double))
   putStrLn $ show res
