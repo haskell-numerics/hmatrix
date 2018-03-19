@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wall #-}
+
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiWayIf #-}
@@ -9,29 +11,15 @@ import qualified Language.C.Inline.Unsafe as CU
 import           Data.Monoid ((<>))
 import           Foreign.C.Types
 import           Foreign.Ptr (Ptr)
-import           Foreign.Marshal.Array
 import qualified Data.Vector.Storable as V
 
 import           Data.Coerce (coerce)
-import           Data.Monoid ((<>))
-import qualified Data.Vector.Storable as V
 import qualified Data.Vector.Storable.Mutable as VM
-import           Foreign.C.Types
 import           Foreign.ForeignPtr (newForeignPtr_)
-import           Foreign.Ptr (Ptr)
 import           Foreign.Storable (Storable)
-import qualified Language.C.Inline as C
-import qualified Language.C.Inline.Unsafe as CU
 import           System.IO.Unsafe (unsafePerformIO)
 
-import qualified Language.Haskell.TH as TH
-import qualified Language.C.Types as CT
-import qualified Data.Map as Map
-import           Language.C.Inline.Context
-
-import           Foreign.C.String
-import           Foreign.Storable (peek, poke, peekByteOff, pokeByteOff)
-import           Data.Int
+import           Foreign.Storable (peekByteOff)
 
 import qualified Types as T
 
@@ -237,6 +225,7 @@ solveOdeC fun f0 = unsafePerformIO $ do
                        } |]
   return res
 
+main :: IO ()
 main = do
   let res = solveOdeC (coerce stiffish) (V.fromList [1.0])
   putStrLn $ show res
