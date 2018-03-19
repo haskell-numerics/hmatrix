@@ -8,12 +8,6 @@
 #include <sundials/sundials_types.h>       /* definition of type realtype          */
 #include <sundials/sundials_math.h>
 
-#include "farkode.h"
-
-#include <HsFFI.h>
-#include "Main_stub.h"
-
-
 /* Check function return value...
     opt == 0 means SUNDIALS function allocates memory so check if
              returned NULL pointer
@@ -48,21 +42,6 @@ int check_flag(void *flagvalue, const char *funcname, int opt)
 
   return 0;
 }
-
-/* Jacobian routine to compute J(t,y) = df/dy. */
-int Jac(realtype t, N_Vector y, N_Vector fy, SUNMatrix J,
-        void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
-{
-  realtype *rdata = (realtype *) user_data;   /* cast user_data to realtype */
-  realtype lamda = rdata[0];                  /* set shortcut for stiffness parameter */
-  realtype *Jdata = SUNDenseMatrix_Data(J);
-  
-  /* Fill in Jacobian of f: set the first entry of the data array to set the (0,0) entry */
-  Jdata[0] = lamda;
-
-  return 0;                                   /* return with success */
-}
-
 
 /* check the computed solution */
 int check_ans(N_Vector y, realtype t, realtype rtol, realtype atol)
