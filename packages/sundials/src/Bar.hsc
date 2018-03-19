@@ -14,11 +14,11 @@ import Foreign.C.String
 
 
 getContentPtr :: Storable a => Ptr b -> IO a
-getContPtr ptr = (#peek BarType, content) ptr
+getContentPtr ptr = (#peek BarType, content) ptr
 
+getData :: Storable a => Ptr b -> IO a
 getData ptr = (#peek BazType, data) ptr
 
-foo ptr = do
-  qtr <- getContPtr ptr
-  getData qtr
+
+  
 
