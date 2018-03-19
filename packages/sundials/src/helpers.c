@@ -49,41 +49,6 @@ int check_flag(void *flagvalue, const char *funcname, int opt)
   return 0;
 }
 
-/* f routine to compute the ODE RHS function f(t,y). */
-int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
-{
-  realtype *rdata = (realtype *) user_data;   /* cast user_data to realtype */
-  realtype lamda = rdata[0];                  /* set shortcut for stiffness parameter */
-  realtype u = NV_Ith_S(y,0);                 /* access current solution value */
-
-  /* fill in the RHS function: "NV_Ith_S" accesses the 0th entry of ydot */
-  NV_Ith_S(ydot,0) = lamda*u + 1.0/(1.0+t*t) - lamda*atan(t);
-
-  return 0;                                   /* return with success */
-}
-
-int FARK_IMP_FUN(realtype *T, realtype *Y, realtype *YDOT,
-		 long int *IPAR, realtype *RPAR, int *IER) {
-  multiEq(T, Y, YDOT, IPAR, RPAR, IER);
-  return 0;
-}
-
-/* C interface to user-supplied FORTRAN function FARKIFUN; see
-   farkode.h for further details */
-int FARKfi(realtype t, N_Vector y, N_Vector ydot, void *user_data) {
-
-  int ier;
-  realtype *ydata, *dydata;
-  FARKUserData ARK_userdata;
-  ydata  = N_VGetArrayPointer(y);
-  dydata = N_VGetArrayPointer(ydot);
-  ARK_userdata = (FARKUserData) user_data;
-
-  FARK_IMP_FUN(&t, ydata, dydata, ARK_userdata->ipar,
-	       ARK_userdata->rpar, &ier);
-  return(ier);
-}
-
 /* Jacobian routine to compute J(t,y) = df/dy. */
 int Jac(realtype t, N_Vector y, N_Vector fy, SUNMatrix J,
         void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)

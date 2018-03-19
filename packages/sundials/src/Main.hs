@@ -84,19 +84,6 @@ vectorToC vec len ptr = do
   ptr' <- newForeignPtr_ ptr
   V.copy (VM.unsafeFromForeignPtr0 ptr' len) vec
 
--- Provided you always call your function 'multiEq' then we can
--- probably solve any set of ODEs! But of course we don't want to
--- follow the Fortran way of interacting with sundials.
-
--- foreign export ccall multiEq :: Ptr CDouble -> Ptr CDouble -> Ptr CDouble -> Ptr CLong -> Ptr CDouble -> Ptr CInt -> IO ()
-
-multiEq :: Ptr CDouble -> Ptr CDouble -> Ptr CDouble -> Ptr CLong -> Ptr CDouble -> Ptr CInt -> IO ()
-multiEq tPtr yPtr yDotPtr iParPtr rParPtr ierPtr = do
-  t <- peek tPtr
-  y <- vectorFromC 1 yPtr
-  vectorToC (V.map realToFrac $ stiffish (realToFrac t) (V.map realToFrac y)) 1 yDotPtr
-  poke ierPtr 0
-
 stiffish :: Double -> V.Vector Double -> V.Vector Double
 stiffish t v = V.fromList [ lamda * u + 1.0 / (1.0 + t * t) - lamda * atan t ]
   where
@@ -161,7 +148,6 @@ solveOdeC fun f0 = unsafePerformIO $ do
                          /* Here we use the C types defined in helpers.h which tie up with */
                          /* the Haskell types defined in Types                             */
                          flag = ARKodeInit(arkode_mem, NULL, $fun:(int (* funIO) (double t, BarType y[], BarType dydt[], void * params)), T0, y);
-                         /* flag = ARKodeInit(arkode_mem, NULL, FARKfi, T0, y); */
                          if (check_flag(&flag, "ARKodeInit", 1)) return 1;
 
                          /* Set routines */
