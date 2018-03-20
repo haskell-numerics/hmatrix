@@ -6,6 +6,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+module Numeric.Sundials.Arkode.ODE ( solveOdeC ) where
+
 import qualified Language.C.Inline as C
 import qualified Language.C.Inline.Unsafe as CU
 import           Data.Monoid ((<>))
@@ -37,7 +39,7 @@ C.include "<sunlinsol/sunlinsol_dense.h>"     -- access to dense SUNLinearSolver
 C.include "<arkode/arkode_direct.h>"          -- access to ARKDls interface          
 C.include "<sundials/sundials_types.h>"       -- definition of type realtype         
 C.include "<sundials/sundials_math.h>"
-C.include "helpers.h"
+C.include "../../../helpers.h"
 
 
 -- These were semi-generated using hsc2hs with Bar.hsc as the
@@ -251,11 +253,11 @@ solveOdeC fun f0 ts = unsafePerformIO $ do
                          return flag;
                        } |]
   if res ==0
-  then do
-    v <- V.freeze fMut
-    return $ Right v
-  else do
-    return $ Left res
+    then do
+      v <- V.freeze fMut
+      return $ Right v
+    else do
+      return $ Left res
 
 main :: IO ()
 main = do
