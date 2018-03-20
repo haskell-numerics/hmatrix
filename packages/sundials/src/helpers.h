@@ -20,6 +20,3 @@ typedef struct _N_VectorContent_Serial BazType;
              NULL pointer  
 */
 int check_flag(void *flagvalue, const char *funcname, int opt);
-
-/* check the computed solution */
-int check_ans(N_Vector y, realtype t, realtype rtol, realtype atol);
