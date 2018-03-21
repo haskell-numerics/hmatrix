@@ -16,7 +16,14 @@ brusselator _t x = V.fromList [ a - (w + 1) * u + v * u^2
     v = x V.! 1
     w = x V.! 2
 
+stiffish t v = V.fromList [ lamda * u + 1.0 / (1.0 + t * t) - lamda * atan t ]
+  where
+    lamda = -100.0
+    u = v V.! 0
+
 main :: IO ()
 main = do
   let res = solveOde brusselator (V.fromList [1.2, 3.1, 3.0]) (V.fromList [0.0, 1.0 .. 10.0])
+  putStrLn $ show res
+  let res = solveOde stiffish (V.fromList [1.0]) (V.fromList [0.0, 0.1 .. 10.0])
   putStrLn $ show res
