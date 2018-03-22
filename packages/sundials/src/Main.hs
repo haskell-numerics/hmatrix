@@ -2,28 +2,58 @@
 
 import qualified Data.Vector.Storable as V
 import           Numeric.Sundials.Arkode.ODE
+import           Numeric.LinearAlgebra
 
-brusselator :: Double -> V.Vector Double -> V.Vector Double
-brusselator _t x = V.fromList [ a - (w + 1) * u + v * u^2
-                              , w * u - v * u^2
-                              , (b - w) / eps - w * u
-                              ]
+import           Plots as P
+import qualified Diagrams.Prelude as D
+import           Diagrams.Backend.Rasterific
+
+import           Control.Lens
+import           Data.List (zip4)
+
+
+brusselator _t x = [ a - (w + 1) * u + v * u^2
+                   , w * u - v * u^2
+                   , (b - w) / eps - w * u
+                   ]
   where
     a = 1.0
     b = 3.5
     eps = 5.0e-6
-    u = x V.! 0
-    v = x V.! 1
-    w = x V.! 2
+    u = x !! 0
+    v = x !! 1
+    w = x !! 2
 
-stiffish t v = V.fromList [ lamda * u + 1.0 / (1.0 + t * t) - lamda * atan t ]
+stiffish t v = [ lamda * u + 1.0 / (1.0 + t * t) - lamda * atan t ]
   where
     lamda = -100.0
-    u = v V.! 0
+    u = v !! 0
+
+lSaxis :: [[Double]] -> P.Axis B D.V2 Double
+lSaxis xs = P.r2Axis &~ do
+  let ts = xs!!0
+      us = xs!!1
+      vs = xs!!2
+      ws = xs!!3
+  P.linePlot' $ zip ts us
+  P.linePlot' $ zip ts vs
+  P.linePlot' $ zip ts ws
+
+kSaxis :: [(Double, Double)] -> P.Axis B D.V2 Double
+kSaxis xs = P.r2Axis &~ do
+  P.linePlot' xs
 
 main :: IO ()
 main = do
-  let res = solveOde brusselator (V.fromList [1.2, 3.1, 3.0]) (V.fromList [0.0, 1.0 .. 10.0])
+  let res = odeSolve brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 10.0])
   putStrLn $ show res
-  let res = solveOde stiffish (V.fromList [1.0]) (V.fromList [0.0, 0.1 .. 10.0])
+  renderRasterific "diagrams/brusselator.png"
+                   (D.dims2D 500.0 500.0)
+                   (renderAxis $ lSaxis $ [0.0, 0.1 .. 10.0]:(toLists $ tr res))
+
+  let res = odeSolve stiffish [0.0] (fromList [0.0, 0.1 .. 10.0])
   putStrLn $ show res
+  renderRasterific "diagrams/stiffish.png"
+                   (D.dims2D 500.0 500.0)
+                   (renderAxis $ kSaxis $ zip [0.0, 0.1 .. 10.0] (concat $ toLists res))
+  

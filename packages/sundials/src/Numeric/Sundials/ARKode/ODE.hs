@@ -6,7 +6,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Numeric.Sundials.Arkode.ODE ( solveOde ) where
+module Numeric.Sundials.Arkode.ODE ( solveOde
+                                   , odeSolve
+                                   ) where
 
 import qualified Language.C.Inline as C
 import qualified Language.C.Inline.Unsafe as CU
@@ -26,13 +28,14 @@ import           System.IO.Unsafe (unsafePerformIO)
 
 import           Numeric.LinearAlgebra.Devel (createVector)
 
-import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix)
+import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, (><))
 
 import qualified Types as T
 
 C.context (C.baseCtx <> C.vecCtx <> C.funCtx <> T.sunCtx)
 
 -- C includes
+C.include "<stdlib.h>"
 C.include "<stdio.h>"
 C.include "<math.h>"
 C.include "<arkode/arkode.h>"                 -- prototypes for ARKODE fcts., consts.
@@ -96,7 +99,14 @@ odeSolve :: (Double -> [Double] -> [Double]) -- ^ The RHS of the system \(\dot{y
          -> [Double]                         -- ^ initial conditions
          -> Vector Double                    -- ^ desired solution times
          -> Matrix Double                    -- ^ solution
-odeSolve = undefined
+odeSolve f y0 ts = case solveOde g (V.fromList y0) (V.fromList $ toList ts) of
+                     Left c -> error $ show c -- FIXME
+                     Right (v, _) -> (nR >< nC) (V.toList v)
+  where
+    us = toList ts
+    nR = length us
+    nC = length y0
+    g t x0 = V.fromList $ f t (V.toList x0)
 
 solveOde :: 
   (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
@@ -146,13 +156,12 @@ solveOdeC fun f0 ts = unsafePerformIO $ do
                          SUNMatrix A = NULL;             /* empty matrix for linear solver */
                          SUNLinearSolver LS = NULL;      /* empty linear solver object */
                          void *arkode_mem = NULL;        /* empty ARKode memory structure */
-                         FILE *UFID;
                          realtype t;
                          long int nst, nst_a, nfe, nfi, nsetups, nje, nfeLS, nni, ncfn, netf;
 
                          /* general problem parameters */
                          realtype T0 = RCONST(($vec-ptr:(double *tMut))[0]);    /* initial time */
-                         realtype Tf = RCONST(($vec-ptr:(double *tMut))[$(int nTs) - 1]);   /* final time */
+
                          sunindextype NEQ = $(sunindextype nEq); /* number of dependent vars. */
                          realtype reltol = 1.0e-6;     /* tolerances */
                          realtype abstol = 1.0e-10;
@@ -198,7 +207,29 @@ solveOdeC fun f0 ts = unsafePerformIO $ do
                          for (j = 0; j < NEQ; j++) {
                            ($vec-ptr:(double *qMatMut))[0 * $(int nTs) + j] = NV_Ith_S(y,j);
                          }
-                         
+
+                         flag = ARKodeSetIRKTableNum(arkode_mem, KVAERNO_4_2_3);
+                         if (check_flag(&flag, "ARKode", 1)) return 1;
+
+                         int s, q, p;
+                         realtype *ai = (realtype *)malloc(ARK_S_MAX * ARK_S_MAX * sizeof(realtype));
+                         realtype *ae = (realtype *)malloc(ARK_S_MAX * ARK_S_MAX * sizeof(realtype));
+                         realtype *ci = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
+                         realtype *ce = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
+                         realtype *bi = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
+                         realtype *be = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
+                         realtype *b2i = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
+                         realtype *b2e = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
+                         flag = ARKodeGetCurrentButcherTables(arkode_mem, &s, &q, &p, ai, ae, ci, ce, bi, be, b2i, b2e);
+                         if (check_flag(&flag, "ARKode", 1)) return 1;
+                         fprintf(stderr, "s = %d, q = %d, p = %d\n", s, q, p);
+                         for (i = 0; i < s; i++) {
+                           for (j = 0; j < s; j++) {
+                             fprintf(stderr, "ai[%d,%d] = %f", i, j, ai[i * ARK_S_MAX + j]);
+                           }
+                           fprintf(stderr, "\n");
+                         }
+
                          /* Main time-stepping loop: calls ARKode to perform the integration */
                          /* Stops when the final time has been reached */
                          for (i = 1; i < $(int nTs); i++) {
