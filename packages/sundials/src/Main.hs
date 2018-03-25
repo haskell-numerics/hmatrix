@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wall #-}
+module Main where
 
 import           Numeric.Sundials.Arkode.ODE
 import           Numeric.LinearAlgebra

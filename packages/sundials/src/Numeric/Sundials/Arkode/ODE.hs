@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wall #-}
-
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
