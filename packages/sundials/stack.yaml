@@ -3,3 +3,6 @@ resolver: lts-10.9
 packages:
 - .
 
+extra-deps:
+- diagrams-rasterific-1.4
+- plots-0.1.0.2
