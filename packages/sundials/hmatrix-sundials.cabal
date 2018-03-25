@@ -36,6 +36,7 @@ executable sundials
                        template-haskell >=2.12 && <2.13,
                        containers >=0.5 && <0.6,
                        hmatrix>=0.18,
+                       lens,
                        plots,
                        diagrams-lib,
                        diagrams-rasterific
