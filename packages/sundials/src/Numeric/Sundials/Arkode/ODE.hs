@@ -1,14 +1,16 @@
 {-# OPTIONS_GHC -Wall #-}
 
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
-module Numeric.Sundials.Arkode.ODE ( solveOde
-                                   , odeSolve
-                                   ) where
+module Numeric.Sundials.Arkode.ODE
+  ( SundialsDiagnostics(..)
+  , solveOde
+  , odeSolve
+  ) where
 
 import qualified Language.C.Inline as C
 import qualified Language.C.Inline.Unsafe as CU
