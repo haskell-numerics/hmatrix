@@ -13,11 +13,5 @@ packages:
 - packages/gsl/
 - packages/glpk/
 - packages/base/
-- packages/sundials/
-extra-deps:
-- diagrams-rasterific-1.4
-- plots-0.1.0.2
-resolver: lts-10.9
-nix:
-  path: [nixpkgs=./nixpkgs.nix]
-  shell-file: shell.nix
+extra-deps: []
+resolver: lts-8.15

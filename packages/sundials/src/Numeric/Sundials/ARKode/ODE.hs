@@ -1,14 +1,14 @@
+{-# OPTIONS_GHC -Wall #-}
+
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 
-module Numeric.Sundials.Arkode.ODE
-  ( SundialsDiagnostics(..)
-  , solveOde
-  , odeSolve
-  ) where
+module Numeric.Sundials.Arkode.ODE ( solveOde
+                                   , odeSolve
+                                   ) where
 
 import qualified Language.C.Inline as C
 import qualified Language.C.Inline.Unsafe as CU
@@ -40,10 +40,10 @@ C.include "<stdio.h>"
 C.include "<math.h>"
 C.include "<arkode/arkode.h>"                 -- prototypes for ARKODE fcts., consts.
 C.include "<nvector/nvector_serial.h>"        -- serial N_Vector types, fcts., macros
-C.include "<sunmatrix/sunmatrix_dense.h>"     -- access to dense SUNMatrix
-C.include "<sunlinsol/sunlinsol_dense.h>"     -- access to dense SUNLinearSolver
-C.include "<arkode/arkode_direct.h>"          -- access to ARKDls interface
-C.include "<sundials/sundials_types.h>"       -- definition of type realtype
+C.include "<sunmatrix/sunmatrix_dense.h>"     -- access to dense SUNMatrix           
+C.include "<sunlinsol/sunlinsol_dense.h>"     -- access to dense SUNLinearSolver     
+C.include "<arkode/arkode_direct.h>"          -- access to ARKDls interface          
+C.include "<sundials/sundials_types.h>"       -- definition of type realtype         
 C.include "<sundials/sundials_math.h>"
 C.include "../../../helpers.h"
 
@@ -108,7 +108,7 @@ odeSolve f y0 ts = case solveOde g (V.fromList y0) (V.fromList $ toList ts) of
     nC = length y0
     g t x0 = V.fromList $ f t (V.toList x0)
 
-solveOde ::
+solveOde :: 
   (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
           -> V.Vector Double                     -- ^ Initial conditions
           -> V.Vector Double                     -- ^ Desired solution times
@@ -116,7 +116,7 @@ solveOde ::
 solveOde f y0 tt = case solveOdeC (coerce f) (coerce y0) (coerce tt) of
                      Left c -> Left $ fromIntegral c
                      Right (v, d) -> Right (coerce v, d)
-
+                        
 solveOdeC ::
   (CDouble -> V.Vector CDouble -> V.Vector CDouble) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
           -> V.Vector CDouble -- ^ Initial conditions
@@ -285,13 +285,13 @@ solveOdeC fun f0 ts = unsafePerformIO $ do
                          flag = ARKDlsGetNumRhsEvals(arkode_mem, &nfeLS);
                          check_flag(&flag, "ARKDlsGetNumRhsEvals", 1);
                          ($vec-ptr:(long int *diagMut))[9] = ncfn;
-
+                         
                          /* Clean up and return */
                          N_VDestroy(y);            /* Free y vector */
                          ARKodeFree(&arkode_mem);  /* Free integrator memory */
                          SUNLinSolFree(LS);        /* Free linear solver */
                          SUNMatDestroy(A);         /* Free A matrix */
-
+ 
                          return flag;
                        } |]
   if res == 0
@@ -311,3 +311,4 @@ solveOdeC fun f0 ts = unsafePerformIO $ do
       return $ Right (m, d)
     else do
       return $ Left res
+
