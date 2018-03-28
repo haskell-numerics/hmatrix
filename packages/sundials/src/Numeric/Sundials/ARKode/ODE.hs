@@ -6,8 +6,25 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+-- |
+-- Module: Numeric.Sundials.ARKode
+--
+-- Blah
+--
+-- \[
+-- \begin{array}{c|cccc}
+-- c_1 & 0.0 & 0.0 & 0.0 & 0.0 \\
+-- c_2 & 0.4358665215 & 0.4358665215 & 0.0 & 0.0 \\
+-- c_3 & 0.490563388419108 & 7.3570090080892e-2 & 0.4358665215 & 0.0 \\
+-- c_4 & 0.308809969973036 & 1.490563388254106 & -1.235239879727145 & 0.4358665215 \\
+-- \end{array}
+-- \]
+--
 module Numeric.Sundials.Arkode.ODE ( solveOde
                                    , odeSolve
+                                   , getButcherTable
+                                   , getBT
+                                   , btGet
                                    ) where
 
 import qualified Language.C.Inline as C
@@ -28,9 +45,10 @@ import           System.IO.Unsafe (unsafePerformIO)
 
 import           Numeric.LinearAlgebra.Devel (createVector)
 
-import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, (><))
+import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, (><), subMatrix)
 
 import qualified Types as T
+import qualified Bar as B
 
 C.context (C.baseCtx <> C.vecCtx <> C.funCtx <> T.sunCtx)
 
@@ -83,16 +101,16 @@ vectorToC vec len ptr = do
   V.copy (VM.unsafeFromForeignPtr0 ptr' len) vec
 
 data SundialsDiagnostics = SundialsDiagnostics {
-    aRKodeGetNumSteps :: Int
-  , aRKodeGetNumStepAttempts :: Int
-  , aRKodeGetNumRhsEvals_fe :: Int
-  , aRKodeGetNumRhsEvals_fi :: Int
-  , aRKodeGetNumLinSolvSetups :: Int
-  , aRKodeGetNumErrTestFails :: Int
-  , aRKodeGetNumNonlinSolvIters :: Int
+    aRKodeGetNumSteps               :: Int
+  , aRKodeGetNumStepAttempts        :: Int
+  , aRKodeGetNumRhsEvals_fe         :: Int
+  , aRKodeGetNumRhsEvals_fi         :: Int
+  , aRKodeGetNumLinSolvSetups       :: Int
+  , aRKodeGetNumErrTestFails        :: Int
+  , aRKodeGetNumNonlinSolvIters     :: Int
   , aRKodeGetNumNonlinSolvConvFails :: Int
-  , aRKDlsGetNumJacEvals :: Int
-  , aRKDlsGetNumRhsEvals :: Int
+  , aRKDlsGetNumJacEvals            :: Int
+  , aRKDlsGetNumRhsEvals            :: Int
   } deriving Show
 
 odeSolve :: (Double -> [Double] -> [Double]) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
@@ -309,6 +327,110 @@ solveOdeC fun f0 ts = unsafePerformIO $ do
                                   (fromIntegral $ preD V.!9)
       m <- V.freeze qMatMut
       return $ Right (m, d)
+    else do
+      return $ Left res
+
+btGet :: Matrix Double
+btGet = case getBT of
+          Left c -> error $ show c -- FIXME
+          Right (v, sqp) -> subMatrix (0, 0) (4, 4) $ (B.arkSMax >< B.arkSMax) (V.toList v)
+
+getBT :: Either Int (V.Vector Double, V.Vector Int)
+getBT = case getButcherTable of
+          Left c -> Left $ fromIntegral c
+          Right (v, sqp) -> Right $ (coerce v, V.map fromIntegral sqp)
+
+getButcherTable :: Either CInt ((V.Vector CDouble), V.Vector CInt)
+getButcherTable = unsafePerformIO $ do
+  -- arkode seems to want an ODE in order to set and then get the
+  -- Butcher tableau so here's one to keep it happy
+  let fun :: CDouble -> V.Vector CDouble -> V.Vector CDouble
+      fun t ys = V.fromList [ ys V.! 0 ]
+      f0       = V.fromList [ 1.0 ]
+      ts       = V.fromList [ 0.0 ]
+      dim = V.length f0
+      nEq :: CLong
+      nEq = fromIntegral dim
+
+  -- FIXME: I believe these gets taken from the ghc heap and so should
+  -- be subject to garbage collection.
+  btSQP :: V.Vector CInt <- createVector 3
+  btSQPMut <- V.thaw btSQP
+  btAs :: V.Vector CDouble <- createVector (B.arkSMax * B.arkSMax)
+  btAsMut <- V.thaw btAs
+  -- We need the types that sundials expects. These are tied together
+  -- in 'Types'. FIXME: The Haskell type is currently empty!
+  let funIO :: CDouble -> Ptr T.BarType -> Ptr T.BarType -> Ptr () -> IO CInt
+      funIO x y f _ptr = do
+        -- Convert the pointer we get from C (y) to a vector, and then
+        -- apply the user-supplied function.
+        fImm <- fun x <$> getDataFromContents dim y
+        -- Fill in the provided pointer with the resulting vector.
+        putDataInContents fImm dim f
+        -- I don't understand what this comment means
+        -- Unsafe since the function will be called many times.
+        [CU.exp| int{ 0 } |]
+  res <- [C.block| int {
+                         /* general problem variables */
+                         int flag;                       /* reusable error-checking flag */
+                         N_Vector y = NULL;              /* empty vector for storing solution */
+                         void *arkode_mem = NULL;        /* empty ARKode memory structure */
+
+                         /* general problem parameters */
+                         /* initial time */
+                         realtype T0 = RCONST(($vec-ptr:(double *ts))[0]);
+                         /* number of dependent vars. */
+                         sunindextype NEQ = $(sunindextype nEq);
+
+                         /* Initialize data structures */
+                         y = N_VNew_Serial(NEQ);         /* Create serial vector for solution */
+                         if (check_flag((void *)y, "N_VNew_Serial", 0)) return 1;
+                         /* Specify initial condition */
+                         int i, j;
+                         for (i = 0; i < NEQ; i++) {
+                           NV_Ith_S(y,i) = ($vec-ptr:(double *f0))[i];
+                         };
+                         arkode_mem = ARKodeCreate(); /* Create the solver memory */
+                         if (check_flag((void *)arkode_mem, "ARKodeCreate", 0)) return 1;
+
+                         flag = ARKodeInit(arkode_mem, NULL, $fun:(int (* funIO) (double t, BarType y[], BarType dydt[], void * params)), T0, y);
+                         if (check_flag(&flag, "ARKodeInit", 1)) return 1;
+
+                         flag = ARKodeSetIRKTableNum(arkode_mem, KVAERNO_4_2_3);
+                         if (check_flag(&flag, "ARKode", 1)) return 1;
+
+                         int s, q, p;
+                         realtype *ai = (realtype *)malloc(ARK_S_MAX * ARK_S_MAX * sizeof(realtype));
+                         realtype *ae = (realtype *)malloc(ARK_S_MAX * ARK_S_MAX * sizeof(realtype));
+                         realtype *ci = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
+                         realtype *ce = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
+                         realtype *bi = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
+                         realtype *be = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
+                         realtype *b2i = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
+                         realtype *b2e = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
+                         flag = ARKodeGetCurrentButcherTables(arkode_mem, &s, &q, &p, ai, ae, ci, ce, bi, be, b2i, b2e);
+                         if (check_flag(&flag, "ARKode", 1)) return 1;
+                         $vec-ptr:(int *btSQPMut)[0] = s;
+                         $vec-ptr:(int *btSQPMut)[1] = q;
+                         $vec-ptr:(int *btSQPMut)[2] = p;
+                         for (i = 0; i < s; i++) {
+                           for (j = 0; j < s; j++) {
+                             /* FIXME: double should be realtype */
+                             ($vec-ptr:(double *btAsMut))[i * ARK_S_MAX + j] = ai[i * ARK_S_MAX + j];
+                           }
+                         }
+
+                         /* Clean up and return */
+                         N_VDestroy(y);            /* Free y vector */
+                         ARKodeFree(&arkode_mem);  /* Free integrator memory */
+ 
+                         return flag;
+                       } |]
+  if res == 0
+    then do
+      x <- V.freeze btAsMut
+      y <- V.freeze btSQPMut
+      return $ Right (x, y)
     else do
       return $ Left res
 
