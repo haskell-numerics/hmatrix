@@ -76,7 +76,7 @@ main = do
   let res = btGet
   putStrLn $ show res
   putStrLn $ butcherTableauTex res
-  
+
   let res = odeSolve brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 10.0])
   putStrLn $ show res
   renderRasterific "diagrams/brusselator.png"
@@ -88,4 +88,3 @@ main = do
   renderRasterific "diagrams/stiffish.png"
                    (D.dims2D 500.0 500.0)
                    (renderAxis $ kSaxis $ zip [0.0, 0.1 .. 10.0] (concat $ toLists res))
-  
