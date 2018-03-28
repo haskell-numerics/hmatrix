@@ -73,17 +73,17 @@ main = do
   -- \end{array}
   -- $$
 
-  let res = btGet
+  let res = btGet SDIRK_2_1_2
   putStrLn $ show res
   putStrLn $ butcherTableauTex res
 
-  let res = odeSolve brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 10.0])
+  let res = odeSolve KVAERNO_4_2_3 brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 10.0])
   putStrLn $ show res
   renderRasterific "diagrams/brusselator.png"
                    (D.dims2D 500.0 500.0)
                    (renderAxis $ lSaxis $ [0.0, 0.1 .. 10.0]:(toLists $ tr res))
 
-  let res = odeSolve stiffish [0.0] (fromList [0.0, 0.1 .. 10.0])
+  let res = odeSolve KVAERNO_4_2_3 stiffish [0.0] (fromList [0.0, 0.1 .. 10.0])
   putStrLn $ show res
   renderRasterific "diagrams/stiffish.png"
                    (D.dims2D 500.0 500.0)
