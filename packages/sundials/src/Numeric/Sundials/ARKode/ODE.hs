@@ -263,25 +263,6 @@ solveOdeC method relTol absTol fun f0 ts = unsafePerformIO $ do
                          flag = ARKodeSetIRKTableNum(arkode_mem, $(int method));
                          if (check_flag(&flag, "ARKode", 1)) return 1;
 
-                         int s, q, p;
-                         realtype *ai = (realtype *)malloc(ARK_S_MAX * ARK_S_MAX * sizeof(realtype));
-                         realtype *ae = (realtype *)malloc(ARK_S_MAX * ARK_S_MAX * sizeof(realtype));
-                         realtype *ci = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
-                         realtype *ce = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
-                         realtype *bi = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
-                         realtype *be = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
-                         realtype *b2i = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
-                         realtype *b2e = (realtype *)malloc(ARK_S_MAX * sizeof(realtype));
-                         flag = ARKodeGetCurrentButcherTables(arkode_mem, &s, &q, &p, ai, ae, ci, ce, bi, be, b2i, b2e);
-                         if (check_flag(&flag, "ARKode", 1)) return 1;
-                         fprintf(stderr, "s = %d, q = %d, p = %d\n", s, q, p);
-                         for (i = 0; i < s; i++) {
-                           for (j = 0; j < s; j++) {
-                             fprintf(stderr, "ai[%d,%d] = %f", i, j, ai[i * ARK_S_MAX + j]);
-                           }
-                           fprintf(stderr, "\n");
-                         }
-
                          /* Main time-stepping loop: calls ARKode to perform the integration */
                          /* Stops when the final time has been reached */
                          for (i = 1; i < $(int nTs); i++) {
