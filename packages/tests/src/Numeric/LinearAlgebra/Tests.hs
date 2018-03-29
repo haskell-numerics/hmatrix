@@ -514,7 +514,7 @@ indexProp g f x = a1 == g a2 && a2 == a3 && b1 == g b2 && b2 == b3
 
 --------------------------------------------------------------------------------
 
-sliceTest = utest "slice test" $ and
+sliceTest = TestLabel "slice test" . TestList $
     [ testSlice (chol . trustSym)  (gen 5 :: Matrix R)
     , testSlice (chol . trustSym)  (gen 5 :: Matrix C)
     , testSlice qr    (rec :: Matrix R)
@@ -617,7 +617,7 @@ sliceTest = utest "slice test" $ and
 
     test_qrgr n t x = qrgr n (QR x t)
 
-    ok_qrgr x = simeq 1E-15 q q'
+    ok_qrgr x = TestCase . assertBool "ok_qrgr" $ simeq 1E-15 q q'
       where
         (q,_) = qr x
         atau = qrRaw x
@@ -646,7 +646,8 @@ sliceTest = utest "slice test" $ and
     rec :: Numeric t => Matrix t
     rec = subMatrix (0,0) (4,5) (gen 5)
 
-    testSlice f x@(size->sz@(r,c)) = all (==f x) (map f (g y1 ++ g y2))
+    testSlice f x@(size->sz@(r,c)) =
+      TestList . map (TestCase . assertEqual "" (f x)) $ (map f (g y1 ++ g y2))
       where
         subm = subMatrix
         g y = [ subm (a*r,b*c) sz y | a <-[0..2], b <- [0..2]]
