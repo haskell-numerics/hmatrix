@@ -61,9 +61,9 @@ import qualified Types as T
 import           Bar (sDIRK_2_1_2, kVAERNO_4_2_3)
 import qualified Bar as B
 
+
 C.context (C.baseCtx <> C.vecCtx <> C.funCtx <> T.sunCtx)
 
--- C includes
 C.include "<stdlib.h>"
 C.include "<stdio.h>"
 C.include "<math.h>"
@@ -77,26 +77,16 @@ C.include "<sundials/sundials_math.h>"
 C.include "../../../helpers.h"
 
 
--- These were semi-generated using hsc2hs with Bar.hsc as the
--- template. They are probably very fragile and could easily break on
--- different architectures and / or changes in the sundials package.
-
-getContentPtr :: Storable a => Ptr b -> IO a
-getContentPtr ptr = ((\hsc_ptr -> peekByteOff hsc_ptr 0)) ptr
-
-getData :: Storable a => Ptr b -> IO a
-getData ptr = ((\hsc_ptr -> peekByteOff hsc_ptr 16)) ptr
-
 getDataFromContents :: Storable b => Int -> Ptr a -> IO (V.Vector b)
 getDataFromContents len ptr = do
-  qtr <- getContentPtr ptr
-  rtr <- getData qtr
+  qtr <- B.getContentPtr ptr
+  rtr <- B.getData qtr
   vectorFromC len rtr
 
 putDataInContents :: Storable a => V.Vector a -> Int -> Ptr b -> IO ()
 putDataInContents vec len ptr = do
-  qtr <- getContentPtr ptr
-  rtr <- getData qtr
+  qtr <- B.getContentPtr ptr
+  rtr <- B.getData qtr
   vectorToC vec len rtr
 
 -- Utils
@@ -199,7 +189,7 @@ solveOdeC method relTol absTol fun f0 ts = unsafePerformIO $ do
   diagMut <- V.thaw diagnostics
   -- We need the types that sundials expects. These are tied together
   -- in 'Types'. FIXME: The Haskell type is currently empty!
-  let funIO :: CDouble -> Ptr T.BarType -> Ptr T.BarType -> Ptr () -> IO CInt
+  let funIO :: CDouble -> Ptr T.SunVector -> Ptr T.SunVector -> Ptr () -> IO CInt
       funIO x y f _ptr = do
         -- Convert the pointer we get from C (y) to a vector, and then
         -- apply the user-supplied function.
@@ -240,7 +230,7 @@ solveOdeC method relTol absTol fun f0 ts = unsafePerformIO $ do
 
                          /* Here we use the C types defined in helpers.h which tie up with */
                          /* the Haskell types defined in Types                             */
-                         flag = ARKodeInit(arkode_mem, NULL, $fun:(int (* funIO) (double t, BarType y[], BarType dydt[], void * params)), T0, y);
+                         flag = ARKodeInit(arkode_mem, NULL, $fun:(int (* funIO) (double t, SunVector y[], SunVector dydt[], void * params)), T0, y);
                          if (check_flag(&flag, "ARKodeInit", 1)) return 1;
 
                          /* Set routines */
@@ -378,7 +368,7 @@ getButcherTable method = unsafePerformIO $ do
   btAsMut <- V.thaw btAs
   -- We need the types that sundials expects. These are tied together
   -- in 'Types'. FIXME: The Haskell type is currently empty!
-  let funIO :: CDouble -> Ptr T.BarType -> Ptr T.BarType -> Ptr () -> IO CInt
+  let funIO :: CDouble -> Ptr T.SunVector -> Ptr T.SunVector -> Ptr () -> IO CInt
       funIO x y f _ptr = do
         -- Convert the pointer we get from C (y) to a vector, and then
         -- apply the user-supplied function.
@@ -411,7 +401,7 @@ getButcherTable method = unsafePerformIO $ do
                          arkode_mem = ARKodeCreate(); /* Create the solver memory */
                          if (check_flag((void *)arkode_mem, "ARKodeCreate", 0)) return 1;
 
-                         flag = ARKodeInit(arkode_mem, NULL, $fun:(int (* funIO) (double t, BarType y[], BarType dydt[], void * params)), T0, y);
+                         flag = ARKodeInit(arkode_mem, NULL, $fun:(int (* funIO) (double t, SunVector y[], SunVector dydt[], void * params)), T0, y);
                          if (check_flag(&flag, "ARKodeInit", 1)) return 1;
 
                          flag = ARKodeSetIRKTableNum(arkode_mem, $(int mN));
