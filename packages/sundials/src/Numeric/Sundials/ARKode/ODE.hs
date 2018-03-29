@@ -151,7 +151,7 @@ odeSolve :: ODEMethod
          -> Vector Double                    -- ^ desired solution times
          -> Matrix Double                    -- ^ solution
 odeSolve method f y0 ts =
-  case solveOde method g (V.fromList y0) (V.fromList $ toList ts) of
+  case solveOde method 1.0e-6 1.0e-10 g (V.fromList y0) (V.fromList $ toList ts) of
     Left c -> error $ show c -- FIXME
     Right (v, _) -> (nR >< nC) (V.toList v)
   where
@@ -162,22 +162,27 @@ odeSolve method f y0 ts =
 
 solveOde ::
   ODEMethod
+  -> Double
+  -> Double
   -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector Double                     -- ^ Initial conditions
   -> V.Vector Double                     -- ^ Desired solution times
   -> Either Int ((V.Vector Double), SundialsDiagnostics) -- ^ Error code or solution
-solveOde method f y0 tt =
-  case solveOdeC (fromIntegral $ fromEnum method) (coerce f) (coerce y0) (coerce tt) of
+solveOde method relTol absTol f y0 tt =
+  case solveOdeC (fromIntegral $ fromEnum method) (CDouble relTol) (CDouble absTol)
+                 (coerce f) (coerce y0) (coerce tt) of
     Left c -> Left $ fromIntegral c
     Right (v, d) -> Right (coerce v, d)
 
 solveOdeC ::
   CInt ->
+  CDouble ->
+  CDouble ->
   (CDouble -> V.Vector CDouble -> V.Vector CDouble) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector CDouble -- ^ Initial conditions
   -> V.Vector CDouble -- ^ Desired solution times
   -> Either CInt ((V.Vector CDouble), SundialsDiagnostics) -- ^ Error code or solution
-solveOdeC method fun f0 ts = unsafePerformIO $ do
+solveOdeC method relTol absTol fun f0 ts = unsafePerformIO $ do
   let dim = V.length f0
       nEq :: CLong
       nEq = fromIntegral dim
@@ -216,15 +221,7 @@ solveOdeC method fun f0 ts = unsafePerformIO $ do
 
                          /* general problem parameters */
                          realtype T0 = RCONST(($vec-ptr:(double *tMut))[0]);    /* initial time */
-
                          sunindextype NEQ = $(sunindextype nEq); /* number of dependent vars. */
-                         realtype reltol = 1.0e-6;     /* tolerances */
-                         realtype abstol = 1.0e-10;
-
-                         /* Initial diagnostics output */
-                         printf("\nAnalytical ODE test problem:\n");
-                         printf("   reltol = %.1"ESYM"\n",  reltol);
-                         printf("   abstol = %.1"ESYM"\n\n",abstol);
 
                          /* Initialize data structures */
                          y = N_VNew_Serial(NEQ);      /* Create serial vector for solution */
@@ -247,7 +244,7 @@ solveOdeC method fun f0 ts = unsafePerformIO $ do
                          if (check_flag(&flag, "ARKodeInit", 1)) return 1;
 
                          /* Set routines */
-                         flag = ARKodeSStolerances(arkode_mem, reltol, abstol);  /* Specify tolerances */
+                         flag = ARKodeSStolerances(arkode_mem, $(double relTol), $(double absTol));
                          if (check_flag(&flag, "ARKodeSStolerances", 1)) return 1;
 
                          /* Initialize dense matrix data structure and solver */
