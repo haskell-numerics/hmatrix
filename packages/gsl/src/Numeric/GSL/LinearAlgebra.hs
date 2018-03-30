@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.GSL.LinearAlgebra

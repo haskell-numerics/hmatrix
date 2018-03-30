@@ -1,6 +1,8 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns #-}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.LinearAlgebra.LAPACK

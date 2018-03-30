@@ -1,0 +1,34 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: fpco/stack-build
+    steps:
+      - checkout
+      - restore_cache:
+          key: stack-deps-{{ checksum "stack.yaml" }}
+      - run:
+          name: Setup build toolchain
+          command: stack setup
+      - run:
+          name: Building dependencies
+          command: stack test --only-snapshot --prefetch
+      - save_cache:
+          paths:
+            - "~/.stack"
+          key: stack-deps-{{ checksum "stack.yaml" }}
+      - run:
+          name: Set up apt
+          command: apt update
+      - run:
+          name: Installing C packages
+          command: apt -y install libglpk-dev
+      - run:
+          name: Building
+          command: stack build --pedantic
+      - run:
+          name: Building tests
+          command: stack test --pedantic --no-run-tests
+      - run:
+          name: Running tests
+          command: stack test
