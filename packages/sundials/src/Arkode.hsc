@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Bar where
+module Arkode where
 
 import Foreign
 import Foreign.C.Types

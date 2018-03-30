@@ -58,8 +58,8 @@ import           Numeric.LinearAlgebra.Devel (createVector)
 import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, (><), subMatrix)
 
 import qualified Types as T
-import           Bar (sDIRK_2_1_2, kVAERNO_4_2_3)
-import qualified Bar as B
+import           Arkode (sDIRK_2_1_2, kVAERNO_4_2_3)
+import qualified Arkode as B
 
 
 C.context (C.baseCtx <> C.vecCtx <> C.funCtx <> T.sunCtx)
@@ -75,7 +75,7 @@ C.include "<arkode/arkode_direct.h>"          -- access to ARKDls interface
 C.include "<sundials/sundials_types.h>"       -- definition of type realtype
 C.include "<sundials/sundials_math.h>"
 C.include "../../../helpers.h"
-C.include "Bar_hsc.h"
+C.include "Arkode_hsc.h"
 
 
 getDataFromContents :: Storable b => Int -> Ptr a -> IO (V.Vector b)
