@@ -30,6 +30,7 @@ library
   exposed-modules:     Numeric.Sundials.Arkode.ODE
   other-modules:       Types,
                        Bar
+  c-sources:           src/helpers.c src/helpers.h
 
 executable sundials
   main-is:             Main.hs
@@ -51,4 +52,4 @@ executable sundials
   hs-source-dirs:      src
   default-language:    Haskell2010
   extra-libraries:     sundials_arkode
-  C-sources:           src/helpers.c src/helpers.h
+  c-sources:           src/helpers.c src/helpers.h

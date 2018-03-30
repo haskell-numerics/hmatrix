@@ -6,9 +6,11 @@ import Foreign
 import Foreign.C.Types
 import Foreign.C.String
 
-#include "/Users/dom/sundials/include/sundials/sundials_nvector.h"
-#include "/Users/dom/sundials/include/nvector/nvector_serial.h"
-#include "/Users/dom/sundials/include/arkode/arkode.h"
+
+#include <stdio.h>
+#include <sundials/sundials_nvector.h>
+#include <nvector/nvector_serial.h>
+#include <arkode/arkode.h>
 
 #def typedef struct _generic_N_Vector SunVector;
 #def typedef struct _N_VectorContent_Serial SunContent;
