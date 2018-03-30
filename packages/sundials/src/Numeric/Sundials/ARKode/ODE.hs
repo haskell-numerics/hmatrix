@@ -75,6 +75,7 @@ C.include "<arkode/arkode_direct.h>"          -- access to ARKDls interface
 C.include "<sundials/sundials_types.h>"       -- definition of type realtype
 C.include "<sundials/sundials_math.h>"
 C.include "../../../helpers.h"
+C.include "Bar_hsc.h"
 
 
 getDataFromContents :: Storable b => Int -> Ptr a -> IO (V.Vector b)

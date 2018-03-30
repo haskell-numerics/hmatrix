@@ -1,5 +1,3 @@
-typedef struct _generic_N_Vector SunVector;
-
 /* Check function return value...
     opt == 0 means SUNDIALS function allocates memory so check if
              returned NULL pointer
