@@ -9,11 +9,30 @@ import Foreign.C.String
 
 #include <stdio.h>
 #include <sundials/sundials_nvector.h>
+#include <sundials/sundials_matrix.h>
 #include <nvector/nvector_serial.h>
+#include <sunmatrix/sunmatrix_dense.h>
 #include <arkode/arkode.h>
 
 #def typedef struct _generic_N_Vector SunVector;
 #def typedef struct _N_VectorContent_Serial SunContent;
+
+#def typedef struct _generic_SUNMatrix SunMatrix;
+#def typedef struct _SUNMatrixContent_Dense SunMatrixContent;
+
+getContentMatrixPtr ptr = (#peek SunMatrix, content) ptr
+
+getNRows :: Ptr b -> IO CInt
+getNRows ptr = (#peek SunMatrixContent, M) ptr
+putNRows :: CInt -> Ptr b -> IO ()
+putNRows nr ptr = (#poke SunMatrixContent, M) ptr nr
+
+getNCols :: Ptr b -> IO CInt
+getNCols ptr = (#peek SunMatrixContent, N) ptr
+putNCols :: CInt -> Ptr b -> IO ()
+putNCols nc ptr = (#poke SunMatrixContent, N) ptr nc
+
+getMatrixData ptr = (#peek SunMatrixContent, data) ptr
 
 getContentPtr :: Storable a => Ptr b -> IO a
 getContentPtr ptr = (#peek SunVector, content) ptr

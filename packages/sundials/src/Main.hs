@@ -27,10 +27,25 @@ brusselator _t x = [ a - (w + 1) * u + v * u^2
     v = x !! 1
     w = x !! 2
 
+brussJac _t x = (3><3) [ (-(w + 1.0)) + 2.0 * u * v, w - 2.0 * u * v, (-w)
+                       , u * u                     , (-(u * u))     , 0.0
+                       , (-u)                      , u              , (-1.0) / eps - u
+                       ]
+  where
+    y = toList x
+    u = y !! 0
+    v = y !! 1
+    w = y !! 2
+    eps = 5.0e-6
+
 stiffish t v = [ lamda * u + 1.0 / (1.0 + t * t) - lamda * atan t ]
   where
     lamda = -100.0
     u = v !! 0
+
+stiffJac _t _v = (1><1) [ lamda ]
+  where
+    lamda = -100.0
 
 lSaxis :: [[Double]] -> P.Axis B D.V2 Double
 lSaxis xs = P.r2Axis &~ do
@@ -77,14 +92,14 @@ main = do
   putStrLn $ show res
   putStrLn $ butcherTableauTex res
 
-  let res = odeSolve KVAERNO_4_2_3 brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 10.0])
-  putStrLn $ show res
+  let res1 = odeSolve KVAERNO_4_2_3 brussJac brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 10.0])
+  putStrLn $ show res1
   renderRasterific "diagrams/brusselator.png"
                    (D.dims2D 500.0 500.0)
-                   (renderAxis $ lSaxis $ [0.0, 0.1 .. 10.0]:(toLists $ tr res))
+                   (renderAxis $ lSaxis $ [0.0, 0.1 .. 10.0]:(toLists $ tr res1))
 
-  let res = odeSolve KVAERNO_4_2_3 stiffish [0.0] (fromList [0.0, 0.1 .. 10.0])
-  putStrLn $ show res
+  let res2 = odeSolve KVAERNO_4_2_3 stiffJac stiffish [0.0] (fromList [0.0, 0.1 .. 10.0])
+  putStrLn $ show res2
   renderRasterific "diagrams/stiffish.png"
                    (D.dims2D 500.0 500.0)
-                   (renderAxis $ kSaxis $ zip [0.0, 0.1 .. 10.0] (concat $ toLists res))
+                   (renderAxis $ kSaxis $ zip [0.0, 0.1 .. 10.0] (concat $ toLists res2))
