@@ -4,6 +4,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Matrix
@@ -31,6 +33,7 @@ import Data.List.Split(chunksOf)
 import Foreign.Storable(Storable)
 import System.IO.Unsafe(unsafePerformIO)
 import Control.Monad(liftM)
+import Foreign.C.Types(CInt)
 
 -------------------------------------------------------------------
 
@@ -53,8 +56,10 @@ instance (Show a, Element a) => (Show (Matrix a)) where
     show m | rows m == 0 || cols m == 0 = sizes m ++" []"
     show m = (sizes m++) . dsp . map (map show) . toLists $ m
 
+sizes :: Matrix t -> [Char]
 sizes m = "("++show (rows m)++"><"++show (cols m)++")\n"
 
+dsp :: [[[Char]]] -> [Char]
 dsp as = (++" ]") . (" ["++) . init . drop 2 . unlines . map (" , "++) . map unwords' $ transpose mtp
     where
         mt = transpose as
@@ -73,6 +78,7 @@ instance (Element a, Read a) => Read (Matrix a) where
               rs = read . snd . breakAt '(' .init . fst . breakAt '>' $ dims
 
 
+breakAt :: Eq a => a -> [a] -> ([a], [a])
 breakAt c l = (a++[c],tail b) where
     (a,b) = break (==c) l
 
@@ -88,7 +94,8 @@ data Extractor
     | Drop Int
     | DropLast Int
   deriving Show
-  
+
+ppext :: Extractor -> [Char]
 ppext All = ":"
 ppext (Range a 1 c) = printf "%d:%d" a c
 ppext (Range a b c) = printf "%d:%d:%d" a b c
@@ -128,10 +135,14 @@ ppext (DropLast n) = printf "DropLast %d" n
 infixl 9 ??
 (??)  :: Element t => Matrix t -> (Extractor,Extractor) -> Matrix t
 
+minEl :: Vector CInt -> CInt
 minEl = toScalarI Min
+maxEl :: Vector CInt -> CInt
 maxEl = toScalarI Max
+cmodi :: Foreign.C.Types.CInt -> Vector Foreign.C.Types.CInt -> Vector Foreign.C.Types.CInt
 cmodi = vectorMapValI ModVS
 
+extractError :: Matrix t1 -> (Extractor, Extractor) -> t
 extractError m (e1,e2)= error $ printf "can't extract (%s,%s) from matrix %dx%d" (ppext e1::String) (ppext e2::String) (rows m) (cols m)
 
 m ?? (Range a s b,e) | s /= 1 = m ?? (Pos (idxs [a,a+s .. b]), e)
@@ -232,8 +243,10 @@ disp = putStr . dispf 2
 fromBlocks :: Element t => [[Matrix t]] -> Matrix t
 fromBlocks = fromBlocksRaw . adaptBlocks
 
+fromBlocksRaw :: Element t => [[Matrix t]] -> Matrix t
 fromBlocksRaw mms = joinVert . map joinHoriz $ mms
 
+adaptBlocks :: Element t => [[Matrix t]] -> [[Matrix t]]
 adaptBlocks ms = ms' where
     bc = case common length ms of
           Just c -> c
@@ -486,6 +499,9 @@ liftMatrix2Auto f m1 m2
     m2' = conformMTo (r,c) m2
 
 -- FIXME do not flatten if equal order
+lM :: (Storable t, Element t1, Element t2)
+   => (Vector t1 -> Vector t2 -> Vector t)
+   -> Matrix t1 -> Matrix t2 -> Matrix t
 lM f m1 m2 = matrixFromVector
                 RowMajor
                 (max' (rows m1) (rows m2))
@@ -504,6 +520,7 @@ compat' m1 m2 = s1 == (1,1) || s2 == (1,1) || s1 == s2
 
 ------------------------------------------------------------
 
+toBlockRows :: Element t => [Int] -> Matrix t -> [Matrix t]
 toBlockRows [r] m
     | r == rows m = [m]
 toBlockRows rs m
@@ -513,6 +530,7 @@ toBlockRows rs m
     szs = map (* cols m) rs
     g k = (k><0)[]
 
+toBlockCols :: Element t => [Int] -> Matrix t -> [Matrix t]
 toBlockCols [c] m | c == cols m = [m]
 toBlockCols cs m = map trans . toBlockRows cs . trans $ m
 
@@ -576,7 +594,7 @@ Just (3><3)
 mapMatrixWithIndexM
   :: (Element a, Storable b, Monad m) =>
       ((Int, Int) -> a -> m b) -> Matrix a -> m (Matrix b)
-mapMatrixWithIndexM g m = liftM (reshape c) . mapVectorWithIndexM (mk c g) . flatten $ m 
+mapMatrixWithIndexM g m = liftM (reshape c) . mapVectorWithIndexM (mk c g) . flatten $ m
     where
       c = cols m
 
@@ -598,4 +616,3 @@ mapMatrixWithIndex g m = reshape c . mapVectorWithIndex (mk c g) . flatten $ m
 
 mapMatrix :: (Element a, Element b) => (a -> b) -> Matrix a -> Matrix b
 mapMatrix f = liftMatrix (mapVector f)
-

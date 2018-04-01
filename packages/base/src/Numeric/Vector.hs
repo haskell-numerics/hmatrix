@@ -3,6 +3,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Vector
@@ -14,7 +17,7 @@
 --
 -- Provides instances of standard classes 'Show', 'Read', 'Eq',
 -- 'Num', 'Fractional',  and 'Floating' for 'Vector'.
--- 
+--
 -----------------------------------------------------------------------------
 
 module Numeric.Vector () where
@@ -23,9 +26,17 @@ import Internal.Vectorized
 import Internal.Vector
 import Internal.Numeric
 import Internal.Conversion
+import Foreign.Storable(Storable)
 
 -------------------------------------------------------------------
 
+adaptScalar :: (Foreign.Storable.Storable t1, Foreign.Storable.Storable t2)
+            => (t1 -> Vector t2 -> t)
+            -> (Vector t1 -> Vector t2 -> t)
+            -> (Vector t1 -> t2 -> t)
+            -> Vector t1
+            -> Vector t2
+            -> t
 adaptScalar f1 f2 f3 x y
     | dim x == 1 = f1   (x@>0) y
     | dim y == 1 = f3 x (y@>0)
@@ -172,4 +183,3 @@ instance Floating (Vector (Complex Float)) where
     sqrt  = vectorMapQ Sqrt
     (**)  = adaptScalar (vectorMapValQ PowSV) (vectorZipQ Pow) (flip (vectorMapValQ PowVS))
     pi    = fromList [pi]
-

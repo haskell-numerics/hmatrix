@@ -5,6 +5,8 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Numeric

@@ -1,4 +1,8 @@
 {-# LANGUAGE CPP, FlexibleContexts, UndecidableInstances, FlexibleInstances, ScopedTypeVariables #-}
+
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Tests.Instances
@@ -62,7 +66,7 @@ instance KnownNat n => Arbitrary (Static.R n) where
         n :: Int
         n = fromIntegral (natVal (Proxy :: Proxy n))
 
-    shrink v = []
+    shrink _v = []
 
 instance (Element a, Arbitrary a) => Arbitrary (Matrix a) where
     arbitrary = do
@@ -89,7 +93,7 @@ instance (KnownNat n, KnownNat m) => Arbitrary (Static.L m n) where
         n :: Int
         n = fromIntegral (natVal (Proxy :: Proxy n))
 
-    shrink mat = []
+    shrink _mat = []
 
 -- a square matrix
 newtype (Sq a) = Sq (Matrix a) deriving Show

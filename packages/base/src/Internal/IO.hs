@@ -20,7 +20,7 @@ import Internal.Devel
 import Internal.Vector
 import Internal.Matrix
 import Internal.Vectorized
-import Text.Printf(printf)
+import Text.Printf(printf, PrintfArg, PrintfType)
 import Data.List(intersperse,transpose)
 import Data.Complex
 
@@ -78,12 +78,18 @@ disps d x = sdims x ++ "  " ++ formatScaled d x
 dispf :: Int -> Matrix Double -> String
 dispf d x = sdims x ++ "\n" ++ formatFixed (if isInt x then 0 else d) x
 
+sdims :: Matrix t -> [Char]
 sdims x = show (rows x) ++ "x" ++ show (cols x)
 
+formatFixed :: (Show a, Text.Printf.PrintfArg t, Element t)
+            => a -> Matrix t -> String
 formatFixed d x = format "  " (printf ("%."++show d++"f")) $ x
 
+isInt :: Matrix Double -> Bool
 isInt = all lookslikeInt . toList . flatten
 
+formatScaled :: (Text.Printf.PrintfArg b, RealFrac b, Floating b, Num t, Element b, Show t)
+             => t -> Matrix b -> [Char]
 formatScaled dec t = "E"++show o++"\n" ++ ss
     where ss = format " " (printf fmt. g) t
           g x | o >= 0    = x/10^(o::Int)
@@ -133,14 +139,18 @@ showComplex d (a:+b)
     s2 = if b<0 then "-" else ""
     s3 = if b<0 then "-" else "+"
 
+shcr :: (Show a, Show t1, Text.Printf.PrintfType t, Text.Printf.PrintfArg t1, RealFrac t1)
+     => a -> t1 -> t
 shcr d a | lookslikeInt a = printf "%.0f" a
          | otherwise      = printf ("%."++show d++"f") a
 
-
+lookslikeInt :: (Show a, RealFrac a) => a -> Bool
 lookslikeInt x = show (round x :: Int) ++".0" == shx || "-0.0" == shx
    where shx = show x
 
+isZero :: Show a => a -> Bool
 isZero x = show x `elem` ["0.0","-0.0"]
+isOne :: Show a => a -> Bool
 isOne  x = show x `elem` ["1.0","-1.0"]
 
 -- | Pretty print a complex matrix with at most n decimal digits.
@@ -168,6 +178,6 @@ loadMatrix f = do
       else
         return (reshape c v)
 
-
+loadMatrix' :: FilePath -> IO (Maybe (Matrix Double))
 loadMatrix' name = mbCatch (loadMatrix name)
 

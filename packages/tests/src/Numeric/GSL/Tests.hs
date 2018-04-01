@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-unused-imports -fno-warn-incomplete-patterns #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports -fno-warn-incomplete-patterns -fno-warn-missing-signatures #-}
 {- |
 Module      :  Numeric.GLS.Tests
 Copyright   :  (c) Alberto Ruiz 2014

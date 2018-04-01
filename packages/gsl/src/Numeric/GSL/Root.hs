@@ -1,5 +1,7 @@
 {-# LANGUAGE  FlexibleContexts #-}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 {- |
 Module      :  Numeric.GSL.Root
 Copyright   :  (c) Alberto Ruiz 2009
