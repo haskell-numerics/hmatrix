@@ -13,6 +13,9 @@
 {-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE TypeOperators #-}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-missing-methods #-}
+
 {- |
 Module      :  Internal.Modular
 Copyright   :  (c) Alberto Ruiz 2015

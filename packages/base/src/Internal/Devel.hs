@@ -54,6 +54,7 @@ check msg f = do
 
 -- | postfix error code check
 infixl 0 #|
+(#|) :: IO CInt -> String -> IO ()
 (#|) = flip check
 
 -- | Error capture and conversion to Maybe

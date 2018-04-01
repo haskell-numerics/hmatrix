@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances #-}
 {-# LANGUAGE RecordWildCards #-}
 
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Internal.CG(
     cgSolve, cgSolve',
     CGState(..), R, V

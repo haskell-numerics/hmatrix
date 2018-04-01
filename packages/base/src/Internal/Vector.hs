@@ -1,6 +1,7 @@
 {-# LANGUAGE MagicHash, UnboxedTuples, BangPatterns, FlexibleContexts #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- |
 -- Module      :  Internal.Vector
@@ -40,6 +41,7 @@ import qualified Data.Vector.Storable as Vector
 import Data.Vector.Storable(Vector, fromList, unsafeToForeignPtr, unsafeFromForeignPtr, unsafeWith)
 
 import Data.Binary
+import Data.Binary.Put
 import Control.Monad(replicateM)
 import qualified Data.ByteString.Internal as BS
 import Data.Vector.Storable.Internal(updPtr)
@@ -92,6 +94,7 @@ createVector n = do
 
 -}
 
+safeRead :: Storable a => Vector a -> (Ptr a -> IO c) -> c
 safeRead v = inlinePerformIO . unsafeWith v
 {-# INLINE safeRead #-}
 
@@ -283,11 +286,13 @@ foldVectorWithIndex f x v = unsafePerformIO $
         go (dim v -1) x
 {-# INLINE foldVectorWithIndex #-}
 
+foldLoop :: (Int -> t -> t) -> t -> Int -> t
 foldLoop f s0 d = go (d - 1) s0
      where
        go 0 s = f (0::Int) s
        go !j !s = go (j - 1) (f j s)
 
+foldVectorG :: Storable t1 => (Int -> (Int -> t1) -> t -> t) -> t -> Vector t1 -> t
 foldVectorG f s0 v = foldLoop g s0 (dim v)
     where g !k !s = f k (safeRead v . flip peekElemOff) s
           {-# INLINE g #-} -- Thanks to Ryan Ingram (http://permalink.gmane.org/gmane.comp.lang.haskell.cafe/46479)
@@ -390,8 +395,10 @@ chunks d = let c = d `div` chunk
                m = d `mod` chunk
            in if m /= 0 then reverse (m:(replicate c chunk)) else (replicate c chunk)
 
+putVector :: (Storable t, Binary t) => Vector t -> Data.Binary.Put.PutM ()
 putVector v = mapM_ put $! toList v
 
+getVector :: (Storable a, Binary a) => Int -> Get (Vector a)
 getVector d = do
               xs <- replicateM d get
               return $! fromList xs

@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 {- |
 Module      :  Numeric.GSL.Integration
 Copyright   :  (c) Alberto Ruiz 2006
