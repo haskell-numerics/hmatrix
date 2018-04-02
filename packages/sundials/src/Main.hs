@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
 
-import qualified Data.Vector.Storable as V
 import           Numeric.Sundials.Arkode.ODE
 import           Numeric.LinearAlgebra
 
@@ -9,14 +8,14 @@ import qualified Diagrams.Prelude as D
 import           Diagrams.Backend.Rasterific
 
 import           Control.Lens
-import           Data.List (zip4)
-
-import           Text.PrettyPrint.HughesPJClass
 import           Data.List (intercalate)
 
+import           Text.PrettyPrint.HughesPJClass
 
-brusselator _t x = [ a - (w + 1) * u + v * u^2
-                   , w * u - v * u^2
+
+brusselator :: Double -> [Double] -> [Double]
+brusselator _t x = [ a - (w + 1) * u + v * u * u
+                   , w * u - v * u * u
                    , (b - w) / eps - w * u
                    ]
   where
@@ -27,6 +26,7 @@ brusselator _t x = [ a - (w + 1) * u + v * u^2
     v = x !! 1
     w = x !! 2
 
+brussJac :: Double -> Vector Double -> Matrix Double
 brussJac _t x = (3><3) [ (-(w + 1.0)) + 2.0 * u * v, w - 2.0 * u * v, (-w)
                        , u * u                     , (-(u * u))     , 0.0
                        , (-u)                      , u              , (-1.0) / eps - u
@@ -38,11 +38,13 @@ brussJac _t x = (3><3) [ (-(w + 1.0)) + 2.0 * u * v, w - 2.0 * u * v, (-w)
     w = y !! 2
     eps = 5.0e-6
 
+stiffish :: Double -> [Double] -> [Double]
 stiffish t v = [ lamda * u + 1.0 / (1.0 + t * t) - lamda * atan t ]
   where
     lamda = -100.0
     u = v !! 0
 
+stiffJac :: Double -> Vector Double -> Matrix Double
 stiffJac _t _v = (1><1) [ lamda ]
   where
     lamda = -100.0
@@ -71,7 +73,7 @@ butcherTableauTex m = render $
     n = rows m
     rs = toLists m
     ss = map (\r -> intercalate " & " $ map show r) rs
-    ts = zipWith (\n r -> "c_" ++ show n ++ " & " ++ r) [1..n] ss
+    ts = zipWith (\i r -> "c_" ++ show i ++ " & " ++ r) [1..n] ss
     us = vcat $ map (\r -> text r <+> text "\\\\") ts
 
 main :: IO ()

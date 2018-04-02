@@ -87,8 +87,8 @@ getDataFromContents len ptr = do
   vectorFromC len rtr
 
 -- FIXME: Potentially an instance of Storable
-getMatrixDataFromContents :: Ptr T.SunMatrix -> IO T.SunMatrix
-getMatrixDataFromContents ptr = do
+_getMatrixDataFromContents :: Ptr T.SunMatrix -> IO T.SunMatrix
+_getMatrixDataFromContents ptr = do
   qtr <- B.getContentMatrixPtr ptr
   rs  <- B.getNRows qtr
   cs  <- B.getNCols qtr
@@ -239,8 +239,8 @@ solveOdeC method jacH relTol absTol fun f0 ts = unsafePerformIO $ do
                Ptr () -> Ptr T.SunVector -> Ptr T.SunVector -> Ptr T.SunVector ->
                IO CInt
       jacIO t y _fy jacS _ptr _tmp1 _tmp2 _tmp3 = do
-        foo <- jacH t <$> getDataFromContents dim y
-        putMatrixDataFromContents foo jacS
+        j <- jacH t <$> getDataFromContents dim y
+        putMatrixDataFromContents j jacS
         -- FIXME: I don't understand what this comment means
         -- Unsafe since the function will be called many times.
         [CU.exp| int{ 0 } |]
