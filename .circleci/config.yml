@@ -10,7 +10,6 @@ jobs:
       - run:
           name: Install Stack
           command: |
-            apk update --no-progress && apk --no-progress add ca-certificates bash
             nix-env -f nixpkgs.nix -iA stack
       - run:
           name: Setup build toolchain
