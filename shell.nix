@@ -61,6 +61,7 @@ mkDerivation {
     pkgs.liblapack
     pkgs.gsl
     pkgs.glpk
+    pkgs.pkgconfig
     sundials
     pkgs.zlib
   ] ++ (if pkgs.stdenv.isDarwin then [pkgs.darwin.apple_sdk.frameworks.Accelerate] else []);
