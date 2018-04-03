@@ -6,7 +6,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: stack-deps-{{ checksum "stack.yaml" }}
+          key: stack-deps-foo-{{ checksum "stack.yaml" }}
       - run:
           name: Update packages
           command: nix-channel --update
@@ -19,7 +19,7 @@ jobs:
       - save_cache:
           paths:
             - "~/.stack"
-          key: stack-deps-{{ checksum "stack.yaml" }}
+          key: stack-deps-foo-{{ checksum "stack.yaml" }}
       - run:
           name: Building
           command: stack build --pedantic
