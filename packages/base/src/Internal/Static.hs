@@ -15,6 +15,8 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DeriveGeneric #-}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 {- |
 Module      :  Internal.Static
 Copyright   :  (c) Alberto Ruiz 2006-14

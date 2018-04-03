@@ -4,6 +4,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Numeric.Matrix
@@ -35,6 +37,7 @@ import Data.List(partition)
 import qualified Data.Foldable as F
 import qualified Data.Semigroup as S
 import Internal.Chain
+import Foreign.Storable(Storable)
 
 
 -------------------------------------------------------------------
@@ -80,8 +83,16 @@ instance (Floating a, Container Vector a, Floating (Vector a), Fractional (Matri
 
 --------------------------------------------------------------------------------
 
+isScalar :: Matrix t -> Bool
 isScalar m = rows m == 1 && cols m == 1
 
+adaptScalarM :: (Foreign.Storable.Storable t1, Foreign.Storable.Storable t2)
+             => (t1 -> Matrix t2 -> t)
+             -> (Matrix t1 -> Matrix t2 -> t)
+             -> (Matrix t1 -> t2 -> t)
+             -> Matrix t1
+             -> Matrix t2
+             -> t
 adaptScalarM f1 f2 f3 x y
     | isScalar x = f1   (x @@>(0,0) ) y
     | isScalar y = f3 x (y @@>(0,0) )
@@ -96,7 +107,7 @@ instance (Container Vector t, Eq t, Num (Vector t), Product t) => M.Monoid (Matr
   where
     mempty = 1
     mappend = adaptScalarM scale mXm (flip scale)
-    
+
     mconcat xs = work (partition isScalar xs)
       where
         work (ss,[]) = product ss
@@ -106,4 +117,3 @@ instance (Container Vector t, Eq t, Num (Vector t), Product t) => M.Monoid (Matr
             | otherwise              = scale x00 m
           where
             x00 = x @@> (0,0)
-

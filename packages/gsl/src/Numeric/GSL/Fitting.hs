@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 {- |
 Module      :  Numeric.GSL.Fitting
 Copyright   :  (c) Alberto Ruiz 2010

@@ -5,6 +5,8 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Packed.Internal.Numeric
@@ -788,13 +790,7 @@ type instance RealOf (Complex Float) = Float
 type instance RealOf I = I
 type instance RealOf Z = Z
 
-type family ComplexOf x
-
-type instance ComplexOf Double = Complex Double
-type instance ComplexOf (Complex Double) = Complex Double
-
-type instance ComplexOf Float = Complex Float
-type instance ComplexOf (Complex Float) = Complex Float
+type ComplexOf x = Complex (RealOf x)
 
 type family SingleOf x
 

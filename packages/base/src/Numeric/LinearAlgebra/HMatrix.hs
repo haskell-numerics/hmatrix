@@ -28,7 +28,9 @@ infixr 8 <·>
 (<·>) :: Numeric t => Vector t -> Vector t -> t
 (<·>) = dot
 
+app :: Numeric t => Matrix t -> Vector t -> Vector t
 app m v = m #> v
 
+mul :: Numeric t => Matrix t -> Matrix t -> Matrix t
 mul a b = a <> b
 

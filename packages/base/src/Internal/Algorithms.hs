@@ -4,6 +4,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 -----------------------------------------------------------------------------
 {- |
 Module      :  Internal.Algorithms

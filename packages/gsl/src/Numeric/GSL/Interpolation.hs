@@ -1,5 +1,7 @@
 {-# LANGUAGE MagicHash, UnboxedTuples #-}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 {- |
 Module      :  Numeric.GSL.Interpolation
 Copyright   :  (c) Matthew Peddie 2015

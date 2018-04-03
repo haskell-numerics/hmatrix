@@ -3,6 +3,8 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DataKinds #-}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 -----------------------------------------------------------------------------
 {- |
 Module      :  Numeric.LinearAlgebra.Tests.Properties
@@ -51,14 +53,13 @@ module Numeric.LinearAlgebra.Tests.Properties (
   , staticVectorBinaryFailProp
 ) where
 
-import Numeric.LinearAlgebra.HMatrix hiding (Testable,unitary)
+import Numeric.LinearAlgebra.HMatrix hiding (Testable)
 import qualified Numeric.LinearAlgebra.Static as Static
 import Test.QuickCheck
 
 import Data.Binary
 import Data.Binary.Get (runGet)
 import Data.Either (isLeft)
-import Debug.Trace (traceShowId)
 #if MIN_VERSION_base(4,11,0)
 import Prelude hiding ((<>))
 #endif

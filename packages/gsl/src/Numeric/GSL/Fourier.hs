@@ -1,5 +1,7 @@
 {-# LANGUAGE TypeFamilies #-}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 {- |
 Module      : Numeric.GSL.Fourier
 Copyright   :  (c) Alberto Ruiz 2006

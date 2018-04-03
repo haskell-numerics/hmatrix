@@ -2,6 +2,8 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 module Internal.Sparse(
     GMatrix(..), CSR(..), mkCSR, fromCSR,
     mkSparse, mkDiagR, mkDense,
