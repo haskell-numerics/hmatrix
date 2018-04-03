@@ -24,7 +24,7 @@ library
   extra-libraries:     sundials_arkode
   other-extensions:    QuasiQuotes
   hs-source-dirs:      src
-  exposed-modules:     Numeric.Sundials.Arkode.ODE
+  exposed-modules:     Numeric.Sundials.ARKode.ODE
   other-modules:       Types,
                        Arkode
   c-sources:           src/helpers.c src/helpers.h
@@ -32,7 +32,7 @@ library
 executable sundials
   main-is:             Main.hs
   other-modules:       Types,
-                       Numeric.Sundials.Arkode.ODE,
+                       Numeric.Sundials.ARKode.ODE,
                        Arkode
   other-extensions:    QuasiQuotes
   build-depends:       base >=4.10 && <4.11,
