@@ -57,6 +57,7 @@ mkDerivation {
   ] ++ (if pkgs.stdenv.isDarwin then [pkgs.darwin.apple_sdk.frameworks.Cocoa] else []);
   executableSystemDepends = [
     pkgs.blas
+    pkgs.gfortran.cc
     pkgs.liblapack
     pkgs.gsl
     pkgs.glpk
