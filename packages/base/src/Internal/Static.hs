@@ -16,6 +16,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-simplifiable-class-constraints #-}
 
 {- |
 Module      :  Internal.Static
