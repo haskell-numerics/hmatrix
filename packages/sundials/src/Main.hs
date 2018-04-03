@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 
-import           Numeric.Sundials.Arkode.ODE
+import           Numeric.Sundials.ARKode.ODE
 import           Numeric.LinearAlgebra
 
 import           Plots as P
