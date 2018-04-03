@@ -9,7 +9,7 @@ jobs:
           key: stack-deps-{{ checksum "stack.yaml" }}
       - run:
           name: Install stack
-          command: nix-env -i stack
+          command: nix-env -f https://github.com/nixos/nixpkgs/archive/54ade273e7a677ec35e501174d86d253d9d8dede.tar.gz -i stack
       - run:
           name: Setup build toolchain
           command: stack --nix setup
