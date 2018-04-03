@@ -32,7 +32,7 @@ let
   inherit (nixpkgs) pkgs;
 
 f = { mkDerivation, ad, base, diagrams-lib, diagrams-rasterific, gcc
-    , hmatrix, hmatrix-gsl, inline-c, plots, pretty, stdenv, sundials, vector }:
+    , hmatrix, hmatrix-gsl, HUnit, inline-c, plots, pretty, QuickCheck, stdenv, sundials, vector }:
 
 mkDerivation {
   pname = "haskell-sundials";
@@ -48,8 +48,10 @@ mkDerivation {
     gcc
     hmatrix
     hmatrix-gsl
+    HUnit
     inline-c
     plots
+    QuickCheck
     pretty
     vector
   ] ++ (if pkgs.stdenv.isDarwin then [pkgs.darwin.apple_sdk.frameworks.Cocoa] else []);
