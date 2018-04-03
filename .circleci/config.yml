@@ -8,6 +8,9 @@ jobs:
       - restore_cache:
           key: stack-deps-{{ checksum "stack.yaml" }}
       - run:
+          name: Install stack
+          command: nix-env -i stack
+      - run:
           name: Setup build toolchain
           command: stack --nix setup
       - run:
