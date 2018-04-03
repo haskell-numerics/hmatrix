@@ -20,7 +20,7 @@
 #   # XXX Workaround https://ghc.haskell.org/trac/ghc/ticket/11042.
 #   extraArgs = ["--extra-lib-dirs=${gfortranlibdir}"];
 # } // libHack)
-  
+
 
 { nixpkgs ? import <nixpkgs>
   {}
