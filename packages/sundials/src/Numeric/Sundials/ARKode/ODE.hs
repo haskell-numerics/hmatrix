@@ -29,7 +29,7 @@
 -- \end{array}
 -- \]
 --
-module Numeric.Sundials.Arkode.ODE ( solveOde
+module Numeric.Sundials.ARKode.ODE ( solveOde
                                    , odeSolve
                                    , getButcherTable
                                    , getBT
