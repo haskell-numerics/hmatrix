@@ -58,7 +58,7 @@ mkDerivation {
   executableSystemDepends = [
     pkgs.blas
     pkgs.liblapack
-    patched-gsl
+    pkgs.gsl
     sundials
     pkgs.zlib
   ] ++ (if pkgs.stdenv.isDarwin then [pkgs.darwin.apple_sdk.frameworks.Accelerate] else []);
@@ -71,46 +71,7 @@ haskellPackages = if compiler == "default"
 
 variant = if doBenchmark then pkgs.haskell.lib.doBenchmark else pkgs.lib.id;
 
-patched-hmatrix = pkgs.haskellPackages.hmatrix.overrideAttrs (oldAttrs: rec {
-  src = nixpkgs.fetchgit {
-    url = git://github.com/albertoruiz/hmatrix;
-    rev = "d83b17190029c11e3ab8b504e5cdc917f5863120";
-    sha256 = "11wr59wg21rky59j3kkd3ba6aqns9gkh0r1fnhwhn3fp7zfhanqn";
-  };
-  postUnpack = ''
-    sourceRoot=''${sourceRoot}/packages/base
-    echo Source root reset to ''${sourceRoot}
-  '';
-});
-
-patched-hmatrix-gsl = pkgs.haskellPackages.hmatrix-gsl.overrideAttrs (oldAttrs: rec {
-  src = nixpkgs.fetchgit {
-    url = git://github.com/albertoruiz/hmatrix;
-    rev = "d83b17190029c11e3ab8b504e5cdc917f5863120";
-    sha256 = "11wr59wg21rky59j3kkd3ba6aqns9gkh0r1fnhwhn3fp7zfhanqn";
-  };
-  postUnpack = ''
-    sourceRoot=''${sourceRoot}/packages/gsl
-    echo Source root reset to ''${sourceRoot}
-  '';
-});
-
-patched-gsl = pkgs.gsl.overrideAttrs (oldAttrs: rec {
-  src = nixpkgs.fetchgit {
-    url = git://github.com/idontgetoutmuch/gsl;
-    rev = "c2035977d65cd804169ff3370da6723cf879be75";
-    sha256 = "1fqp77gp9nl3av1z58cwg8fivik4rff394wgjzc76ayd04y0d1k7";
-    };
-  version = "2.5";
-  name = "gsl-${version}";
-  doCheck = false;
-  CFLAGS = "-DDEBUG";
-});
-
-drv = variant (haskellPackages.callPackage f {
-  hmatrix = patched-hmatrix;
-  hmatrix-gsl = patched-hmatrix-gsl;
-});
+drv = variant (haskellPackages.callPackage f {});
 
 in
 
