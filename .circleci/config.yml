@@ -6,26 +6,26 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: stack-deps-bar-{{ checksum "stack.yaml" }}
+          key: stack-deps-urk-{{ checksum "stack.yaml" }}
       - run:
           name: Update packages
           command: nix-channel --update
       - run:
           name: Setup build toolchain
-          command: stack setup
+          command: nix-shell --run "stack setup"
       - run:
           name: Building dependencies
-          command: stack test --only-snapshot --prefetch
+          command: nix-shell --run "stack test --only-snapshot --prefetch"
       - save_cache:
           paths:
             - "~/.stack"
-          key: stack-deps-bar-{{ checksum "stack.yaml" }}
+          key: stack-deps-urk-{{ checksum "stack.yaml" }}
       - run:
           name: Building
-          command: stack build --pedantic
+          command: nix-shell --run "stack build --pedantic"
       - run:
           name: Building tests
-          command: stack test --pedantic --no-run-tests
+          command: nix-shell --run "stack test --pedantic --no-run-tests"
       - run:
           name: Running tests
-          command: stack test
+          command: nix-shell --run "stack test"
