@@ -108,6 +108,7 @@ let
         source $stdenv/setup
         mkdir -p $out/bin
         makeWrapper ${pkgs.stack}/bin/stack $out/bin/stack \
+          --add-flags "--extra-include-dirs=${pkgs.zlib.dev}/include" \
           --add-flags "--extra-lib-dirs=${pkgs.lib.makeLibraryPath extraLibs}"
       '';
       buildInputs = [ pkgs.makeWrapper ];
