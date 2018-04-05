@@ -115,35 +115,48 @@ main = do
   -- \end{array}
   -- $$
 
-  let res = btGet (SDIRK_2_1_2 undefined)
-  putStrLn $ show res
-  putStrLn $ butcherTableauTex res
+  -- let res = btGet (SDIRK_2_1_2 undefined)
+  -- putStrLn $ show res
+  -- putStrLn $ butcherTableauTex res
 
-  let res = btGet (KVAERNO_4_2_3 undefined)
-  putStrLn $ show res
-  putStrLn $ butcherTableauTex res
+  -- let res = btGet (KVAERNO_4_2_3 undefined)
+  -- putStrLn $ show res
+  -- putStrLn $ butcherTableauTex res
 
-  let res = btGet (SDIRK_5_3_4 undefined)
-  putStrLn $ show res
-  putStrLn $ butcherTableauTex res
+  -- let res = btGet (SDIRK_5_3_4 undefined)
+  -- putStrLn $ show res
+  -- putStrLn $ butcherTableauTex res
 
-  let res1 = odeSolve' (KVAERNO_4_2_3 undefined) brussJac brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 10.0])
-  putStrLn $ show res1
+  let res1 = odeSolve' (SDIRK_5_3_4 brussJac) brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 100.0])
   renderRasterific "diagrams/brusselator.png"
                    (D.dims2D 500.0 500.0)
-                   (renderAxis $ lSaxis $ [0.0, 0.1 .. 10.0]:(toLists $ tr res1))
+                   (renderAxis $ lSaxis $ [0.0, 0.1 .. 100.0]:(toLists $ tr res1))
 
+  let res1a = odeSolve' (SDIRK_5_3_4') brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 100.0])
+  renderRasterific "diagrams/brusselatorA.png"
+                   (D.dims2D 500.0 500.0)
+                   (renderAxis $ lSaxis $ [0.0, 0.1 .. 100.0]:(toLists $ tr res1a))
 
-  let res2 = odeSolve' (KVAERNO_4_2_3 undefined) stiffJac stiffish [0.0] (fromList [0.0, 0.1 .. 10.0])
+  let res2 = odeSolve' (SDIRK_5_3_4 stiffJac) stiffish [0.0] (fromList [0.0, 0.1 .. 10.0])
   putStrLn $ show res2
   renderRasterific "diagrams/stiffish.png"
                    (D.dims2D 500.0 500.0)
                    (renderAxis $ kSaxis $ zip [0.0, 0.1 .. 10.0] (concat $ toLists res2))
 
-  let res3 = odeSolve' (KVAERNO_4_2_3 undefined) lorenzJac lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 30.0])
+  let res3 = odeSolve' (SDIRK_5_3_4 lorenzJac) lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 1000.0])
+  putStrLn $ show $ last ((toLists $ tr res3)!!0)
+
+  let res3 = odeSolve' (SDIRK_5_3_4') lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 1000.0])
+  putStrLn $ show $ last ((toLists $ tr res3)!!0)
+
   renderRasterific "diagrams/lorenz.png"
                    (D.dims2D 500.0 500.0)
                    (renderAxis $ kSaxis $ zip ((toLists $ tr res3)!!0) ((toLists $ tr res3)!!1))
+
+  let res3a = odeSolve' (SDIRK_5_3_4') lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 30.0])
+  renderRasterific "diagrams/lorenzA.png"
+                   (D.dims2D 500.0 500.0)
+                   (renderAxis $ kSaxis $ zip ((toLists $ tr res3)!!0) ((toLists $ tr res3a)!!1))
 
   renderRasterific "diagrams/lorenz1.png"
                    (D.dims2D 500.0 500.0)
