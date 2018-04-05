@@ -56,6 +56,8 @@ kVAERNO_4_2_3 = #const KVAERNO_4_2_3
 -- #define CASH_5_2_4              17
 -- #define CASH_5_3_4              18
 -- #define SDIRK_5_3_4             19
+sDIRK_5_3_4 :: Int
+sDIRK_5_3_4 = #const SDIRK_5_3_4
 -- #define KVAERNO_5_3_4           20
 -- #define ARK436L2SA_DIRK_6_3_4   21
 -- #define KVAERNO_7_4_5           22
