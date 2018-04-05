@@ -12,6 +12,31 @@ import           Data.List (intercalate)
 
 import           Text.PrettyPrint.HughesPJClass
 
+lorenz :: Double -> [Double] -> [Double]
+lorenz _t u = [ sigma * (y - x)
+              , x * (rho - z) - y
+              , x * y - beta * z
+              ]
+  where
+    rho = 28.0
+    sigma = 10.0
+    beta = 8.0 / 3.0
+    x = u !! 0
+    y = u !! 1
+    z = u !! 2
+
+lorenzJac :: Double -> Vector Double -> Matrix Double
+lorenzJac _t u = (3><3) [ (-sigma), rho - z, y
+                        , sigma   , -1.0   , x
+                        , 0.0     , (-x)   , (-beta)
+                        ]
+  where
+    rho = 28.0
+    sigma = 10.0
+    beta = 8.0 / 3.0
+    x = u ! 0
+    y = u ! 1
+    z = u ! 2
 
 brusselator :: Double -> [Double] -> [Double]
 brusselator _t x = [ a - (w + 1) * u + v * u * u
@@ -90,18 +115,40 @@ main = do
   -- \end{array}
   -- $$
 
-  let res = btGet SDIRK_2_1_2
+  let res = btGet (SDIRK_2_1_2 undefined)
   putStrLn $ show res
   putStrLn $ butcherTableauTex res
 
-  let res1 = odeSolve KVAERNO_4_2_3 brussJac brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 10.0])
+  let res = btGet (KVAERNO_4_2_3 undefined)
+  putStrLn $ show res
+  putStrLn $ butcherTableauTex res
+
+  let res = btGet (SDIRK_5_3_4 undefined)
+  putStrLn $ show res
+  putStrLn $ butcherTableauTex res
+
+  let res1 = odeSolve' (KVAERNO_4_2_3 undefined) brussJac brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 10.0])
   putStrLn $ show res1
   renderRasterific "diagrams/brusselator.png"
                    (D.dims2D 500.0 500.0)
                    (renderAxis $ lSaxis $ [0.0, 0.1 .. 10.0]:(toLists $ tr res1))
 
-  let res2 = odeSolve KVAERNO_4_2_3 stiffJac stiffish [0.0] (fromList [0.0, 0.1 .. 10.0])
+
+  let res2 = odeSolve' (KVAERNO_4_2_3 undefined) stiffJac stiffish [0.0] (fromList [0.0, 0.1 .. 10.0])
   putStrLn $ show res2
   renderRasterific "diagrams/stiffish.png"
                    (D.dims2D 500.0 500.0)
                    (renderAxis $ kSaxis $ zip [0.0, 0.1 .. 10.0] (concat $ toLists res2))
+
+  let res3 = odeSolve' (KVAERNO_4_2_3 undefined) lorenzJac lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 30.0])
+  renderRasterific "diagrams/lorenz.png"
+                   (D.dims2D 500.0 500.0)
+                   (renderAxis $ kSaxis $ zip ((toLists $ tr res3)!!0) ((toLists $ tr res3)!!1))
+
+  renderRasterific "diagrams/lorenz1.png"
+                   (D.dims2D 500.0 500.0)
+                   (renderAxis $ kSaxis $ zip ((toLists $ tr res3)!!0) ((toLists $ tr res3)!!2))
+
+  renderRasterific "diagrams/lorenz2.png"
+                   (D.dims2D 500.0 500.0)
+                   (renderAxis $ kSaxis $ zip ((toLists $ tr res3)!!1) ((toLists $ tr res3)!!2))
