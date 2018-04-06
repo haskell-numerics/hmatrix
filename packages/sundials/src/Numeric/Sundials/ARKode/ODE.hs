@@ -217,13 +217,13 @@ odeSolveV
 odeSolveV meth _hi epsAbs epsRel f y0 ts =
   case odeSolveVWith meth (XX' epsAbs epsRel 1 1) epsAbs epsAbs g y0 ts of
     Left c -> error $ show c -- FIXME
+    -- FIXME: Can we do better than using lists?
     Right (v, d) -> trace (show d) $ (nR >< nC) (V.toList v)
   where
     us = toList ts
     nR = length us
     nC = size y0
-    -- FIXME: via a list - really?
-    g t x0 = V.fromList $ toList $ f t x0
+    g t x0 = coerce $ f t x0
 
 -- | A version of 'odeSolveV' with reasonable default parameters and
 -- system of equations defined using lists. FIXME: we should say
@@ -274,8 +274,7 @@ odeSolveVWith method _control relTol absTol f y0 tt =
     Left c -> Left $ fromIntegral c
     Right (v, d) -> Right (coerce v, d)
   where
-    -- FIXME: Can we do better than going via a list?
-    jacH = fmap (\g t v -> matrixToSunMatrix $ g (coerce t) (coerce $ V.fromList $ toList v)) $
+    jacH = fmap (\g t v -> matrixToSunMatrix $ g (coerce t) (coerce v)) $
            getJacobian method
     matrixToSunMatrix m = T.SunMatrix { T.rows = nr, T.cols = nc, T.vals = vs }
       where
@@ -584,10 +583,25 @@ getButcherTable method = unsafePerformIO $ do
     else do
       return $ Left res
 
--- | Adaptive step-size control functions. FIXME: It may not be
--- possible to scale the tolerances for the derivatives in sundials so
--- for now we ignore them and emit a warning.
-data StepControl = X     Double Double -- ^ abs. and rel. tolerance for x(t)
-                 | X'    Double Double -- ^ abs. and rel. tolerance for x'(t)
-                 | XX'   Double Double Double Double -- ^ include both via rel. tolerance scaling factors a_x, a_x'
-                 | ScXX' Double Double Double Double (Vector Double) -- ^ scale abs. tolerance of x(t) components
+-- | Adaptive step-size control
+-- functions.
+--
+-- [GSL](https://www.gnu.org/software/gsl/doc/html/ode-initval.html#adaptive-step-size-control)
+-- allows the user to control the step size adjustment using
+-- \(D_i = \epsilon^{abs}s_i + \epsilon^{rel}(a_{y} |y_i| + a_{dy/dt} h |y'_i|)\) where
+-- \(\epsilon^{abs}\) is the required absolute error, \(\epsilon^{rel}\)
+-- is the required relative error, \(s_i\) is a vector of scaling
+-- factors, \(a_{y}\) is a scaling factor for the solution \(y\) and
+-- \(a_{dydt}\) is a scaling factor for the derivative of the solution \(dy/dt\).
+--
+-- [ARKode](https://computation.llnl.gov/projects/sundials/arkode)
+-- allows the user to control the step size adjustment using
+-- \(\epsilon^{rel}|y_i| + \epsilon^{abs}_i\). For compatibility with
+-- [hmatrix-gsl](https://hackage.haskell.org/package/hmatrix-gsl),
+-- tolerances for \(y\) and \(\dot{y}\) can be specified but the latter have no
+-- effect.
+data StepControl = X     Double Double -- ^ absolute and relative tolerance for \(y\)
+                 | X'    Double Double -- ^ absolute and relative tolerance for \(\dot{y}\)
+                 | XX'   Double Double Double Double -- ^ include both via relative tolerance
+                                                     -- scaling factors \(a_y\), \(a_{{dy}/{dt}}\)
+                 | ScXX' Double Double Double Double (Vector Double) -- ^ scale absolute tolerance of \(y_i\)
