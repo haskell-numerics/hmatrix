@@ -76,6 +76,7 @@ module Numeric.Sundials.ARKode.ODE ( odeSolve
                                    , btGet
                                    , ODEMethod(..)
                                    , StepControl(..)
+                                   , SundialsDiagnostics(..)
                                    ) where
 
 import qualified Language.C.Inline as C
@@ -98,7 +99,8 @@ import           System.IO.Unsafe (unsafePerformIO)
 import           Numeric.LinearAlgebra.Devel (createVector)
 
 import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, (><),
-                                                subMatrix, rows, cols, toLists)
+                                                subMatrix, rows, cols, toLists,
+                                                size)
 
 import qualified Types as T
 import           Arkode (sDIRK_2_1_2, kVAERNO_4_2_3, sDIRK_5_3_4)
@@ -170,16 +172,16 @@ vectorToC vec len ptr = do
   V.copy (VM.unsafeFromForeignPtr0 ptr' len) vec
 
 data SundialsDiagnostics = SundialsDiagnostics {
-    _aRKodeGetNumSteps               :: Int
-  , _aRKodeGetNumStepAttempts        :: Int
-  , _aRKodeGetNumRhsEvals_fe         :: Int
-  , _aRKodeGetNumRhsEvals_fi         :: Int
-  , _aRKodeGetNumLinSolvSetups       :: Int
-  , _aRKodeGetNumErrTestFails        :: Int
-  , _aRKodeGetNumNonlinSolvIters     :: Int
-  , _aRKodeGetNumNonlinSolvConvFails :: Int
-  , _aRKDlsGetNumJacEvals            :: Int
-  , _aRKDlsGetNumRhsEvals            :: Int
+    aRKodeGetNumSteps               :: Int
+  , aRKodeGetNumStepAttempts        :: Int
+  , aRKodeGetNumRhsEvals_fe         :: Int
+  , aRKodeGetNumRhsEvals_fi         :: Int
+  , aRKodeGetNumLinSolvSetups       :: Int
+  , aRKodeGetNumErrTestFails        :: Int
+  , aRKodeGetNumNonlinSolvIters     :: Int
+  , aRKodeGetNumNonlinSolvConvFails :: Int
+  , aRKDlsGetNumJacEvals            :: Int
+  , aRKDlsGetNumRhsEvals            :: Int
   } deriving Show
 
 type Jacobian = Double -> Vector Double -> Matrix Double
@@ -208,11 +210,20 @@ odeSolveV
     -> Double            -- ^ initial step size
     -> Double            -- ^ absolute tolerance for the state vector
     -> Double            -- ^ relative tolerance for the state vector
-    -> (Double -> Vector Double -> Vector Double)   -- ^ x'(t,x)
+    -> (Double -> Vector Double -> Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
     -> Vector Double     -- ^ initial conditions
     -> Vector Double     -- ^ desired solution times
     -> Matrix Double     -- ^ solution
-odeSolveV _meth _hi _epsAbs _epsRel = undefined
+odeSolveV meth _hi epsAbs epsRel f y0 ts =
+  case odeSolveVWith meth (XX' epsAbs epsRel 1 1) epsAbs epsAbs g y0 ts of
+    Left c -> error $ show c -- FIXME
+    Right (v, d) -> trace (show d) $ (nR >< nC) (V.toList v)
+  where
+    us = toList ts
+    nR = length us
+    nC = size y0
+    -- FIXME: via a list - really?
+    g t x0 = V.fromList $ toList $ f t x0
 
 -- | A version of 'odeSolveV' with reasonable default parameters and
 -- system of equations defined using lists. FIXME: we should say
@@ -223,7 +234,8 @@ odeSolve :: (Double -> [Double] -> [Double]) -- ^ The RHS of the system \(\dot{y
          -> Vector Double                    -- ^ desired solution times
          -> Matrix Double                    -- ^ solution
 odeSolve f y0 ts =
-  case odeSolveVWith SDIRK_5_3_4' 1.0e-6 1.0e-10 g (V.fromList y0) (V.fromList $ toList ts) of
+  -- FIXME: These tolerances are different from the ones in GSL
+  case odeSolveVWith SDIRK_5_3_4' (XX' 1.0e-6 1.0e-10 1 1) 1.0e-6 1.0e-10 g (V.fromList y0) (V.fromList $ toList ts) of
     Left c -> error $ show c -- FIXME
     Right (v, d) -> trace (show d) $ (nR >< nC) (V.toList v)
   where
@@ -238,7 +250,7 @@ odeSolve' :: ODEMethod
          -> Vector Double                    -- ^ desired solution times
          -> Matrix Double                    -- ^ solution
 odeSolve' method f y0 ts =
-  case odeSolveVWith method 1.0e-6 1.0e-10 g (V.fromList y0) (V.fromList $ toList ts) of
+  case odeSolveVWith method (XX' 1.0e-6 1.0e-10 1 1) 1.0e-6 1.0e-10 g (V.fromList y0) (V.fromList $ toList ts) of
     Left c -> error $ show c -- FIXME
     Right (v, d) -> trace (show d) $ (nR >< nC) (V.toList v)
   where
@@ -249,13 +261,14 @@ odeSolve' method f y0 ts =
 
 odeSolveVWith ::
   ODEMethod
+  -> StepControl
   -> Double
   -> Double
   -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector Double                     -- ^ Initial conditions
   -> V.Vector Double                     -- ^ Desired solution times
   -> Either Int ((V.Vector Double), SundialsDiagnostics) -- ^ Error code or solution
-odeSolveVWith method relTol absTol f y0 tt =
+odeSolveVWith method _control relTol absTol f y0 tt =
   case solveOdeC (fromIntegral $ getMethod method) jacH (CDouble relTol) (CDouble absTol)
                  (coerce f) (coerce y0) (coerce tt) of
     Left c -> Left $ fromIntegral c
