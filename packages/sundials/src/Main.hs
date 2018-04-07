@@ -69,6 +69,12 @@ stiffish t v = [ lamda * u + 1.0 / (1.0 + t * t) - lamda * atan t ]
     lamda = -100.0
     u = v !! 0
 
+stiffishV :: Double -> Vector Double -> Vector Double
+stiffishV t v = fromList [ lamda * u + 1.0 / (1.0 + t * t) - lamda * atan t ]
+  where
+    lamda = -100.0
+    u = v ! 0
+
 stiffJac :: Double -> Vector Double -> Matrix Double
 stiffJac _t _v = (1><1) [ lamda ]
   where
@@ -142,6 +148,10 @@ main = do
   renderRasterific "diagrams/stiffish.png"
                    (D.dims2D 500.0 500.0)
                    (renderAxis $ kSaxis $ zip [0.0, 0.1 .. 10.0] (concat $ toLists res2))
+
+  let res2a = odeSolveV (SDIRK_5_3_4 stiffJac) 0.1 1e-3 1e-6 stiffishV (fromList [0.0]) (fromList [0.0, 0.1 .. 10.0])
+  putStrLn "Lower tolerances"
+  putStrLn $ show res2a
 
   let res3 = odeSolve' (SDIRK_5_3_4 lorenzJac) lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 10.0])
   putStrLn $ show $ last ((toLists $ tr res3)!!0)

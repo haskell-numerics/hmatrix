@@ -215,7 +215,7 @@ odeSolveV
     -> Vector Double     -- ^ desired solution times
     -> Matrix Double     -- ^ solution
 odeSolveV meth _hi epsAbs epsRel f y0 ts =
-  case odeSolveVWith meth (XX' epsAbs epsRel 1 1) epsAbs epsAbs g y0 ts of
+  case odeSolveVWith meth (X epsAbs epsRel) g y0 ts of
     Left c -> error $ show c -- FIXME
     -- FIXME: Can we do better than using lists?
     Right (v, d) -> trace (show d) $ (nR >< nC) (V.toList v)
@@ -235,7 +235,7 @@ odeSolve :: (Double -> [Double] -> [Double]) -- ^ The RHS of the system \(\dot{y
          -> Matrix Double                    -- ^ solution
 odeSolve f y0 ts =
   -- FIXME: These tolerances are different from the ones in GSL
-  case odeSolveVWith SDIRK_5_3_4' (XX' 1.0e-6 1.0e-10 1 1) 1.0e-6 1.0e-10 g (V.fromList y0) (V.fromList $ toList ts) of
+  case odeSolveVWith SDIRK_5_3_4' (XX' 1.0e-6 1.0e-10 1 1) g (V.fromList y0) (V.fromList $ toList ts) of
     Left c -> error $ show c -- FIXME
     Right (v, d) -> trace (show d) $ (nR >< nC) (V.toList v)
   where
@@ -250,7 +250,7 @@ odeSolve' :: ODEMethod
          -> Vector Double                    -- ^ desired solution times
          -> Matrix Double                    -- ^ solution
 odeSolve' method f y0 ts =
-  case odeSolveVWith method (XX' 1.0e-6 1.0e-10 1 1) 1.0e-6 1.0e-10 g (V.fromList y0) (V.fromList $ toList ts) of
+  case odeSolveVWith method (XX' 1.0e-6 1.0e-10 1 1) g (V.fromList y0) (V.fromList $ toList ts) of
     Left c -> error $ show c -- FIXME
     Right (v, d) -> trace (show d) $ (nR >< nC) (V.toList v)
   where
@@ -262,36 +262,40 @@ odeSolve' method f y0 ts =
 odeSolveVWith ::
   ODEMethod
   -> StepControl
-  -> Double
-  -> Double
   -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector Double                     -- ^ Initial conditions
   -> V.Vector Double                     -- ^ Desired solution times
   -> Either Int ((V.Vector Double), SundialsDiagnostics) -- ^ Error code or solution
-odeSolveVWith method _control relTol absTol f y0 tt =
-  case solveOdeC (fromIntegral $ getMethod method) jacH (CDouble relTol) (CDouble absTol)
+odeSolveVWith method control f y0 tt =
+  case solveOdeC (fromIntegral $ getMethod method) jacH (scise control)
                  (coerce f) (coerce y0) (coerce tt) of
     Left c -> Left $ fromIntegral c
     Right (v, d) -> Right (coerce v, d)
   where
+    l = size y0
+    scise (X absTol relTol)                          = coerce (V.replicate l absTol, relTol)
+    scise (X' absTol relTol)                         = coerce (V.replicate l absTol, relTol)
+    scise (XX' absTol relTol yScale _yDotScale)      = coerce (V.replicate l absTol, yScale * relTol)
+    -- FIXME; Should we check that the length of ss is correct?
+    scise (ScXX' absTol relTol yScale _yDotScale ss) = coerce (V.map (* absTol) ss, yScale * relTol)
     jacH = fmap (\g t v -> matrixToSunMatrix $ g (coerce t) (coerce v)) $
            getJacobian method
     matrixToSunMatrix m = T.SunMatrix { T.rows = nr, T.cols = nc, T.vals = vs }
       where
         nr = fromIntegral $ rows m
         nc = fromIntegral $ cols m
+        -- FIXME: efficiency
         vs = V.fromList $ map coerce $ concat $ toLists m
 
 solveOdeC ::
   CInt ->
   (Maybe (CDouble -> V.Vector CDouble -> T.SunMatrix)) ->
-  CDouble ->
-  CDouble ->
+  (V.Vector CDouble, CDouble) ->
   (CDouble -> V.Vector CDouble -> V.Vector CDouble) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector CDouble -- ^ Initial conditions
   -> V.Vector CDouble -- ^ Desired solution times
   -> Either CInt ((V.Vector CDouble), SundialsDiagnostics) -- ^ Error code or solution
-solveOdeC method jacH relTol absTol fun f0 ts = unsafePerformIO $ do
+solveOdeC method jacH (absTols, relTol) fun f0 ts = unsafePerformIO $ do
   let dim = V.length f0
       nEq :: CLong
       nEq = fromIntegral dim
@@ -336,6 +340,9 @@ solveOdeC method jacH relTol absTol fun f0 ts = unsafePerformIO $ do
                          /* general problem variables */
                          int flag;                       /* reusable error-checking flag */
                          N_Vector y = NULL;              /* empty vector for storing solution */
+                         /* empty vector for storing absolute tolerances */
+                         N_Vector tv = NULL;
+
                          SUNMatrix A = NULL;             /* empty matrix for linear solver */
                          SUNLinearSolver LS = NULL;      /* empty linear solver object */
                          void *arkode_mem = NULL;        /* empty ARKode memory structure */
@@ -353,6 +360,13 @@ solveOdeC method jacH relTol absTol fun f0 ts = unsafePerformIO $ do
                          for (i = 0; i < NEQ; i++) {
                            NV_Ith_S(y,i) = ($vec-ptr:(double *fMut))[i];
                          }; /* Specify initial condition */
+
+                         tv = N_VNew_Serial(NEQ);      /* Create serial vector for solution */
+                         if (check_flag((void *)tv, "N_VNew_Serial", 0)) return 1;
+                         for (i = 0; i < NEQ; i++) {
+                           NV_Ith_S(tv,i) = ($vec-ptr:(double *absTols))[i];
+                         };
+
                          arkode_mem = ARKodeCreate(); /* Create the solver memory */
                          if (check_flag((void *)arkode_mem, "ARKodeCreate", 0)) return 1;
 
@@ -367,8 +381,8 @@ solveOdeC method jacH relTol absTol fun f0 ts = unsafePerformIO $ do
                          if (check_flag(&flag, "ARKodeInit", 1)) return 1;
 
                          /* Set routines */
-                         flag = ARKodeSStolerances(arkode_mem, $(double relTol), $(double absTol));
-                         if (check_flag(&flag, "ARKodeSStolerances", 1)) return 1;
+                         flag = ARKodeSVtolerances(arkode_mem, $(double relTol), tv);
+                         if (check_flag(&flag, "ARKodeSVtolerances", 1)) return 1;
 
                          /* Initialize dense matrix data structure and solver */
                          A = SUNDenseMatrix(NEQ, NEQ);
