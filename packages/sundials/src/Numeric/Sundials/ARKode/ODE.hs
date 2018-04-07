@@ -588,7 +588,7 @@ getButcherTable method = unsafePerformIO $ do
 --
 -- [GSL](https://www.gnu.org/software/gsl/doc/html/ode-initval.html#adaptive-step-size-control)
 -- allows the user to control the step size adjustment using
--- \(D_i = \epsilon^{abs}s_i + \epsilon^{rel}(a_{y} |y_i| + a_{dy/dt} h |y'_i|)\) where
+-- \(D_i = \epsilon^{abs}s_i + \epsilon^{rel}(a_{y} |y_i| + a_{dy/dt} h |\dot{y}_i|)\) where
 -- \(\epsilon^{abs}\) is the required absolute error, \(\epsilon^{rel}\)
 -- is the required relative error, \(s_i\) is a vector of scaling
 -- factors, \(a_{y}\) is a scaling factor for the solution \(y\) and
@@ -596,12 +596,12 @@ getButcherTable method = unsafePerformIO $ do
 --
 -- [ARKode](https://computation.llnl.gov/projects/sundials/arkode)
 -- allows the user to control the step size adjustment using
--- \(\epsilon^{rel}|y_i| + \epsilon^{abs}_i\). For compatibility with
+-- \(\eta^{rel}|y_i| + \eta^{abs}_i\). For compatibility with
 -- [hmatrix-gsl](https://hackage.haskell.org/package/hmatrix-gsl),
 -- tolerances for \(y\) and \(\dot{y}\) can be specified but the latter have no
 -- effect.
-data StepControl = X     Double Double -- ^ absolute and relative tolerance for \(y\)
-                 | X'    Double Double -- ^ absolute and relative tolerance for \(\dot{y}\)
+data StepControl = X     Double Double -- ^ absolute and relative tolerance for \(y\); in GSL terms, \(a_{y} = 1\) and \(a_{dy/dt} = 0\); in ARKode terms, the \(\eta^{abs}_i\) are identical
+                 | X'    Double Double -- ^ absolute and relative tolerance for \(\dot{y}\); in GSL terms, \(a_{y} = 0\) and \(a_{dy/dt} = 1\); in ARKode terms, the latter is treated as the relative tolerance for \(y\) so this is the same as specifying 'X' which may be entirely incorrect for the given problem
                  | XX'   Double Double Double Double -- ^ include both via relative tolerance
-                                                     -- scaling factors \(a_y\), \(a_{{dy}/{dt}}\)
-                 | ScXX' Double Double Double Double (Vector Double) -- ^ scale absolute tolerance of \(y_i\)
+                                                     -- scaling factors \(a_y\), \(a_{{dy}/{dt}}\); in ARKode terms, the latter is ignored and \(\eta^{rel} = a_{y}\epsilon^{rel}\)
+                 | ScXX' Double Double Double Double (Vector Double) -- ^ scale absolute tolerance of \(y_i\); in ARKode terms, \(a_{{dy}/{dt}}\) is ignored, \(\eta^{abs}_i = s_i \epsilon^{abs}\) and \(\eta^{rel} = a_{y}\epsilon^{rel}\)
