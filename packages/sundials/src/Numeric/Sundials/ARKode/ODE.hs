@@ -338,31 +338,34 @@ solveOdeC method jacH (absTols, relTol) fun f0 ts = unsafePerformIO $ do
 
   res <- [C.block| int {
                          /* general problem variables */
-                         int flag;                       /* reusable error-checking flag */
-                         N_Vector y = NULL;              /* empty vector for storing solution */
-                         /* empty vector for storing absolute tolerances */
-                         N_Vector tv = NULL;
 
-                         SUNMatrix A = NULL;             /* empty matrix for linear solver */
-                         SUNLinearSolver LS = NULL;      /* empty linear solver object */
-                         void *arkode_mem = NULL;        /* empty ARKode memory structure */
+                         int flag;                  /* reusable error-checking flag                 */
+                         int i, j;                  /* reusable loop indices                        */
+                         N_Vector y = NULL;         /* empty vector for storing solution            */
+                         N_Vector tv = NULL;        /* empty vector for storing absolute tolerances */
+                         SUNMatrix A = NULL;        /* empty matrix for linear solver               */
+                         SUNLinearSolver LS = NULL; /* empty linear solver object                   */
+                         void *arkode_mem = NULL;   /* empty ARKode memory structure                */
                          realtype t;
                          long int nst, nst_a, nfe, nfi, nsetups, nje, nfeLS, nni, ncfn, netf;
 
                          /* general problem parameters */
-                         realtype T0 = RCONST(($vec-ptr:(double *tMut))[0]);    /* initial time */
-                         sunindextype NEQ = $(sunindextype nEq); /* number of dependent vars. */
+
+                         realtype T0 = RCONST(($vec-ptr:(double *tMut))[0]); /* initial time              */
+                         sunindextype NEQ = $(sunindextype nEq);             /* number of dependent vars. */
 
                          /* Initialize data structures */
-                         y = N_VNew_Serial(NEQ);      /* Create serial vector for solution */
+
+                         y = N_VNew_Serial(NEQ); /* Create serial vector for solution */
                          if (check_flag((void *)y, "N_VNew_Serial", 0)) return 1;
-                         int i, j;
+                         /* Specify initial condition */
                          for (i = 0; i < NEQ; i++) {
                            NV_Ith_S(y,i) = ($vec-ptr:(double *fMut))[i];
-                         }; /* Specify initial condition */
+                         };
 
-                         tv = N_VNew_Serial(NEQ);      /* Create serial vector for solution */
+                         tv = N_VNew_Serial(NEQ); /* Create serial vector for absolute tolerances */
                          if (check_flag((void *)tv, "N_VNew_Serial", 0)) return 1;
+                         /* Specify tolerances */
                          for (i = 0; i < NEQ; i++) {
                            NV_Ith_S(tv,i) = ($vec-ptr:(double *absTols))[i];
                          };
@@ -371,9 +374,9 @@ solveOdeC method jacH (absTols, relTol) fun f0 ts = unsafePerformIO $ do
                          if (check_flag((void *)arkode_mem, "ARKodeCreate", 0)) return 1;
 
                          /* Call ARKodeInit to initialize the integrator memory and specify the */
-                         /*    right-hand side function in y'=f(t,y), the inital time T0, and */
-                         /*    the initial dependent variable vector y.  Note: since this */
-                         /*    problem is fully implicit, we set f_E to NULL and f_I to f. */
+                         /* right-hand side function in y'=f(t,y), the inital time T0, and      */
+                         /* the initial dependent variable vector y.  Note: we treat the        */
+                         /* problem as fully implicit and set f_E to NULL and f_I to f.         */
 
                          /* Here we use the C types defined in helpers.h which tie up with */
                          /* the Haskell types defined in Types                             */
@@ -390,9 +393,11 @@ solveOdeC method jacH (absTols, relTol) fun f0 ts = unsafePerformIO $ do
                          LS = SUNDenseLinearSolver(y, A);
                          if (check_flag((void *)LS, "SUNDenseLinearSolver", 0)) return 1;
 
-                         /* Linear solver interface */
-                         flag = ARKDlsSetLinearSolver(arkode_mem, LS, A);        /* Attach matrix and linear solver */
+                         /* Attach matrix and linear solver */
+                         flag = ARKDlsSetLinearSolver(arkode_mem, LS, A);
+                         if (check_flag(&flag, "ARKDlsSetLinearSolver", 1)) return 1;
 
+                         /* Set the Jacobian if there is one */
                          if ($(int isJac)) {
                            flag = ARKDlsSetJacFn(arkode_mem, $fun:(int (* jacIO) (double t, SunVector y[], SunVector fy[], SunMatrix Jac[], void * params, SunVector tmp1[], SunVector tmp2[], SunVector tmp3[])));
                            if (check_flag(&flag, "ARKDlsSetJacFn", 1)) return 1;
@@ -403,11 +408,12 @@ solveOdeC method jacH (absTols, relTol) fun f0 ts = unsafePerformIO $ do
                            ($vec-ptr:(double *qMatMut))[0 * $(int nTs) + j] = NV_Ith_S(y,j);
                          }
 
+                         /* Explicitly set the method */
                          flag = ARKodeSetIRKTableNum(arkode_mem, $(int method));
                          if (check_flag(&flag, "ARKode", 1)) return 1;
 
                          /* Main time-stepping loop: calls ARKode to perform the integration */
-                         /* Stops when the final time has been reached */
+                         /* Stops when the final time has been reached                       */
                          for (i = 1; i < $(int nTs); i++) {
 
                            flag = ARKode(arkode_mem, ($vec-ptr:(double *tMut))[i], y, &t, ARK_NORMAL); /* call integrator */
@@ -418,13 +424,15 @@ solveOdeC method jacH (absTols, relTol) fun f0 ts = unsafePerformIO $ do
                              ($vec-ptr:(double *qMatMut))[i * NEQ + j] = NV_Ith_S(y,j);
                            }
 
-                           if (flag < 0) {                                                 /* unsuccessful solve: break */
+                           /* unsuccessful solve: break */
+                           if (flag < 0) {
                              fprintf(stderr,"Solver failure, stopping integration\n");
                              break;
                            }
                          }
 
                          /* Get some final statistics on how the solve progressed */
+
                          flag = ARKodeGetNumSteps(arkode_mem, &nst);
                          check_flag(&flag, "ARKodeGetNumSteps", 1);
                          ($vec-ptr:(long int *diagMut))[0] = nst;
