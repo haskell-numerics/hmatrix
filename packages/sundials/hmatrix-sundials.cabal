@@ -1,16 +1,17 @@
 name:                hmatrix-sundials
 version:             0.1.0.0
--- synopsis:
--- description:
+synopsis:            hmatrix interface to sundials
+description:         Foo bar baz
 homepage:            https://github.com/idontgetoutmuch/hmatrix/tree/sundials
 license:             BSD3
 license-file:        LICENSE
 author:              Dominic Steinitz
 maintainer:          dominic@steinitz.org
--- copyright:
+copyright:           Dominic Steinitz 2018, Novadiscovery 2018
 category:            Math
 build-type:          Simple
-extra-source-files:  ChangeLog.md
+extra-source-files:  ChangeLog.md, README.md, diagrams/*.png
+extra-doc-files:     diagrams/*.png
 cabal-version:       >=1.10
 
 

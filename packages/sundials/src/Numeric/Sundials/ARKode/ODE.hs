@@ -35,6 +35,8 @@
 -- main = mplot (ts : toColumns sol)
 -- @
 --
+-- <<diagrams/brusselator.png#diagram=brusselator&height=400&width=500>>
+--
 -- KVAERNO_4_2_3
 --
 -- \[
@@ -70,7 +72,6 @@
 module Numeric.Sundials.ARKode.ODE ( odeSolve
                                    , odeSolveV
                                    , odeSolveVWith
-                                   , odeSolve'
                                    , getButcherTable
                                    , getBT
                                    , btGet
@@ -236,21 +237,6 @@ odeSolve :: (Double -> [Double] -> [Double]) -- ^ The RHS of the system \(\dot{y
 odeSolve f y0 ts =
   -- FIXME: These tolerances are different from the ones in GSL
   case odeSolveVWith SDIRK_5_3_4' (XX' 1.0e-6 1.0e-10 1 1) g (V.fromList y0) (V.fromList $ toList ts) of
-    Left c -> error $ show c -- FIXME
-    Right (v, d) -> trace (show d) $ (nR >< nC) (V.toList v)
-  where
-    us = toList ts
-    nR = length us
-    nC = length y0
-    g t x0 = V.fromList $ f t (V.toList x0)
-
-odeSolve' :: ODEMethod
-         -> (Double -> [Double] -> [Double]) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
-         -> [Double]                         -- ^ initial conditions
-         -> Vector Double                    -- ^ desired solution times
-         -> Matrix Double                    -- ^ solution
-odeSolve' method f y0 ts =
-  case odeSolveVWith method (XX' 1.0e-6 1.0e-10 1 1) g (V.fromList y0) (V.fromList $ toList ts) of
     Left c -> error $ show c -- FIXME
     Right (v, d) -> trace (show d) $ (nR >< nC) (V.toList v)
   where
