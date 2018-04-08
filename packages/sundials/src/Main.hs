@@ -121,17 +121,17 @@ main = do
   -- \end{array}
   -- $$
 
-  -- let res = btGet (SDIRK_2_1_2 undefined)
-  -- putStrLn $ show res
-  -- putStrLn $ butcherTableauTex res
+  let res = btGet (SDIRK_2_1_2 undefined)
+  putStrLn $ show res
+  putStrLn $ butcherTableauTex $ fst res
 
-  -- let res = btGet (KVAERNO_4_2_3 undefined)
-  -- putStrLn $ show res
-  -- putStrLn $ butcherTableauTex res
+  let res = btGet (KVAERNO_4_2_3 undefined)
+  putStrLn $ show res
+  putStrLn $ butcherTableauTex $ fst res
 
-  -- let res = btGet (SDIRK_5_3_4 undefined)
-  -- putStrLn $ show res
-  -- putStrLn $ butcherTableauTex res
+  let res = btGet (SDIRK_5_3_4 undefined)
+  putStrLn $ show res
+  putStrLn $ butcherTableauTex $ fst res
 
   let res1 = odeSolve brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 10.0])
   renderRasterific "diagrams/brusselator.png"
