@@ -1,0 +1,52 @@
+name:                hmatrix-sundials
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/idontgetoutmuch/hmatrix/tree/sundials
+license:             BSD3
+license-file:        LICENSE
+author:              Dominic Steinitz
+maintainer:          dominic@steinitz.org
+-- copyright:
+category:            Math
+build-type:          Simple
+extra-source-files:  ChangeLog.md
+cabal-version:       >=1.10
+
+
+library
+  build-depends:       base >=4.10 && <4.11,
+                       inline-c >=0.6 && <0.7,
+                       vector >=0.12 && <0.13,
+                       template-haskell >=2.12 && <2.13,
+                       containers >=0.5 && <0.6,
+                       hmatrix>=0.18
+  extra-libraries:     sundials_arkode
+  other-extensions:    QuasiQuotes
+  hs-source-dirs:      src
+  exposed-modules:     Numeric.Sundials.Arkode.ODE
+  other-modules:       Types,
+                       Arkode
+  c-sources:           src/helpers.c src/helpers.h
+
+executable sundials
+  main-is:             Main.hs
+  other-modules:       Types,
+                       Numeric.Sundials.Arkode.ODE,
+                       Arkode
+  other-extensions:    QuasiQuotes
+  build-depends:       base >=4.10 && <4.11,
+                       inline-c >=0.6 && <0.7,
+                       vector >=0.12 && <0.13,
+                       template-haskell >=2.12 && <2.13,
+                       containers >=0.5 && <0.6,
+                       hmatrix>=0.18,
+                       plots,
+                       diagrams-lib,
+                       diagrams-rasterific,
+                       lens,
+                       pretty
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+  extra-libraries:     sundials_arkode
+  c-sources:           src/helpers.c src/helpers.h

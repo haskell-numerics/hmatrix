@@ -514,7 +514,7 @@ indexProp g f x = a1 == g a2 && a2 == a3 && b1 == g b2 && b2 == b3
 
 --------------------------------------------------------------------------------
 
-_sliceTest = utest "slice test" $ and
+_sliceTest = TestList
     [ testSlice (chol . trustSym)  (gen 5 :: Matrix R)
     , testSlice (chol . trustSym)  (gen 5 :: Matrix C)
     , testSlice qr    (rec :: Matrix R)

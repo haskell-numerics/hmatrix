@@ -2,11 +2,14 @@ version: 2
 jobs:
   build:
     docker:
-      - image: fpco/stack-build
+      - image: terrorjack/vanilla:haskell
     steps:
       - checkout
       - restore_cache:
           key: stack-deps-{{ checksum "stack.yaml" }}
+      - run:
+          name: Update packages
+          command: nix-channel --update
       - run:
           name: Setup build toolchain
           command: stack setup
@@ -17,12 +20,6 @@ jobs:
           paths:
             - "~/.stack"
           key: stack-deps-{{ checksum "stack.yaml" }}
-      - run:
-          name: Set up apt
-          command: apt update
-      - run:
-          name: Installing C packages
-          command: apt -y install libglpk-dev
       - run:
           name: Building
           command: stack build --pedantic
