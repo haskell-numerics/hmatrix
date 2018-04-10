@@ -25,8 +25,8 @@ lorenz _t u = [ sigma * (y - x)
     y = u !! 1
     z = u !! 2
 
-lorenzJac :: Double -> Vector Double -> Matrix Double
-lorenzJac _t u = (3><3) [ (-sigma), rho - z, y
+_lorenzJac :: Double -> Vector Double -> Matrix Double
+_lorenzJac _t u = (3><3) [ (-sigma), rho - z, y
                         , sigma   , -1.0   , x
                         , 0.0     , (-x)   , (-beta)
                         ]
@@ -51,8 +51,8 @@ brusselator _t x = [ a - (w + 1) * u + v * u * u
     v = x !! 1
     w = x !! 2
 
-brussJac :: Double -> Vector Double -> Matrix Double
-brussJac _t x = (3><3) [ (-(w + 1.0)) + 2.0 * u * v, w - 2.0 * u * v, (-w)
+_brussJac :: Double -> Vector Double -> Matrix Double
+_brussJac _t x = (3><3) [ (-(w + 1.0)) + 2.0 * u * v, w - 2.0 * u * v, (-w)
                        , u * u                     , (-(u * u))     , 0.0
                        , (-u)                      , u              , (-1.0) / eps - u
                        ]
@@ -120,13 +120,13 @@ main = do
   putStrLn $ show res
   putStrLn $ butcherTableauTex res
 
-  let res = butcherTable (KVAERNO_4_2_3 undefined)
-  putStrLn $ show res
-  putStrLn $ butcherTableauTex res
+  let resA = butcherTable (KVAERNO_4_2_3 undefined)
+  putStrLn $ show resA
+  putStrLn $ butcherTableauTex resA
 
-  let res = butcherTable (SDIRK_5_3_4 undefined)
-  putStrLn $ show res
-  putStrLn $ butcherTableauTex res
+  let resB = butcherTable (SDIRK_5_3_4 undefined)
+  putStrLn $ show resB
+  putStrLn $ butcherTableauTex resB
 
   let res1 = odeSolve brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 10.0])
   renderRasterific "diagrams/brusselator.png"
@@ -151,12 +151,12 @@ main = do
   let res3 = odeSolve lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 10.0])
   putStrLn $ show $ last ((toLists $ tr res3)!!0)
 
-  let res3 = odeSolve lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 10.0])
-  putStrLn $ show $ last ((toLists $ tr res3)!!0)
+  let res3A = odeSolve lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 10.0])
+  putStrLn $ show $ last ((toLists $ tr res3A)!!0)
 
   renderRasterific "diagrams/lorenz.png"
                    (D.dims2D 500.0 500.0)
-                   (renderAxis $ kSaxis $ zip ((toLists $ tr res3)!!0) ((toLists $ tr res3)!!1))
+                   (renderAxis $ kSaxis $ zip ((toLists $ tr res3)!!0) ((toLists $ tr res3A)!!1))
 
   let res3a = odeSolve lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 10.0])
   renderRasterific "diagrams/lorenzA.png"
