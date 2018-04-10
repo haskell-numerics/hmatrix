@@ -12,7 +12,6 @@ jobs:
           command: nix-channel --update
       - run:
           name: Building dependencies
-          shell: /bin/bash -eilo pipefail
           command: |
             nix-env -f nixpkgs.nix -iA stack
             stack --nix --no-terminal --nix build --only-snapshot --prefetch --no-haddock --test --bench --jobs=1
@@ -22,17 +21,14 @@ jobs:
           key: stack-deps-eek-{{ checksum "stack.yaml" }}
       - run:
           name: Building
-          shell: /bin/bash -eilo pipefail
           command: |
             stack --nix --no-terminal --nix build --pedantic
       - run:
           name: Building tests
-          shell: /bin/bash -eilo pipefail
           command: |
             stack --nix test --pedantic --no-run-tests
       - run:
           name: Running tests
-          shell: /bin/bash -eilo pipefail
           command: |
             stack --nix test
 
