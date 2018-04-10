@@ -1,31 +1,65 @@
 version: 2
 jobs:
   build:
-    docker:
-      - image: terrorjack/vanilla:haskell
+    macos:
+      xcode: "9.0"
     steps:
       - checkout
+      - run:
+          name: Install Nix
+          command: |
+            curl https://nixos.org/nix/install | sh
+      - run:
+          name: Compute cache key
+          command: |
+            find . -name "*.cabal" -o -name "stack.yaml" -o -name "*.nix" -type f | sort | xargs cat > /tmp/stack-deps
       - restore_cache:
-          key: stack-deps-urk-{{ checksum "stack.yaml" }}
+          keys:
+            - hmatrix-stack-dependencies-{{ arch }}-{{ checksum "/tmp/stack-deps" }}
+            - hmatrix-stack-dependencies-{{ arch }}-
       - run:
-          name: Update packages
-          command: nix-channel --update
-      - run:
-          name: Setup build toolchain
-          command: nix-shell --run "stack setup"
-      - run:
-          name: Building dependencies
-          command: nix-shell --run "stack test --only-snapshot --prefetch"
+          name: Build dependencies
+          shell: /bin/bash -eilo pipefail
+          command: |
+            nix-env -f nixpkgs.nix -iA stack
+            stack --no-terminal --nix build --only-snapshot --prefetch --no-haddock --jobs=1
+            # stack --no-terminal --nix build --only-snapshot --prefetch --no-haddock --test --bench --jobs=1
       - save_cache:
+          key: hmatrix-stack-dependencies-{{ arch }}-{{ checksum "/tmp/stack-deps" }}
           paths:
-            - "~/.stack"
-          key: stack-deps-urk-{{ checksum "stack.yaml" }}
+            - ~/.stack
       - run:
-          name: Building
-          command: nix-shell --run "stack build --pedantic"
-      - run:
-          name: Building tests
-          command: nix-shell --run "stack test --pedantic --no-run-tests"
-      - run:
-          name: Running tests
-          command: nix-shell --run "stack test"
+          name: Build project
+          shell: /bin/bash -eilo pipefail
+          command: |
+            stack --no-terminal --nix build --pedantic
+
+    # docker:
+    #   - image: terrorjack/vanilla:haskell
+    # steps:
+    #   - checkout
+    #   - restore_cache:
+    #       key: stack-deps-urk-{{ checksum "stack.yaml" }}
+    #   - run:
+    #       name: Update packages
+    #       command: nix-channel --update
+    #   - run:
+    #       name: Setup build toolchain
+    #       command: nix-shell --run "stack setup"
+    #   - run:
+    #       name: Building dependencies
+    #       command: nix-shell --run "stack test --only-snapshot --prefetch"
+    #   - save_cache:
+    #       paths:
+    #         - "~/.stack"
+    #       key: stack-deps-urk-{{ checksum "stack.yaml" }}
+    #   - run:
+    #       name: Building
+    #       command: nix-shell --run "stack build --pedantic"
+    #   - run:
+    #       name: Building tests
+    #       command: nix-shell --run "stack test --pedantic --no-run-tests"
+    #   - run:
+    #       name: Running tests
+    #       command: nix-shell --run "stack test"
+
