@@ -105,6 +105,7 @@
 module Numeric.Sundials.ARKode.ODE ( odeSolve
                                    , odeSolveV
                                    , odeSolveVWith
+                                   , odeSolveVWith'
                                    , ButcherTable(..)
                                    , butcherTable
                                    , ODEMethod(..)
@@ -288,6 +289,27 @@ odeSolve f y0 ts =
     nR = length us
     nC = length y0
     g t x0 = V.fromList $ f t (V.toList x0)
+
+odeSolveVWith' ::
+  ODEMethod
+  -> StepControl
+  -> Maybe Double -- ^ initial step size - by default, ARKode
+                  -- estimates the initial step size to be the
+                  -- solution \(h\) of the equation
+                  -- \(\|\frac{h^2\ddot{y}}{2}\| = 1\), where
+                  -- \(\ddot{y}\) is an estimated value of the second
+                  -- derivative of the solution at \(t_0\)
+  -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
+  -> V.Vector Double                     -- ^ Initial conditions
+  -> V.Vector Double                     -- ^ Desired solution times
+  -> Matrix Double                       -- ^ Error code or solution
+odeSolveVWith' method control initStepSize f y0 tt =
+  case odeSolveVWith method control initStepSize f y0 tt of
+    Left c        -> error $ show c -- FIXME
+    Right (v, _d) -> (nR >< nC) (V.toList v)
+  where
+    nR = V.length tt
+    nC = V.length y0
 
 odeSolveVWith ::
   ODEMethod
