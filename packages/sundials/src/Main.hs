@@ -128,6 +128,10 @@ main = do
   putStrLn $ show resB
   putStrLn $ butcherTableauTex resB
 
+  -- let resC = butcherTable (FEHLBERG_6_4_5 undefined)
+  -- putStrLn $ show resC
+  -- putStrLn $ butcherTableauTex resC
+
   let res1 = odeSolve brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 10.0])
   renderRasterific "diagrams/brusselator.png"
                    (D.dims2D 500.0 500.0)

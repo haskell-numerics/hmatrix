@@ -137,7 +137,7 @@ import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, (><),
                                                 size, subVector)
 
 import qualified Types as T
-import           Arkode (sDIRK_2_1_2, kVAERNO_4_2_3, sDIRK_5_3_4)
+import           Arkode (sDIRK_2_1_2, kVAERNO_4_2_3, sDIRK_5_3_4, fEHLBERG_6_4_5)
 import qualified Arkode as B
 
 import Debug.Trace
@@ -225,18 +225,24 @@ data ODEMethod = SDIRK_2_1_2   Jacobian
                | KVAERNO_4_2_3 Jacobian
                | SDIRK_5_3_4   Jacobian
                | SDIRK_5_3_4'
+               | FEHLBERG_6_4_5 Jacobian
+               | FEHLBERG_6_4_5'
 
 getMethod :: ODEMethod -> Int
-getMethod (SDIRK_2_1_2   _) = sDIRK_2_1_2
-getMethod (KVAERNO_4_2_3 _) = kVAERNO_4_2_3
-getMethod (SDIRK_5_3_4   _) = sDIRK_5_3_4
-getMethod (SDIRK_5_3_4'   ) = sDIRK_5_3_4
+getMethod (SDIRK_2_1_2    _) = sDIRK_2_1_2
+getMethod (KVAERNO_4_2_3  _) = kVAERNO_4_2_3
+getMethod (SDIRK_5_3_4    _) = sDIRK_5_3_4
+getMethod (SDIRK_5_3_4'    ) = sDIRK_5_3_4
+getMethod (FEHLBERG_6_4_5 _) = fEHLBERG_6_4_5
+getMethod (FEHLBERG_6_4_5' ) = fEHLBERG_6_4_5
 
 getJacobian :: ODEMethod -> Maybe Jacobian
-getJacobian (SDIRK_2_1_2   j) = Just j
-getJacobian (KVAERNO_4_2_3 j) = Just j
-getJacobian (SDIRK_5_3_4   j) = Just j
-getJacobian (SDIRK_5_3_4'   ) = Nothing
+getJacobian (SDIRK_2_1_2    j) = Just j
+getJacobian (KVAERNO_4_2_3  j) = Just j
+getJacobian (SDIRK_5_3_4    j) = Just j
+getJacobian (SDIRK_5_3_4'    ) = Nothing
+getJacobian (FEHLBERG_6_4_5 j) = Just j
+getJacobian (FEHLBERG_6_4_5' ) = Nothing
 
 -- | A version of 'odeSolveVWith' with reasonable default step control.
 odeSolveV
