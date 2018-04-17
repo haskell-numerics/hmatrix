@@ -109,6 +109,7 @@ module Numeric.Sundials.ARKode.ODE ( odeSolve
                                    , butcherTable
                                    , ODEMethod(..)
                                    , StepControl(..)
+                                   , Jacobian
                                    , SundialsDiagnostics(..)
                                    ) where
 
