@@ -144,7 +144,7 @@ main = do
                    (D.dims2D 500.0 500.0)
                    (renderAxis $ kSaxis $ zip [0.0, 0.1 .. 10.0] (concat $ toLists res2))
 
-  let res2a = odeSolveV (SDIRK_5_3_4 stiffJac) 0.1 1e-3 1e-6 stiffishV (fromList [0.0]) (fromList [0.0, 0.1 .. 10.0])
+  let res2a = odeSolveV (SDIRK_5_3_4 stiffJac) Nothing 1e-3 1e-6 stiffishV (fromList [0.0]) (fromList [0.0, 0.1 .. 10.0])
   putStrLn "Lower tolerances"
   putStrLn $ show res2a
 

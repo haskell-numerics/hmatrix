@@ -241,15 +241,20 @@ getJacobian (SDIRK_5_3_4'   ) = Nothing
 -- | A version of 'odeSolveVWith' with reasonable default step control.
 odeSolveV
     :: ODEMethod
-    -> Double            -- ^ initial step size
+    -> Maybe Double      -- ^ initial step size - by default, ARKode
+                         -- estimates the initial step size to be the
+                         -- solution \(h\) of the equation
+                         -- \(\|\frac{h^2\ddot{y}}{2}\| = 1\), where
+                         -- \(\ddot{y}\) is an estimated value of the
+                         -- second derivative of the solution at \(t_0\)
     -> Double            -- ^ absolute tolerance for the state vector
     -> Double            -- ^ relative tolerance for the state vector
     -> (Double -> Vector Double -> Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
     -> Vector Double     -- ^ initial conditions
     -> Vector Double     -- ^ desired solution times
     -> Matrix Double     -- ^ solution
-odeSolveV meth _hi epsAbs epsRel f y0 ts =
-  case odeSolveVWith meth (X epsAbs epsRel) g y0 ts of
+odeSolveV meth hi epsAbs epsRel f y0 ts =
+  case odeSolveVWith meth (X epsAbs epsRel) hi g y0 ts of
     Left c -> error $ show c -- FIXME
     -- FIXME: Can we do better than using lists?
     Right (v, d) -> trace (show d) $ (nR >< nC) (V.toList v)
@@ -269,7 +274,7 @@ odeSolve :: (Double -> [Double] -> [Double]) -- ^ The RHS of the system \(\dot{y
          -> Matrix Double                    -- ^ solution
 odeSolve f y0 ts =
   -- FIXME: These tolerances are different from the ones in GSL
-  case odeSolveVWith SDIRK_5_3_4' (XX' 1.0e-6 1.0e-10 1 1) g (V.fromList y0) (V.fromList $ toList ts) of
+  case odeSolveVWith SDIRK_5_3_4' (XX' 1.0e-6 1.0e-10 1 1)  Nothing g (V.fromList y0) (V.fromList $ toList ts) of
     Left c -> error $ show c -- FIXME
     Right (v, d) -> trace (show d) $ (nR >< nC) (V.toList v)
   where
@@ -281,12 +286,18 @@ odeSolve f y0 ts =
 odeSolveVWith ::
   ODEMethod
   -> StepControl
+  -> Maybe Double -- ^ initial step size - by default, ARKode
+                  -- estimates the initial step size to be the
+                  -- solution \(h\) of the equation
+                  -- \(\|\frac{h^2\ddot{y}}{2}\| = 1\), where
+                  -- \(\ddot{y}\) is an estimated value of the second
+                  -- derivative of the solution at \(t_0\)
   -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector Double                     -- ^ Initial conditions
   -> V.Vector Double                     -- ^ Desired solution times
   -> Either Int ((V.Vector Double), SundialsDiagnostics) -- ^ Error code or solution
-odeSolveVWith method control f y0 tt =
-  case solveOdeC (fromIntegral $ getMethod method) jacH (scise control)
+odeSolveVWith method control initStepSize f y0 tt =
+  case solveOdeC (fromIntegral $ getMethod method) (coerce initStepSize) jacH (scise control)
                  (coerce f) (coerce y0) (coerce tt) of
     Left c -> Left $ fromIntegral c
     Right (v, d) -> Right (coerce v, d)
@@ -308,13 +319,24 @@ odeSolveVWith method control f y0 tt =
 
 solveOdeC ::
   CInt ->
+  Maybe CDouble ->
   (Maybe (CDouble -> V.Vector CDouble -> T.SunMatrix)) ->
   (V.Vector CDouble, CDouble) ->
   (CDouble -> V.Vector CDouble -> V.Vector CDouble) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector CDouble -- ^ Initial conditions
   -> V.Vector CDouble -- ^ Desired solution times
   -> Either CInt ((V.Vector CDouble), SundialsDiagnostics) -- ^ Error code or solution
-solveOdeC method jacH (absTols, relTol) fun f0 ts = unsafePerformIO $ do
+solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO $ do
+
+  let isInitStepSize :: CInt
+      isInitStepSize = fromIntegral $ fromEnum $ isJust initStepSize
+      ss :: CDouble
+      ss = case initStepSize of
+             -- It would be better to put an error message here but
+             -- inline-c seems to evaluate this even if it is never
+             -- used :(
+             Nothing -> 0.0
+             Just x  -> x
   let dim = V.length f0
       nEq :: CLong
       nEq = fromIntegral dim
@@ -415,6 +437,14 @@ solveOdeC method jacH (absTols, relTol) fun f0 ts = unsafePerformIO $ do
                          /* Attach matrix and linear solver */
                          flag = ARKDlsSetLinearSolver(arkode_mem, LS, A);
                          if (check_flag(&flag, "ARKDlsSetLinearSolver", 1)) return 1;
+
+                         /* Set the initial step size if there is one */
+                         if ($(int isInitStepSize)) {
+                           /* FIXME: We could check if the initial step size is 0 */
+                           /* or even NaN and then throw an error                 */
+                           flag = ARKodeSetInitStep(arkode_mem, $(double ss));
+                           if (check_flag(&flag, "ARKodeSetInitStep", 1)) return 1;
+                         }
 
                          /* Set the Jacobian if there is one */
                          if ($(int isJac)) {
