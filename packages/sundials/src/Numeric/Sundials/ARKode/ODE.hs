@@ -5,6 +5,12 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -130,6 +136,7 @@ import qualified Data.Vector.Storable.Mutable as VM
 
 import           Data.Coerce (coerce)
 import           System.IO.Unsafe (unsafePerformIO)
+import           GHC.Generics
 
 import           Numeric.LinearAlgebra.Devel (createVector)
 
@@ -244,64 +251,128 @@ data ODEMethod = SDIRK_2_1_2            Jacobian
                | KVAERNO_7_4_5'
                | ARK548L2SA_DIRK_8_4_5  Jacobian
                | ARK548L2SA_DIRK_8_4_5'
+               | HEUN_EULER_2_1_2         Jacobian
+               | HEUN_EULER_2_1_2'
+               | BOGACKI_SHAMPINE_4_2_3   Jacobian
+               | BOGACKI_SHAMPINE_4_2_3'
+               | ARK324L2SA_ERK_4_2_3     Jacobian
+               | ARK324L2SA_ERK_4_2_3'
+               | ZONNEVELD_5_3_4          Jacobian
+               | ZONNEVELD_5_3_4'
+               | ARK436L2SA_ERK_6_3_4     Jacobian
+               | ARK436L2SA_ERK_6_3_4'
+               | SAYFY_ABURUB_6_3_4       Jacobian
+               | SAYFY_ABURUB_6_3_4'
+               | CASH_KARP_6_4_5          Jacobian
+               | CASH_KARP_6_4_5'
                | FEHLBERG_6_4_5         Jacobian
                | FEHLBERG_6_4_5'
+               | DORMAND_PRINCE_7_4_5     Jacobian
+               | DORMAND_PRINCE_7_4_5'
+               | ARK548L2SA_ERK_8_4_5     Jacobian
+               | ARK548L2SA_ERK_8_4_5'
+               | VERNER_8_5_6            Jacobian
+               | VERNER_8_5_6'
+               | FEHLBERG_13_7_8         Jacobian
+               | FEHLBERG_13_7_8'
+  deriving Generic
 
+constrName :: (HasConstructor (Rep a), Generic a)=> a -> String
+constrName = genericConstrName . from
+
+class HasConstructor (f :: * -> *) where
+  genericConstrName :: f x -> String
+
+instance HasConstructor f => HasConstructor (D1 c f) where
+  genericConstrName (M1 x) = genericConstrName x
+
+instance (HasConstructor x, HasConstructor y) => HasConstructor (x :+: y) where
+  genericConstrName (L1 l) = genericConstrName l
+  genericConstrName (R1 r) = genericConstrName r
+
+instance Constructor c => HasConstructor (C1 c f) where
+  genericConstrName x = conName x
+
+instance Show ODEMethod where
+  show x = constrName x
+
+-- FIXME: We can probably do better here with generics
 getMethod :: ODEMethod -> Int
-getMethod (SDIRK_2_1_2 _)           = sDIRK_2_1_2
-getMethod (SDIRK_2_1_2')            = sDIRK_2_1_2
-getMethod (BILLINGTON_3_3_2 _)      = bILLINGTON_3_3_2
-getMethod (BILLINGTON_3_3_2')       = bILLINGTON_3_3_2
-getMethod (TRBDF2_3_3_2 _)          = tRBDF2_3_3_2
-getMethod (TRBDF2_3_3_2')           = tRBDF2_3_3_2
-getMethod (KVAERNO_4_2_3  _)        = kVAERNO_4_2_3
-getMethod (KVAERNO_4_2_3')          = kVAERNO_4_2_3
-getMethod (ARK324L2SA_DIRK_4_2_3 _) = aRK324L2SA_DIRK_4_2_3
-getMethod (ARK324L2SA_DIRK_4_2_3')  = aRK324L2SA_DIRK_4_2_3
-getMethod (CASH_5_2_4 _)            = cASH_5_2_4
-getMethod (CASH_5_2_4')             = cASH_5_2_4
-getMethod (CASH_5_3_4 _)            = cASH_5_3_4
-getMethod (CASH_5_3_4')             = cASH_5_3_4
-getMethod (SDIRK_5_3_4 _)           = sDIRK_5_3_4
-getMethod (SDIRK_5_3_4')            = sDIRK_5_3_4
-getMethod (KVAERNO_5_3_4 _)         = kVAERNO_5_3_4
-getMethod (KVAERNO_5_3_4')          = kVAERNO_5_3_4
-getMethod (ARK436L2SA_DIRK_6_3_4 _) = aRK436L2SA_DIRK_6_3_4
-getMethod (ARK436L2SA_DIRK_6_3_4')  = aRK436L2SA_DIRK_6_3_4
-getMethod (KVAERNO_7_4_5 _)         = kVAERNO_7_4_5
-getMethod (KVAERNO_7_4_5')          = kVAERNO_7_4_5
-getMethod (ARK548L2SA_DIRK_8_4_5 _) = aRK548L2SA_DIRK_8_4_5
-getMethod (ARK548L2SA_DIRK_8_4_5')  = aRK548L2SA_DIRK_8_4_5
-getMethod (FEHLBERG_6_4_5 _)        = fEHLBERG_6_4_5
-getMethod (FEHLBERG_6_4_5' )        = fEHLBERG_6_4_5
+getMethod (SDIRK_2_1_2 _)            = sDIRK_2_1_2
+getMethod (SDIRK_2_1_2')             = sDIRK_2_1_2
+getMethod (BILLINGTON_3_3_2 _)       = bILLINGTON_3_3_2
+getMethod (BILLINGTON_3_3_2')        = bILLINGTON_3_3_2
+getMethod (TRBDF2_3_3_2 _)           = tRBDF2_3_3_2
+getMethod (TRBDF2_3_3_2')            = tRBDF2_3_3_2
+getMethod (KVAERNO_4_2_3  _)         = kVAERNO_4_2_3
+getMethod (KVAERNO_4_2_3')           = kVAERNO_4_2_3
+getMethod (ARK324L2SA_DIRK_4_2_3 _)  = aRK324L2SA_DIRK_4_2_3
+getMethod (ARK324L2SA_DIRK_4_2_3')   = aRK324L2SA_DIRK_4_2_3
+getMethod (CASH_5_2_4 _)             = cASH_5_2_4
+getMethod (CASH_5_2_4')              = cASH_5_2_4
+getMethod (CASH_5_3_4 _)             = cASH_5_3_4
+getMethod (CASH_5_3_4')              = cASH_5_3_4
+getMethod (SDIRK_5_3_4 _)            = sDIRK_5_3_4
+getMethod (SDIRK_5_3_4')             = sDIRK_5_3_4
+getMethod (KVAERNO_5_3_4 _)          = kVAERNO_5_3_4
+getMethod (KVAERNO_5_3_4')           = kVAERNO_5_3_4
+getMethod (ARK436L2SA_DIRK_6_3_4 _)  = aRK436L2SA_DIRK_6_3_4
+getMethod (ARK436L2SA_DIRK_6_3_4')   = aRK436L2SA_DIRK_6_3_4
+getMethod (KVAERNO_7_4_5 _)          = kVAERNO_7_4_5
+getMethod (KVAERNO_7_4_5')           = kVAERNO_7_4_5
+getMethod (ARK548L2SA_DIRK_8_4_5 _)  = aRK548L2SA_DIRK_8_4_5
+getMethod (ARK548L2SA_DIRK_8_4_5')   = aRK548L2SA_DIRK_8_4_5
+getMethod (HEUN_EULER_2_1_2 _)       = hEUN_EULER_2_1_2
+getMethod (HEUN_EULER_2_1_2')        = hEUN_EULER_2_1_2
+getMethod (BOGACKI_SHAMPINE_4_2_3 _) = bOGACKI_SHAMPINE_4_2_3
+getMethod (BOGACKI_SHAMPINE_4_2_3')  = bOGACKI_SHAMPINE_4_2_3
+getMethod (ARK324L2SA_ERK_4_2_3 _)   = aRK324L2SA_ERK_4_2_3
+getMethod (ARK324L2SA_ERK_4_2_3')    = aRK324L2SA_ERK_4_2_3
+getMethod (ZONNEVELD_5_3_4 _)        = zONNEVELD_5_3_4
+getMethod (ZONNEVELD_5_3_4')         = zONNEVELD_5_3_4
+getMethod (ARK436L2SA_ERK_6_3_4 _)   = aRK436L2SA_ERK_6_3_4
+getMethod (ARK436L2SA_ERK_6_3_4')    = aRK436L2SA_ERK_6_3_4
+getMethod (SAYFY_ABURUB_6_3_4 _)     = sAYFY_ABURUB_6_3_4
+getMethod (SAYFY_ABURUB_6_3_4')      = sAYFY_ABURUB_6_3_4
+getMethod (CASH_KARP_6_4_5 _)        = cASH_KARP_6_4_5
+getMethod (CASH_KARP_6_4_5')         = cASH_KARP_6_4_5
+getMethod (FEHLBERG_6_4_5 _)         = fEHLBERG_6_4_5
+getMethod (FEHLBERG_6_4_5' )         = fEHLBERG_6_4_5
+getMethod (DORMAND_PRINCE_7_4_5 _)   = dORMAND_PRINCE_7_4_5
+getMethod (DORMAND_PRINCE_7_4_5')    = dORMAND_PRINCE_7_4_5
+getMethod (ARK548L2SA_ERK_8_4_5 _)   = aRK548L2SA_ERK_8_4_5
+getMethod (ARK548L2SA_ERK_8_4_5')    = aRK548L2SA_ERK_8_4_5
+getMethod (VERNER_8_5_6 _)           = vERNER_8_5_6
+getMethod (VERNER_8_5_6')            = vERNER_8_5_6
+getMethod (FEHLBERG_13_7_8 _)        = fEHLBERG_13_7_8
+getMethod (FEHLBERG_13_7_8')         = fEHLBERG_13_7_8
 
 getJacobian :: ODEMethod -> Maybe Jacobian
-getJacobian (SDIRK_2_1_2 j)           = Just j
-getJacobian (SDIRK_2_1_2')            = Nothing
-getJacobian (BILLINGTON_3_3_2 j)      = Just j
-getJacobian (BILLINGTON_3_3_2')       = Nothing
-getJacobian (TRBDF2_3_3_2 j)          = Just j
-getJacobian (TRBDF2_3_3_2')           = Nothing
-getJacobian (KVAERNO_4_2_3  j)        = Just j
-getJacobian (KVAERNO_4_2_3')          = Nothing
-getJacobian (ARK324L2SA_DIRK_4_2_3 j) = Just j
-getJacobian (ARK324L2SA_DIRK_4_2_3')  = Nothing
-getJacobian (CASH_5_2_4 j)            = Just j
-getJacobian (CASH_5_2_4')             = Nothing
-getJacobian (CASH_5_3_4 j)            = Just j
-getJacobian (CASH_5_3_4')             = Nothing
-getJacobian (SDIRK_5_3_4 j)           = Just j
-getJacobian (SDIRK_5_3_4')            = Nothing
-getJacobian (KVAERNO_5_3_4 j)         = Just j
-getJacobian (KVAERNO_5_3_4')          = Nothing
-getJacobian (ARK436L2SA_DIRK_6_3_4 j) = Just j
-getJacobian (ARK436L2SA_DIRK_6_3_4')  = Nothing
-getJacobian (KVAERNO_7_4_5 j)         = Just j
-getJacobian (KVAERNO_7_4_5')          = Nothing
-getJacobian (ARK548L2SA_DIRK_8_4_5 j) = Just j
-getJacobian (ARK548L2SA_DIRK_8_4_5')  = Nothing
-getJacobian (FEHLBERG_6_4_5 j)        = Just j
-getJacobian (FEHLBERG_6_4_5' )        = Nothing
+getJacobian (SDIRK_2_1_2 j)            = Just j
+getJacobian (BILLINGTON_3_3_2 j)       = Just j
+getJacobian (TRBDF2_3_3_2 j)           = Just j
+getJacobian (KVAERNO_4_2_3  j)         = Just j
+getJacobian (ARK324L2SA_DIRK_4_2_3 j)  = Just j
+getJacobian (CASH_5_2_4 j)             = Just j
+getJacobian (CASH_5_3_4 j)             = Just j
+getJacobian (SDIRK_5_3_4 j)            = Just j
+getJacobian (KVAERNO_5_3_4 j)          = Just j
+getJacobian (ARK436L2SA_DIRK_6_3_4 j)  = Just j
+getJacobian (KVAERNO_7_4_5 j)          = Just j
+getJacobian (ARK548L2SA_DIRK_8_4_5 j)  = Just j
+getJacobian (HEUN_EULER_2_1_2 j)       = Just j
+getJacobian (BOGACKI_SHAMPINE_4_2_3 j) = Just j
+getJacobian (ARK324L2SA_ERK_4_2_3 j)   = Just j
+getJacobian (ZONNEVELD_5_3_4 j)        = Just j
+getJacobian (ARK436L2SA_ERK_6_3_4 j)   = Just j
+getJacobian (SAYFY_ABURUB_6_3_4 j)     = Just j
+getJacobian (CASH_KARP_6_4_5 j)        = Just j
+getJacobian (FEHLBERG_6_4_5 j)         = Just j
+getJacobian (DORMAND_PRINCE_7_4_5 j)   = Just j
+getJacobian (ARK548L2SA_ERK_8_4_5 j)   = Just j
+getJacobian (VERNER_8_5_6 j)           = Just j
+getJacobian (FEHLBERG_13_7_8 j)        = Just j
+getJacobian _                          = Nothing
 
 -- | A version of 'odeSolveVWith' with reasonable default step control.
 odeSolveV
@@ -514,6 +585,12 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
                            flag = ARKodeInit(arkode_mem, NULL, $fun:(int (* funIO) (double t, SunVector y[], SunVector dydt[], void * params)), T0, y);
                            if (check_flag(&flag, "ARKodeInit", 1)) return 1;
                          }
+
+                         /* FIXME: A hack for initial testing */
+                         flag = ARKodeSetMinStep(arkode_mem, 1.0e-12);
+                         if (check_flag(&flag, "ARKodeSetMinStep", 1)) return 1;
+                         flag = ARKodeSetMaxNumSteps(arkode_mem, 10000);
+                         if (check_flag(&flag, "ARKodeSetMaxNumSteps", 1)) return 1;
 
                          /* Set routines */
                          flag = ARKodeSVtolerances(arkode_mem, $(double relTol), tv);
