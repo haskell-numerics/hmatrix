@@ -45,46 +45,68 @@ getData ptr = (#peek SunContent, data) ptr
 arkSMax :: Int
 arkSMax = #const ARK_S_MAX
 
+mIN_DIRK_NUM, mAX_DIRK_NUM :: Int
+mIN_DIRK_NUM = #const MIN_DIRK_NUM
+mAX_DIRK_NUM = #const MAX_DIRK_NUM
+
 -- FIXME: We could just use inline-c instead
 
--- /* Butcher table accessors -- implicit */
+-- Butcher table accessors -- implicit
 sDIRK_2_1_2 :: Int
 sDIRK_2_1_2 = #const SDIRK_2_1_2
--- #define BILLINGTON_3_3_2        13
--- #define TRBDF2_3_3_2            14
+bILLINGTON_3_3_2 :: Int
+bILLINGTON_3_3_2 = #const BILLINGTON_3_3_2
+tRBDF2_3_3_2 :: Int
+tRBDF2_3_3_2 = #const TRBDF2_3_3_2
 kVAERNO_4_2_3 :: Int
 kVAERNO_4_2_3 = #const KVAERNO_4_2_3
--- #define ARK324L2SA_DIRK_4_2_3   16
--- #define CASH_5_2_4              17
--- #define CASH_5_3_4              18
--- #define SDIRK_5_3_4             19
+aRK324L2SA_DIRK_4_2_3 :: Int
+aRK324L2SA_DIRK_4_2_3 = #const ARK324L2SA_DIRK_4_2_3
+cASH_5_2_4 :: Int
+cASH_5_2_4 = #const CASH_5_2_4
+cASH_5_3_4 :: Int
+cASH_5_3_4 = #const CASH_5_3_4
 sDIRK_5_3_4 :: Int
 sDIRK_5_3_4 = #const SDIRK_5_3_4
--- #define KVAERNO_5_3_4           20
--- #define ARK436L2SA_DIRK_6_3_4   21
--- #define KVAERNO_7_4_5           22
--- #define ARK548L2SA_DIRK_8_4_5   23
+kVAERNO_5_3_4 :: Int
+kVAERNO_5_3_4 = #const KVAERNO_5_3_4
+aRK436L2SA_DIRK_6_3_4 :: Int
+aRK436L2SA_DIRK_6_3_4 = #const ARK436L2SA_DIRK_6_3_4
+kVAERNO_7_4_5 :: Int
+kVAERNO_7_4_5 = #const KVAERNO_7_4_5
+aRK548L2SA_DIRK_8_4_5 :: Int
+aRK548L2SA_DIRK_8_4_5 = #const ARK548L2SA_DIRK_8_4_5
 
 -- #define DEFAULT_DIRK_2          SDIRK_2_1_2
 -- #define DEFAULT_DIRK_3          ARK324L2SA_DIRK_4_2_3
 -- #define DEFAULT_DIRK_4          SDIRK_5_3_4
 -- #define DEFAULT_DIRK_5          ARK548L2SA_DIRK_8_4_5
 
--- /* Butcher table accessors -- explicit */
--- #define HEUN_EULER_2_1_2         0
--- #define BOGACKI_SHAMPINE_4_2_3   1
--- #define ARK324L2SA_ERK_4_2_3     2
--- #define ZONNEVELD_5_3_4          3
--- #define ARK436L2SA_ERK_6_3_4     4
--- #define SAYFY_ABURUB_6_3_4       5
--- #define CASH_KARP_6_4_5          6
+-- Butcher table accessors -- explicit
+hEUN_EULER_2_1_2 :: Int
+hEUN_EULER_2_1_2 = #const HEUN_EULER_2_1_2
+bOGACKI_SHAMPINE_4_2_3 :: Int
+bOGACKI_SHAMPINE_4_2_3 = #const BOGACKI_SHAMPINE_4_2_3
+aRK324L2SA_ERK_4_2_3 :: Int
+aRK324L2SA_ERK_4_2_3 = #const ARK324L2SA_ERK_4_2_3
+zONNEVELD_5_3_4 :: Int
+zONNEVELD_5_3_4 = #const ZONNEVELD_5_3_4
+aRK436L2SA_ERK_6_3_4 :: Int
+aRK436L2SA_ERK_6_3_4 = #const ARK436L2SA_ERK_6_3_4
+sAYFY_ABURUB_6_3_4 :: Int
+sAYFY_ABURUB_6_3_4 = #const SAYFY_ABURUB_6_3_4
+cASH_KARP_6_4_5 :: Int
+cASH_KARP_6_4_5 = #const CASH_KARP_6_4_5
 fEHLBERG_6_4_5 :: Int
 fEHLBERG_6_4_5 = #const FEHLBERG_6_4_5
--- #define FEHLBERG_6_4_5           7
--- #define DORMAND_PRINCE_7_4_5     8
--- #define ARK548L2SA_ERK_8_4_5     9
--- #define VERNER_8_5_6            10
--- #define FEHLBERG_13_7_8         11
+dORMAND_PRINCE_7_4_5 :: Int
+dORMAND_PRINCE_7_4_5 = #const DORMAND_PRINCE_7_4_5
+aRK548L2SA_ERK_8_4_5 :: Int
+aRK548L2SA_ERK_8_4_5 = #const ARK548L2SA_ERK_8_4_5
+vERNER_8_5_6 :: Int
+vERNER_8_5_6 = #const VERNER_8_5_6
+fEHLBERG_13_7_8 :: Int
+fEHLBERG_13_7_8 = #const FEHLBERG_13_7_8
 
 -- #define DEFAULT_ERK_2           HEUN_EULER_2_1_2
 -- #define DEFAULT_ERK_3           BOGACKI_SHAMPINE_4_2_3
