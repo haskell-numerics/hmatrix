@@ -1,16 +1,8 @@
-I think this builds the executable. I haven't tried cleaning
-everything yet to double check.
+Currently only an interface to the Runge-Kutta methods:
+[ARKode](https://computation.llnl.gov/projects/sundials/arkode)
 
-```
-cabal install
-cd src
-/nix/store/qrwfai93qhdaj5d4xd34n9bq58slzfxw-gcc-wrapper-6.4.0/bin/gcc -c helpers.c -I/nix/store/dr0yrlmscybjs5ifzw1m063g6xgw5imq-ghc-8.2.2-with-packages/lib/ghc-8.2.2/include
-cd ..
-ghc src/Main.hs src/helpers.o -lsundials_arkode -o Main
-```
-
-To run you will (on MACos) also need
-
-```
-export DYLD_LIBRARY_PATH=~/.cabal/bin:/nix/store/dr0yrlmscybjs5ifzw1m063g6xgw5imq-ghc-8.2.2-with-packages/lib/ghc-8.2.2/rts
-```
+The interface is almost certainly going to change. Sundials gives a
+rich set of "combinators" for controlling the solution of your problem
+and reporting on how it performed. The idea is to initially mimic
+hmatrix-gsl and add extra, richer functions but ultimately upgrade the
+whole interface both for sundials and for gsl.
