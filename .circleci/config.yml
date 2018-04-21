@@ -31,4 +31,3 @@ jobs:
           name: Running tests
           command: |
             stack --nix test
-
