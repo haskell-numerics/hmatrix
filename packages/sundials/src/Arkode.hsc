@@ -1,5 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
-
 module Arkode where
 
 import Foreign
