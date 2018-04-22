@@ -1,0 +1,29 @@
+name:                examples
+version:             0.1.0.0
+synopsis:            Example usage of the various hmatrix packages
+homepage:            https://github.com/albertoruiz/hmatrix
+license:             BSD3
+license-file:        LICENSE
+author:              Dominic Steinitz
+maintainer:          dominic@steinitz.org
+copyright:           Dominic Steinitz, Novadiscovery
+category:            Math
+build-type:          Simple
+extra-source-files:  ChangeLog.md
+cabal-version:       >=1.10
+
+executable sundials
+  main-is:             sundials.hs
+  build-depends:       base >=4.10 && <4.11,
+                       hmatrix,
+                       hmatrix-sundials,
+                       hmatrix-gsl
+  default-language:    Haskell2010
+
+executable butcherTableau
+  main-is:             ButcherTableau.hs
+  build-depends:       base >=4.10 && <4.11,
+                       hmatrix,
+                       hmatrix-sundials,
+                       pretty
+  default-language:    Haskell2010

@@ -2,15 +2,15 @@
 --------
 
     * Many new functions and instances in the Static module
-    
+
     * meanCov and gaussianSample use Herm type
 
     * thinQR, thinRQ
-    
+
     * compactSVDTol
 
     * unitary changed to normalize, also admits Vector (Complex Double)
-  
+
 0.17.0.0
 --------
 
@@ -288,4 +288,3 @@
     * added NFData instances for Matrix and Vector.
 
     * liftVector, liftVector2 replaced by mapVector, zipVector.
-

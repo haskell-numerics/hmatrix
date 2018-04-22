@@ -1,11 +1,22 @@
 A Haskell library for numerical computation
 -------------------------------------------
 
-A purely functional interface to linear algebra and other numerical algorithms, internally implemented using [LAPACK][lapack], [BLAS][blas], and [GSL][gsl].
+A purely functional interface to linear algebra and other numerical
+algorithms, internally implemented using [LAPACK][lapack],
+[BLAS][blas], [GSL][gsl] and [SUNDIALS][sundials].
 
-This package includes matrix decompositions (eigensystems, singular values, Cholesky, QR, etc.), linear solvers, numeric integration, root finding, etc.
+This package includes matrix decompositions (eigensystems, singular
+values, Cholesky, QR, etc.), linear solvers, numeric integration, root
+finding, etc.
 
-- [What's new][changes] in version 0.17 (July 2015)
+- [What's new][changes] in version 0.19 (April 2018). This is not
+  intended to be a breaking change but a lot of modules have been
+  modified to ensure that continuous integration is green.
+
+- Support for SUNDIALS has been added. It should be possible to
+  replace Numeric.GSL.ODE with Numeric.Sundials.ARKode.ODE and have
+  your program work as before bearing in mind that the methods and
+  error control might differ (even for those with the same names!).
 
 - [Code examples][examples]
 
@@ -26,6 +37,7 @@ Contributions, suggestions, and bug reports are welcome!
 [lapack]: http://www.netlib.org/lapack/
 [blas]: http://www.netlib.org/blas/
 [gsl]: http://www.gnu.org/software/gsl/
+[sundials]: https://computation.llnl.gov/projects/sundials
 
 [tutorial]: http://dis.um.es/profesores/alberto/material/hmatrix.pdf
 [installation]: https://github.com/AlbertoRuiz/hmatrix/blob/master/INSTALL.md

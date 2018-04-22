@@ -1,6 +1,15 @@
 # hmatrix installation
 
-This package requires [GHC 7.8](http://www.haskell.org/ghc), [cabal-install](http://www.haskell.org/haskellwiki/Cabal-Install) (available in the [Haskell Platform](http://hackage.haskell.org/platform)), and the development packages for BLAS/[LAPACK](http://www.netlib.org/lapack) and [GSL](http://www.gnu.org/software/gsl).
+*WARNING*: these instructions are now very out of date. However, there
+is a CI script which shows what does work; you are advised to look at
+that and emulate its installation steps.
+
+This package requires [GHC 7.8](http://www.haskell.org/ghc),
+[cabal-install](http://www.haskell.org/haskellwiki/Cabal-Install)
+(available in the [Haskell
+Platform](http://hackage.haskell.org/platform)), and the development
+packages for BLAS/[LAPACK](http://www.netlib.org/lapack) and
+[GSL](http://www.gnu.org/software/gsl).
 
 ## Linux ##################################################
 

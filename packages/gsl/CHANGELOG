@@ -2,7 +2,7 @@
 --------
 
     * Added interpolation modules
-    
+
     * Added simulated annealing module
 
     * Added odeSolveVWith
@@ -11,4 +11,3 @@
 --------
 
     * The modules Numeric.GSL.* have been moved from hmatrix to the new package hmatrix-gsl.
-
