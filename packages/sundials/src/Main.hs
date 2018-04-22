@@ -8,9 +8,9 @@ import qualified Diagrams.Prelude as D
 import           Diagrams.Backend.Rasterific
 
 import           Control.Lens
-import           Data.List (intercalate)
 
-import           Text.PrettyPrint.HughesPJClass
+import           Test.Hspec
+
 
 lorenz :: Double -> [Double] -> [Double]
 lorenz _t u = [ sigma * (y - x)
@@ -75,8 +75,8 @@ stiffishV t v = fromList [ lamda * u + 1.0 / (1.0 + t * t) - lamda * atan t ]
     lamda = -100.0
     u = v ! 0
 
-stiffJac :: Double -> Vector Double -> Matrix Double
-stiffJac _t _v = (1><1) [ lamda ]
+_stiffJac :: Double -> Vector Double -> Matrix Double
+_stiffJac _t _v = (1><1) [ lamda ]
   where
     lamda = -100.0
 
@@ -94,43 +94,8 @@ kSaxis :: [(Double, Double)] -> P.Axis B D.V2 Double
 kSaxis xs = P.r2Axis &~ do
   P.linePlot' xs
 
-butcherTableauTex :: ButcherTable -> String
-butcherTableauTex (ButcherTable m c b b2) =
-  render $
-  vcat [ text ("\n\\begin{array}{c|" ++ (concat $ replicate n "c") ++ "}")
-       , us
-       , text "\\hline"
-       , text bs <+> text "\\\\"
-       , text b2s <+> text "\\\\"
-       , text "\\end{array}"
-       ]
-  where
-    n = rows m
-    rs = toLists m
-    ss = map (\r -> intercalate " & " $ map show r) rs
-    ts = zipWith (\i r -> show i ++ " & " ++ r) (toList c) ss
-    us = vcat $ map (\r -> text r <+> text "\\\\") ts
-    bs  = " & " ++ (intercalate " & " $ map show $ toList b)
-    b2s = " & " ++ (intercalate " & " $ map show $ toList b2)
-
 main :: IO ()
 main = do
-
-  let res = butcherTable (SDIRK_2_1_2 undefined)
-  putStrLn $ show res
-  putStrLn $ butcherTableauTex res
-
-  let resA = butcherTable (KVAERNO_4_2_3 undefined)
-  putStrLn $ show resA
-  putStrLn $ butcherTableauTex resA
-
-  let resB = butcherTable (SDIRK_5_3_4 undefined)
-  putStrLn $ show resB
-  putStrLn $ butcherTableauTex resB
-
-  let resC = butcherTable (FEHLBERG_6_4_5 undefined)
-  putStrLn $ show resC
-  putStrLn $ butcherTableauTex resC
 
   let res1 = odeSolve brusselator [1.2, 3.1, 3.0] (fromList [0.0, 0.1 .. 10.0])
   renderRasterific "diagrams/brusselator.png"
@@ -143,29 +108,26 @@ main = do
                    (renderAxis $ lSaxis $ [0.0, 0.1 .. 10.0]:(toLists $ tr res1a))
 
   let res2 = odeSolve stiffish [0.0] (fromList [0.0, 0.1 .. 10.0])
-  putStrLn $ show res2
   renderRasterific "diagrams/stiffish.png"
                    (D.dims2D 500.0 500.0)
                    (renderAxis $ kSaxis $ zip [0.0, 0.1 .. 10.0] (concat $ toLists res2))
 
-  let res2a = odeSolveV (SDIRK_5_3_4 stiffJac) Nothing 1e-3 1e-6 stiffishV (fromList [0.0]) (fromList [0.0, 0.1 .. 10.0])
-  putStrLn "Lower tolerances"
-  putStrLn $ show res2a
+  let res2a = odeSolveV (SDIRK_5_3_4') Nothing 1e-6 1e-10 stiffishV (fromList [0.0]) (fromList [0.0, 0.1 .. 10.0])
+
+  let res2b = odeSolveV (TRBDF2_3_3_2') Nothing 1e-6 1e-10 stiffishV (fromList [0.0]) (fromList [0.0, 0.1 .. 10.0])
+
+  let maxDiff = maximum $ map abs $
+                zipWith (-) ((toLists $ tr res2a)!!0) ((toLists $ tr res2b)!!0)
+
+  hspec $ describe "Compare results" $ do
+    it "for two different RK methods" $
+      maxDiff < 1.0e-6
 
   let res3 = odeSolve lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 10.0])
-  putStrLn $ show $ last ((toLists $ tr res3)!!0)
-
-  let res3A = odeSolve lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 10.0])
-  putStrLn $ show $ last ((toLists $ tr res3A)!!0)
 
   renderRasterific "diagrams/lorenz.png"
                    (D.dims2D 500.0 500.0)
-                   (renderAxis $ kSaxis $ zip ((toLists $ tr res3)!!0) ((toLists $ tr res3A)!!1))
-
-  let res3a = odeSolve lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 10.0])
-  renderRasterific "diagrams/lorenzA.png"
-                   (D.dims2D 500.0 500.0)
-                   (renderAxis $ kSaxis $ zip ((toLists $ tr res3)!!0) ((toLists $ tr res3a)!!1))
+                   (renderAxis $ kSaxis $ zip ((toLists $ tr res3)!!0) ((toLists $ tr res3)!!1))
 
   renderRasterific "diagrams/lorenz1.png"
                    (D.dims2D 500.0 500.0)
