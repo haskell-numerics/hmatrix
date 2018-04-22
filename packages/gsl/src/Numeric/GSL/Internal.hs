@@ -131,8 +131,7 @@ type TVM = TV (TM Res)
 ww2 w1 o1 w2 o2 f = w1 o1 $ \a1 -> w2 o2 $ \a2 -> f a1 a2
 
 vec x f = unsafeWith x $ \p -> do
-    let v g = do
-        g (fi $ V.length x) p
+    let v g = g (fi $ V.length x) p
     f v
 {-# INLINE vec #-}
 

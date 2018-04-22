@@ -1,7 +1,10 @@
 name:                hmatrix-sundials
 version:             0.19.0.0
 synopsis:            hmatrix interface to sundials
-description:         Foo bar baz
+description:         An interface to the solving suite SUNDIALS. Currently, it
+                     mimics the solving interface in hmstrix-gsl but
+                     provides more diagnostic information and the
+                     Butcher Tableaux (for Runge-Kutta methods).
 homepage:            https://github.com/idontgetoutmuch/hmatrix/tree/sundials
 license:             BSD3
 license-file:        LICENSE
@@ -12,7 +15,7 @@ category:            Math
 build-type:          Simple
 extra-source-files:  ChangeLog.md, README.md, diagrams/*.png
 extra-doc-files:     diagrams/*.png
-cabal-version:       >=1.10
+cabal-version:       >=1.18
 
 
 library
@@ -49,7 +52,6 @@ test-suite hmatrix-sundials-testsuite
                        lens,
                        hspec
   hs-source-dirs:      src
-  default-language:    Haskell2010
   extra-libraries:     sundials_arkode
   c-sources:           src/helpers.c src/helpers.h
   default-language:    Haskell2010
