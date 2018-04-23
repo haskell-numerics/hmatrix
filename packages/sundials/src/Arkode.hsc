@@ -10,6 +10,7 @@ import Foreign.C.Types
 #include <nvector/nvector_serial.h>
 #include <sunmatrix/sunmatrix_dense.h>
 #include <arkode/arkode.h>
+#include <cvode/cvode.h>
 
 
 #def typedef struct _generic_N_Vector SunVector;
@@ -39,6 +40,11 @@ getContentPtr ptr = (#peek SunVector, content) ptr
 
 getData :: Storable a => Ptr b -> IO a
 getData ptr = (#peek SunContent, data) ptr
+
+cV_ADAMS :: Int
+cV_ADAMS = #const CV_ADAMS
+cV_BDF :: Int
+cV_BDF = #const CV_BDF
 
 arkSMax :: Int
 arkSMax = #const ARK_S_MAX
