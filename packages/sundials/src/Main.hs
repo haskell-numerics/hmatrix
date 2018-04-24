@@ -117,15 +117,21 @@ main = do
 
   let res2b = ARK.odeSolveV (ARK.TRBDF2_3_3_2') Nothing 1e-6 1e-10 stiffishV (fromList [0.0]) (fromList [0.0, 0.1 .. 10.0])
 
-  let maxDiff = maximum $ map abs $
-                zipWith (-) ((toLists $ tr res2a)!!0) ((toLists $ tr res2b)!!0)
-
-  hspec $ describe "Compare results" $ do
-    it "for two different RK methods" $
-      maxDiff < 1.0e-6
+  let maxDiffA = maximum $ map abs $
+                 zipWith (-) ((toLists $ tr res2a)!!0) ((toLists $ tr res2b)!!0)
 
   let res2c = CV.odeSolveV (CV.BDF) Nothing 1e-6 1e-10 stiffishV (fromList [0.0]) (fromList [0.0, 0.1 .. 10.0])
-  putStrLn $ show res2c
+
+  let maxDiffB = maximum $ map abs $
+                 zipWith (-) ((toLists $ tr res2a)!!0) ((toLists $ tr res2c)!!0)
+
+  let maxDiffC = maximum $ map abs $
+                 zipWith (-) ((toLists $ tr res2b)!!0) ((toLists $ tr res2c)!!0)
+
+  hspec $ describe "Compare results" $ do
+    it "for SDIRK_5_3_4' and TRBDF2_3_3_2'" $ maxDiffA < 1.0e-6
+    it "for SDIRK_5_3_4' and BDF" $ maxDiffB < 1.0e-6
+    it "for TRBDF2_3_3_2' and BDF" $ maxDiffC < 1.0e-6
 
   let res3 = ARK.odeSolve lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 10.0])
 

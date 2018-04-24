@@ -132,8 +132,7 @@ import           System.IO.Unsafe (unsafePerformIO)
 import           Numeric.LinearAlgebra.Devel (createVector)
 
 import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, (><),
-                                                subMatrix, rows, cols, toLists,
-                                                size, subVector)
+                                                rows, cols, toLists, size)
 
 import qualified Types as T
 import           Arkode (cV_ADAMS, cV_BDF)
@@ -247,7 +246,7 @@ odeSolveV meth hi epsAbs epsRel f y0 ts =
   case odeSolveVWith meth (X epsAbs epsRel) hi g y0 ts of
     Left c -> error $ show c -- FIXME
     -- FIXME: Can we do better than using lists?
-    Right (v, d) -> (nR >< nC) (V.toList v)
+    Right (v, _d) -> (nR >< nC) (V.toList v)
   where
     us = toList ts
     nR = length us
@@ -266,7 +265,7 @@ odeSolve f y0 ts =
   -- FIXME: These tolerances are different from the ones in GSL
   case odeSolveVWith BDF (XX' 1.0e-6 1.0e-10 1 1)  Nothing g (V.fromList y0) (V.fromList $ toList ts) of
     Left c -> error $ show c -- FIXME
-    Right (v, d) -> (nR >< nC) (V.toList v)
+    Right (v, _d) -> (nR >< nC) (V.toList v)
   where
     us = toList ts
     nR = length us
@@ -353,13 +352,12 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
       nEq = fromIntegral dim
       nTs :: CInt
       nTs = fromIntegral $ V.length ts
-  -- FIXME: fMut is not actually mutatated
-  fMut <- V.thaw f0
+  -- FIXME: tMut is not actually mutatated?
   tMut <- V.thaw ts
   -- FIXME: I believe this gets taken from the ghc heap and so should
   -- be subject to garbage collection.
-  -- quasiMatrixRes <- createVector ((fromIntegral dim) * (fromIntegral nTs))
-  -- qMatMut <- V.thaw quasiMatrixRes
+  quasiMatrixRes <- createVector ((fromIntegral dim) * (fromIntegral nTs))
+  qMatMut <- V.thaw quasiMatrixRes
   diagnostics :: V.Vector CLong <- createVector 10 -- FIXME
   diagMut <- V.thaw diagnostics
   -- We need the types that sundials expects. These are tied together
@@ -394,7 +392,13 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
                          int flag;                  /* reusable error-checking flag                 */
                          int i, j;                  /* reusable loop indices                        */
                          N_Vector y = NULL;         /* empty vector for storing solution            */
+                         N_Vector tv = NULL;        /* empty vector for storing absolute tolerances */
+
+                         SUNMatrix A = NULL;        /* empty matrix for linear solver               */
+                         SUNLinearSolver LS = NULL; /* empty linear solver object                   */
                          void *cvode_mem = NULL;    /* empty CVODE memory structure                 */
+                         realtype t;
+                         long int nst, nfe, nsetups, nje, nfeLS, nni, ncfn, netf, nge;
 
                          /* general problem parameters */
 
@@ -410,7 +414,7 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
                            NV_Ith_S(y,i) = ($vec-ptr:(double *f0))[i];
                          };
 
-                         cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
+                         cvode_mem = CVodeCreate($(int method), CV_NEWTON);
                          if (check_flag((void *)cvode_mem, "CVodeCreate", 0)) return(1);
 
                          /* Call CVodeInit to initialize the integrator memory and specify the
@@ -419,16 +423,136 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
                          flag = CVodeInit(cvode_mem,   $fun:(int (* funIO) (double t, SunVector y[], SunVector dydt[], void * params)), T0, y);
                          if (check_flag(&flag, "CVodeInit", 1)) return(1);
 
+                         tv = N_VNew_Serial(NEQ); /* Create serial vector for absolute tolerances */
+                         if (check_flag((void *)tv, "N_VNew_Serial", 0)) return 1;
+                         /* Specify tolerances */
+                         for (i = 0; i < NEQ; i++) {
+                           NV_Ith_S(tv,i) = ($vec-ptr:(double *absTols))[i];
+                         };
+
+                         /* FIXME: A hack for initial testing */
+                         flag = CVodeSetMinStep(cvode_mem, 1.0e-12);
+                         if (check_flag(&flag, "CVodeSetMinStep", 1)) return 1;
+                         flag = CVodeSetMaxNumSteps(cvode_mem, 10000);
+                         if (check_flag(&flag, "CVodeSetMaxNumSteps", 1)) return 1;
+
+                         /* Call CVodeSVtolerances to specify the scalar relative tolerance
+                          * and vector absolute tolerances */
+                         flag = CVodeSVtolerances(cvode_mem, $(double relTol), tv);
+                         if (check_flag(&flag, "CVodeSVtolerances", 1)) return(1);
+
+                         /* Initialize dense matrix data structure and solver */
+                         A = SUNDenseMatrix(NEQ, NEQ);
+                         if (check_flag((void *)A, "SUNDenseMatrix", 0)) return 1;
+                         LS = SUNDenseLinearSolver(y, A);
+                         if (check_flag((void *)LS, "SUNDenseLinearSolver", 0)) return 1;
+
+                         /* Attach matrix and linear solver */
+                         flag = CVDlsSetLinearSolver(cvode_mem, LS, A);
+                         if (check_flag(&flag, "CVDlsSetLinearSolver", 1)) return 1;
+
+                         /* Set the initial step size if there is one */
+                         if ($(int isInitStepSize)) {
+                           /* FIXME: We could check if the initial step size is 0 */
+                           /* or even NaN and then throw an error                 */
+                           flag = CVodeSetInitStep(cvode_mem, $(double ss));
+                           if (check_flag(&flag, "CVodeSetInitStep", 1)) return 1;
+                         }
+
+                         /* Set the Jacobian if there is one */
+                         if ($(int isJac)) {
+                           flag = CVDlsSetJacFn(cvode_mem, $fun:(int (* jacIO) (double t, SunVector y[], SunVector fy[], SunMatrix Jac[], void * params, SunVector tmp1[], SunVector tmp2[], SunVector tmp3[])));
+                           if (check_flag(&flag, "CVDlsSetJacFn", 1)) return 1;
+                         }
+
+                         /* Store initial conditions */
+                         for (j = 0; j < NEQ; j++) {
+                           ($vec-ptr:(double *qMatMut))[0 * $(int nTs) + j] = NV_Ith_S(y,j);
+                         }
+
+                         /* Main time-stepping loop: calls CVode to perform the integration */
+                         /* Stops when the final time has been reached                       */
+                         for (i = 1; i < $(int nTs); i++) {
+
+                           flag = CVode(cvode_mem, ($vec-ptr:(double *tMut))[i], y, &t, CV_NORMAL); /* call integrator */
+                           if (check_flag(&flag, "CVode", 1)) break;
+
+                           /* Store the results for Haskell */
+                           for (j = 0; j < NEQ; j++) {
+                             ($vec-ptr:(double *qMatMut))[i * NEQ + j] = NV_Ith_S(y,j);
+                           }
+
+                           /* unsuccessful solve: break */
+                           if (flag < 0) {
+                             fprintf(stderr,"Solver failure, stopping integration\n");
+                             break;
+                           }
+                         }
+
+                         /* Get some final statistics on how the solve progressed */
+
+                         flag = CVodeGetNumSteps(cvode_mem, &nst);
+                         check_flag(&flag, "CVodeGetNumSteps", 1);
+                         ($vec-ptr:(long int *diagMut))[0] = nst;
+
+                         /* FIXME */
+                         ($vec-ptr:(long int *diagMut))[1] = 0;
+
+                         flag = CVodeGetNumRhsEvals(cvode_mem, &nfe);
+                         check_flag(&flag, "CVodeGetNumRhsEvals", 1);
+                         ($vec-ptr:(long int *diagMut))[2] = nfe;
+                         /* FIXME */
+                         ($vec-ptr:(long int *diagMut))[3] = 0;
+
+                         flag = CVodeGetNumLinSolvSetups(cvode_mem, &nsetups);
+                         check_flag(&flag, "CVodeGetNumLinSolvSetups", 1);
+                         ($vec-ptr:(long int *diagMut))[4] = nsetups;
+
+                         flag = CVodeGetNumErrTestFails(cvode_mem, &netf);
+                         check_flag(&flag, "CVodeGetNumErrTestFails", 1);
+                         ($vec-ptr:(long int *diagMut))[5] = netf;
+
+                         flag = CVodeGetNumNonlinSolvIters(cvode_mem, &nni);
+                         check_flag(&flag, "CVodeGetNumNonlinSolvIters", 1);
+                         ($vec-ptr:(long int *diagMut))[6] = nni;
+
+                         flag = CVodeGetNumNonlinSolvConvFails(cvode_mem, &ncfn);
+                         check_flag(&flag, "CVodeGetNumNonlinSolvConvFails", 1);
+                         ($vec-ptr:(long int *diagMut))[7] = ncfn;
+
+                         flag = CVDlsGetNumJacEvals(cvode_mem, &nje);
+                         check_flag(&flag, "CVDlsGetNumJacEvals", 1);
+                         ($vec-ptr:(long int *diagMut))[8] = ncfn;
+
+                         flag = CVDlsGetNumRhsEvals(cvode_mem, &nfeLS);
+                         check_flag(&flag, "CVDlsGetNumRhsEvals", 1);
+                         ($vec-ptr:(long int *diagMut))[9] = ncfn;
+
                          /* Clean up and return */
 
                          N_VDestroy(y);          /* Free y vector          */
+                         N_VDestroy(tv);         /* Free tv vector         */
                          CVodeFree(&cvode_mem);  /* Free integrator memory */
+                         SUNLinSolFree(LS);      /* Free linear solver     */
+                         SUNMatDestroy(A);       /* Free A matrix          */
 
                          return flag;
                        } |]
   if res == 0
     then do
-      return $ Left res
+      preD <- V.freeze diagMut
+      let d = SundialsDiagnostics (fromIntegral $ preD V.!0)
+                                  (fromIntegral $ preD V.!1)
+                                  (fromIntegral $ preD V.!2)
+                                  (fromIntegral $ preD V.!3)
+                                  (fromIntegral $ preD V.!4)
+                                  (fromIntegral $ preD V.!5)
+                                  (fromIntegral $ preD V.!6)
+                                  (fromIntegral $ preD V.!7)
+                                  (fromIntegral $ preD V.!8)
+                                  (fromIntegral $ preD V.!9)
+      m <- V.freeze qMatMut
+      return $ Right (m, d)
     else do
       return $ Left res
 
