@@ -29,7 +29,8 @@ library
                        sundials_cvode
   other-extensions:    QuasiQuotes
   hs-source-dirs:      src
-  exposed-modules:     Numeric.Sundials.ARKode.ODE,
+  exposed-modules:     Numeric.Sundials.ODEOpts,
+                       Numeric.Sundials.ARKode.ODE,
                        Numeric.Sundials.CVode.ODE
   other-modules:       Types,
                        Arkode
@@ -40,6 +41,7 @@ test-suite hmatrix-sundials-testsuite
   type:                exitcode-stdio-1.0
   main-is:             Main.hs
   other-modules:       Types,
+                       Numeric.Sundials.ODEOpts,
                        Numeric.Sundials.ARKode.ODE,
                        Numeric.Sundials.CVode.ODE,
                        Arkode

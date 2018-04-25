@@ -61,46 +61,6 @@
 --                    (renderAxis $ lSaxis $ [0.0, 0.1 .. 10.0]:(toLists $ tr res1))
 -- @
 --
--- KVAERNO_4_2_3
---
--- \[
--- \begin{array}{c|cccc}
--- 0.0 & 0.0 & 0.0 & 0.0 & 0.0 \\
--- 0.871733043 & 0.4358665215 & 0.4358665215 & 0.0 & 0.0 \\
--- 1.0 & 0.490563388419108 & 7.3570090080892e-2 & 0.4358665215 & 0.0 \\
--- 1.0 & 0.308809969973036 & 1.490563388254106 & -1.235239879727145 & 0.4358665215 \\
--- \hline
---  & 0.308809969973036 & 1.490563388254106 & -1.235239879727145 & 0.4358665215 \\
---  & 0.490563388419108 & 7.3570090080892e-2 & 0.4358665215 & 0.0 \\
--- \end{array}
--- \]
---
--- SDIRK_2_1_2
---
--- \[
--- \begin{array}{c|cc}
--- 1.0 & 1.0 & 0.0 \\
--- 0.0 & -1.0 & 1.0 \\
--- \hline
---  & 0.5 & 0.5 \\
---  & 1.0 & 0.0 \\
--- \end{array}
--- \]
---
--- SDIRK_5_3_4
---
--- \[
--- \begin{array}{c|ccccc}
--- 0.25 & 0.25 & 0.0 & 0.0 & 0.0 & 0.0 \\
--- 0.75 & 0.5 & 0.25 & 0.0 & 0.0 & 0.0 \\
--- 0.55 & 0.34 & -4.0e-2 & 0.25 & 0.0 & 0.0 \\
--- 0.5 & 0.2727941176470588 & -5.036764705882353e-2 & 2.7573529411764705e-2 & 0.25 & 0.0 \\
--- 1.0 & 1.0416666666666667 & -1.0208333333333333 & 7.8125 & -7.083333333333333 & 0.25 \\
--- \hline
---  & 1.0416666666666667 & -1.0208333333333333 & 7.8125 & -7.083333333333333 & 0.25 \\
---  & 1.2291666666666667 & -0.17708333333333334 & 7.03125 & -7.083333333333333 & 0.0 \\
--- \end{array}
--- \]
 -----------------------------------------------------------------------------
 module Numeric.Sundials.CVode.ODE ( odeSolve
                                    , odeSolveV
@@ -109,7 +69,6 @@ module Numeric.Sundials.CVode.ODE ( odeSolve
                                    , ODEMethod(..)
                                    , StepControl(..)
                                    , Jacobian
-                                   , SundialsDiagnostics(..)
                                    ) where
 
 import qualified Language.C.Inline as C
@@ -118,13 +77,10 @@ import qualified Language.C.Inline.Unsafe as CU
 import           Data.Monoid ((<>))
 import           Data.Maybe (isJust)
 
-import           Foreign.C.Types
+import           Foreign.C.Types (CDouble, CInt, CLong)
 import           Foreign.Ptr (Ptr)
-import           Foreign.ForeignPtr (newForeignPtr_)
-import           Foreign.Storable (Storable)
 
 import qualified Data.Vector.Storable as V
-import qualified Data.Vector.Storable.Mutable as VM
 
 import           Data.Coerce (coerce)
 import           System.IO.Unsafe (unsafePerformIO)
@@ -136,7 +92,7 @@ import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, (><),
 
 import qualified Types as T
 import           Arkode (cV_ADAMS, cV_BDF)
-import qualified Arkode as B
+import qualified Numeric.Sundials.ODEOpts as SO
 
 
 C.context (C.baseCtx <> C.vecCtx <> C.funCtx <> T.sunCtx)
@@ -154,65 +110,6 @@ C.include "<sundials/sundials_math.h>"
 C.include "../../../helpers.h"
 C.include "Arkode_hsc.h"
 
-
-getDataFromContents :: Int -> Ptr T.SunVector -> IO (V.Vector CDouble)
-getDataFromContents len ptr = do
-  qtr <- B.getContentPtr ptr
-  rtr <- B.getData qtr
-  vectorFromC len rtr
-
--- FIXME: Potentially an instance of Storable
-_getMatrixDataFromContents :: Ptr T.SunMatrix -> IO T.SunMatrix
-_getMatrixDataFromContents ptr = do
-  qtr <- B.getContentMatrixPtr ptr
-  rs  <- B.getNRows qtr
-  cs  <- B.getNCols qtr
-  rtr <- B.getMatrixData qtr
-  vs  <- vectorFromC (fromIntegral $ rs * cs) rtr
-  return $ T.SunMatrix { T.rows = rs, T.cols = cs, T.vals = vs }
-
-putMatrixDataFromContents :: T.SunMatrix -> Ptr T.SunMatrix -> IO ()
-putMatrixDataFromContents mat ptr = do
-  let rs = T.rows mat
-      cs = T.cols mat
-      vs = T.vals mat
-  qtr <- B.getContentMatrixPtr ptr
-  B.putNRows rs qtr
-  B.putNCols cs qtr
-  rtr <- B.getMatrixData qtr
-  vectorToC vs (fromIntegral $ rs * cs) rtr
--- FIXME: END
-
-putDataInContents :: Storable a => V.Vector a -> Int -> Ptr b -> IO ()
-putDataInContents vec len ptr = do
-  qtr <- B.getContentPtr ptr
-  rtr <- B.getData qtr
-  vectorToC vec len rtr
-
--- Utils
-
-vectorFromC :: Storable a => Int -> Ptr a -> IO (V.Vector a)
-vectorFromC len ptr = do
-  ptr' <- newForeignPtr_ ptr
-  V.freeze $ VM.unsafeFromForeignPtr0 ptr' len
-
-vectorToC :: Storable a => V.Vector a -> Int -> Ptr a -> IO ()
-vectorToC vec len ptr = do
-  ptr' <- newForeignPtr_ ptr
-  V.copy (VM.unsafeFromForeignPtr0 ptr' len) vec
-
-data SundialsDiagnostics = SundialsDiagnostics {
-    aRKodeGetNumSteps               :: Int
-  , aRKodeGetNumStepAttempts        :: Int
-  , aRKodeGetNumRhsEvals_fe         :: Int
-  , aRKodeGetNumRhsEvals_fi         :: Int
-  , aRKodeGetNumLinSolvSetups       :: Int
-  , aRKodeGetNumErrTestFails        :: Int
-  , aRKodeGetNumNonlinSolvIters     :: Int
-  , aRKodeGetNumNonlinSolvConvFails :: Int
-  , aRKDlsGetNumJacEvals            :: Int
-  , aRKDlsGetNumRhsEvals            :: Int
-  } deriving Show
 
 type Jacobian = Double -> Vector Double -> Matrix Double
 
@@ -243,7 +140,7 @@ odeSolveV
     -> Vector Double     -- ^ desired solution times
     -> Matrix Double     -- ^ solution
 odeSolveV meth hi epsAbs epsRel f y0 ts =
-  case odeSolveVWith meth (X epsAbs epsRel) hi g y0 ts of
+  case odeSolveVWith' meth (X epsAbs epsRel) hi g y0 ts of
     Left c -> error $ show c -- FIXME
     -- FIXME: Can we do better than using lists?
     Right (v, _d) -> (nR >< nC) (V.toList v)
@@ -263,7 +160,7 @@ odeSolve :: (Double -> [Double] -> [Double]) -- ^ The RHS of the system \(\dot{y
          -> Matrix Double                    -- ^ solution
 odeSolve f y0 ts =
   -- FIXME: These tolerances are different from the ones in GSL
-  case odeSolveVWith BDF (XX' 1.0e-6 1.0e-10 1 1)  Nothing g (V.fromList y0) (V.fromList $ toList ts) of
+  case odeSolveVWith' BDF (XX' 1.0e-6 1.0e-10 1 1)  Nothing g (V.fromList y0) (V.fromList $ toList ts) of
     Left c -> error $ show c -- FIXME
     Right (v, _d) -> (nR >< nC) (V.toList v)
   where
@@ -271,27 +168,6 @@ odeSolve f y0 ts =
     nR = length us
     nC = length y0
     g t x0 = V.fromList $ f t (V.toList x0)
-
-odeSolveVWith' ::
-  ODEMethod
-  -> StepControl
-  -> Maybe Double -- ^ initial step size - by default, ARKode
-                  -- estimates the initial step size to be the
-                  -- solution \(h\) of the equation
-                  -- \(\|\frac{h^2\ddot{y}}{2}\| = 1\), where
-                  -- \(\ddot{y}\) is an estimated value of the second
-                  -- derivative of the solution at \(t_0\)
-  -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
-  -> V.Vector Double                     -- ^ Initial conditions
-  -> V.Vector Double                     -- ^ Desired solution times
-  -> Matrix Double                       -- ^ Error code or solution
-odeSolveVWith' method control initStepSize f y0 tt =
-  case odeSolveVWith method control initStepSize f y0 tt of
-    Left c        -> error $ show c -- FIXME
-    Right (v, _d) -> (nR >< nC) (V.toList v)
-  where
-    nR = V.length tt
-    nC = V.length y0
 
 odeSolveVWith ::
   ODEMethod
@@ -305,8 +181,29 @@ odeSolveVWith ::
   -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector Double                     -- ^ Initial conditions
   -> V.Vector Double                     -- ^ Desired solution times
-  -> Either Int ((V.Vector Double), SundialsDiagnostics) -- ^ Error code or solution
+  -> Matrix Double                       -- ^ Error code or solution
 odeSolveVWith method control initStepSize f y0 tt =
+  case odeSolveVWith' method control initStepSize f y0 tt of
+    Left c        -> error $ show c -- FIXME
+    Right (v, _d) -> (nR >< nC) (V.toList v)
+  where
+    nR = V.length tt
+    nC = V.length y0
+
+odeSolveVWith' ::
+  ODEMethod
+  -> StepControl
+  -> Maybe Double -- ^ initial step size - by default, ARKode
+                  -- estimates the initial step size to be the
+                  -- solution \(h\) of the equation
+                  -- \(\|\frac{h^2\ddot{y}}{2}\| = 1\), where
+                  -- \(\ddot{y}\) is an estimated value of the second
+                  -- derivative of the solution at \(t_0\)
+  -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
+  -> V.Vector Double                     -- ^ Initial conditions
+  -> V.Vector Double                     -- ^ Desired solution times
+  -> Either Int ((V.Vector Double), SO.SundialsDiagnostics) -- ^ Error code or solution
+odeSolveVWith' method control initStepSize f y0 tt =
   case solveOdeC (fromIntegral $ getMethod method) (coerce initStepSize) jacH (scise control)
                  (coerce f) (coerce y0) (coerce tt) of
     Left c -> Left $ fromIntegral c
@@ -335,7 +232,7 @@ solveOdeC ::
   (CDouble -> V.Vector CDouble -> V.Vector CDouble) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector CDouble -- ^ Initial conditions
   -> V.Vector CDouble -- ^ Desired solution times
-  -> Either CInt ((V.Vector CDouble), SundialsDiagnostics) -- ^ Error code or solution
+  -> Either CInt ((V.Vector CDouble), SO.SundialsDiagnostics) -- ^ Error code or solution
 solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO $ do
 
   let isInitStepSize :: CInt
@@ -366,9 +263,9 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
       funIO x y f _ptr = do
         -- Convert the pointer we get from C (y) to a vector, and then
         -- apply the user-supplied function.
-        fImm <- fun x <$> getDataFromContents dim y
+        fImm <- fun x <$> SO.getDataFromContents dim y
         -- Fill in the provided pointer with the resulting vector.
-        putDataInContents fImm dim f
+        SO.putDataInContents fImm dim f
         -- FIXME: I don't understand what this comment means
         -- Unsafe since the function will be called many times.
         [CU.exp| int{ 0 } |]
@@ -380,8 +277,8 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
       jacIO t y _fy jacS _ptr _tmp1 _tmp2 _tmp3 = do
         case jacH of
           Nothing   -> error "Numeric.Sundials.ARKode.ODE: Jacobian not defined"
-          Just jacI -> do j <- jacI t <$> getDataFromContents dim y
-                          putMatrixDataFromContents j jacS
+          Just jacI -> do j <- jacI t <$> SO.getDataFromContents dim y
+                          SO.putMatrixDataFromContents j jacS
                           -- FIXME: I don't understand what this comment means
                           -- Unsafe since the function will be called many times.
                           [CU.exp| int{ 0 } |]
@@ -541,16 +438,16 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
   if res == 0
     then do
       preD <- V.freeze diagMut
-      let d = SundialsDiagnostics (fromIntegral $ preD V.!0)
-                                  (fromIntegral $ preD V.!1)
-                                  (fromIntegral $ preD V.!2)
-                                  (fromIntegral $ preD V.!3)
-                                  (fromIntegral $ preD V.!4)
-                                  (fromIntegral $ preD V.!5)
-                                  (fromIntegral $ preD V.!6)
-                                  (fromIntegral $ preD V.!7)
-                                  (fromIntegral $ preD V.!8)
-                                  (fromIntegral $ preD V.!9)
+      let d = SO.SundialsDiagnostics (fromIntegral $ preD V.!0)
+                                     (fromIntegral $ preD V.!1)
+                                     (fromIntegral $ preD V.!2)
+                                     (fromIntegral $ preD V.!3)
+                                     (fromIntegral $ preD V.!4)
+                                     (fromIntegral $ preD V.!5)
+                                     (fromIntegral $ preD V.!6)
+                                     (fromIntegral $ preD V.!7)
+                                     (fromIntegral $ preD V.!8)
+                                     (fromIntegral $ preD V.!9)
       m <- V.freeze qMatMut
       return $ Right (m, d)
     else do
