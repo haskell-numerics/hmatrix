@@ -160,7 +160,8 @@ extractAll ord m = unsafePerformIO (copy ord m)
 {- | Creates a vector by concatenation of rows. If the matrix is ColumnMajor, this operation requires a transpose.
 
 >>> flatten (ident 3)
-fromList [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]
+[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]
+it :: (Num t, Element t) => Vector t
 
 -}
 flatten :: Element t => Matrix t -> Vector t

@@ -417,7 +417,8 @@ foreign import ccall unsafe "round_vector" c_round_vector :: TVV Double
 
 -- |
 -- >>> range 5
--- fromList [0,1,2,3,4]
+-- [0,1,2,3,4]
+-- it :: Vector I
 --
 range :: Int -> Vector I
 range n = unsafePerformIO $ do

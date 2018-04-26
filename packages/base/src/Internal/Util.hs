@@ -99,7 +99,8 @@ iC = 0:+1
 {- | Create a real vector.
 
 >>> vector [1..5]
-fromList [1.0,2.0,3.0,4.0,5.0]
+[1.0,2.0,3.0,4.0,5.0]
+it :: Vector R
 
 -}
 vector :: [R] -> Vector R
@@ -378,7 +379,8 @@ size = size'
 On a matrix it gets the k-th row as a vector:
 
 >>> matrix 5 [1..15] ! 1
-fromList [6.0,7.0,8.0,9.0,10.0]
+[6.0,7.0,8.0,9.0,10.0]
+it :: Vector Double
 
 >>> matrix 5 [1..15] ! 1 ! 3
 9.0
