@@ -170,8 +170,10 @@ gmXv Dense{..} v
 {- | general matrix - vector product
 
 >>> let m = mkSparse [((0,999),1.0),((1,1999),2.0)]
+m :: GMatrix
 >>> m !#> vector [1..2000]
-fromList [1000.0,4000.0]
+[1000.0,4000.0]
+it :: Vector Double
 
 -}
 infixr 8 !#>

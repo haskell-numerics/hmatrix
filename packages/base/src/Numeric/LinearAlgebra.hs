@@ -27,7 +27,8 @@ module Numeric.LinearAlgebra (
     -- as the Hadamard product or the Schur product):
     --
     -- >>>  vector [1,2,3] * vector [3,0,-2]
-    -- fromList [3.0,0.0,-6.0]
+    -- [3.0,0.0,-6.0]
+    -- it :: Vector R
     --
     -- >>> matrix 3 [1..9] * ident 3
     -- (3><3)

@@ -38,9 +38,14 @@ import Prelude hiding ((<>))
 {- | Creates a real vector containing a range of values:
 
 >>> linspace 5 (-3,7::Double)
-fromList [-3.0,-0.5,2.0,4.5,7.0]@
+[-3.0,-0.5,2.0,4.5,7.0]
+it :: Vector Double
 
 >>> linspace 5 (8,2+i) :: Vector (Complex Double)
+
+<interactive>:6:17: ERROR:
+    Variable not in scope: i :: Complex Double
+
 fromList [8.0 :+ 0.0,6.5 :+ 0.25,5.0 :+ 0.5,3.5 :+ 0.75,2.0 :+ 1.0]
 
 Logarithmic spacing can be defined as follows:
@@ -85,7 +90,8 @@ infixr 8 <.>
 >>> let v = vector [10,20,30]
 
 >>> m #> v
-fromList [140.0,320.0]
+[140.0,320.0]
+it :: Vector Numeric.LinearAlgebra.Data.R
 
 -}
 infixr 8 #>
@@ -134,10 +140,12 @@ v = vector [13.0,27.0,1.0]
 
 >>> let x = a <\> v
 >>> x
-fromList [3.0799999999999996,5.159999999999999]
+[3.0799999999999996,5.159999999999999]
+it :: Vector Numeric.LinearAlgebra.Data.R
 
 >>> a #> x
-fromList [13.399999999999999,26.799999999999997,1.0]
+[13.399999999999999,26.799999999999997,0.9999999999999991]
+it :: Vector Numeric.LinearAlgebra.Data.R
 
 It also admits multiple right-hand sides stored as columns in a matrix.
 
@@ -165,7 +173,8 @@ class Build d f c e | d -> c, c -> d, f -> e, f -> d, f -> c, c e -> f, d e -> f
   where
     -- |
     -- >>> build 5 (**2) :: Vector Double
-    -- fromList [0.0,1.0,4.0,9.0,16.0]
+    -- [0.0,1.0,4.0,9.0,16.0]
+    -- it :: Vector Double
     --
     -- Hilbert matrix of order N:
     --
@@ -203,6 +212,17 @@ optimiseMult = mconcat
 {- | Compute mean vector and covariance matrix of the rows of a matrix.
 
 >>> meanCov $ gaussianSample 666 1000 (fromList[4,5]) (diagl[2,3])
+
+<interactive>:4:52: ERROR:
+    • Couldn't match expected type ‘Herm Double’
+                  with actual type ‘Matrix Double’
+    • In the fourth argument of ‘gaussianSample’, namely
+        ‘(diagl [2, 3])’
+      In the second argument of ‘($)’, namely
+        ‘gaussianSample 666 1000 (fromList [4, 5]) (diagl [2, 3])’
+      In the expression:
+        meanCov $ gaussianSample 666 1000 (fromList [4, 5]) (diagl [2, 3])
+
 (fromList [4.010341078059521,5.0197204699640405],
 (2><2)
  [     1.9862461923890056, -1.0127225830525157e-2

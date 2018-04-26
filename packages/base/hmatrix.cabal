@@ -47,7 +47,7 @@ library
                         bytestring,
                         storable-complex,
                         semigroups,
-                        vector >= 0.8
+                        vector >= 0.11
 
     hs-source-dirs:     src
 
