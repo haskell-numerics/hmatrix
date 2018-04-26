@@ -8,8 +8,12 @@ import           Foreign.C.Types
 import qualified Data.Vector.Storable as VS
 import qualified Data.Vector.Storable.Mutable as VM
 
+import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix)
+
 import qualified Types as T
 import qualified Arkode as B
+
+type Jacobian = Double -> Vector Double -> Matrix Double
 
 data ODEOpts = ODEOpts {
     maxNumSteps :: Int32
