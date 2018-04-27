@@ -79,6 +79,7 @@ import           Data.Maybe (isJust)
 
 import           Foreign.C.Types (CDouble, CInt, CLong)
 import           Foreign.Ptr (Ptr)
+import           Foreign.Storable (poke)
 
 import qualified Data.Vector.Storable as V
 
@@ -90,10 +91,10 @@ import           Numeric.LinearAlgebra.Devel (createVector)
 import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, rows,
                                                 cols, toLists, size, reshape)
 
-import qualified Numeric.Sundials.CLangToHaskellTypes as T
-import           Numeric.Sundials.Arkode (cV_ADAMS, cV_BDF)
-import           Numeric.Sundials.ODEOpts (ODEOpts(..), Jacobian)
-import qualified Numeric.Sundials.ODEOpts as SO
+import           Numeric.Sundials.Arkode (cV_ADAMS, cV_BDF,
+                                          getDataFromContents, putDataInContents)
+import qualified Numeric.Sundials.Arkode as T
+import           Numeric.Sundials.ODEOpts (ODEOpts(..), Jacobian, SundialsDiagnostics(..))
 
 
 C.context (C.baseCtx <> C.vecCtx <> C.funCtx <> T.sunCtx)
@@ -195,7 +196,7 @@ odeSolveVWith' ::
   -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector Double                     -- ^ Initial conditions
   -> V.Vector Double                     -- ^ Desired solution times
-  -> Either Int (Matrix Double, SO.SundialsDiagnostics) -- ^ Error code or solution
+  -> Either Int (Matrix Double, SundialsDiagnostics) -- ^ Error code or solution
 odeSolveVWith' opts method control initStepSize f y0 tt =
   case solveOdeC (fromIntegral $ maxNumSteps opts) (coerce $ minStep opts)
                  (fromIntegral $ getMethod method) (coerce initStepSize) jacH (scise control)
@@ -229,7 +230,7 @@ solveOdeC ::
   (CDouble -> V.Vector CDouble -> V.Vector CDouble) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector CDouble -- ^ Initial conditions
   -> V.Vector CDouble -- ^ Desired solution times
-  -> Either CInt ((V.Vector CDouble), SO.SundialsDiagnostics) -- ^ Error code or solution
+  -> Either CInt ((V.Vector CDouble), SundialsDiagnostics) -- ^ Error code or solution
 solveOdeC maxNumSteps_ minStep_ method initStepSize jacH (aTols, rTol) fun f0 ts =
   unsafePerformIO $ do
 
@@ -257,9 +258,9 @@ solveOdeC maxNumSteps_ minStep_ method initStepSize jacH (aTols, rTol) fun f0 ts
       funIO x y f _ptr = do
         -- Convert the pointer we get from C (y) to a vector, and then
         -- apply the user-supplied function.
-        fImm <- fun x <$> SO.getDataFromContents dim y
+        fImm <- fun x <$> getDataFromContents dim y
         -- Fill in the provided pointer with the resulting vector.
-        SO.putDataInContents fImm dim f
+        putDataInContents fImm dim f
         -- FIXME: I don't understand what this comment means
         -- Unsafe since the function will be called many times.
         [CU.exp| int{ 0 } |]
@@ -271,8 +272,8 @@ solveOdeC maxNumSteps_ minStep_ method initStepSize jacH (aTols, rTol) fun f0 ts
       jacIO t y _fy jacS _ptr _tmp1 _tmp2 _tmp3 = do
         case jacH of
           Nothing   -> error "Numeric.Sundials.ARKode.ODE: Jacobian not defined"
-          Just jacI -> do j <- jacI t <$> SO.getDataFromContents dim y
-                          SO.putMatrixDataFromContents j jacS
+          Just jacI -> do j <- jacI t <$> getDataFromContents dim y
+                          poke jacS j
                           -- FIXME: I don't understand what this comment means
                           -- Unsafe since the function will be called many times.
                           [CU.exp| int{ 0 } |]
@@ -431,16 +432,16 @@ solveOdeC maxNumSteps_ minStep_ method initStepSize jacH (aTols, rTol) fun f0 ts
   if res == 0
     then do
       preD <- V.freeze diagMut
-      let d = SO.SundialsDiagnostics (fromIntegral $ preD V.!0)
-                                     (fromIntegral $ preD V.!1)
-                                     (fromIntegral $ preD V.!2)
-                                     (fromIntegral $ preD V.!3)
-                                     (fromIntegral $ preD V.!4)
-                                     (fromIntegral $ preD V.!5)
-                                     (fromIntegral $ preD V.!6)
-                                     (fromIntegral $ preD V.!7)
-                                     (fromIntegral $ preD V.!8)
-                                     (fromIntegral $ preD V.!9)
+      let d = SundialsDiagnostics (fromIntegral $ preD V.!0)
+                                  (fromIntegral $ preD V.!1)
+                                  (fromIntegral $ preD V.!2)
+                                  (fromIntegral $ preD V.!3)
+                                  (fromIntegral $ preD V.!4)
+                                  (fromIntegral $ preD V.!5)
+                                  (fromIntegral $ preD V.!6)
+                                  (fromIntegral $ preD V.!7)
+                                  (fromIntegral $ preD V.!8)
+                                  (fromIntegral $ preD V.!9)
       m <- V.freeze qMatMut
       return $ Right (m, d)
     else do

@@ -1,7 +1,23 @@
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE EmptyDataDecls #-}
+
 module Numeric.Sundials.Arkode where
 
-import Foreign
-import Foreign.C.Types
+import           Foreign
+import           Foreign.C.Types
+
+import           Language.C.Types as CT
+
+import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Storable.Mutable as VM
+
+import qualified Language.Haskell.TH as TH
+import qualified Data.Map as Map
+import           Language.C.Inline.Context
+
+import qualified Data.Vector.Storable as V
 
 
 #include <stdio.h>
@@ -12,6 +28,74 @@ import Foreign.C.Types
 #include <arkode/arkode.h>
 #include <cvode/cvode.h>
 
+
+data SunVector
+data SunMatrix = SunMatrix { rows :: CInt
+                           , cols :: CInt
+                           , vals :: V.Vector CDouble
+                           }
+
+-- | This is true only if configured/ built as 64 bits
+type SunIndexType = CLong
+
+sunTypesTable :: Map.Map TypeSpecifier TH.TypeQ
+sunTypesTable = Map.fromList
+  [
+    (TypeName "sunindextype", [t| SunIndexType |] )
+  , (TypeName "SunVector",    [t| SunVector |] )
+  , (TypeName "SunMatrix",    [t| SunMatrix |] )
+  ]
+
+sunCtx :: Context
+sunCtx = mempty {ctxTypesTable = sunTypesTable}
+
+getMatrixDataFromContents :: Ptr SunMatrix -> IO SunMatrix
+getMatrixDataFromContents ptr = do
+  qtr <- getContentMatrixPtr ptr
+  rs  <- getNRows qtr
+  cs  <- getNCols qtr
+  rtr <- getMatrixData qtr
+  vs  <- vectorFromC (fromIntegral $ rs * cs) rtr
+  return $ SunMatrix { rows = rs, cols = cs, vals = vs }
+
+putMatrixDataFromContents :: SunMatrix -> Ptr SunMatrix -> IO ()
+putMatrixDataFromContents mat ptr = do
+  let rs = rows mat
+      cs = cols mat
+      vs = vals mat
+  qtr <- getContentMatrixPtr ptr
+  putNRows rs qtr
+  putNCols cs qtr
+  rtr <- getMatrixData qtr
+  vectorToC vs (fromIntegral $ rs * cs) rtr
+
+instance Storable SunMatrix where
+  poke        = flip putMatrixDataFromContents
+  peek        = getMatrixDataFromContents
+  sizeOf _    = error "sizeOf not supported for SunMatrix"
+  alignment _ = error "alignment not supported for SunMatrix"
+
+vectorFromC :: Storable a => Int -> Ptr a -> IO (VS.Vector a)
+vectorFromC len ptr = do
+  ptr' <- newForeignPtr_ ptr
+  VS.freeze $ VM.unsafeFromForeignPtr0 ptr' len
+
+vectorToC :: Storable a => VS.Vector a -> Int -> Ptr a -> IO ()
+vectorToC vec len ptr = do
+  ptr' <- newForeignPtr_ ptr
+  VS.copy (VM.unsafeFromForeignPtr0 ptr' len) vec
+
+getDataFromContents :: Int -> Ptr SunVector -> IO (VS.Vector CDouble)
+getDataFromContents len ptr = do
+  qtr <- getContentPtr ptr
+  rtr <- getData qtr
+  vectorFromC len rtr
+
+putDataInContents :: Storable a => VS.Vector a -> Int -> Ptr b -> IO ()
+putDataInContents vec len ptr = do
+  qtr <- getContentPtr ptr
+  rtr <- getData qtr
+  vectorToC vec len rtr
 
 #def typedef struct _generic_N_Vector SunVector;
 #def typedef struct _N_VectorContent_Serial SunContent;

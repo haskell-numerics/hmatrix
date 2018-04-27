@@ -125,6 +125,7 @@ import           Data.Maybe (isJust)
 
 import           Foreign.C.Types (CDouble, CInt, CLong)
 import           Foreign.Ptr (Ptr)
+import           Foreign.Storable (poke)
 
 import qualified Data.Vector.Storable as V
 
@@ -139,10 +140,33 @@ import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, (><),
                                                 subMatrix, rows, cols, toLists,
                                                 size, subVector)
 
-import qualified Numeric.Sundials.CLangToHaskellTypes as T
-import           Numeric.Sundials.Arkode
-import qualified Numeric.Sundials.Arkode as B
 import qualified Numeric.Sundials.ODEOpts as SO
+import qualified Numeric.Sundials.Arkode as T
+import           Numeric.Sundials.Arkode (getDataFromContents, putDataInContents, arkSMax,
+                                          sDIRK_2_1_2,
+                                          bILLINGTON_3_3_2,
+                                          tRBDF2_3_3_2,
+                                          kVAERNO_4_2_3,
+                                          aRK324L2SA_DIRK_4_2_3,
+                                          cASH_5_2_4,
+                                          cASH_5_3_4,
+                                          sDIRK_5_3_4,
+                                          kVAERNO_5_3_4,
+                                          aRK436L2SA_DIRK_6_3_4,
+                                          kVAERNO_7_4_5,
+                                          aRK548L2SA_DIRK_8_4_5,
+                                          hEUN_EULER_2_1_2,
+                                          bOGACKI_SHAMPINE_4_2_3,
+                                          aRK324L2SA_ERK_4_2_3,
+                                          zONNEVELD_5_3_4,
+                                          aRK436L2SA_ERK_6_3_4,
+                                          sAYFY_ABURUB_6_3_4,
+                                          cASH_KARP_6_4_5,
+                                          fEHLBERG_6_4_5,
+                                          dORMAND_PRINCE_7_4_5,
+                                          aRK548L2SA_ERK_8_4_5,
+                                          vERNER_8_5_6,
+                                          fEHLBERG_13_7_8)
 
 
 C.context (C.baseCtx <> C.vecCtx <> C.funCtx <> T.sunCtx)
@@ -451,9 +475,9 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
       funIO x y f _ptr = do
         -- Convert the pointer we get from C (y) to a vector, and then
         -- apply the user-supplied function.
-        fImm <- fun x <$> SO.getDataFromContents dim y
+        fImm <- fun x <$> getDataFromContents dim y
         -- Fill in the provided pointer with the resulting vector.
-        SO.putDataInContents fImm dim f
+        putDataInContents fImm dim f
         -- FIXME: I don't understand what this comment means
         -- Unsafe since the function will be called many times.
         [CU.exp| int{ 0 } |]
@@ -465,8 +489,8 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
       jacIO t y _fy jacS _ptr _tmp1 _tmp2 _tmp3 = do
         case jacH of
           Nothing   -> error "Numeric.Sundials.ARKode.ODE: Jacobian not defined"
-          Just jacI -> do j <- jacI t <$> SO.getDataFromContents dim y
-                          SO.putMatrixDataFromContents j jacS
+          Just jacI -> do j <- jacI t <$> getDataFromContents dim y
+                          poke jacS j
                           -- FIXME: I don't understand what this comment means
                           -- Unsafe since the function will be called many times.
                           [CU.exp| int{ 0 } |]
@@ -675,7 +699,7 @@ butcherTable method =
   case getBT method of
     Left c -> error $ show c -- FIXME
     Right (ButcherTable' v w x y, sqp) ->
-      ButcherTable { am = subMatrix (0, 0) (s, s) $ (B.arkSMax >< B.arkSMax) (V.toList v)
+      ButcherTable { am = subMatrix (0, 0) (s, s) $ (arkSMax >< arkSMax) (V.toList v)
                    , cv = subVector 0 s w
                    , bv = subVector 0 s x
                    , b2v = subVector 0 s y
@@ -710,25 +734,25 @@ getButcherTable method = unsafePerformIO $ do
 
   btSQP :: V.Vector CInt <- createVector 3
   btSQPMut <- V.thaw btSQP
-  btAs :: V.Vector CDouble <- createVector (B.arkSMax * B.arkSMax)
+  btAs :: V.Vector CDouble <- createVector (arkSMax * arkSMax)
   btAsMut <- V.thaw btAs
-  btCs  :: V.Vector CDouble <- createVector B.arkSMax
-  btBs  :: V.Vector CDouble <- createVector B.arkSMax
-  btB2s :: V.Vector CDouble <- createVector B.arkSMax
+  btCs  :: V.Vector CDouble <- createVector arkSMax
+  btBs  :: V.Vector CDouble <- createVector arkSMax
+  btB2s :: V.Vector CDouble <- createVector arkSMax
   btCsMut  <- V.thaw btCs
   btBsMut  <- V.thaw btBs
   btB2sMut <- V.thaw btB2s
   let funIOI :: CDouble -> Ptr T.SunVector -> Ptr T.SunVector -> Ptr () -> IO CInt
       funIOI x y f _ptr = do
-        fImm <- funI x <$> SO.getDataFromContents dim y
-        SO.putDataInContents fImm dim f
+        fImm <- funI x <$> getDataFromContents dim y
+        putDataInContents fImm dim f
         -- FIXME: I don't understand what this comment means
         -- Unsafe since the function will be called many times.
         [CU.exp| int{ 0 } |]
   let funIOE :: CDouble -> Ptr T.SunVector -> Ptr T.SunVector -> Ptr () -> IO CInt
       funIOE x y f _ptr = do
-        fImm <- funE x <$> SO.getDataFromContents dim y
-        SO.putDataInContents fImm dim f
+        fImm <- funE x <$> getDataFromContents dim y
+        putDataInContents fImm dim f
         -- FIXME: I don't understand what this comment means
         -- Unsafe since the function will be called many times.
         [CU.exp| int{ 0 } |]
