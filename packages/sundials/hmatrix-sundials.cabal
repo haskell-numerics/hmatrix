@@ -32,19 +32,19 @@ library
   exposed-modules:     Numeric.Sundials.ODEOpts,
                        Numeric.Sundials.ARKode.ODE,
                        Numeric.Sundials.CVode.ODE
-  other-modules:       Types,
-                       Arkode
+  other-modules:       Numeric.Sundials.CLangToHaskellTypes,
+                       Numeric.Sundials.Arkode
   c-sources:           src/helpers.c src/helpers.h
   default-language:    Haskell2010
 
 test-suite hmatrix-sundials-testsuite
   type:                exitcode-stdio-1.0
   main-is:             Main.hs
-  other-modules:       Types,
+  other-modules:       Numeric.Sundials.CLangToHaskellTypes,
                        Numeric.Sundials.ODEOpts,
                        Numeric.Sundials.ARKode.ODE,
                        Numeric.Sundials.CVode.ODE,
-                       Arkode
+                       Numeric.Sundials.Arkode
   build-depends:       base >=4.10 && <4.11,
                        inline-c >=0.6 && <0.7,
                        vector >=0.12 && <0.13,

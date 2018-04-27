@@ -10,8 +10,8 @@ import qualified Data.Vector.Storable.Mutable as VM
 
 import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix)
 
-import qualified Types as T
-import qualified Arkode as B
+import qualified Numeric.Sundials.CLangToHaskellTypes as T
+import qualified Numeric.Sundials.Arkode as B
 
 type Jacobian = Double -> Vector Double -> Matrix Double
 

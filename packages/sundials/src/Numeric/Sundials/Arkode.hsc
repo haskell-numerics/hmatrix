@@ -1,4 +1,4 @@
-module Arkode where
+|module Numeric.Sundials.Arkode where
 
 import Foreign
 import Foreign.C.Types

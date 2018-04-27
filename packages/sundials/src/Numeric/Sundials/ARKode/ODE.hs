@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wall #-}
-
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiWayIf #-}
@@ -141,9 +139,9 @@ import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, (><),
                                                 subMatrix, rows, cols, toLists,
                                                 size, subVector)
 
-import qualified Types as T
-import           Arkode
-import qualified Arkode as B
+import qualified Numeric.Sundials.CLangToHaskellTypes as T
+import           Numeric.Sundials.Arkode
+import qualified Numeric.Sundials.Arkode as B
 import qualified Numeric.Sundials.ODEOpts as SO
 
 
@@ -160,7 +158,7 @@ C.include "<arkode/arkode_direct.h>"          -- access to ARKDls interface
 C.include "<sundials/sundials_types.h>"       -- definition of type realtype
 C.include "<sundials/sundials_math.h>"
 C.include "../../../helpers.h"
-C.include "Arkode_hsc.h"
+C.include "Numeric/Sundials/Arkode_hsc.h"
 
 
 type Jacobian = Double -> Vector Double -> Matrix Double
@@ -448,7 +446,7 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
   diagnostics :: V.Vector CLong <- createVector 10 -- FIXME
   diagMut <- V.thaw diagnostics
   -- We need the types that sundials expects. These are tied together
-  -- in 'Types'. FIXME: The Haskell type is currently empty!
+  -- in 'CLangToHaskellTypes'. FIXME: The Haskell type is currently empty!
   let funIO :: CDouble -> Ptr T.SunVector -> Ptr T.SunVector -> Ptr () -> IO CInt
       funIO x y f _ptr = do
         -- Convert the pointer we get from C (y) to a vector, and then
@@ -516,7 +514,7 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
                          /* problem as fully implicit and set f_E to NULL and f_I to f.         */
 
                          /* Here we use the C types defined in helpers.h which tie up with */
-                         /* the Haskell types defined in Types                             */
+                         /* the Haskell types defined in CLangToHaskellTypes                             */
                          if ($(int method) < MIN_DIRK_NUM) {
                            flag = ARKodeInit(arkode_mem, $fun:(int (* funIO) (double t, SunVector y[], SunVector dydt[], void * params)), NULL, T0, y);
                            if (check_flag(&flag, "ARKodeInit", 1)) return 1;

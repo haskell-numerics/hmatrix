@@ -90,8 +90,8 @@ import           Numeric.LinearAlgebra.Devel (createVector)
 import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, rows,
                                                 cols, toLists, size, reshape)
 
-import qualified Types as T
-import           Arkode (cV_ADAMS, cV_BDF)
+import qualified Numeric.Sundials.CLangToHaskellTypes as T
+import           Numeric.Sundials.Arkode (cV_ADAMS, cV_BDF)
 import           Numeric.Sundials.ODEOpts (ODEOpts(..), Jacobian)
 import qualified Numeric.Sundials.ODEOpts as SO
 
@@ -109,7 +109,7 @@ C.include "<cvode/cvode_direct.h>"        -- access to CVDls interface
 C.include "<sundials/sundials_types.h>"   -- definition of type realtype
 C.include "<sundials/sundials_math.h>"
 C.include "../../../helpers.h"
-C.include "Arkode_hsc.h"
+C.include "Numeric/Sundials/Arkode_hsc.h"
 
 
 -- | Stepping functions
@@ -252,7 +252,7 @@ solveOdeC maxNumSteps_ minStep_ method initStepSize jacH (aTols, rTol) fun f0 ts
   diagnostics :: V.Vector CLong <- createVector 10 -- FIXME
   diagMut <- V.thaw diagnostics
   -- We need the types that sundials expects. These are tied together
-  -- in 'Types'. FIXME: The Haskell type is currently empty!
+  -- in 'CLangToHaskellTypes'. FIXME: The Haskell type is currently empty!
   let funIO :: CDouble -> Ptr T.SunVector -> Ptr T.SunVector -> Ptr () -> IO CInt
       funIO x y f _ptr = do
         -- Convert the pointer we get from C (y) to a vector, and then

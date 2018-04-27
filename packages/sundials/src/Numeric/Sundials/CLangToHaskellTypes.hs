@@ -1,12 +1,9 @@
-{-# OPTIONS_GHC -Wall #-}
-
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE EmptyDataDecls #-}
 
-module Types where
+module Numeric.Sundials.CLangToHaskellTypes where
 
 import           Foreign.C.Types
 
@@ -24,7 +21,7 @@ data SunMatrix = SunMatrix { rows :: CInt
                            , vals :: V.Vector CDouble
                            }
 
--- FIXME: Is this true?
+-- | This is true only if configured/ built as 64 bits
 type SunIndexType = CLong
 
 sunTypesTable :: Map.Map CT.TypeSpecifier TH.TypeQ
