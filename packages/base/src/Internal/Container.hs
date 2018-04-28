@@ -41,12 +41,9 @@ import Prelude hiding ((<>))
 [-3.0,-0.5,2.0,4.5,7.0]
 it :: Vector Double
 
->>> linspace 5 (8,2+i) :: Vector (Complex Double)
-
-<interactive>:6:17: ERROR:
-    Variable not in scope: i :: Complex Double
-
-fromList [8.0 :+ 0.0,6.5 :+ 0.25,5.0 :+ 0.5,3.5 :+ 0.75,2.0 :+ 1.0]
+>>> linspace 5 (8,2:+1) :: Vector (Complex Double)
+[8.0 :+ 0.0,6.5 :+ 0.25,5.0 :+ 0.5,3.5 :+ 0.75,2.0 :+ 1.0]
+it :: Vector (Complex Double)
 
 Logarithmic spacing can be defined as follows:
 
@@ -211,23 +208,11 @@ optimiseMult = mconcat
 
 {- | Compute mean vector and covariance matrix of the rows of a matrix.
 
->>> meanCov $ gaussianSample 666 1000 (fromList[4,5]) (diagl[2,3])
-
-<interactive>:4:52: ERROR:
-    • Couldn't match expected type ‘Herm Double’
-                  with actual type ‘Matrix Double’
-    • In the fourth argument of ‘gaussianSample’, namely
-        ‘(diagl [2, 3])’
-      In the second argument of ‘($)’, namely
-        ‘gaussianSample 666 1000 (fromList [4, 5]) (diagl [2, 3])’
-      In the expression:
-        meanCov $ gaussianSample 666 1000 (fromList [4, 5]) (diagl [2, 3])
-
-(fromList [4.010341078059521,5.0197204699640405],
-(2><2)
- [     1.9862461923890056, -1.0127225830525157e-2
- , -1.0127225830525157e-2,     3.0373954915729318 ])
-
+>>> meanCov $ gaussianSample 666 1000 (fromList[4,5]) (trustSym $ diagl [2,3])
+([3.9933155655086696,5.061409102770331],Herm (2><2)
+ [    1.9963242906624408, -4.227815571404954e-2
+ , -4.227815571404954e-2,    3.2003833097832857 ])
+it :: (Vector Double, Herm Double)
 -}
 meanCov :: Matrix Double -> (Vector Double, Herm Double)
 meanCov x = (med,cov) where
