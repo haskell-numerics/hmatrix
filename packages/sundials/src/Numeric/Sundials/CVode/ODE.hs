@@ -68,7 +68,6 @@ module Numeric.Sundials.CVode.ODE ( odeSolve
                                    , odeSolveVWith'
                                    , ODEMethod(..)
                                    , StepControl(..)
-                                   , Jacobian
                                    ) where
 
 import qualified Language.C.Inline as C
@@ -127,7 +126,7 @@ getJacobian _ = Nothing
 -- | A version of 'odeSolveVWith' with reasonable default step control.
 odeSolveV
     :: ODEMethod
-    -> Maybe Double      -- ^ initial step size - by default, ARKode
+    -> Maybe Double      -- ^ initial step size - by default, CVode
                          -- estimates the initial step size to be the
                          -- solution \(h\) of the equation
                          -- \(\|\frac{h^2\ddot{y}}{2}\| = 1\), where
@@ -161,7 +160,7 @@ odeSolve f y0 ts =
 odeSolveVWith ::
   ODEMethod
   -> StepControl
-  -> Maybe Double -- ^ initial step size - by default, ARKode
+  -> Maybe Double -- ^ initial step size - by default, CVode
                   -- estimates the initial step size to be the
                   -- solution \(h\) of the equation
                   -- \(\|\frac{h^2\ddot{y}}{2}\| = 1\), where
@@ -181,13 +180,14 @@ odeSolveVWith method control initStepSize f y0 tt =
                    , relTol      = error "relTol"
                    , absTols     = error "absTol"
                    , initStep    = error "initStep"
+                   , maxFail     = 10
                    }
 
 odeSolveVWith' ::
   ODEOpts
   -> ODEMethod
   -> StepControl
-  -> Maybe Double -- ^ initial step size - by default, ARKode
+  -> Maybe Double -- ^ initial step size - by default, CVode
                   -- estimates the initial step size to be the
                   -- solution \(h\) of the equation
                   -- \(\|\frac{h^2\ddot{y}}{2}\| = 1\), where
@@ -198,13 +198,13 @@ odeSolveVWith' ::
   -> V.Vector Double                     -- ^ Desired solution times
   -> Either Int (Matrix Double, SundialsDiagnostics) -- ^ Error code or solution
 odeSolveVWith' opts method control initStepSize f y0 tt =
-  case solveOdeC (fromIntegral $ maxNumSteps opts) (coerce $ minStep opts)
+  case solveOdeC (fromIntegral $ maxFail opts)
+                 (fromIntegral $ maxNumSteps opts) (coerce $ minStep opts)
                  (fromIntegral $ getMethod method) (coerce initStepSize) jacH (scise control)
                  (coerce f) (coerce y0) (coerce tt) of
     Left c -> Left $ fromIntegral c
-    Right (v, d) -> Right (reshape nC (coerce v), d)
+    Right (v, d) -> Right (reshape l (coerce v), d)
   where
-    nC = V.length y0
     l = size y0
     scise (X aTol rTol)                          = coerce (V.replicate l aTol, rTol)
     scise (X' aTol rTol)                         = coerce (V.replicate l aTol, rTol)
@@ -221,6 +221,7 @@ odeSolveVWith' opts method control initStepSize f y0 tt =
         vs = V.fromList $ map coerce $ concat $ toLists m
 
 solveOdeC ::
+  CInt ->
   CLong ->
   CDouble ->
   CInt ->
@@ -231,7 +232,8 @@ solveOdeC ::
   -> V.Vector CDouble -- ^ Initial conditions
   -> V.Vector CDouble -- ^ Desired solution times
   -> Either CInt ((V.Vector CDouble), SundialsDiagnostics) -- ^ Error code or solution
-solveOdeC maxNumSteps_ minStep_ method initStepSize jacH (aTols, rTol) fun f0 ts =
+solveOdeC maxErrTestFails maxNumSteps_ minStep_ method initStepSize
+          jacH (aTols, rTol) fun f0 ts =
   unsafePerformIO $ do
 
   let isInitStepSize :: CInt
@@ -243,6 +245,7 @@ solveOdeC maxNumSteps_ minStep_ method initStepSize jacH (aTols, rTol) fun f0 ts
              -- used :(
              Nothing -> 0.0
              Just x  -> x
+
   let dim = V.length f0
       nEq :: CLong
       nEq = fromIntegral dim
@@ -271,7 +274,7 @@ solveOdeC maxNumSteps_ minStep_ method initStepSize jacH (aTols, rTol) fun f0 ts
                IO CInt
       jacIO t y _fy jacS _ptr _tmp1 _tmp2 _tmp3 = do
         case jacH of
-          Nothing   -> error "Numeric.Sundials.ARKode.ODE: Jacobian not defined"
+          Nothing   -> error "Numeric.Sundials.CVode.ODE: Jacobian not defined"
           Just jacI -> do j <- jacI t <$> getDataFromContents dim y
                           poke jacS j
                           -- FIXME: I don't understand what this comment means
@@ -326,6 +329,8 @@ solveOdeC maxNumSteps_ minStep_ method initStepSize jacH (aTols, rTol) fun f0 ts
                          if (check_flag(&flag, "CVodeSetMinStep", 1)) return 1;
                          flag = CVodeSetMaxNumSteps(cvode_mem, $(long int maxNumSteps_));
                          if (check_flag(&flag, "CVodeSetMaxNumSteps", 1)) return 1;
+                         flag = CVodeSetMaxErrTestFails(cvode_mem, $(int maxErrTestFails));
+                         if (check_flag(&flag, "CVodeSetMaxErrTestFails", 1)) return 1;
 
                          /* Call CVodeSVtolerances to specify the scalar relative tolerance
                           * and vector absolute tolerances */

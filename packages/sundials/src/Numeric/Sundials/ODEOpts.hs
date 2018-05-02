@@ -1,6 +1,6 @@
 module Numeric.Sundials.ODEOpts where
 
-import           Data.Int (Int32)
+import           Data.Word (Word32)
 import qualified Data.Vector.Storable as VS
 
 import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix)
@@ -9,11 +9,12 @@ import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix)
 type Jacobian = Double -> Vector Double -> Matrix Double
 
 data ODEOpts = ODEOpts {
-    maxNumSteps :: Int32
+    maxNumSteps :: Word32
   , minStep     :: Double
   , relTol      :: Double
   , absTols     :: VS.Vector Double
-  , initStep    :: Double
+  , initStep    :: Maybe Double
+  , maxFail     :: Word32
   } deriving (Read, Show, Eq, Ord)
 
 data SundialsDiagnostics = SundialsDiagnostics {

@@ -81,6 +81,23 @@ _stiffJac _t _v = (1><1) [ lamda ]
   where
     lamda = -100.0
 
+predatorPrey :: Double -> [Double] -> [Double]
+predatorPrey _t v = [ x * a - b * x * y
+                    , d * x * y - c * y - e * y * z
+                    , (-f) * z + g * y * z
+                    ]
+  where
+    x = v!!0
+    y = v!!1
+    z = v!!2
+    a = 1.0
+    b = 1.0
+    c = 1.0
+    d = 1.0
+    e = 1.0
+    f = 1.0
+    g = 1.0
+
 lSaxis :: [[Double]] -> P.Axis B D.V2 Double
 lSaxis xs = P.r2Axis &~ do
   let ts = xs!!0
@@ -128,11 +145,6 @@ main = do
   let maxDiffC = maximum $ map abs $
                  zipWith (-) ((toLists $ tr res2b)!!0) ((toLists $ tr res2c)!!0)
 
-  hspec $ describe "Compare results" $ do
-    it "for SDIRK_5_3_4' and TRBDF2_3_3_2'" $ maxDiffA < 1.0e-6
-    it "for SDIRK_5_3_4' and BDF" $ maxDiffB < 1.0e-6
-    it "for TRBDF2_3_3_2' and BDF" $ maxDiffC < 1.0e-6
-
   let res3 = ARK.odeSolve lorenz [-5.0, -5.0, 1.0] (fromList [0.0, 0.01 .. 10.0])
 
   renderRasterific "diagrams/lorenz.png"
@@ -146,3 +158,29 @@ main = do
   renderRasterific "diagrams/lorenz2.png"
                    (D.dims2D 500.0 500.0)
                    (renderAxis $ kSaxis $ zip ((toLists $ tr res3)!!1) ((toLists $ tr res3)!!2))
+
+  let res4 = CV.odeSolve predatorPrey [0.5, 1.0, 2.0] (fromList [0.0, 0.01 .. 10.0])
+
+  renderRasterific "diagrams/predatorPrey.png"
+                   (D.dims2D 500.0 500.0)
+                   (renderAxis $ kSaxis $ zip ((toLists $ tr res4)!!0) ((toLists $ tr res4)!!1))
+
+  renderRasterific "diagrams/predatorPrey1.png"
+                   (D.dims2D 500.0 500.0)
+                   (renderAxis $ kSaxis $ zip ((toLists $ tr res4)!!0) ((toLists $ tr res4)!!2))
+
+  renderRasterific "diagrams/predatorPrey2.png"
+                   (D.dims2D 500.0 500.0)
+                   (renderAxis $ kSaxis $ zip ((toLists $ tr res4)!!1) ((toLists $ tr res4)!!2))
+
+  let res4a = ARK.odeSolve predatorPrey [0.5, 1.0, 2.0] (fromList [0.0, 0.01 .. 10.0])
+
+  let maxDiffPpA = maximum $ map abs $
+                   zipWith (-) ((toLists $ tr res4)!!0) ((toLists $ tr res4a)!!0)
+
+  hspec $ describe "Compare results" $ do
+    it "for SDIRK_5_3_4' and TRBDF2_3_3_2'" $ maxDiffA < 1.0e-6
+    it "for SDIRK_5_3_4' and BDF" $ maxDiffB < 1.0e-6
+    it "for TRBDF2_3_3_2' and BDF" $ maxDiffC < 1.0e-6
+    it "for CV and ARK for the Predator Prey model" $ maxDiffPpA < 1.0e-3
+

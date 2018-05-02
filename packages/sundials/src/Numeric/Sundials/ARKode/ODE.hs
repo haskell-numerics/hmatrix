@@ -114,7 +114,6 @@ module Numeric.Sundials.ARKode.ODE ( odeSolve
                                    , butcherTable
                                    , ODEMethod(..)
                                    , StepControl(..)
-                                   , Jacobian
                                    ) where
 
 import qualified Language.C.Inline as C
@@ -136,11 +135,11 @@ import           GHC.Generics (C1, Constructor, (:+:)(..), D1, Rep, Generic, M1(
 
 import           Numeric.LinearAlgebra.Devel (createVector)
 
-import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, (><),
-                                                subMatrix, rows, cols, toLists,
-                                                size, subVector)
+import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, rows,
+                                                cols, toLists, size, reshape,
+                                                subVector, subMatrix, (><))
 
-import qualified Numeric.Sundials.ODEOpts as SO
+import           Numeric.Sundials.ODEOpts (ODEOpts(..), Jacobian, SundialsDiagnostics(..))
 import qualified Numeric.Sundials.Arkode as T
 import           Numeric.Sundials.Arkode (getDataFromContents, putDataInContents, arkSMax,
                                           sDIRK_2_1_2,
@@ -184,8 +183,6 @@ C.include "<sundials/sundials_math.h>"
 C.include "../../../helpers.h"
 C.include "Numeric/Sundials/Arkode_hsc.h"
 
-
-type Jacobian = Double -> Vector Double -> Matrix Double
 
 -- | Stepping functions
 data ODEMethod = SDIRK_2_1_2            Jacobian
@@ -351,15 +348,9 @@ odeSolveV
     -> Vector Double     -- ^ desired solution times
     -> Matrix Double     -- ^ solution
 odeSolveV meth hi epsAbs epsRel f y0 ts =
-  case odeSolveVWith' meth (X epsAbs epsRel) hi g y0 ts of
-    Left c        -> error $ show c -- FIXME
-    -- FIXME: Can we do better than using lists?
-    Right (v, _d) -> (nR >< nC) (V.toList v)
-  where
-    us = toList ts
-    nR = length us
-    nC = size y0
-    g t x0 = coerce $ f t x0
+  odeSolveVWith meth (X epsAbs epsRel) hi g y0 ts
+    where
+      g t x0 = coerce $ f t x0
 
 -- | A version of 'odeSolveV' with reasonable default parameters and
 -- system of equations defined using lists. FIXME: we should say
@@ -371,13 +362,8 @@ odeSolve :: (Double -> [Double] -> [Double]) -- ^ The RHS of the system \(\dot{y
          -> Matrix Double                    -- ^ solution
 odeSolve f y0 ts =
   -- FIXME: These tolerances are different from the ones in GSL
-  case odeSolveVWith' SDIRK_5_3_4' (XX' 1.0e-6 1.0e-10 1 1)  Nothing g (V.fromList y0) (V.fromList $ toList ts) of
-    Left c        -> error $ show c -- FIXME
-    Right (v, _d) -> (nR >< nC) (V.toList v)
+  odeSolveVWith SDIRK_5_3_4' (XX' 1.0e-6 1.0e-10 1 1)  Nothing g (V.fromList y0) (V.fromList $ toList ts)
   where
-    us = toList ts
-    nR = length us
-    nC = length y0
     g t x0 = V.fromList $ f t (V.toList x0)
 
 odeSolveVWith ::
@@ -394,15 +380,21 @@ odeSolveVWith ::
   -> V.Vector Double                     -- ^ Desired solution times
   -> Matrix Double                       -- ^ Error code or solution
 odeSolveVWith method control initStepSize f y0 tt =
-  case odeSolveVWith' method control initStepSize f y0 tt of
+  case odeSolveVWith' opts method control initStepSize f y0 tt of
     Left c        -> error $ show c -- FIXME
-    Right (v, _d) -> (nR >< nC) (V.toList v)
+    Right (v, _d) -> v
   where
-    nR = V.length tt
-    nC = V.length y0
+    opts = ODEOpts { maxNumSteps = 10000
+                   , minStep     = 1.0e-12
+                   , relTol      = error "relTol"
+                   , absTols     = error "absTol"
+                   , initStep    = error "initStep"
+                   , maxFail     = 10
+                   }
 
 odeSolveVWith' ::
-  ODEMethod
+  ODEOpts
+  -> ODEMethod
   -> StepControl
   -> Maybe Double -- ^ initial step size - by default, ARKode
                   -- estimates the initial step size to be the
@@ -413,19 +405,21 @@ odeSolveVWith' ::
   -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector Double                     -- ^ Initial conditions
   -> V.Vector Double                     -- ^ Desired solution times
-  -> Either Int ((V.Vector Double), SO.SundialsDiagnostics) -- ^ Error code or solution
-odeSolveVWith' method control initStepSize f y0 tt =
-  case solveOdeC (fromIntegral $ getMethod method) (coerce initStepSize) jacH (scise control)
+  -> Either Int (Matrix Double, SundialsDiagnostics) -- ^ Error code or solution
+odeSolveVWith' opts method control initStepSize f y0 tt =
+  case solveOdeC (fromIntegral $ maxFail opts)
+                 (fromIntegral $ maxNumSteps opts) (coerce $ minStep opts)
+                 (fromIntegral $ getMethod method) (coerce initStepSize) jacH (scise control)
                  (coerce f) (coerce y0) (coerce tt) of
     Left c -> Left $ fromIntegral c
-    Right (v, d) -> Right (coerce v, d)
+    Right (v, d) ->  Right (reshape l (coerce v), d)
   where
     l = size y0
-    scise (X absTol relTol)                          = coerce (V.replicate l absTol, relTol)
-    scise (X' absTol relTol)                         = coerce (V.replicate l absTol, relTol)
-    scise (XX' absTol relTol yScale _yDotScale)      = coerce (V.replicate l absTol, yScale * relTol)
+    scise (X aTol rTol)                          = coerce (V.replicate l aTol, rTol)
+    scise (X' aTol rTol)                         = coerce (V.replicate l aTol, rTol)
+    scise (XX' aTol rTol yScale _yDotScale)      = coerce (V.replicate l aTol, yScale * rTol)
     -- FIXME; Should we check that the length of ss is correct?
-    scise (ScXX' absTol relTol yScale _yDotScale ss) = coerce (V.map (* absTol) ss, yScale * relTol)
+    scise (ScXX' aTol rTol yScale _yDotScale ss) = coerce (V.map (* aTol) ss, yScale * rTol)
     jacH = fmap (\g t v -> matrixToSunMatrix $ g (coerce t) (coerce v)) $
            getJacobian method
     matrixToSunMatrix m = T.SunMatrix { T.rows = nr, T.cols = nc, T.vals = vs }
@@ -437,14 +431,18 @@ odeSolveVWith' method control initStepSize f y0 tt =
 
 solveOdeC ::
   CInt ->
+  CLong ->
+  CDouble ->
+  CInt ->
   Maybe CDouble ->
   (Maybe (CDouble -> V.Vector CDouble -> T.SunMatrix)) ->
   (V.Vector CDouble, CDouble) ->
   (CDouble -> V.Vector CDouble -> V.Vector CDouble) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector CDouble -- ^ Initial conditions
   -> V.Vector CDouble -- ^ Desired solution times
-  -> Either CInt ((V.Vector CDouble), SO.SundialsDiagnostics) -- ^ Error code or solution
-solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO $ do
+  -> Either CInt ((V.Vector CDouble), SundialsDiagnostics) -- ^ Error code or solution
+solveOdeC maxErrTestFails maxNumSteps_ minStep_ method initStepSize
+          jacH (aTols, rTol) fun f0 ts = unsafePerformIO $ do
 
   let isInitStepSize :: CInt
       isInitStepSize = fromIntegral $ fromEnum $ isJust initStepSize
@@ -455,14 +453,12 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
              -- used :(
              Nothing -> 0.0
              Just x  -> x
+
   let dim = V.length f0
       nEq :: CLong
       nEq = fromIntegral dim
       nTs :: CInt
       nTs = fromIntegral $ V.length ts
-  -- FIXME: fMut is not actually mutatated
-  fMut <- V.thaw f0
-  tMut <- V.thaw ts
   -- FIXME: I believe this gets taken from the ghc heap and so should
   -- be subject to garbage collection.
   quasiMatrixRes <- createVector ((fromIntegral dim) * (fromIntegral nTs))
@@ -510,7 +506,7 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
 
                          /* general problem parameters */
 
-                         realtype T0 = RCONST(($vec-ptr:(double *tMut))[0]); /* initial time              */
+                         realtype T0 = RCONST(($vec-ptr:(double *ts))[0]); /* initial time              */
                          sunindextype NEQ = $(sunindextype nEq);             /* number of dependent vars. */
 
                          /* Initialize data structures */
@@ -519,14 +515,14 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
                          if (check_flag((void *)y, "N_VNew_Serial", 0)) return 1;
                          /* Specify initial condition */
                          for (i = 0; i < NEQ; i++) {
-                           NV_Ith_S(y,i) = ($vec-ptr:(double *fMut))[i];
+                           NV_Ith_S(y,i) = ($vec-ptr:(double *f0))[i];
                          };
 
                          tv = N_VNew_Serial(NEQ); /* Create serial vector for absolute tolerances */
                          if (check_flag((void *)tv, "N_VNew_Serial", 0)) return 1;
                          /* Specify tolerances */
                          for (i = 0; i < NEQ; i++) {
-                           NV_Ith_S(tv,i) = ($vec-ptr:(double *absTols))[i];
+                           NV_Ith_S(tv,i) = ($vec-ptr:(double *aTols))[i];
                          };
 
                          arkode_mem = ARKodeCreate(); /* Create the solver memory */
@@ -547,14 +543,15 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
                            if (check_flag(&flag, "ARKodeInit", 1)) return 1;
                          }
 
-                         /* FIXME: A hack for initial testing */
-                         flag = ARKodeSetMinStep(arkode_mem, 1.0e-12);
+                         flag = ARKodeSetMinStep(arkode_mem, $(double minStep_));
                          if (check_flag(&flag, "ARKodeSetMinStep", 1)) return 1;
-                         flag = ARKodeSetMaxNumSteps(arkode_mem, 10000);
+                         flag = ARKodeSetMaxNumSteps(arkode_mem, $(long int maxNumSteps_));
                          if (check_flag(&flag, "ARKodeSetMaxNumSteps", 1)) return 1;
+                         flag = ARKodeSetMaxErrTestFails(arkode_mem, $(int maxErrTestFails));
+                         if (check_flag(&flag, "ARKodeSetMaxErrTestFails", 1)) return 1;
 
                          /* Set routines */
-                         flag = ARKodeSVtolerances(arkode_mem, $(double relTol), tv);
+                         flag = ARKodeSVtolerances(arkode_mem, $(double rTol), tv);
                          if (check_flag(&flag, "ARKodeSVtolerances", 1)) return 1;
 
                          /* Initialize dense matrix data structure and solver */
@@ -599,7 +596,7 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
                          /* Stops when the final time has been reached                       */
                          for (i = 1; i < $(int nTs); i++) {
 
-                           flag = ARKode(arkode_mem, ($vec-ptr:(double *tMut))[i], y, &t, ARK_NORMAL); /* call integrator */
+                           flag = ARKode(arkode_mem, ($vec-ptr:(double *ts))[i], y, &t, ARK_NORMAL); /* call integrator */
                            if (check_flag(&flag, "ARKode", 1)) break;
 
                            /* Store the results for Haskell */
@@ -665,16 +662,16 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
   if res == 0
     then do
       preD <- V.freeze diagMut
-      let d = SO.SundialsDiagnostics (fromIntegral $ preD V.!0)
-                                     (fromIntegral $ preD V.!1)
-                                     (fromIntegral $ preD V.!2)
-                                     (fromIntegral $ preD V.!3)
-                                     (fromIntegral $ preD V.!4)
-                                     (fromIntegral $ preD V.!5)
-                                     (fromIntegral $ preD V.!6)
-                                     (fromIntegral $ preD V.!7)
-                                     (fromIntegral $ preD V.!8)
-                                     (fromIntegral $ preD V.!9)
+      let d = SundialsDiagnostics (fromIntegral $ preD V.!0)
+                                  (fromIntegral $ preD V.!1)
+                                  (fromIntegral $ preD V.!2)
+                                  (fromIntegral $ preD V.!3)
+                                  (fromIntegral $ preD V.!4)
+                                  (fromIntegral $ preD V.!5)
+                                  (fromIntegral $ preD V.!6)
+                                  (fromIntegral $ preD V.!7)
+                                  (fromIntegral $ preD V.!8)
+                                  (fromIntegral $ preD V.!9)
       m <- V.freeze qMatMut
       return $ Right (m, d)
     else do
