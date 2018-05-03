@@ -41,8 +41,8 @@ import Prelude hiding ((<>))
 [-3.0,-0.5,2.0,4.5,7.0]
 it :: Vector Double
 
->>> linspace 5 (8,2:+1) :: Vector (Complex Double)
-[8.0 :+ 0.0,6.5 :+ 0.25,5.0 :+ 0.5,3.5 :+ 0.75,2.0 :+ 1.0]
+>>> linspace 5 (8,3:+2) :: Vector (Complex Double)
+[8.0 :+ 0.0,6.75 :+ 0.5,5.5 :+ 1.0,4.25 :+ 1.5,3.0 :+ 2.0]
 it :: Vector (Complex Double)
 
 Logarithmic spacing can be defined as follows:
