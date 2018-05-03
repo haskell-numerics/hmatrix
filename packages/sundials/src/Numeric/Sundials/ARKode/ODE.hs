@@ -20,8 +20,7 @@
 -- Stability   :  provisional
 --
 -- Solution of ordinary differential equation (ODE) initial value problems.
---
--- <https://computation.llnl.gov/projects/sundials/sundials-software>
+-- See <https://computation.llnl.gov/projects/sundials/sundials-software> for more detail.
 --
 -- A simple example:
 --
@@ -64,6 +63,54 @@
 --                    (D.dims2D 500.0 500.0)
 --                    (renderAxis $ lSaxis $ [0.0, 0.1 .. 10.0]:(toLists $ tr res1))
 -- @
+--
+-- With Sundials ARKode, it is possible to retrieve the Butcher tableau for the solver.
+--
+-- @
+-- import           Numeric.Sundials.ARKode.ODE
+-- import           Numeric.LinearAlgebra
+--
+-- import           Data.List (intercalate)
+--
+-- import           Text.PrettyPrint.HughesPJClass
+--
+--
+-- butcherTableauTex :: ButcherTable -> String
+-- butcherTableauTex (ButcherTable m c b b2) =
+--   render $
+--   vcat [ text ("\n\\begin{array}{c|" ++ (concat $ replicate n "c") ++ "}")
+--        , us
+--        , text "\\hline"
+--        , text bs <+> text "\\\\"
+--        , text b2s <+> text "\\\\"
+--        , text "\\end{array}"
+--        ]
+--   where
+--     n = rows m
+--     rs = toLists m
+--     ss = map (\r -> intercalate " & " $ map show r) rs
+--     ts = zipWith (\i r -> show i ++ " & " ++ r) (toList c) ss
+--     us = vcat $ map (\r -> text r <+> text "\\\\") ts
+--     bs  = " & " ++ (intercalate " & " $ map show $ toList b)
+--     b2s = " & " ++ (intercalate " & " $ map show $ toList b2)
+--
+-- main :: IO ()
+-- main = do
+--
+--   let res = butcherTable (SDIRK_2_1_2 undefined)
+--   putStrLn $ show res
+--   putStrLn $ butcherTableauTex res
+--
+--   let resA = butcherTable (KVAERNO_4_2_3 undefined)
+--   putStrLn $ show resA
+--   putStrLn $ butcherTableauTex resA
+--
+--   let resB = butcherTable (SDIRK_5_3_4 undefined)
+--   putStrLn $ show resB
+--   putStrLn $ butcherTableauTex resB
+-- @
+--
+--  Using the code above from the examples gives
 --
 -- KVAERNO_4_2_3
 --
