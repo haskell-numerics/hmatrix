@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wall #-}
-
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiWayIf #-}
@@ -22,8 +20,7 @@
 -- Stability   :  provisional
 --
 -- Solution of ordinary differential equation (ODE) initial value problems.
---
--- <https://computation.llnl.gov/projects/sundials/sundials-software>
+-- See <https://computation.llnl.gov/projects/sundials/sundials-software> for more detail.
 --
 -- A simple example:
 --
@@ -66,6 +63,54 @@
 --                    (D.dims2D 500.0 500.0)
 --                    (renderAxis $ lSaxis $ [0.0, 0.1 .. 10.0]:(toLists $ tr res1))
 -- @
+--
+-- With Sundials ARKode, it is possible to retrieve the Butcher tableau for the solver.
+--
+-- @
+-- import           Numeric.Sundials.ARKode.ODE
+-- import           Numeric.LinearAlgebra
+--
+-- import           Data.List (intercalate)
+--
+-- import           Text.PrettyPrint.HughesPJClass
+--
+--
+-- butcherTableauTex :: ButcherTable -> String
+-- butcherTableauTex (ButcherTable m c b b2) =
+--   render $
+--   vcat [ text ("\n\\begin{array}{c|" ++ (concat $ replicate n "c") ++ "}")
+--        , us
+--        , text "\\hline"
+--        , text bs <+> text "\\\\"
+--        , text b2s <+> text "\\\\"
+--        , text "\\end{array}"
+--        ]
+--   where
+--     n = rows m
+--     rs = toLists m
+--     ss = map (\r -> intercalate " & " $ map show r) rs
+--     ts = zipWith (\i r -> show i ++ " & " ++ r) (toList c) ss
+--     us = vcat $ map (\r -> text r <+> text "\\\\") ts
+--     bs  = " & " ++ (intercalate " & " $ map show $ toList b)
+--     b2s = " & " ++ (intercalate " & " $ map show $ toList b2)
+--
+-- main :: IO ()
+-- main = do
+--
+--   let res = butcherTable (SDIRK_2_1_2 undefined)
+--   putStrLn $ show res
+--   putStrLn $ butcherTableauTex res
+--
+--   let resA = butcherTable (KVAERNO_4_2_3 undefined)
+--   putStrLn $ show resA
+--   putStrLn $ butcherTableauTex resA
+--
+--   let resB = butcherTable (SDIRK_5_3_4 undefined)
+--   putStrLn $ show resB
+--   putStrLn $ butcherTableauTex resB
+-- @
+--
+--  Using the code above from the examples gives
 --
 -- KVAERNO_4_2_3
 --
@@ -116,8 +161,6 @@ module Numeric.Sundials.ARKode.ODE ( odeSolve
                                    , butcherTable
                                    , ODEMethod(..)
                                    , StepControl(..)
-                                   , Jacobian
-                                   , SundialsDiagnostics(..)
                                    ) where
 
 import qualified Language.C.Inline as C
@@ -126,27 +169,50 @@ import qualified Language.C.Inline.Unsafe as CU
 import           Data.Monoid ((<>))
 import           Data.Maybe (isJust)
 
-import           Foreign.C.Types
+import           Foreign.C.Types (CDouble, CInt, CLong)
 import           Foreign.Ptr (Ptr)
-import           Foreign.ForeignPtr (newForeignPtr_)
-import           Foreign.Storable (Storable)
+import           Foreign.Storable (poke)
 
 import qualified Data.Vector.Storable as V
-import qualified Data.Vector.Storable.Mutable as VM
 
 import           Data.Coerce (coerce)
 import           System.IO.Unsafe (unsafePerformIO)
-import           GHC.Generics
+import           GHC.Generics (C1, Constructor, (:+:)(..), D1, Rep, Generic, M1(..),
+                               from, conName)
 
 import           Numeric.LinearAlgebra.Devel (createVector)
 
-import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, (><),
-                                                subMatrix, rows, cols, toLists,
-                                                size, subVector)
+import           Numeric.LinearAlgebra.HMatrix (Vector, Matrix, toList, rows,
+                                                cols, toLists, size, reshape,
+                                                subVector, subMatrix, (><))
 
-import qualified Types as T
-import           Arkode
-import qualified Arkode as B
+import           Numeric.Sundials.ODEOpts (ODEOpts(..), Jacobian, SundialsDiagnostics(..))
+import qualified Numeric.Sundials.Arkode as T
+import           Numeric.Sundials.Arkode (getDataFromContents, putDataInContents, arkSMax,
+                                          sDIRK_2_1_2,
+                                          bILLINGTON_3_3_2,
+                                          tRBDF2_3_3_2,
+                                          kVAERNO_4_2_3,
+                                          aRK324L2SA_DIRK_4_2_3,
+                                          cASH_5_2_4,
+                                          cASH_5_3_4,
+                                          sDIRK_5_3_4,
+                                          kVAERNO_5_3_4,
+                                          aRK436L2SA_DIRK_6_3_4,
+                                          kVAERNO_7_4_5,
+                                          aRK548L2SA_DIRK_8_4_5,
+                                          hEUN_EULER_2_1_2,
+                                          bOGACKI_SHAMPINE_4_2_3,
+                                          aRK324L2SA_ERK_4_2_3,
+                                          zONNEVELD_5_3_4,
+                                          aRK436L2SA_ERK_6_3_4,
+                                          sAYFY_ABURUB_6_3_4,
+                                          cASH_KARP_6_4_5,
+                                          fEHLBERG_6_4_5,
+                                          dORMAND_PRINCE_7_4_5,
+                                          aRK548L2SA_ERK_8_4_5,
+                                          vERNER_8_5_6,
+                                          fEHLBERG_13_7_8)
 
 
 C.context (C.baseCtx <> C.vecCtx <> C.funCtx <> T.sunCtx)
@@ -162,69 +228,8 @@ C.include "<arkode/arkode_direct.h>"          -- access to ARKDls interface
 C.include "<sundials/sundials_types.h>"       -- definition of type realtype
 C.include "<sundials/sundials_math.h>"
 C.include "../../../helpers.h"
-C.include "Arkode_hsc.h"
+C.include "Numeric/Sundials/Arkode_hsc.h"
 
-
-getDataFromContents :: Int -> Ptr T.SunVector -> IO (V.Vector CDouble)
-getDataFromContents len ptr = do
-  qtr <- B.getContentPtr ptr
-  rtr <- B.getData qtr
-  vectorFromC len rtr
-
--- FIXME: Potentially an instance of Storable
-_getMatrixDataFromContents :: Ptr T.SunMatrix -> IO T.SunMatrix
-_getMatrixDataFromContents ptr = do
-  qtr <- B.getContentMatrixPtr ptr
-  rs  <- B.getNRows qtr
-  cs  <- B.getNCols qtr
-  rtr <- B.getMatrixData qtr
-  vs  <- vectorFromC (fromIntegral $ rs * cs) rtr
-  return $ T.SunMatrix { T.rows = rs, T.cols = cs, T.vals = vs }
-
-putMatrixDataFromContents :: T.SunMatrix -> Ptr T.SunMatrix -> IO ()
-putMatrixDataFromContents mat ptr = do
-  let rs = T.rows mat
-      cs = T.cols mat
-      vs = T.vals mat
-  qtr <- B.getContentMatrixPtr ptr
-  B.putNRows rs qtr
-  B.putNCols cs qtr
-  rtr <- B.getMatrixData qtr
-  vectorToC vs (fromIntegral $ rs * cs) rtr
--- FIXME: END
-
-putDataInContents :: Storable a => V.Vector a -> Int -> Ptr b -> IO ()
-putDataInContents vec len ptr = do
-  qtr <- B.getContentPtr ptr
-  rtr <- B.getData qtr
-  vectorToC vec len rtr
-
--- Utils
-
-vectorFromC :: Storable a => Int -> Ptr a -> IO (V.Vector a)
-vectorFromC len ptr = do
-  ptr' <- newForeignPtr_ ptr
-  V.freeze $ VM.unsafeFromForeignPtr0 ptr' len
-
-vectorToC :: Storable a => V.Vector a -> Int -> Ptr a -> IO ()
-vectorToC vec len ptr = do
-  ptr' <- newForeignPtr_ ptr
-  V.copy (VM.unsafeFromForeignPtr0 ptr' len) vec
-
-data SundialsDiagnostics = SundialsDiagnostics {
-    aRKodeGetNumSteps               :: Int
-  , aRKodeGetNumStepAttempts        :: Int
-  , aRKodeGetNumRhsEvals_fe         :: Int
-  , aRKodeGetNumRhsEvals_fi         :: Int
-  , aRKodeGetNumLinSolvSetups       :: Int
-  , aRKodeGetNumErrTestFails        :: Int
-  , aRKodeGetNumNonlinSolvIters     :: Int
-  , aRKodeGetNumNonlinSolvConvFails :: Int
-  , aRKDlsGetNumJacEvals            :: Int
-  , aRKDlsGetNumRhsEvals            :: Int
-  } deriving Show
-
-type Jacobian = Double -> Vector Double -> Matrix Double
 
 -- | Stepping functions
 data ODEMethod = SDIRK_2_1_2            Jacobian
@@ -390,15 +395,9 @@ odeSolveV
     -> Vector Double     -- ^ desired solution times
     -> Matrix Double     -- ^ solution
 odeSolveV meth hi epsAbs epsRel f y0 ts =
-  case odeSolveVWith meth (X epsAbs epsRel) hi g y0 ts of
-    Left c        -> error $ show c -- FIXME
-    -- FIXME: Can we do better than using lists?
-    Right (v, _d) -> (nR >< nC) (V.toList v)
-  where
-    us = toList ts
-    nR = length us
-    nC = size y0
-    g t x0 = coerce $ f t x0
+  odeSolveVWith meth (X epsAbs epsRel) hi g y0 ts
+    where
+      g t x0 = coerce $ f t x0
 
 -- | A version of 'odeSolveV' with reasonable default parameters and
 -- system of equations defined using lists. FIXME: we should say
@@ -410,35 +409,9 @@ odeSolve :: (Double -> [Double] -> [Double]) -- ^ The RHS of the system \(\dot{y
          -> Matrix Double                    -- ^ solution
 odeSolve f y0 ts =
   -- FIXME: These tolerances are different from the ones in GSL
-  case odeSolveVWith SDIRK_5_3_4' (XX' 1.0e-6 1.0e-10 1 1)  Nothing g (V.fromList y0) (V.fromList $ toList ts) of
-    Left c        -> error $ show c -- FIXME
-    Right (v, _d) -> (nR >< nC) (V.toList v)
+  odeSolveVWith SDIRK_5_3_4' (XX' 1.0e-6 1.0e-10 1 1)  Nothing g (V.fromList y0) (V.fromList $ toList ts)
   where
-    us = toList ts
-    nR = length us
-    nC = length y0
     g t x0 = V.fromList $ f t (V.toList x0)
-
-odeSolveVWith' ::
-  ODEMethod
-  -> StepControl
-  -> Maybe Double -- ^ initial step size - by default, ARKode
-                  -- estimates the initial step size to be the
-                  -- solution \(h\) of the equation
-                  -- \(\|\frac{h^2\ddot{y}}{2}\| = 1\), where
-                  -- \(\ddot{y}\) is an estimated value of the second
-                  -- derivative of the solution at \(t_0\)
-  -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
-  -> V.Vector Double                     -- ^ Initial conditions
-  -> V.Vector Double                     -- ^ Desired solution times
-  -> Matrix Double                       -- ^ Error code or solution
-odeSolveVWith' method control initStepSize f y0 tt =
-  case odeSolveVWith method control initStepSize f y0 tt of
-    Left c        -> error $ show c -- FIXME
-    Right (v, _d) -> (nR >< nC) (V.toList v)
-  where
-    nR = V.length tt
-    nC = V.length y0
 
 odeSolveVWith ::
   ODEMethod
@@ -452,19 +425,48 @@ odeSolveVWith ::
   -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector Double                     -- ^ Initial conditions
   -> V.Vector Double                     -- ^ Desired solution times
-  -> Either Int ((V.Vector Double), SundialsDiagnostics) -- ^ Error code or solution
+  -> Matrix Double                       -- ^ Error code or solution
 odeSolveVWith method control initStepSize f y0 tt =
-  case solveOdeC (fromIntegral $ getMethod method) (coerce initStepSize) jacH (scise control)
+  case odeSolveVWith' opts method control initStepSize f y0 tt of
+    Left c        -> error $ show c -- FIXME
+    Right (v, _d) -> v
+  where
+    opts = ODEOpts { maxNumSteps = 10000
+                   , minStep     = 1.0e-12
+                   , relTol      = error "relTol"
+                   , absTols     = error "absTol"
+                   , initStep    = error "initStep"
+                   , maxFail     = 10
+                   }
+
+odeSolveVWith' ::
+  ODEOpts
+  -> ODEMethod
+  -> StepControl
+  -> Maybe Double -- ^ initial step size - by default, ARKode
+                  -- estimates the initial step size to be the
+                  -- solution \(h\) of the equation
+                  -- \(\|\frac{h^2\ddot{y}}{2}\| = 1\), where
+                  -- \(\ddot{y}\) is an estimated value of the second
+                  -- derivative of the solution at \(t_0\)
+  -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
+  -> V.Vector Double                     -- ^ Initial conditions
+  -> V.Vector Double                     -- ^ Desired solution times
+  -> Either Int (Matrix Double, SundialsDiagnostics) -- ^ Error code or solution
+odeSolveVWith' opts method control initStepSize f y0 tt =
+  case solveOdeC (fromIntegral $ maxFail opts)
+                 (fromIntegral $ maxNumSteps opts) (coerce $ minStep opts)
+                 (fromIntegral $ getMethod method) (coerce initStepSize) jacH (scise control)
                  (coerce f) (coerce y0) (coerce tt) of
     Left c -> Left $ fromIntegral c
-    Right (v, d) -> Right (coerce v, d)
+    Right (v, d) ->  Right (reshape l (coerce v), d)
   where
     l = size y0
-    scise (X absTol relTol)                          = coerce (V.replicate l absTol, relTol)
-    scise (X' absTol relTol)                         = coerce (V.replicate l absTol, relTol)
-    scise (XX' absTol relTol yScale _yDotScale)      = coerce (V.replicate l absTol, yScale * relTol)
+    scise (X aTol rTol)                          = coerce (V.replicate l aTol, rTol)
+    scise (X' aTol rTol)                         = coerce (V.replicate l aTol, rTol)
+    scise (XX' aTol rTol yScale _yDotScale)      = coerce (V.replicate l aTol, yScale * rTol)
     -- FIXME; Should we check that the length of ss is correct?
-    scise (ScXX' absTol relTol yScale _yDotScale ss) = coerce (V.map (* absTol) ss, yScale * relTol)
+    scise (ScXX' aTol rTol yScale _yDotScale ss) = coerce (V.map (* aTol) ss, yScale * rTol)
     jacH = fmap (\g t v -> matrixToSunMatrix $ g (coerce t) (coerce v)) $
            getJacobian method
     matrixToSunMatrix m = T.SunMatrix { T.rows = nr, T.cols = nc, T.vals = vs }
@@ -476,6 +478,9 @@ odeSolveVWith method control initStepSize f y0 tt =
 
 solveOdeC ::
   CInt ->
+  CLong ->
+  CDouble ->
+  CInt ->
   Maybe CDouble ->
   (Maybe (CDouble -> V.Vector CDouble -> T.SunMatrix)) ->
   (V.Vector CDouble, CDouble) ->
@@ -483,7 +488,8 @@ solveOdeC ::
   -> V.Vector CDouble -- ^ Initial conditions
   -> V.Vector CDouble -- ^ Desired solution times
   -> Either CInt ((V.Vector CDouble), SundialsDiagnostics) -- ^ Error code or solution
-solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO $ do
+solveOdeC maxErrTestFails maxNumSteps_ minStep_ method initStepSize
+          jacH (aTols, rTol) fun f0 ts = unsafePerformIO $ do
 
   let isInitStepSize :: CInt
       isInitStepSize = fromIntegral $ fromEnum $ isJust initStepSize
@@ -494,14 +500,12 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
              -- used :(
              Nothing -> 0.0
              Just x  -> x
+
   let dim = V.length f0
       nEq :: CLong
       nEq = fromIntegral dim
       nTs :: CInt
       nTs = fromIntegral $ V.length ts
-  -- FIXME: fMut is not actually mutatated
-  fMut <- V.thaw f0
-  tMut <- V.thaw ts
   -- FIXME: I believe this gets taken from the ghc heap and so should
   -- be subject to garbage collection.
   quasiMatrixRes <- createVector ((fromIntegral dim) * (fromIntegral nTs))
@@ -509,7 +513,7 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
   diagnostics :: V.Vector CLong <- createVector 10 -- FIXME
   diagMut <- V.thaw diagnostics
   -- We need the types that sundials expects. These are tied together
-  -- in 'Types'. FIXME: The Haskell type is currently empty!
+  -- in 'CLangToHaskellTypes'. FIXME: The Haskell type is currently empty!
   let funIO :: CDouble -> Ptr T.SunVector -> Ptr T.SunVector -> Ptr () -> IO CInt
       funIO x y f _ptr = do
         -- Convert the pointer we get from C (y) to a vector, and then
@@ -529,7 +533,7 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
         case jacH of
           Nothing   -> error "Numeric.Sundials.ARKode.ODE: Jacobian not defined"
           Just jacI -> do j <- jacI t <$> getDataFromContents dim y
-                          putMatrixDataFromContents j jacS
+                          poke jacS j
                           -- FIXME: I don't understand what this comment means
                           -- Unsafe since the function will be called many times.
                           [CU.exp| int{ 0 } |]
@@ -549,7 +553,7 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
 
                          /* general problem parameters */
 
-                         realtype T0 = RCONST(($vec-ptr:(double *tMut))[0]); /* initial time              */
+                         realtype T0 = RCONST(($vec-ptr:(double *ts))[0]); /* initial time              */
                          sunindextype NEQ = $(sunindextype nEq);             /* number of dependent vars. */
 
                          /* Initialize data structures */
@@ -558,14 +562,14 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
                          if (check_flag((void *)y, "N_VNew_Serial", 0)) return 1;
                          /* Specify initial condition */
                          for (i = 0; i < NEQ; i++) {
-                           NV_Ith_S(y,i) = ($vec-ptr:(double *fMut))[i];
+                           NV_Ith_S(y,i) = ($vec-ptr:(double *f0))[i];
                          };
 
                          tv = N_VNew_Serial(NEQ); /* Create serial vector for absolute tolerances */
                          if (check_flag((void *)tv, "N_VNew_Serial", 0)) return 1;
                          /* Specify tolerances */
                          for (i = 0; i < NEQ; i++) {
-                           NV_Ith_S(tv,i) = ($vec-ptr:(double *absTols))[i];
+                           NV_Ith_S(tv,i) = ($vec-ptr:(double *aTols))[i];
                          };
 
                          arkode_mem = ARKodeCreate(); /* Create the solver memory */
@@ -577,7 +581,7 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
                          /* problem as fully implicit and set f_E to NULL and f_I to f.         */
 
                          /* Here we use the C types defined in helpers.h which tie up with */
-                         /* the Haskell types defined in Types                             */
+                         /* the Haskell types defined in CLangToHaskellTypes                             */
                          if ($(int method) < MIN_DIRK_NUM) {
                            flag = ARKodeInit(arkode_mem, $fun:(int (* funIO) (double t, SunVector y[], SunVector dydt[], void * params)), NULL, T0, y);
                            if (check_flag(&flag, "ARKodeInit", 1)) return 1;
@@ -586,14 +590,15 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
                            if (check_flag(&flag, "ARKodeInit", 1)) return 1;
                          }
 
-                         /* FIXME: A hack for initial testing */
-                         flag = ARKodeSetMinStep(arkode_mem, 1.0e-12);
+                         flag = ARKodeSetMinStep(arkode_mem, $(double minStep_));
                          if (check_flag(&flag, "ARKodeSetMinStep", 1)) return 1;
-                         flag = ARKodeSetMaxNumSteps(arkode_mem, 10000);
+                         flag = ARKodeSetMaxNumSteps(arkode_mem, $(long int maxNumSteps_));
                          if (check_flag(&flag, "ARKodeSetMaxNumSteps", 1)) return 1;
+                         flag = ARKodeSetMaxErrTestFails(arkode_mem, $(int maxErrTestFails));
+                         if (check_flag(&flag, "ARKodeSetMaxErrTestFails", 1)) return 1;
 
                          /* Set routines */
-                         flag = ARKodeSVtolerances(arkode_mem, $(double relTol), tv);
+                         flag = ARKodeSVtolerances(arkode_mem, $(double rTol), tv);
                          if (check_flag(&flag, "ARKodeSVtolerances", 1)) return 1;
 
                          /* Initialize dense matrix data structure and solver */
@@ -638,7 +643,7 @@ solveOdeC method initStepSize jacH (absTols, relTol) fun f0 ts = unsafePerformIO
                          /* Stops when the final time has been reached                       */
                          for (i = 1; i < $(int nTs); i++) {
 
-                           flag = ARKode(arkode_mem, ($vec-ptr:(double *tMut))[i], y, &t, ARK_NORMAL); /* call integrator */
+                           flag = ARKode(arkode_mem, ($vec-ptr:(double *ts))[i], y, &t, ARK_NORMAL); /* call integrator */
                            if (check_flag(&flag, "ARKode", 1)) break;
 
                            /* Store the results for Haskell */
@@ -738,7 +743,7 @@ butcherTable method =
   case getBT method of
     Left c -> error $ show c -- FIXME
     Right (ButcherTable' v w x y, sqp) ->
-      ButcherTable { am = subMatrix (0, 0) (s, s) $ (B.arkSMax >< B.arkSMax) (V.toList v)
+      ButcherTable { am = subMatrix (0, 0) (s, s) $ (arkSMax >< arkSMax) (V.toList v)
                    , cv = subVector 0 s w
                    , bv = subVector 0 s x
                    , b2v = subVector 0 s y
@@ -773,11 +778,11 @@ getButcherTable method = unsafePerformIO $ do
 
   btSQP :: V.Vector CInt <- createVector 3
   btSQPMut <- V.thaw btSQP
-  btAs :: V.Vector CDouble <- createVector (B.arkSMax * B.arkSMax)
+  btAs :: V.Vector CDouble <- createVector (arkSMax * arkSMax)
   btAsMut <- V.thaw btAs
-  btCs  :: V.Vector CDouble <- createVector B.arkSMax
-  btBs  :: V.Vector CDouble <- createVector B.arkSMax
-  btB2s :: V.Vector CDouble <- createVector B.arkSMax
+  btCs  :: V.Vector CDouble <- createVector arkSMax
+  btBs  :: V.Vector CDouble <- createVector arkSMax
+  btB2s :: V.Vector CDouble <- createVector arkSMax
   btCsMut  <- V.thaw btCs
   btBsMut  <- V.thaw btBs
   btB2sMut <- V.thaw btB2s
