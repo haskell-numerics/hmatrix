@@ -172,7 +172,7 @@ odeSolveVWith ::
   -> Matrix Double                       -- ^ Error code or solution
 odeSolveVWith method control initStepSize f y0 tt =
   case odeSolveVWith' opts method control initStepSize f y0 tt of
-    Left c        -> error $ show c -- FIXME
+    Left  (c, _v) -> error $ show c -- FIXME
     Right (v, _d) -> v
   where
     opts = ODEOpts { maxNumSteps = 10000
@@ -196,13 +196,13 @@ odeSolveVWith' ::
   -> (Double -> V.Vector Double -> V.Vector Double) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector Double                     -- ^ Initial conditions
   -> V.Vector Double                     -- ^ Desired solution times
-  -> Either Int (Matrix Double, SundialsDiagnostics) -- ^ Error code or solution
+  -> Either (Matrix Double, Int) (Matrix Double, SundialsDiagnostics) -- ^ Error code or solution
 odeSolveVWith' opts method control initStepSize f y0 tt =
   case solveOdeC (fromIntegral $ maxFail opts)
                  (fromIntegral $ maxNumSteps opts) (coerce $ minStep opts)
                  (fromIntegral $ getMethod method) (coerce initStepSize) jacH (scise control)
                  (coerce f) (coerce y0) (coerce tt) of
-    Left c -> Left $ fromIntegral c
+    Left  (v, c) -> Left  (reshape l (coerce v), fromIntegral c)
     Right (v, d) -> Right (reshape l (coerce v), d)
   where
     l = size y0
@@ -231,7 +231,8 @@ solveOdeC ::
   (CDouble -> V.Vector CDouble -> V.Vector CDouble) -- ^ The RHS of the system \(\dot{y} = f(t,y)\)
   -> V.Vector CDouble -- ^ Initial conditions
   -> V.Vector CDouble -- ^ Desired solution times
-  -> Either CInt ((V.Vector CDouble), SundialsDiagnostics) -- ^ Error code or solution
+  -> Either (V.Vector CDouble, CInt) (V.Vector CDouble, SundialsDiagnostics) -- ^ Partial solution and error code or
+                                                                             -- solution and diagnostics
 solveOdeC maxErrTestFails maxNumSteps_ minStep_ method initStepSize
           jacH (aTols, rTol) fun f0 ts =
   unsafePerformIO $ do
@@ -367,21 +368,15 @@ solveOdeC maxErrTestFails maxNumSteps_ minStep_ method initStepSize
                          }
 
                          /* Main time-stepping loop: calls CVode to perform the integration */
-                         /* Stops when the final time has been reached                       */
+                         /* Stops when the final time has been reached                      */
                          for (i = 1; i < $(int nTs); i++) {
 
                            flag = CVode(cvode_mem, ($vec-ptr:(double *ts))[i], y, &t, CV_NORMAL); /* call integrator */
-                           if (check_flag(&flag, "CVode", 1)) break;
+                           if (check_flag(&flag, "CVode solver failure, stopping integration", 1)) return 1;
 
                            /* Store the results for Haskell */
                            for (j = 0; j < NEQ; j++) {
                              ($vec-ptr:(double *qMatMut))[i * NEQ + j] = NV_Ith_S(y,j);
-                           }
-
-                           /* unsuccessful solve: break */
-                           if (flag < 0) {
-                             fprintf(stderr,"Solver failure, stopping integration\n");
-                             break;
                            }
                          }
 
@@ -434,23 +429,23 @@ solveOdeC maxErrTestFails maxNumSteps_ minStep_ method initStepSize
 
                          return flag;
                        } |]
+  preD <- V.freeze diagMut
+  let d = SundialsDiagnostics (fromIntegral $ preD V.!0)
+                              (fromIntegral $ preD V.!1)
+                              (fromIntegral $ preD V.!2)
+                              (fromIntegral $ preD V.!3)
+                              (fromIntegral $ preD V.!4)
+                              (fromIntegral $ preD V.!5)
+                              (fromIntegral $ preD V.!6)
+                              (fromIntegral $ preD V.!7)
+                              (fromIntegral $ preD V.!8)
+                              (fromIntegral $ preD V.!9)
+  m <- V.freeze qMatMut
   if res == 0
     then do
-      preD <- V.freeze diagMut
-      let d = SundialsDiagnostics (fromIntegral $ preD V.!0)
-                                  (fromIntegral $ preD V.!1)
-                                  (fromIntegral $ preD V.!2)
-                                  (fromIntegral $ preD V.!3)
-                                  (fromIntegral $ preD V.!4)
-                                  (fromIntegral $ preD V.!5)
-                                  (fromIntegral $ preD V.!6)
-                                  (fromIntegral $ preD V.!7)
-                                  (fromIntegral $ preD V.!8)
-                                  (fromIntegral $ preD V.!9)
-      m <- V.freeze qMatMut
       return $ Right (m, d)
     else do
-      return $ Left res
+      return $ Left  (m, res)
 
 -- | Adaptive step-size control
 -- functions.
