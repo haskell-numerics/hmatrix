@@ -27,3 +27,11 @@ executable butcherTableau
                        hmatrix-sundials,
                        pretty
   default-language:    Haskell2010
+
+executable vectorShow
+  main-is:             VectorShow.hs
+  build-depends:       base >=4.10 && <4.11,
+                       hmatrix,
+                       hmatrix-gsl
+  default-language:    Haskell2010
+
