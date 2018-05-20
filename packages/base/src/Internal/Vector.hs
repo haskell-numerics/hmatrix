@@ -116,7 +116,8 @@ toList v = safeRead v $ peekArray (dim v)
      be used, for instance, with infinite lists.
 
 >>> 5 |> [1..]
-fromList [1.0,2.0,3.0,4.0,5.0]
+[1.0,2.0,3.0,4.0,5.0]
+it :: (Enum a, Num a, Foreign.Storable.Storable a) => Vector a
 
 -}
 (|>) :: (Storable a) => Int -> [a] -> Vector a
@@ -135,7 +136,8 @@ idxs js = fromList (map fromIntegral js) :: Vector I
 {- | takes a number of consecutive elements from a Vector
 
 >>> subVector 2 3 (fromList [1..10])
-fromList [3.0,4.0,5.0]
+[3.0,4.0,5.0]
+it :: (Enum t, Num t, Foreign.Storable.Storable t) => Vector t
 
 -}
 subVector :: Storable t => Int       -- ^ index of the starting element
@@ -169,7 +171,8 @@ at' v n = safeRead v $ flip peekElemOff n
 {- | concatenate a list of vectors
 
 >>> vjoin [fromList [1..5::Double], konst 1 3]
-fromList [1.0,2.0,3.0,4.0,5.0,1.0,1.0,1.0]
+[1.0,2.0,3.0,4.0,5.0,1.0,1.0,1.0]
+it :: Vector Double
 
 -}
 vjoin :: Storable t => [Vector t] -> Vector t
@@ -191,7 +194,8 @@ vjoin as = unsafePerformIO $ do
 {- | Extract consecutive subvectors of the given sizes.
 
 >>> takesV [3,4] (linspace 10 (1,10::Double))
-[fromList [1.0,2.0,3.0],fromList [4.0,5.0,6.0,7.0]]
+[[1.0,2.0,3.0],[4.0,5.0,6.0,7.0]]
+it :: [Vector Double]
 
 -}
 takesV :: Storable t => [Int] -> Vector t -> [Vector t]

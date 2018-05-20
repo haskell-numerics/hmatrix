@@ -41,7 +41,8 @@ corr
 {- ^ correlation
 
 >>> corr (fromList[1,2,3]) (fromList [1..10])
-fromList [14.0,20.0,26.0,32.0,38.0,44.0,50.0,56.0]
+[14.0,20.0,26.0,32.0,38.0,44.0,50.0,56.0]
+it :: (Enum t, Product t, Container Vector t) => Vector t
 
 -}
 corr ker v
@@ -54,7 +55,8 @@ conv :: (Container Vector t, Product t, Num t) => Vector t -> Vector t -> Vector
 {- ^ convolution ('corr' with reversed kernel and padded input, equivalent to polynomial product)
 
 >>> conv (fromList[1,1]) (fromList [-1,1])
-fromList [-1.0,0.0,1.0]
+[-1.0,0.0,1.0]
+it :: (Product t, Container Vector t) => Vector t
 
 -}
 conv ker v

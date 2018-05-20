@@ -324,34 +324,34 @@ isDiagg (Dim (Dim x))
 instance KnownNat n => Show (R n)
   where
     show s@(R (Dim v))
-      | singleV v = "("++show (v!0)++" :: R "++show d++")"
-      | otherwise   = "(vector"++ drop 8 (show v)++" :: R "++show d++")"
+      | singleV v = "(" ++ show (v!0) ++ " :: R " ++ show d ++ ")"
+      | otherwise = "(vector " ++ show v ++ " :: R " ++ show d ++")"
       where
         d = size s
 
 instance KnownNat n => Show (C n)
   where
     show s@(C (Dim v))
-      | singleV v = "("++show (v!0)++" :: C "++show d++")"
-      | otherwise   = "(vector"++ drop 8 (show v)++" :: C "++show d++")"
+      | singleV v = "(" ++ show (v!0) ++ " :: C " ++ show d ++ ")"
+      | otherwise = "(vector " ++ show v ++ " :: C " ++ show d ++")"
       where
         d = size s
 
 instance (KnownNat m, KnownNat n) => Show (L m n)
   where
-    show (isDiag -> Just (z,y,(m',n'))) = printf "(diag %s %s :: L %d %d)" (show z) (drop 9 $ show y) m' n'
+    show (isDiag -> Just (z,y,(m',n'))) = printf "(diag %s %s :: L %d %d)" (show z) (show y) m' n'
     show s@(L (Dim (Dim x)))
        | singleM x = printf "(%s :: L %d %d)" (show (x `atIndex` (0,0))) m' n'
-       | otherwise = "(matrix"++ dropWhile (/='\n') (show x)++" :: L "++show m'++" "++show n'++")"
+       | otherwise = "(matrix" ++ dropWhile (/='\n') (show x) ++ " :: L " ++ show m' ++ " " ++ show n' ++ ")"
       where
         (m',n') = size s
 
 instance (KnownNat m, KnownNat n) => Show (M m n)
   where
-    show (isDiagC -> Just (z,y,(m',n'))) = printf "(diag %s %s :: M %d %d)" (show z) (drop 9 $ show y) m' n'
+    show (isDiagC -> Just (z,y,(m',n'))) = printf "(diag %s %s :: M %d %d)" (show z) (show y) m' n'
     show s@(M (Dim (Dim x)))
        | singleM x = printf "(%s :: M %d %d)" (show (x `atIndex` (0,0))) m' n'
-       | otherwise = "(matrix"++ dropWhile (/='\n') (show x)++" :: M "++show m'++" "++show n'++")"
+       | otherwise = "(matrix" ++ dropWhile (/='\n') (show x) ++ " :: M " ++ show m' ++ " " ++ show n' ++ ")"
       where
         (m',n') = size s
 

@@ -40,10 +40,12 @@ import Prelude hiding ((<>))
 {- | Creates a real vector containing a range of values:
 
 >>> linspace 5 (-3,7::Double)
-fromList [-3.0,-0.5,2.0,4.5,7.0]@
+[-3.0,-0.5,2.0,4.5,7.0]
+it :: Vector Double
 
->>> linspace 5 (8,2+i) :: Vector (Complex Double)
-fromList [8.0 :+ 0.0,6.5 :+ 0.25,5.0 :+ 0.5,3.5 :+ 0.75,2.0 :+ 1.0]
+>>> linspace 5 (8,3:+2) :: Vector (Complex Double)
+[8.0 :+ 0.0,6.75 :+ 0.5,5.5 :+ 1.0,4.25 :+ 1.5,3.0 :+ 2.0]
+it :: Vector (Complex Double)
 
 Logarithmic spacing can be defined as follows:
 
@@ -87,7 +89,8 @@ infixr 8 <.>
 >>> let v = vector [10,20,30]
 
 >>> m #> v
-fromList [140.0,320.0]
+[140.0,320.0]
+it :: Vector Numeric.LinearAlgebra.Data.R
 
 -}
 infixr 8 #>
@@ -136,10 +139,12 @@ v = vector [13.0,27.0,1.0]
 
 >>> let x = a <\> v
 >>> x
-fromList [3.0799999999999996,5.159999999999999]
+[3.0799999999999996,5.159999999999999]
+it :: Vector Numeric.LinearAlgebra.Data.R
 
 >>> a #> x
-fromList [13.399999999999999,26.799999999999997,1.0]
+[13.399999999999999,26.799999999999997,0.9999999999999991]
+it :: Vector Numeric.LinearAlgebra.Data.R
 
 It also admits multiple right-hand sides stored as columns in a matrix.
 
@@ -167,7 +172,8 @@ class Build d f c e | d -> c, c -> d, f -> e, f -> d, f -> c, c e -> f, d e -> f
   where
     -- |
     -- >>> build 5 (**2) :: Vector Double
-    -- fromList [0.0,1.0,4.0,9.0,16.0]
+    -- [0.0,1.0,4.0,9.0,16.0]
+    -- it :: Vector Double
     --
     -- Hilbert matrix of order N:
     --
@@ -204,12 +210,11 @@ optimiseMult = mconcat
 
 {- | Compute mean vector and covariance matrix of the rows of a matrix.
 
->>> meanCov $ gaussianSample 666 1000 (fromList[4,5]) (diagl[2,3])
-(fromList [4.010341078059521,5.0197204699640405],
-(2><2)
- [     1.9862461923890056, -1.0127225830525157e-2
- , -1.0127225830525157e-2,     3.0373954915729318 ])
-
+>>> meanCov $ gaussianSample 666 1000 (fromList[4,5]) (trustSym $ diagl [2,3])
+([3.9933155655086696,5.061409102770331],Herm (2><2)
+ [    1.9963242906624408, -4.227815571404954e-2
+ , -4.227815571404954e-2,    3.2003833097832857 ])
+it :: (Vector Double, Herm Double)
 -}
 meanCov :: Matrix Double -> (Vector Double, Herm Double)
 meanCov x = (med,cov) where
