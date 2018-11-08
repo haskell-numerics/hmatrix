@@ -18,6 +18,8 @@
 
 module Internal.LAPACK where
 
+import Data.Bifunctor (first)
+
 import Internal.Devel
 import Internal.Vector
 import Internal.Matrix hiding ((#), (#!))
@@ -234,7 +236,9 @@ leftSVAux f st x = unsafePerformIO $ do
 -----------------------------------------------------------------------------
 
 foreign import ccall unsafe "eig_l_R" dgeev :: R ::> R ::> C :> R ::> Ok
+foreign import ccall unsafe "eig_l_G" dggev :: R ::> R ::> C :> R :> R ::> R ::> Ok
 foreign import ccall unsafe "eig_l_C" zgeev :: C ::> C ::> C :> C ::> Ok
+foreign import ccall unsafe "eig_l_GC" zggev :: C ::> C ::> C :> C :> C ::> C ::> Ok
 foreign import ccall unsafe "eig_l_S" dsyev :: CInt -> R :> R ::> Ok
 foreign import ccall unsafe "eig_l_H" zheev :: CInt -> R :> C ::> Ok
 
@@ -304,6 +308,53 @@ fixeig _ _ = error "fixeig with impossible inputs"
 eigOnlyR :: Matrix Double -> Vector (Complex Double)
 eigOnlyR = fixeig1 . eigOnlyAux dgeev "eigOnlyR"
 
+-- | Generalized eigenvalues and right eigenvectors of a pair of real matrices, using LAPACK's /dggev/.
+-- The eigenvectors are the columns of v. The eigenvalues are represented as alphas / betas and not sorted.
+eigG :: Matrix Double -> Matrix Double -> (Vector (Complex Double), Vector Double, Matrix (Complex Double))
+eigG a b = (alpha', beta, v'')
+  where
+    (alpha, beta, v) = eigGaux dggev a b "eigG"
+    alpha' = fixeig1 alpha
+    v' = toRows $ trans v
+    v'' = fromColumns $ fixeig (toList alpha') v'
+
+eigGaux f ma mb st = unsafePerformIO $ do
+    a <- copy ColumnMajor ma
+    b <- copy ColumnMajor mb
+    alpha <- createVector r
+    beta <- createVector r
+    vr <- createMatrix ColumnMajor r r
+
+    (a # b # alpha # beta #! vr) g #| st
+
+    return (alpha, beta, vr)
+  where
+    r = rows ma
+    g ar ac xra xca pa br bc xrb xcb pb alphan palpha betan pbeta = f ar ac xra xca pa br bc xrb xcb pb alphan palpha betan pbeta 0 0 0 0 nullPtr 
+
+eigGOnlyAux f ma mb st = unsafePerformIO $ do
+    a <- copy ColumnMajor ma
+    b <- copy ColumnMajor mb
+    alpha <- createVector r
+    beta <- createVector r
+
+    (a # b # alpha #! beta) g #| st
+
+    return (alpha, beta)
+  where
+    r = rows ma
+    g ar ac xra xca pa br bc xrb xcb pb alphan palpha betan pbeta = f ar ac xra xca pa br bc xrb xcb pb alphan palpha betan pbeta 0 0 0 0 nullPtr 0 0 0 0 nullPtr
+
+-- | Generalized eigenvalues and right eigenvectors of a pair of complex matrices, using LAPACK's /zggev/.
+-- The eigenvectors are the columns of v. The eigenvalues are represented as alphas / betas and not sorted.
+eigGC :: Matrix (Complex Double) -> Matrix (Complex Double) -> (Vector (Complex Double), Vector (Complex Double), Matrix (Complex Double))
+eigGC a b = eigGaux zggev a b "eigGC"
+
+eigOnlyG :: Matrix Double -> Matrix Double -> (Vector (Complex Double), Vector Double)
+eigOnlyG a b = first fixeig1 $ eigGOnlyAux dggev a b "eigOnlyG"
+
+eigOnlyGC :: Matrix (Complex Double) -> Matrix (Complex Double) -> (Vector (Complex Double), Vector (Complex Double))
+eigOnlyGC a b = eigGOnlyAux zggev a b "eigOnlyGC"
 
 -----------------------------------------------------------------------------
 
