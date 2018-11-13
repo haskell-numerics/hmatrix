@@ -307,9 +307,10 @@ fixeig _ _ = error "fixeig with impossible inputs"
 -- can be different. Therefore old 'fixeig' would fail for 'eigG'.
 fixeigG  []  _  = []
 fixeigG [_] [v] = [comp' v]
-fixeigG ((ar1:+ai1) : an : as) (v1:v2:vs)
+fixeigG ((_:+ai1) : an : as) (v1:v2:vs)
     | abs ai1 > 1e-13 = toComplex' (v1, v2) : toComplex' (v1, mapVector negate v2) : fixeigG as vs
     | otherwise = comp' v1 : fixeigG (an:as) (v2:vs)
+fixeigG _ _ = error "fixeigG with impossible inputs"
 
 -- | Eigenvalues of a general real matrix, using LAPACK's /dgeev/ with jobz == \'N\'.
 -- The eigenvalues are not sorted.

@@ -522,7 +522,7 @@ eig = {-# SCC "eig" #-} eig'
 -- Eigenvalues are represented as pairs of alpha, beta, where eigenvalue = alpha / beta. Alpha is always
 -- complex, but betas has the same type as the input matrix.
 --
--- If @(alphas, betas, v) = geig a b@, then @a \<> v == diag (alphas / betas) \<> b \<> v@
+-- If @(alphas, betas, v) = geig a b@, then @a \<> v == b \<> v \<> diag (alphas / betas)@
 --
 -- Note that beta can be 0 and that has reasonable interpretation.
 geig :: Field t => Matrix t -> Matrix t -> (Vector (Complex Double), Vector t, Matrix (Complex Double))
