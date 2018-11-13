@@ -17,6 +17,7 @@ Arbitrary instances for vectors, matrices.
 
 module Numeric.LinearAlgebra.Tests.Instances(
     Sq(..),     rSq,cSq,
+    Sq2WC(..),  rSq2WC,cSq2WC,
     Rot(..),    rRot,cRot,
                 rHer,cHer,
     WC(..),     rWC,cWC,
@@ -105,6 +106,23 @@ instance (Element a, Arbitrary a) => Arbitrary (Sq a) where
 
     shrink (Sq a) = [ Sq b | b <- shrink a ]
 
+-- a pair of square matrices
+newtype (Sq2WC a) = Sq2WC (Matrix a, Matrix a) deriving Show
+instance (ArbitraryField a, Numeric a) => Arbitrary (Sq2WC a) where
+    arbitrary = do
+        n <- chooseDim
+        l <- vector (n*n)
+        r <- vector (n*n)
+        l' <- makeWC $ (n><n) l
+        r' <- makeWC $ (n><n) r
+        return $ Sq2WC (l', r')
+        where
+            makeWC m = do
+              let (u,_,v) = svd m
+                  n = rows m
+              sv' <- replicateM n (choose (1,100))
+              let s = diag (fromList sv')
+              return $ u <> real s <> tr v
 
 -- a unitary matrix
 newtype (Rot a) = Rot (Matrix a) deriving Show
@@ -203,6 +221,9 @@ cRot (Rot m) = m :: CM
 
 rSq  (Sq m)  = m :: RM
 cSq  (Sq m)  = m :: CM
+
+rSq2WC (Sq2WC (a, b)) = (a, b) :: (RM, RM)
+cSq2WC (Sq2WC (a, b)) = (a, b) :: (CM, CM)
 
 rWC (WC m) = m :: RM
 cWC (WC m) = m :: CM

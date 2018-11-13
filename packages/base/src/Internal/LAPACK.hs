@@ -302,6 +302,14 @@ fixeig ((r1:+i1):(r2:+i2):r) (v1:v2:vs)
     | otherwise = comp' v1 : fixeig ((r2:+i2):r) (v2:vs)
 fixeig _ _ = error "fixeig with impossible inputs"
 
+-- For dggev alpha(i) / beta(i), alpha(i+1) / beta(i+1) form a complex conjugate pair when Im alpha(i) != 0.
+-- However, this does not lead to Re alpha(i) == Re alpha(i+1), since beta(i) and beta(i+1)
+-- can be different. Therefore old 'fixeig' would fail for 'eigG'.
+fixeigG  []  _  = []
+fixeigG [_] [v] = [comp' v]
+fixeigG ((ar1:+ai1) : an : as) (v1:v2:vs)
+    | abs ai1 > 1e-13 = toComplex' (v1, v2) : toComplex' (v1, mapVector negate v2) : fixeigG as vs
+    | otherwise = comp' v1 : fixeigG (an:as) (v2:vs)
 
 -- | Eigenvalues of a general real matrix, using LAPACK's /dgeev/ with jobz == \'N\'.
 -- The eigenvalues are not sorted.
@@ -316,7 +324,7 @@ eigG a b = (alpha', beta, v'')
     (alpha, beta, v) = eigGaux dggev a b "eigG"
     alpha' = fixeig1 alpha
     v' = toRows $ trans v
-    v'' = fromColumns $ fixeig (toList alpha') v'
+    v'' = fromColumns $ fixeigG (toList alpha') v'
 
 eigGaux f ma mb st = unsafePerformIO $ do
     a <- copy ColumnMajor ma
