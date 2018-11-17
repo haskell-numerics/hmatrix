@@ -131,8 +131,8 @@ module Numeric.LinearAlgebra (
     leftSV, rightSV,
 
     -- * Eigendecomposition
-    eig, eigSH,
-    eigenvalues, eigenvaluesSH,
+    eig, geig, eigSH,
+    eigenvalues, geigenvalues, eigenvaluesSH,
     geigSH,
 
     -- * QR

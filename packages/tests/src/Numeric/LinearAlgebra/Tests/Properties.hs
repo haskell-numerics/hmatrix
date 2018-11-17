@@ -36,6 +36,7 @@ module Numeric.LinearAlgebra.Tests.Properties (
     svdProp1, svdProp1a, svdProp1b, svdProp2, svdProp3, svdProp4,
     svdProp5a, svdProp5b, svdProp6a, svdProp6b, svdProp7,
     eigProp, eigSHProp, eigProp2, eigSHProp2,
+    geigProp,
     qrProp, rqProp, rqProp1, rqProp2, rqProp3,
     hessProp,
     schurProp1, schurProp2,
@@ -236,6 +237,12 @@ eigSHProp m = m <> v |~| v <> real (diag s)
 eigProp2 m = fst (eig m) |~| eigenvalues m
 
 eigSHProp2 m = fst (eigSH' m) |~| eigenvaluesSH' m
+
+geigProp a b = a' <> v <> diag betas' |~| b' <> v <> diag alphas
+    where (alphas, betas, v) = geig a b
+          betas' = complex betas
+          a' = complex a
+          b' = complex b
 
 ------------------------------------------------------------------
 

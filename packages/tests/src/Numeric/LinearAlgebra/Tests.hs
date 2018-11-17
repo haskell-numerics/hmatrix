@@ -756,6 +756,9 @@ runTests n = do
     test (eigSHProp2 . cHer)
     test (eigProp2   . rSq)
     test (eigProp2   . cSq)
+    putStrLn "------ geig"
+    test (uncurry geigProp . rSq2WC)
+    test (uncurry geigProp . cSq2WC)
     putStrLn "------ nullSpace"
     test (nullspaceProp . rM)
     test (nullspaceProp . cM)

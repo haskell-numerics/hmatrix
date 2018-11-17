@@ -70,8 +70,10 @@ class (Numeric t,
     linearSolveSVD' :: Matrix t -> Matrix t -> Matrix t
     linearSolveLS'  :: Matrix t -> Matrix t -> Matrix t
     eig'         :: Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
+    geig'        :: Matrix t -> Matrix t -> (Vector (Complex Double), Vector t, Matrix (Complex Double))
     eigSH''      :: Matrix t -> (Vector Double, Matrix t)
     eigOnly      :: Matrix t -> Vector (Complex Double)
+    geigOnly     :: Matrix t -> Matrix t -> (Vector (Complex Double), Vector t)
     eigOnlySH    :: Matrix t -> Vector Double
     cholSH'      :: Matrix t -> Matrix t
     mbCholSH'    :: Matrix t -> Maybe (Matrix t)
@@ -96,7 +98,9 @@ instance Field Double where
     linearSolveSVD' = linearSolveSVDR Nothing
     eig' = eigR
     eigSH'' = eigS
+    geig' = eigG
     eigOnly = eigOnlyR
+    geigOnly = eigOnlyG
     eigOnlySH = eigOnlyS
     cholSH' = cholS
     mbCholSH' = mbCholS
@@ -126,7 +130,9 @@ instance Field (Complex Double) where
     linearSolveLS' = linearSolveLSC
     linearSolveSVD' = linearSolveSVDC Nothing
     eig' = eigC
+    geig' = eigGC
     eigOnly = eigOnlyC
+    geigOnly = eigOnlyGC
     eigSH'' = eigH
     eigOnlySH = eigOnlyH
     cholSH' = cholH
@@ -512,9 +518,24 @@ a = (3><3)
 eig :: Field t => Matrix t -> (Vector (Complex Double), Matrix (Complex Double))
 eig = {-# SCC "eig" #-} eig'
 
+-- | Generalized eigenvalues (not ordered) and eigenvectors (as columns) of a pair of nonsymmetric matrices.
+-- Eigenvalues are represented as pairs of alpha, beta, where eigenvalue = alpha / beta. Alpha is always
+-- complex, but betas has the same type as the input matrix.
+--
+-- If @(alphas, betas, v) = geig a b@, then @a \<> v == b \<> v \<> diag (alphas / betas)@
+--
+-- Note that beta can be 0 and that has reasonable interpretation.
+geig :: Field t => Matrix t -> Matrix t -> (Vector (Complex Double), Vector t, Matrix (Complex Double))
+geig = {-# SCC "geig" #-} geig'
+
 -- | Eigenvalues (not ordered) of a general square matrix.
 eigenvalues :: Field t => Matrix t -> Vector (Complex Double)
 eigenvalues = {-# SCC "eigenvalues" #-} eigOnly
+
+-- | Generalized eigenvalues of a pair of matrices. Represented as pairs of alpha, beta,
+-- where eigenvalue is alpha / beta as in 'geig'.
+geigenvalues :: Field t => Matrix t -> Matrix t -> (Vector (Complex Double), Vector t)
+geigenvalues = {-# SCC "geigenvalues" #-} geigOnly
 
 -- | Similar to 'eigSH' without checking that the input matrix is hermitian or symmetric. It works with the upper triangular part.
 eigSH' :: Field t => Matrix t -> (Vector Double, Matrix t)

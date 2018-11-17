@@ -415,6 +415,93 @@ int eig_l_R(ODMAT(a),ODMAT(u), CVEC(s),ODMAT(v)) {
     OK
 }
 
+//////////////////// generalized real eigensystem ////////////
+
+int dggev_(char *jobvl, char *jobvr, integer *n,
+    doublereal *a, integer *lda, doublereal *b, integer *ldb,
+    doublereal *alphar, doublereal *alphai, doublereal *beta,
+    doublereal *vl, integer *ldvl, doublereal *vr, integer *ldvr,
+    doublereal *work,
+	integer *lwork, integer *info);
+
+int eig_l_G(ODMAT(a), ODMAT(b), CVEC(alpha), DVEC(beta), ODMAT(vl), ODMAT(vr)) {
+    integer n = ar;
+    REQUIRES(ac == n && br == n && bc == n && alphan == n && betan == n, BAD_SIZE);
+    REQUIRES(vlp==NULL || (vlr==n && vlc==n), BAD_SIZE);
+    char jobvl = vlp==NULL?'N':'V';
+    REQUIRES(vrp==NULL || (vrr==n && vrc==n), BAD_SIZE);
+    char jobvr = vrp==NULL?'N':'V';
+    DEBUGMSG("eig_l_G");
+    integer lwork = -1;
+    integer res;
+    // ask for optimal lwork
+    double ans;
+    dggev_  (&jobvl,&jobvr,
+             &n,
+             ap,&n,bp,&n,
+             (double*)alphap, (double*)alphap+n, betap,
+             vlp, &n, vrp, &n,
+             &ans, &lwork,
+             &res);
+    lwork = ceil(ans);
+    double * work = (double*)malloc(lwork*sizeof(double));
+    CHECK(!work,MEM);
+    dggev_  (&jobvl,&jobvr,
+             &n,
+             ap,&n,bp,&n,
+             (double*)alphap, (double*)alphap+n, betap,
+             vlp, &n, vrp, &n,
+             work, &lwork,
+             &res);
+    CHECK(res,res);
+    free(work);
+    OK
+}
+
+//////////////////// generalized complex eigensystem ////////////
+
+int zggev_(char *jobvl, char *jobvr, integer *n,
+    doublecomplex *a, integer *lda, doublecomplex *b, integer *ldb,
+    doublecomplex *alphar, doublecomplex *beta,
+    doublecomplex *vl, integer *ldvl, doublecomplex *vr, integer *ldvr,
+    doublecomplex *work, integer *lwork,
+    doublereal *rwork, integer *info);
+
+int eig_l_GC(OCMAT(a), OCMAT(b), CVEC(alpha), CVEC(beta), OCMAT(vl), OCMAT(vr)) {
+    integer n = ar;
+    REQUIRES(ac == n && br == n && bc == n && alphan == n && betan == n, BAD_SIZE);
+    REQUIRES(vlp==NULL || (vlr==n && vlc==n), BAD_SIZE);
+    char jobvl = vlp==NULL?'N':'V';
+    REQUIRES(vrp==NULL || (vrr==n && vrc==n), BAD_SIZE);
+    char jobvr = vrp==NULL?'N':'V';
+    DEBUGMSG("eig_l_GC");
+    double *rwork = (double*) malloc(8*n*sizeof(double));
+    CHECK(!rwork,MEM);
+    integer lwork = -1;
+    integer res;
+    // ask for optimal lwork
+    doublecomplex ans;
+    zggev_  (&jobvl,&jobvr,
+             &n,
+             ap,&n,bp,&n,
+             alphap, betap,
+             vlp, &n, vrp, &n,
+             &ans, &lwork,
+             rwork, &res);
+    lwork = ceil(ans.r);
+    doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
+    CHECK(!work,MEM);
+    zggev_  (&jobvl,&jobvr,
+             &n,
+             ap,&n,bp,&n,
+             alphap, betap,
+             vlp, &n, vrp, &n,
+             work, &lwork,
+             rwork, &res);
+    CHECK(res,res);
+    free(work);
+    OK
+}
 
 //////////////////// symmetric real eigensystem ////////////
 
