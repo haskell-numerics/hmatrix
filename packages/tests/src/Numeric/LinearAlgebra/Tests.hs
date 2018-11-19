@@ -242,6 +242,29 @@ triDiagTest = utest "triDiagTest" (ok1 && ok2) where
 
 ---------------------------------------------------------------------
 
+triDiagRegression = utest "triDiagRegression" ok where
+  minusOnes, twos :: Vector R
+  minusOnes = fromList [-1, -1]
+  twos      = fromList [2, 2, 2]
+  k :: Matrix R
+  k = (3><3)
+    [  2, -1,  0
+    , -1,  2, -1
+    ,  0, -1,  2
+    ]
+
+  b :: Matrix R
+  b = (3><1) [10, 10, 10]
+
+  tridiag = triDiagSolve minusOnes twos minusOnes b
+  simple = linearSolve k b
+
+  ok = case simple of
+    Just m -> tridiag |~| m
+    Nothing -> False
+
+---------------------------------------------------------------------
+
 randomTestGaussian = (unSym c) :~3~: unSym (snd (meanCov dat))
   where
     a = (3><3) [1,2,3,
@@ -830,6 +853,7 @@ runTests n = do
         , mbCholTest
         , triTest
         , triDiagTest
+        , triDiagRegression
         , utest "offset" offsetTest
         , normsVTest
         , normsMTest
