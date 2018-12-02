@@ -506,8 +506,10 @@ linearSolveGTAux2 g f st dl d du b
     | ndl  == nd - 1 &&
       ndu  == nd - 1 &&
       nd   == r = unsafePerformIO . g $ do
+        dl' <- head . toRows <$> copy ColumnMajor (fromRows [dl])
+        du' <- head . toRows <$> copy ColumnMajor (fromRows [du])
         s <- copy ColumnMajor b
-        (dl # d # du #! s) f #| st
+        (dl' # d # du' #! s) f #| st
         return s
     | otherwise = error $ st ++ " of nonsquare matrix"
   where
