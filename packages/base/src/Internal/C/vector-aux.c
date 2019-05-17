@@ -932,20 +932,20 @@ int vectorScan(char * file, int* n, double**pp){
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#if defined (__APPLE__) || (__FreeBSD__)
+#if defined (__APPLE__) || (__FreeBSD__) || defined(NO_RANDOM_R)
 /* FreeBSD and Mac OS X do not provide random_r(), thread safety cannot be
    guaranteed.
    For FreeBSD and Mac OS X, nrand48() is much better than random().
    See: http://www.evanjones.ca/random-thread-safe.html
 */
-#pragma message "randomVector is not thread-safe in OSX and FreeBSD"
+#pragma message "randomVector is not thread-safe in OSX and FreeBSD or with NO_RANDOM_R"
 #endif
 
-#if defined (__APPLE__) || (__FreeBSD__) || defined(_WIN32) || defined(WIN32)
+#if defined (__APPLE__) || (__FreeBSD__) || defined(NO_RANDOM_R) || defined(_WIN32) || defined(WIN32)
 /* Windows use thread-safe random
    See: http://stackoverflow.com/questions/143108/is-windows-rand-s-thread-safe
 */
-#if defined (__APPLE__) || (__FreeBSD__)
+#if defined (__APPLE__) || (__FreeBSD__) || defined(NO_RANDOM_R)
 
 inline double urandom() {
     /* the probalility of matching will be theoretically p^3(in fact, it is not)

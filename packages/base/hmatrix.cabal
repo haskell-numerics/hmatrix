@@ -36,6 +36,11 @@ flag disable-default-paths
     default:        False
     manual: True
 
+flag no-random_r
+    description:    When enabled, don't depend on the random_r() C function.
+    default:        False
+    manual: True
+
 library
 
     Build-Depends:      base >= 4.8 && < 5,
@@ -98,6 +103,9 @@ library
     if arch(i386)
         cc-options:     -msse2
 
+
+    if flag(no-random_r)
+        cc-options: -DNO_RANDOM_R
 
     if os(OSX)
         if flag(openblas)
