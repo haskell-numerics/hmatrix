@@ -38,6 +38,7 @@ module Numeric.GSL.Special.Ellint(
 , ellint_RF
 , ellint_RJ_e
 , ellint_RJ
+, Precision(..)
 ) where
 
 import Foreign(Ptr)
