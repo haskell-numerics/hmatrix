@@ -106,6 +106,7 @@ module Numeric.GSL.Special.Bessel(
 , bessel_zero_J1
 , bessel_zero_Jnu_e
 , bessel_zero_Jnu
+, Precision(..)
 ) where
 
 import Foreign(Ptr)
