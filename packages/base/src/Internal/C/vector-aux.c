@@ -932,20 +932,33 @@ int vectorScan(char * file, int* n, double**pp){
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#if defined (__APPLE__) || (__FreeBSD__) || defined(NO_RANDOM_R)
-/* FreeBSD and Mac OS X do not provide random_r(), thread safety cannot be
-   guaranteed.
-   For FreeBSD and Mac OS X, nrand48() is much better than random().
-   See: http://www.evanjones.ca/random-thread-safe.html
-*/
-#pragma message "randomVector is not thread-safe in OSX and FreeBSD or with NO_RANDOM_R"
-#endif
-
 #if defined (__APPLE__) || (__FreeBSD__) || defined(NO_RANDOM_R) || defined(_WIN32) || defined(WIN32)
 /* Windows use thread-safe random
    See: http://stackoverflow.com/questions/143108/is-windows-rand-s-thread-safe
 */
 #if defined (__APPLE__) || (__FreeBSD__) || defined(NO_RANDOM_R)
+
+/* For FreeBSD, Mac OS X, and other libcs (like `musl`) that do not provide
+   random_r(), or if the use of random_r() is explicitly disabled, thread safety
+   cannot be guaranteed.
+   As per current understanding, this should at worst lead to less "random"
+   numbers being generated, in particular
+     * if another thread somebody calls lcong48() at the same time as nrand48()
+       is called
+     * in addition to that, for glibc with NO_RANDOM_R enabled when ndrand48()
+       is called for the first time by multiple threads in parallel due to the
+       initialisation function placed within it
+   See: http://www.evanjones.ca/random-thread-safe.html
+
+   For FreeBSD and Mac OS X, nrand48() is much better than random().
+   See: http://www.evanjones.ca/random-thread-safe.html
+
+   TODO: As mentioned in the linked article, this could be fixed:
+         "the best solution for truly portable applications is to include
+          your own random number generator implementation,
+          and not rely on the system's C library".
+*/
+#pragma message "randomVector is not thread-safe in OSX and FreeBSD or with NO_RANDOM_R; this likely leads to less random numbers at worst; see http://www.evanjones.ca/random-thread-safe.html"
 
 inline double urandom() {
     /* the probalility of matching will be theoretically p^3(in fact, it is not)
