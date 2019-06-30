@@ -1,5 +1,5 @@
 Name:               hmatrix
-Version:            0.19.0.0
+Version:            0.20.0.0
 License:            BSD3
 License-file:       LICENSE
 Author:             Alberto Ruiz
@@ -38,7 +38,7 @@ flag disable-default-paths
 
 library
 
-    Build-Depends:      base >= 4.8 && < 5,
+    Build-Depends:      base >= 4.9 && < 5,
                         binary,
                         array,
                         deepseq,

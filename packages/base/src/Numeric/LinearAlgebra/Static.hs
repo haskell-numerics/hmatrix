@@ -92,7 +92,7 @@ ud1 (R (Dim v)) = v
 
 
 infixl 4 &
-(&) :: forall n . (KnownNat n, 1 <= n)
+(&) :: forall n . KnownNat n
     => R n -> ℝ -> R (n+1)
 u & x = u # (konst x :: R 1)
 
