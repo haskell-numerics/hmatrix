@@ -13,7 +13,6 @@ packages:
 - packages/gsl/
 - packages/glpk/
 - packages/base/
-- packages/sundials/
 - examples/
 extra-deps:
 - diagrams-rasterific-1.4
