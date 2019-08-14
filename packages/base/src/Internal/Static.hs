@@ -131,9 +131,9 @@ vconcat :: forall n m t . (KnownNat n, KnownNat m, Numeric t)
   where
     du = fromIntegral . natVal $ (undefined :: Proxy n)
     dv = fromIntegral . natVal $ (undefined :: Proxy m)
-    u' | du > 1 && LA.size u == 1 = LA.konst (u D.@> 0) du
+    u' | du /= 1 && LA.size u == 1 = LA.konst (u D.@> 0) du
        | otherwise = u
-    v' | dv > 1 && LA.size v == 1 = LA.konst (v D.@> 0) dv
+    v' | dv /= 1 && LA.size v == 1 = LA.konst (v D.@> 0) dv
        | otherwise = v
 
 
