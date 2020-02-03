@@ -46,6 +46,13 @@ module Numeric.LinearAlgebra.Static(
     matrix,
     -- * Complex
     ℂ, C, M, Her, her, 𝑖,
+    toComplex,
+    fromComplex,
+    complex,
+    real,
+    imag,
+    sqMagnitude,
+    magnitude,
     -- * Products
     (<>),(#>),(<.>),
     -- * Linear Systems
@@ -74,7 +81,9 @@ import Numeric.LinearAlgebra hiding (
     (<\>),fromList,takeDiag,svd,eig,eigSH,
     eigenvalues,eigenvaluesSH,build,
     qr,size,dot,chol,range,R,C,sym,mTm,unSym,
-    randomVector,rand,randn,gaussianSample,uniformSample,meanCov)
+    randomVector,rand,randn,gaussianSample,uniformSample,meanCov,
+    toComplex, fromComplex, complex, real, magnitude
+    )
 import qualified Numeric.LinearAlgebra as LA
 import qualified Numeric.LinearAlgebra.Devel as LA
 import Data.Proxy(Proxy(..))
@@ -243,6 +252,29 @@ instance KnownNat n => Diag (M n n) (C n)
   where
     takeDiag x = mkC (LA.takeDiag (extract x))
 
+--------------------------------------------------------------------------------
+
+
+toComplex :: KnownNat n => (R n, R n) -> C n
+toComplex (r,i) = mkC $ LA.toComplex (ud1 r, ud1 i)
+
+fromComplex :: KnownNat n => C n -> (R n, R n)
+fromComplex (C (Dim v)) = let (r,i) = LA.fromComplex v in (mkR r, mkR i)
+
+complex :: KnownNat n => R n -> C n
+complex r = mkC $ LA.toComplex (ud1 r, LA.konst 0 (size r))
+
+real :: KnownNat n => C n -> R n
+real = fst . fromComplex
+
+imag :: KnownNat n => C n -> R n 
+imag = snd . fromComplex
+
+sqMagnitude :: KnownNat n => C n -> R n
+sqMagnitude c = let (r,i) = fromComplex c in r**2 + i**2
+
+magnitude :: KnownNat n => C n -> R n
+magnitude = sqrt . sqMagnitude
 
 --------------------------------------------------------------------------------
 
