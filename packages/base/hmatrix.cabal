@@ -136,6 +136,7 @@ library
             extra-lib-dirs: /usr/local/lib
             include-dirs: /usr/local/include
         extra-libraries: gfortran
+        extra-lib-dirs: /usr/local/lib/gcc9 /usr/local/lib/gcc8 /usr/local/lib/gcc7
 
     if os(windows)
         if flag(openblas)
