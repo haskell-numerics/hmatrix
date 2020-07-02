@@ -179,9 +179,9 @@ instance Testable GMatrix
           where
             m1 = convomat n k
             m2 = map (((+n) *** id) *** id) m1
-            
+
         testb n = vect $ take n $ cycle ([0..10]++[9,8..1])
-        
+
         denseSolve a = flatten . linearSolveLS a . asColumn
 
         -- mkDiag v = mkDiagR (dim v) (dim v) v
