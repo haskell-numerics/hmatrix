@@ -16,10 +16,9 @@ import Internal.Vector
 import Internal.Matrix
 import Internal.Numeric
 import qualified Data.Vector.Storable as V
-import Data.Function(on)
 import Control.Arrow((***))
 import Control.Monad(when)
-import Data.List(groupBy, sort)
+import Data.List(sort)
 import Foreign.C.Types(CInt(..))
 
 import Internal.Devel
@@ -48,23 +47,32 @@ data CSC = CSC
         , cscNCols :: Int
         } deriving Show
 
+groupPairs :: Eq b => [(b, c)] -> [(b, [c])]
+groupPairs [] =  []
+groupPairs ((b,c):rs) =
+  let (ys,zs) = span ((==) b . fst) rs
+      cs =  map snd ys
+   in (b, c:cs) : groupPairs zs
 
 mkCSR :: AssocMatrix -> CSR
-mkCSR sm' = CSR{..}
+mkCSR sm = CSR{..}
   where
-    sm = sort sm'
-    rws = map ((fromList *** fromList)
-              . unzip
-              . map ((succ.fi.snd) *** id)
-              )
-        . groupBy ((==) `on` (fst.fst))
-        $ sm
-    rszs = map (fi . dim . fst) rws
-    csrRows = fromList (scanl (+) 1 rszs)
-    csrVals = vjoin (map snd rws)
-    csrCols = vjoin (map fst rws)
+    sfi = succ . fi
+
+    rws = map (fmap ((fromList *** fromList) . unzip))
+        $ groupPairs
+        $ map (\((r,c), v) -> (succ r, (sfi c, v)))
+        $ sort sm
+
+    csrRows = fromList $ go 0 1 rws
+    csrVals = vjoin (map (snd . snd) rws)
+    csrCols = vjoin (map (fst . snd) rws)
     csrNRows = dim csrRows - 1
     csrNCols = fromIntegral (V.maximum csrCols)
+
+    go _ p [] = [fi p]
+    go n p ((r,(vs, _)):rest) =
+      replicate (r - n) (fi p) `mappend` go r (p + dim vs) rest
 
 {- | General matrix with specialized internal representations for
      dense, sparse, diagonal, banded, and constant elements.
