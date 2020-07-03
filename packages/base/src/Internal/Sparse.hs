@@ -1,11 +1,13 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE RankNTypes #-}
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Internal.Sparse(
-    GMatrix(..), CSR(..), mkCSR, fromCSR,
+    GMatrix(..), CSR(..), mkCSR, fromCSR, withFoldCSR,
     mkSparse, mkDiagR, mkDense,
     AssocMatrix,
     toDense,
@@ -16,8 +18,11 @@ import Internal.Vector
 import Internal.Matrix
 import Internal.Numeric
 import qualified Data.Vector.Storable as V
+import qualified Data.Vector.Storable.Mutable as M
 import Control.Arrow((***))
-import Control.Monad(when)
+import Control.Monad(when, foldM)
+import Control.Monad.ST (runST)
+import Control.Monad.Primitive (PrimMonad)
 import Data.List(sort)
 import Foreign.C.Types(CInt(..))
 
@@ -29,7 +34,8 @@ import Text.Printf(printf)
 infixl 0 ~!~
 c ~!~ msg = when c (error msg)
 
-type AssocMatrix = [((Int,Int),Double)]
+type AssocEntry  = ((Int,Int),Double)
+type AssocMatrix = [AssocEntry]
 
 data CSR = CSR
         { csrVals  :: Vector Double
@@ -47,32 +53,75 @@ data CSC = CSC
         , cscNCols :: Int
         } deriving Show
 
-groupPairs :: Eq b => [(b, c)] -> [(b, [c])]
-groupPairs [] =  []
-groupPairs ((b,c):rs) =
-  let (ys,zs) = span ((==) b . fst) rs
-      cs =  map snd ys
-   in (b, c:cs) : groupPairs zs
-
 mkCSR :: AssocMatrix -> CSR
-mkCSR sm = CSR{..}
+mkCSR ms =
+  runST $ withFoldCSR runFold $ sort ms
+    where
+  runFold next initialise xtract as0 = do
+    i0  <- initialise
+    acc <- foldM next i0 as0
+    xtract acc
+
+-- | Take a function taking a monadic fold and return a CSR a the end of
+--   the fold. This function can be useful when combined with libraries
+--   like pipes, conduit, or streaming.
+--
+--   For example
+--   > withFoldCSR Pipes.Prelude.foldM :: PrimMonad m => Producer AssocEntry m () -> m CSR
+--
+--   > withFoldCSR Streaming.Prelude.foldM :: PrimMonad m => Stream (Of AssocEntry) m r -> m (Of CSR r)
+--
+--   This can be useful when streaming data from an effectful source.
+withFoldCSR
+    :: PrimMonad m
+    => (forall x . (x -> AssocEntry -> m x) -> m x -> (x -> m CSR) -> r)
+    -> r
+withFoldCSR f = f next begin done
   where
+    (?) = flip
     sfi = succ . fi
+    maxChunkSize = 8 * 1024 * 1024
 
-    rws = map (fmap ((fromList *** fromList) . unzip))
-        $ groupPairs
-        $ map (\((r,c), v) -> (succ r, (sfi c, v)))
-        $ sort sm
+    begin = do
+      mv <- M.unsafeNew 100
+      mr <- M.unsafeNew 100
+      mc <- M.unsafeNew 100
+      return (mv, mr, mc, 0, 0, 0, -1)
 
-    csrRows = fromList $ go 0 1 rws
-    csrVals = vjoin (map (snd . snd) rws)
-    csrCols = vjoin (map (fst . snd) rws)
-    csrNRows = dim csrRows - 1
-    csrNCols = fromIntegral (V.maximum csrCols)
+    next (!mv, !mr, !mc, !idxVC, !idxR, !maxC, !curRow) ((r,c),d) = do
+      let lenVC = M.length mv
+          lenR  = M.length mr
+          curR' = r
+          maxC' = max maxC c
 
-    go _ p [] = [fi p]
-    go n p ((r,(vs, _)):rest) =
-      replicate (r - n) (fi p) `mappend` go r (p + dim vs) rest
+      (mv', mc') <- if idxVC >= lenVC
+          then do
+            mv' <- M.unsafeGrow mv (min lenVC maxChunkSize)
+            mc' <- M.unsafeGrow mc (min lenVC maxChunkSize)
+            return (mv', mc')
+          else
+            return (mv, mc)
+
+      mr' <- if idxR >= lenR - 1
+          then M.unsafeGrow mr (min lenR maxChunkSize)
+          else return mr
+
+      M.unsafeWrite mc' idxVC (sfi c)
+      M.unsafeWrite mv' idxVC d
+
+      idxR' <- foldM ? idxR ? [1 .. (r-curRow)] $ \idxR' _ -> do
+        M.unsafeWrite mr' idxR' (sfi idxVC)
+        return $! idxR' + 1
+
+      return (mv', mr', mc', idxVC + 1, idxR', maxC', curR')
+
+    done (!mv, !mr, !mc, !idxVC, !idxR, !maxC, !curR) = do
+      M.unsafeWrite mr idxR (sfi idxVC)
+      vv <- V.unsafeFreeze (M.take idxVC mv)
+      vc <- V.unsafeFreeze (M.take idxVC mc)
+      vr <- V.unsafeFreeze (M.take (idxR + 1)  mr)
+      return $ CSR vv vc vr (succ curR) (succ maxC)
+
 
 {- | General matrix with specialized internal representations for
      dense, sparse, diagonal, banded, and constant elements.
