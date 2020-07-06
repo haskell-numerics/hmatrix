@@ -430,11 +430,8 @@ instance Monad m => Monad (MaybeT m) where
                         case res of
                                  Nothing -> return Nothing
                                  Just r  -> runMaybeT (f r)
-    fail _   = MaybeT $ return Nothing
 
-lift_maybe m = MaybeT $ do
-                        res <- m
-                        return $ Just res
+lift_maybe = MaybeT . fmap Just
 
 -- apply a test to successive elements of a vector, evaluates to true iff test passes for all pairs
 --successive_ :: Storable a => (a -> a -> Bool) -> Vector a -> Bool
@@ -443,7 +440,7 @@ successive_ t v = maybe False (\_ -> True) $ evalState (runMaybeT (mapVectorM_ s
                   ep <- lift_maybe $ state_get
                   if t e ep
                      then lift_maybe $ state_put e
-                     else (fail "successive_ test failed")
+                     else MaybeT $ return Nothing
 
 -- operate on successive elements of a vector and return the resulting vector, whose length 1 less than that of the input
 --successive :: (Storable a, Storable b) => (a -> a -> b) -> Vector a -> Vector b
