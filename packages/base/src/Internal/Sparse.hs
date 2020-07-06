@@ -7,7 +7,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Internal.Sparse(
-    GMatrix(..), CSR(..), mkCSR, fromCSR, withFoldCSR,
+    GMatrix(..), CSR(..), mkCSR, fromCSR, impureCSR,
     mkSparse, mkDiagR, mkDense,
     AssocMatrix,
     toDense,
@@ -34,8 +34,7 @@ import Text.Printf(printf)
 infixl 0 ~!~
 c ~!~ msg = when c (error msg)
 
-type AssocEntry  = ((Int,Int),Double)
-type AssocMatrix = [AssocEntry]
+type AssocMatrix = [(IndexOf Matrix, Double)]
 
 data CSR = CSR
         { csrVals  :: Vector Double
@@ -53,30 +52,32 @@ data CSC = CSC
         , cscNCols :: Int
         } deriving Show
 
+
+-- | Produce a CSR sparse matrix from a association matrix.
 mkCSR :: AssocMatrix -> CSR
 mkCSR ms =
-  runST $ withFoldCSR runFold $ sort ms
+  runST $ impureCSR runFold $ sort ms
     where
   runFold next initialise xtract as0 = do
     i0  <- initialise
     acc <- foldM next i0 as0
     xtract acc
 
--- | Take a function taking a monadic fold and return a CSR a the end of
---   the fold. This function can be useful when combined with libraries
---   like pipes, conduit, or streaming.
+-- | Produce a CSR sparse matrix by applying a generic folding function.
+--
+--   This allows one to build a CSR from an effectful streaming source
+--   when combined with libraries like pipes, io-streams, or streaming.
 --
 --   For example
---   > withFoldCSR Pipes.Prelude.foldM :: PrimMonad m => Producer AssocEntry m () -> m CSR
 --
---   > withFoldCSR Streaming.Prelude.foldM :: PrimMonad m => Stream (Of AssocEntry) m r -> m (Of CSR r)
+--   > impureCSR Pipes.Prelude.foldM :: PrimMonad m => Producer AssocEntry m () -> m CSR
+--   > impureCSR Streaming.Prelude.foldM :: PrimMonad m => Stream (Of AssocEntry) m r -> m (Of CSR r)
 --
---   This can be useful when streaming data from an effectful source.
-withFoldCSR
+impureCSR
     :: PrimMonad m
-    => (forall x . (x -> AssocEntry -> m x) -> m x -> (x -> m CSR) -> r)
+    => (forall x . (x -> (IndexOf Matrix, Double) -> m x) -> m x -> (x -> m CSR) -> r)
     -> r
-withFoldCSR f = f next begin done
+impureCSR f = f next begin done
   where
     (?) = flip
     sfi = succ . fi
@@ -89,9 +90,10 @@ withFoldCSR f = f next begin done
       return (mv, mr, mc, 0, 0, 0, -1)
 
     next (!mv, !mr, !mc, !idxVC, !idxR, !maxC, !curRow) ((r,c),d) = do
+      r < curRow ~!~ printf "impureCSR: row %i specified after %i" r curRow
+
       let lenVC = M.length mv
           lenR  = M.length mr
-          curR' = r
           maxC' = max maxC c
 
       (mv', mc') <- if idxVC >= lenVC
@@ -113,13 +115,13 @@ withFoldCSR f = f next begin done
         M.unsafeWrite mr' idxR' (sfi idxVC)
         return $! idxR' + 1
 
-      return (mv', mr', mc', idxVC + 1, idxR', maxC', curR')
+      return (mv', mr', mc', idxVC + 1, idxR', maxC', r)
 
     done (!mv, !mr, !mc, !idxVC, !idxR, !maxC, !curR) = do
       M.unsafeWrite mr idxR (sfi idxVC)
-      vv <- V.unsafeFreeze (M.take idxVC mv)
-      vc <- V.unsafeFreeze (M.take idxVC mc)
-      vr <- V.unsafeFreeze (M.take (idxR + 1)  mr)
+      vv <- V.unsafeFreeze (M.unsafeTake idxVC mv)
+      vc <- V.unsafeFreeze (M.unsafeTake idxVC mc)
+      vr <- V.unsafeFreeze (M.unsafeTake (idxR + 1)  mr)
       return $ CSR vv vc vr (succ curR) (succ maxC)
 
 
