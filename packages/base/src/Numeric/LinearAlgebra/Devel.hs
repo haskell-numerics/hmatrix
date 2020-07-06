@@ -51,7 +51,7 @@ module Numeric.LinearAlgebra.Devel(
     liftMatrix, liftMatrix2, liftMatrix2Auto,
 
     -- * Sparse representation
-    CSR(..), fromCSR, mkCSR,
+    CSR(..), fromCSR, mkCSR, impureCSR,
     GMatrix(..),
 
     -- * Misc
