@@ -281,34 +281,43 @@ int zgesdd_ (char *jobz, integer *m, integer *n,
     integer *lwork, doublereal *rwork, integer* iwork, integer *info);
 
 int svd_l_Cdd(OCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
-    integer m = ar;
-    integer n = ac;
-    integer q = MIN(m,n);
-    REQUIRES(sn==q,BAD_SIZE);
+    integer m  = ar;
+    integer n  = ac;
+    integer mx = MAX(m,n);
+    integer mn = MIN(m,n);
+    REQUIRES(sn==mn,BAD_SIZE);
     REQUIRES((up == NULL && vp == NULL)
              || (ur==m && vc==n
-                &&   ((uc == q && vr == q)
+                &&   ((uc == mn && vr == mn)
                    || (uc == m && vc==n))),BAD_SIZE);
     char* jobz  = "A";
     integer ldvt = n;
     if (up==NULL) {
         jobz = "N";
     } else {
-        if (uc==q && vr == q) {
+        if (uc==mn && vr == mn) {
             jobz = "S";
-            ldvt = q;
+            ldvt = mn;
         }
     }
     DEBUGMSG("svd_l_Cdd");
-    integer* iwk = (integer*) malloc(8*q*sizeof(integer));
+    integer* iwk = (integer*) malloc(8*mn*sizeof(integer));
     CHECK(!iwk,MEM);
+
+    // Docs: http://www.netlib.org/lapack/explore-html/d8/d54/zgesdd_8f_source.html
+    // RWORK is DOUBLE PRECISION array, dimension (MAX(1,LRWORK))
+    // Let mx = max(M,N) and mn = min(M,N).
+    // If JOBZ = 'N',    LRWORK >= 5*mn (LAPACK <= 3.6 needs 7*mn);
+    // else if mx >> mn, LRWORK >= 5*mn*mn + 5*mn;
+    // else              LRWORK >= max( 5*mn*mn + 5*mn,
+    //                                  2*mx*mn + 2*mn*mn + mn ).
     int lrwk;
-    if (0 && *jobz == 'N') {
-        lrwk = 5*q; // does not work, crash at free below
+    if (*jobz == 'N') {
+        lrwk = 7*mn;
     } else {
-        lrwk = 5*q*q + 7*q;
+        lrwk = MAX(5*mn*mn + 7*mn, 2*mx*mn + 2*mn*mn + mn);
     }
-    double *rwk = (double*)malloc(lrwk*sizeof(double));;
+    double *rwk = (double*)malloc(MAX(1, lrwk)*sizeof(double));;
     CHECK(!rwk,MEM);
     integer lwk = -1;
     integer res;
