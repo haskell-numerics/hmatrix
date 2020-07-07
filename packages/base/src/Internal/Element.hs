@@ -1,7 +1,6 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -40,7 +39,7 @@ import Foreign.C.Types(CInt)
 
 import Data.Binary
 
-instance (Binary (Vector a), Element a) => Binary (Matrix a) where
+instance (Binary a, Element a) => Binary (Matrix a) where
     put m = do
             put (cols m)
             put (flatten m)

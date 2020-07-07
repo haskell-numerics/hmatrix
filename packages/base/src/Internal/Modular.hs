@@ -8,7 +8,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE TypeOperators #-}
@@ -83,11 +82,11 @@ instance (Ord t, KnownNat m) => Ord (Mod m t)
   where
     compare a b = compare (unMod a) (unMod b)
 
-instance (Integral t, Real t, KnownNat m, Integral (Mod m t)) => Real (Mod m t)
+instance (Integral t, Real t, KnownNat m) => Real (Mod m t)
   where
     toRational x = toInteger x % 1
 
-instance (Integral t, KnownNat m, Num (Mod m t)) => Integral (Mod m t)
+instance (Integral t, KnownNat m) => Integral (Mod m t)
   where
     toInteger = toInteger . unMod
     quotRem a b = (Mod q, Mod r)
@@ -95,7 +94,7 @@ instance (Integral t, KnownNat m, Num (Mod m t)) => Integral (Mod m t)
          (q,r) = quotRem (unMod a) (unMod b)
 
 -- | this instance is only valid for prime m
-instance (Show (Mod m t), Num (Mod m t), Eq t, KnownNat m) => Fractional (Mod m t)
+instance (Integral t, Show t, Eq t, KnownNat m) => Fractional (Mod m t)
   where
     recip x
         | x*r == 1  = r
