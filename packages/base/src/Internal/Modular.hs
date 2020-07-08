@@ -1,19 +1,14 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs #-}
 {-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE TypeOperators #-}
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-{-# OPTIONS_GHC -fno-warn-missing-methods #-}
 
 {- |
 Module      :  Internal.Modular
@@ -150,6 +145,7 @@ instance KnownNat m => Element (Mod m I)
     gemm u a b c = gemmg (c_gemmMI m') (f2i u) (f2iM a) (f2iM b) (f2iM c)
       where
         m' = fromIntegral . natVal $ (undefined :: Proxy m)
+    reorderV strides dims = i2f . reorderAux c_reorderI strides dims . f2i
 
 instance KnownNat m => Element (Mod m Z)
   where
@@ -167,6 +163,7 @@ instance KnownNat m => Element (Mod m Z)
     gemm u a b c = gemmg (c_gemmML m') (f2i u) (f2iM a) (f2iM b) (f2iM c)
       where
         m' = fromIntegral . natVal $ (undefined :: Proxy m)
+    reorderV strides dims = i2f . reorderAux c_reorderL strides dims . f2i
 
 
 instance KnownNat m => CTrans (Mod m I)
