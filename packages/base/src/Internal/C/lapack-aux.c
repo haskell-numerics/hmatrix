@@ -45,6 +45,9 @@ typedef float  complex TCF;
                      for(q=0;q<M##r*M##c;q++) printf("%.1f ",M##p[q]); printf("\n");}
 
 #define CHECK(RES,CODE) MACRO(if(RES) return CODE;)
+#define MARK(RES,CODE) MACRO(if(RES) { ret = CODE; })
+#define CONVERGED(RES,CODE) MACRO(if(RES > 0) { ret = CODE; } else if(RES < 0) { ret = RES; })
+#define UNWIND(RES,CODE,LABEL) MACRO(if(RES) { ret = CODE; goto LABEL; })
 
 #define BAD_SIZE 2000
 #define BAD_CODE 2001
@@ -116,6 +119,7 @@ int dgesvd_(char *jobu, char *jobvt, integer *m, integer *n,
 	integer *info);
 
 int svd_l_R(ODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
+    integer ret = 0;
     integer m = ar;
     integer n = ac;
     integer q = MIN(m,n);
@@ -152,9 +156,12 @@ int svd_l_R(ODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
              vp,&ldvt,
              &ans, &lwork,
              &res);
+    CHECK(res,res);
+
     lwork = ceil(ans);
     double * work = (double*)malloc(lwork*sizeof(double));
     CHECK(!work,MEM);
+
     dgesvd_ (jobu,jobvt,
              &m,&n,ap,&m,
              sp,
@@ -162,9 +169,10 @@ int svd_l_R(ODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
              vp,&ldvt,
              work, &lwork,
              &res);
-    CHECK(res,res);
+
+    MARK(res, res);
     free(work);
-    OK
+    return ret;
 }
 
 // (alternative version)
@@ -175,9 +183,10 @@ int dgesdd_(char *jobz, integer *m, integer *n, doublereal *
 	integer *iwork, integer *info);
 
 int svd_l_Rdd(ODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
-    integer m = ar;
-    integer n = ac;
-    integer q = MIN(m,n);
+    integer ret = 0;
+    integer m   = ar;
+    integer n   = ac;
+    integer q   = MIN(m,n);
     REQUIRES(sn==q,BAD_SIZE);
     REQUIRES((up == NULL && vp == NULL)
              || (ur==m && vc==n
@@ -195,20 +204,27 @@ int svd_l_Rdd(ODMAT(a),ODMAT(u), DVEC(s),ODMAT(v)) {
     }
     DEBUGMSG("svd_l_Rdd");
     integer* iwk = (integer*) malloc(8*q*sizeof(integer));
-    CHECK(!iwk,MEM);
+    UNWIND(!iwk,MEM,cleanup0);
     integer lwk = -1;
     integer res;
     // ask for optimal lwk
     double ans;
     dgesdd_ (jobz,&m,&n,ap,&m,sp,up,&m,vp,&ldvt,&ans,&lwk,iwk,&res);
+    UNWIND(res,res,cleanup1);
+
     lwk = ans;
     double * workv = (double*)malloc(lwk*sizeof(double));
-    CHECK(!workv,MEM);
+    UNWIND(!workv,MEM,cleanup1);
+
     dgesdd_ (jobz,&m,&n,ap,&m,sp,up,&m,vp,&ldvt,workv,&lwk,iwk,&res);
-    CHECK(res,res);
-    free(iwk);
+    UNWIND(res,res,cleanup2);
+
+cleanup2:
     free(workv);
-    OK
+cleanup1:
+    free(iwk);
+cleanup0:
+    return ret;
 }
 
 //////////////////// complex svd ////////////////////////////////////
@@ -219,11 +235,14 @@ int zgesvd_(char *jobu, char *jobvt, integer *m, integer *n,
     integer *lwork, doublereal *rwork, integer *info);
 
 int svd_l_C(OCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
-    integer m = ar;
-    integer n = ac;
-    integer q = MIN(m,n);
+    integer ret = 0;
+    integer m   = ar;
+    integer n   = ac;
+    integer q   = MIN(m,n);
     REQUIRES(sn==q,BAD_SIZE);
     REQUIRES(up==NULL || (ur==m && (uc==m || uc==q)),BAD_SIZE);
+    REQUIRES(vp==NULL || (vc==n && (vr==n || vr==q)),BAD_SIZE);
+
     char* jobu  = "A";
     if (up==NULL) {
         jobu = "N";
@@ -232,7 +251,6 @@ int svd_l_C(OCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
             jobu = "S";
         }
     }
-    REQUIRES(vp==NULL || (vc==n && (vr==n || vr==q)),BAD_SIZE);
     char* jobvt  = "A";
     integer ldvt = n;
     if (vp==NULL) {
@@ -245,7 +263,8 @@ int svd_l_C(OCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
     }DEBUGMSG("svd_l_C");
 
     double *rwork = (double*) malloc(5*q*sizeof(double));
-    CHECK(!rwork,MEM);
+    UNWIND(!rwork,MEM,cleanup0);
+
     integer lwork = -1;
     integer res;
     // ask for optimal lwork
@@ -258,9 +277,12 @@ int svd_l_C(OCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
              &ans, &lwork,
              rwork,
              &res);
+    UNWIND(res,res,cleanup1);
+
     lwork = ceil(ans.r);
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
-    CHECK(!work,MEM);
+    UNWIND(!work,MEM,cleanup1);
+
     zgesvd_ (jobu,jobvt,
              &m,&n,ap,&m,
              sp,
@@ -269,10 +291,14 @@ int svd_l_C(OCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
              work, &lwork,
              rwork,
              &res);
-    CHECK(res,res);
+    UNWIND(res,res,cleanup2);
+
+cleanup2:
     free(work);
+cleanup1:
     free(rwork);
-    OK
+cleanup0:
+    return ret;
 }
 
 int zgesdd_ (char *jobz, integer *m, integer *n,
@@ -281,49 +307,68 @@ int zgesdd_ (char *jobz, integer *m, integer *n,
     integer *lwork, doublereal *rwork, integer* iwork, integer *info);
 
 int svd_l_Cdd(OCMAT(a),OCMAT(u), DVEC(s),OCMAT(v)) {
-    integer m = ar;
-    integer n = ac;
-    integer q = MIN(m,n);
-    REQUIRES(sn==q,BAD_SIZE);
+    integer ret = 0;
+    integer m   = ar;
+    integer n   = ac;
+    integer mx  = MAX(m,n);
+    integer mn  = MIN(m,n);
+    REQUIRES(sn==mn,BAD_SIZE);
     REQUIRES((up == NULL && vp == NULL)
              || (ur==m && vc==n
-                &&   ((uc == q && vr == q)
+                &&   ((uc == mn && vr == mn)
                    || (uc == m && vc==n))),BAD_SIZE);
     char* jobz  = "A";
     integer ldvt = n;
     if (up==NULL) {
         jobz = "N";
     } else {
-        if (uc==q && vr == q) {
+        if (uc==mn && vr == mn) {
             jobz = "S";
-            ldvt = q;
+            ldvt = mn;
         }
     }
     DEBUGMSG("svd_l_Cdd");
-    integer* iwk = (integer*) malloc(8*q*sizeof(integer));
-    CHECK(!iwk,MEM);
+    integer* iwk = (integer*) malloc(8*mn*sizeof(integer));
+    UNWIND(!iwk,MEM,cleanup0);
+
+    // Docs: http://www.netlib.org/lapack/explore-html/d8/d54/zgesdd_8f_source.html
+    // RWORK is DOUBLE PRECISION array, dimension (MAX(1,LRWORK))
+    // Let mx = max(M,N) and mn = min(M,N).
+    // If JOBZ = 'N',    LRWORK >= 5*mn (LAPACK <= 3.6 needs 7*mn);
+    // else if mx >> mn, LRWORK >= 5*mn*mn + 5*mn;
+    // else              LRWORK >= max( 5*mn*mn + 5*mn,
+    //                                  2*mx*mn + 2*mn*mn + mn ).
     int lrwk;
-    if (0 && *jobz == 'N') {
-        lrwk = 5*q; // does not work, crash at free below
+    if (*jobz == 'N') {
+        lrwk = 7*mn;
     } else {
-        lrwk = 5*q*q + 7*q;
+        lrwk = MAX(5*mn*mn + 7*mn, 2*mx*mn + 2*mn*mn + mn);
     }
-    double *rwk = (double*)malloc(lrwk*sizeof(double));;
-    CHECK(!rwk,MEM);
+    double *rwk = (double*)malloc(MAX(1, lrwk)*sizeof(double));;
+    UNWIND(!rwk,MEM,cleanup1);
+
     integer lwk = -1;
     integer res;
     // ask for optimal lwk
     doublecomplex ans;
     zgesdd_ (jobz,&m,&n,ap,&m,sp,up,&m,vp,&ldvt,&ans,&lwk,rwk,iwk,&res);
+    UNWIND(res,res,cleanup2);
+
     lwk = ans.r;
     doublecomplex * workv = (doublecomplex*)malloc(lwk*sizeof(doublecomplex));
-    CHECK(!workv,MEM);
+    UNWIND(!workv,MEM,cleanup2);
+
     zgesdd_ (jobz,&m,&n,ap,&m,sp,up,&m,vp,&ldvt,workv,&lwk,rwk,iwk,&res);
-    CHECK(res,res);
+    UNWIND(res,res,cleanup3);
+
+cleanup3:
     free(workv);
+cleanup2:
     free(rwk);
+cleanup1:
     free(iwk);
-    OK
+cleanup0:
+    return ret;
 }
 
 //////////////////// general complex eigensystem ////////////
@@ -334,15 +379,18 @@ int zgeev_(char *jobvl, char *jobvr, integer *n,
 	integer *lwork, doublereal *rwork, integer *info);
 
 int eig_l_C(OCMAT(a), OCMAT(u), CVEC(s),OCMAT(v)) {
-    integer n = ar;
+    integer ret = 0;
+    integer n   = ar;
     REQUIRES(ac==n && sn==n, BAD_SIZE);
     REQUIRES(up==NULL || (ur==n && uc==n), BAD_SIZE);
     char jobvl = up==NULL?'N':'V';
     REQUIRES(vp==NULL || (vr==n && vc==n), BAD_SIZE);
     char jobvr = vp==NULL?'N':'V';
     DEBUGMSG("eig_l_C");
+
     double *rwork = (double*) malloc(2*n*sizeof(double));
-    CHECK(!rwork,MEM);
+    UNWIND(!rwork,MEM,cleanup0);
+
     integer lwork = -1;
     integer res;
     // ask for optimal lwork
@@ -355,9 +403,13 @@ int eig_l_C(OCMAT(a), OCMAT(u), CVEC(s),OCMAT(v)) {
              &ans, &lwork,
              rwork,
              &res);
+
+    UNWIND(res,res,cleanup1);
+
     lwork = ceil(ans.r);
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
-    CHECK(!work,MEM);
+    UNWIND(!work,MEM,cleanup1);
+
     zgeev_  (&jobvl,&jobvr,
              &n,ap,&n,
              sp,
@@ -366,10 +418,15 @@ int eig_l_C(OCMAT(a), OCMAT(u), CVEC(s),OCMAT(v)) {
              work, &lwork,
              rwork,
              &res);
-    CHECK(res,res);
+
+    UNWIND(res,res,cleanup2);
+
+cleanup2:
     free(work);
+cleanup1:
     free(rwork);
-    OK
+cleanup0:
+    return ret;
 }
 
 
@@ -382,7 +439,8 @@ int dgeev_(char *jobvl, char *jobvr, integer *n, doublereal *
 	integer *lwork, integer *info);
 
 int eig_l_R(ODMAT(a),ODMAT(u), CVEC(s),ODMAT(v)) {
-    integer n = ar;
+    integer ret = 0;
+    integer n   = ar;
     REQUIRES(ac==n && sn==n, BAD_SIZE);
     REQUIRES(up==NULL || (ur==n && uc==n), BAD_SIZE);
     char jobvl = up==NULL?'N':'V';
@@ -400,6 +458,8 @@ int eig_l_R(ODMAT(a),ODMAT(u), CVEC(s),ODMAT(v)) {
              vp,&n,
              &ans, &lwork,
              &res);
+    CHECK(res,res);
+
     lwork = ceil(ans);
     double * work = (double*)malloc(lwork*sizeof(double));
     CHECK(!work,MEM);
@@ -410,9 +470,10 @@ int eig_l_R(ODMAT(a),ODMAT(u), CVEC(s),ODMAT(v)) {
              vp,&n,
              work, &lwork,
              &res);
-    CHECK(res,res);
+    MARK(res,res);
+
     free(work);
-    OK
+    return ret;
 }
 
 //////////////////// generalized real eigensystem ////////////
@@ -425,7 +486,8 @@ int dggev_(char *jobvl, char *jobvr, integer *n,
 	integer *lwork, integer *info);
 
 int eig_l_G(ODMAT(a), ODMAT(b), CVEC(alpha), DVEC(beta), ODMAT(vl), ODMAT(vr)) {
-    integer n = ar;
+    integer ret = 0;
+    integer n   = ar;
     REQUIRES(ac == n && br == n && bc == n && alphan == n && betan == n, BAD_SIZE);
     REQUIRES(vlp==NULL || (vlr==n && vlc==n), BAD_SIZE);
     char jobvl = vlp==NULL?'N':'V';
@@ -443,9 +505,12 @@ int eig_l_G(ODMAT(a), ODMAT(b), CVEC(alpha), DVEC(beta), ODMAT(vl), ODMAT(vr)) {
              vlp, &n, vrp, &n,
              &ans, &lwork,
              &res);
+    CHECK(res,res);
+
     lwork = ceil(ans);
     double * work = (double*)malloc(lwork*sizeof(double));
     CHECK(!work,MEM);
+
     dggev_  (&jobvl,&jobvr,
              &n,
              ap,&n,bp,&n,
@@ -453,9 +518,10 @@ int eig_l_G(ODMAT(a), ODMAT(b), CVEC(alpha), DVEC(beta), ODMAT(vl), ODMAT(vr)) {
              vlp, &n, vrp, &n,
              work, &lwork,
              &res);
-    CHECK(res,res);
+    MARK(res,res);
+
     free(work);
-    OK
+    return ret;
 }
 
 //////////////////// generalized complex eigensystem ////////////
@@ -468,7 +534,8 @@ int zggev_(char *jobvl, char *jobvr, integer *n,
     doublereal *rwork, integer *info);
 
 int eig_l_GC(OCMAT(a), OCMAT(b), CVEC(alpha), CVEC(beta), OCMAT(vl), OCMAT(vr)) {
-    integer n = ar;
+    integer ret = 0;
+    integer n   = ar;
     REQUIRES(ac == n && br == n && bc == n && alphan == n && betan == n, BAD_SIZE);
     REQUIRES(vlp==NULL || (vlr==n && vlc==n), BAD_SIZE);
     char jobvl = vlp==NULL?'N':'V';
@@ -476,7 +543,8 @@ int eig_l_GC(OCMAT(a), OCMAT(b), CVEC(alpha), CVEC(beta), OCMAT(vl), OCMAT(vr)) 
     char jobvr = vrp==NULL?'N':'V';
     DEBUGMSG("eig_l_GC");
     double *rwork = (double*) malloc(8*n*sizeof(double));
-    CHECK(!rwork,MEM);
+    UNWIND(!rwork,MEM,cleanup0);
+
     integer lwork = -1;
     integer res;
     // ask for optimal lwork
@@ -488,9 +556,12 @@ int eig_l_GC(OCMAT(a), OCMAT(b), CVEC(alpha), CVEC(beta), OCMAT(vl), OCMAT(vr)) 
              vlp, &n, vrp, &n,
              &ans, &lwork,
              rwork, &res);
+    UNWIND(res,res,cleanup1);
+
     lwork = ceil(ans.r);
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
-    CHECK(!work,MEM);
+    UNWIND(!work,MEM,cleanup1);
+
     zggev_  (&jobvl,&jobvr,
              &n,
              ap,&n,bp,&n,
@@ -498,9 +569,14 @@ int eig_l_GC(OCMAT(a), OCMAT(b), CVEC(alpha), CVEC(beta), OCMAT(vl), OCMAT(vr)) 
              vlp, &n, vrp, &n,
              work, &lwork,
              rwork, &res);
-    CHECK(res,res);
+    UNWIND(res,res,cleanup2);
+
+cleanup2:
     free(work);
-    OK
+cleanup1:
+    free(rwork);
+cleanup0:
+    return ret;
 }
 
 //////////////////// symmetric real eigensystem ////////////
@@ -510,7 +586,8 @@ int dsyev_(char *jobz, char *uplo, integer *n, doublereal *a,
 	integer *info);
 
 int eig_l_S(int wantV,DVEC(s),ODMAT(v)) {
-    integer n = sn;
+    integer ret = 0;
+    integer n   = sn;
     REQUIRES(vr==n && vc==n, BAD_SIZE);
     char jobz = wantV?'V':'N';
     DEBUGMSG("eig_l_S");
@@ -524,17 +601,21 @@ int eig_l_S(int wantV,DVEC(s),ODMAT(v)) {
              sp,
              &ans, &lwork,
              &res);
+    CHECK(res,res);
+
     lwork = ceil(ans);
     double * work = (double*)malloc(lwork*sizeof(double));
     CHECK(!work,MEM);
+
     dsyev_  (&jobz,&uplo,
              &n,vp,&n,
              sp,
              work, &lwork,
              &res);
-    CHECK(res,res);
+    MARK(res,res);
+
     free(work);
-    OK
+    return ret;
 }
 
 //////////////////// hermitian complex eigensystem ////////////
@@ -544,12 +625,15 @@ int zheev_(char *jobz, char *uplo, integer *n, doublecomplex
 	doublereal *rwork, integer *info);
 
 int eig_l_H(int wantV,DVEC(s),OCMAT(v)) {
-    integer n = sn;
+    integer ret = 0;
+    integer n   = sn;
+
     REQUIRES(vr==n && vc==n, BAD_SIZE);
     char jobz = wantV?'V':'N';
     DEBUGMSG("eig_l_H");
     double *rwork = (double*) malloc((3*n-2)*sizeof(double));
-    CHECK(!rwork,MEM);
+    UNWIND(!rwork,MEM,cleanup0);
+
     integer lwork = -1;
     char uplo = 'U';
     integer res;
@@ -561,19 +645,26 @@ int eig_l_H(int wantV,DVEC(s),OCMAT(v)) {
              &ans, &lwork,
              rwork,
              &res);
+    UNWIND(res,res,cleanup1);
+
     lwork = ceil(ans.r);
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
-    CHECK(!work,MEM);
+    UNWIND(!work,MEM,cleanup1);
+
     zheev_  (&jobz,&uplo,
              &n,vp,&n,
              sp,
              work, &lwork,
              rwork,
              &res);
-    CHECK(res,res);
+    UNWIND(res,res,cleanup2);
+
+cleanup2:
     free(work);
+cleanup1:
     free(rwork);
-    OK
+cleanup0:
+    return ret;
 }
 
 //////////////////// general real linear system ////////////
@@ -582,23 +673,25 @@ int dgesv_(integer *n, integer *nrhs, doublereal *a, integer
 	*lda, integer *ipiv, doublereal *b, integer *ldb, integer *info);
 
 int linearSolveR_l(ODMAT(a),ODMAT(b)) {
-    integer n = ar;
+    integer ret  = 0;
+    integer n    = ar;
     integer nhrs = bc;
+
     REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
     DEBUGMSG("linearSolveR_l");
     integer * ipiv = (integer*)malloc(n*sizeof(integer));
+    CHECK(!ipiv,MEM);
+
     integer res;
     dgesv_  (&n,&nhrs,
              ap, &n,
              ipiv,
              bp, &n,
              &res);
-    if(res>0) {
-        return SINGULAR;
-    }
-    CHECK(res,res);
+    CONVERGED(res,SINGULAR);
+
     free(ipiv);
-    OK
+    return ret;
 }
 
 //////////////////// general complex linear system ////////////
@@ -608,23 +701,25 @@ int zgesv_(integer *n, integer *nrhs, doublecomplex *a,
 	info);
 
 int linearSolveC_l(OCMAT(a),OCMAT(b)) {
-    integer n = ar;
+    integer ret  = 0;
+    integer n    = ar;
     integer nhrs = bc;
+
     REQUIRES(n>=1 && ar==ac && ar==br,BAD_SIZE);
     DEBUGMSG("linearSolveC_l");
     integer * ipiv = (integer*)malloc(n*sizeof(integer));
+    CHECK(!ipiv,MEM);
+
     integer res;
     zgesv_  (&n,&nhrs,
              ap, &n,
              ipiv,
              bp, &n,
              &res);
-    if(res>0) {
-        return SINGULAR;
-    }
-    CHECK(res,res);
+    CONVERGED(res,SINGULAR);
+
     free(ipiv);
-    OK
+    return ret;
 }
 
 //////// symmetric positive definite real linear system using Cholesky ////////////
@@ -768,27 +863,37 @@ int dgttrs_(char *trans, integer *n, integer *nrhs,
             integer *info);
 
 int triDiagSolveR_l(DVEC(dl), DVEC(d), DVEC(du), ODMAT(b)) {
-    integer n = dn;
+    integer ret  = 0;
+    integer n    = dn;
     integer nhrs = bc;
     REQUIRES(n >= 1 && dln == dn - 1 && dun == dn - 1 && br == n, BAD_SIZE);
     DEBUGMSG("triDiagSolveR_l");
     integer res;
     integer* ipiv = (integer*)malloc(n*sizeof(integer));
-    double* du2  = (double*)malloc((n - 2)*sizeof(double));
+    UNWIND(!ipiv,MEM,cleanup0);
+
+    double* du2 = (double*)malloc((n - 2)*sizeof(double));
+    UNWIND(!du2,MEM,cleanup1);
+
     dgttrf_ (&n,
              dlp, dp, dup, du2,
              ipiv,
              &res);
-    CHECK(res,res);
+    UNWIND(res,res,cleanup2);
+
     dgttrs_ ("N",
              &n,&nhrs,
              dlp, dp, dup, du2,
              ipiv, bp, &n,
              &res);
-    CHECK(res,res);
-    free(ipiv);
+    UNWIND(res,res,cleanup2);
+
+cleanup2:
     free(du2);
-    OK
+cleanup1:
+    free(ipiv);
+cleanup0:
+    return ret;
 }
 
 //////// tridiagonal complex linear system ////////////
@@ -804,27 +909,37 @@ int zgttrs_(char *trans, integer *n, integer *nrhs,
             integer *info);
 
 int triDiagSolveC_l(CVEC(dl), CVEC(d), CVEC(du), OCMAT(b)) {
-    integer n = dn;
+    integer ret  = 0;
+    integer n    = dn;
     integer nhrs = bc;
     REQUIRES(n >= 1 && dln == dn - 1 && dun == dn - 1 && br == n, BAD_SIZE);
     DEBUGMSG("triDiagSolveC_l");
     integer res;
     integer* ipiv = (integer*)malloc(n*sizeof(integer));
+    UNWIND(!ipiv,MEM,cleanup0);
+
     doublecomplex* du2 = (doublecomplex*)malloc((n - 2)*sizeof(doublecomplex));
+    UNWIND(!du2,MEM,cleanup1);
+
     zgttrf_ (&n,
              dlp, dp, dup, du2,
              ipiv,
              &res);
-    CHECK(res,res);
+    UNWIND(res,res,cleanup2);
+
     zgttrs_ ("N",
              &n,&nhrs,
              dlp, dp, dup, du2,
              ipiv, bp, &n,
              &res);
-    CHECK(res,res);
-    free(ipiv);
+    UNWIND(res,res,cleanup2);
+
+cleanup2:
     free(du2);
-    OK
+cleanup1:
+    free(ipiv);
+cleanup0:
+    return ret;
 }
 
 //////////////////// least squares real linear system ////////////
@@ -834,10 +949,11 @@ int dgels_(char *trans, integer *m, integer *n, integer *
 	doublereal *work, integer *lwork, integer *info);
 
 int linearSolveLSR_l(ODMAT(a),ODMAT(b)) {
-    integer m = ar;
-    integer n = ac;
+    integer ret  = 0;
+    integer m    = ar;
+    integer n    = ac;
     integer nrhs = bc;
-    integer ldb = bXc;
+    integer ldb  = bXc;
     REQUIRES(m>=1 && n>=1 && br==MAX(m,n), BAD_SIZE);
     DEBUGMSG("linearSolveLSR_l");
     integer res;
@@ -848,19 +964,21 @@ int linearSolveLSR_l(ODMAT(a),ODMAT(b)) {
              bp,&ldb,
              &ans,&lwork,
              &res);
+    CHECK(res,res);
+
     lwork = ceil(ans);
     double * work = (double*)malloc(lwork*sizeof(double));
+    CHECK(!work,MEM);
+
     dgels_  ("N",&m,&n,&nrhs,
              ap,&m,
              bp,&ldb,
              work,&lwork,
              &res);
-    if(res>0) {
-        return SINGULAR;
-    }
-    CHECK(res,res);
+    CONVERGED(res,SINGULAR);
+
     free(work);
-    OK
+    return ret;
 }
 
 //////////////////// least squares complex linear system ////////////
@@ -870,10 +988,11 @@ int zgels_(char *trans, integer *m, integer *n, integer *
 	doublecomplex *work, integer *lwork, integer *info);
 
 int linearSolveLSC_l(OCMAT(a),OCMAT(b)) {
-    integer m = ar;
-    integer n = ac;
+    integer ret  = 0;
+    integer m    = ar;
+    integer n    = ac;
     integer nrhs = bc;
-    integer ldb = bXc;
+    integer ldb  = bXc;
     REQUIRES(m>=1 && n>=1 && br==MAX(m,n), BAD_SIZE);
     DEBUGMSG("linearSolveLSC_l");
     integer res;
@@ -884,19 +1003,21 @@ int linearSolveLSC_l(OCMAT(a),OCMAT(b)) {
              bp,&ldb,
              &ans,&lwork,
              &res);
+    CHECK(res,res);
+
     lwork = ceil(ans.r);
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
+    CHECK(!work,MEM);
+
     zgels_  ("N",&m,&n,&nrhs,
              ap,&m,
              bp,&ldb,
              work,&lwork,
              &res);
-    if(res>0) {
-        return SINGULAR;
-    }
-    CHECK(res,res);
+    CONVERGED(res,SINGULAR);
+
     free(work);
-    OK
+    return ret;
 }
 
 //////////////////// least squares real linear system using SVD ////////////
@@ -907,13 +1028,17 @@ int dgelss_(integer *m, integer *n, integer *nrhs,
 	integer *info);
 
 int linearSolveSVDR_l(double rcond,ODMAT(a),ODMAT(b)) {
-    integer m = ar;
-    integer n = ac;
+    integer ret  = 0;
+    integer m    = ar;
+    integer n    = ac;
     integer nrhs = bc;
-    integer ldb = bXc;
+    integer ldb  = bXc;
     REQUIRES(m>=1 && n>=1 && br==MAX(m,n), BAD_SIZE);
     DEBUGMSG("linearSolveSVDR_l");
-    double*S = (double*)malloc(MIN(m,n)*sizeof(double));
+
+    double * S   = (double*)malloc(MIN(m,n)*sizeof(double));
+    UNWIND(!S,MEM,cleanup0);
+
     integer res;
     integer lwork = -1;
     integer rank;
@@ -925,8 +1050,12 @@ int linearSolveSVDR_l(double rcond,ODMAT(a),ODMAT(b)) {
              &rcond,&rank,
              &ans,&lwork,
              &res);
+    UNWIND(res,res,cleanup1);
+
     lwork = ceil(ans);
     double * work = (double*)malloc(lwork*sizeof(double));
+    UNWIND(!work,MEM,cleanup1);
+
     dgelss_  (&m,&n,&nrhs,
              ap,&m,
              bp,&ldb,
@@ -934,13 +1063,15 @@ int linearSolveSVDR_l(double rcond,ODMAT(a),ODMAT(b)) {
              &rcond,&rank,
              work,&lwork,
              &res);
-    if(res>0) {
-        return NOCONVER;
-    }
-    CHECK(res,res);
+
+    CONVERGED(res,NOCONVER);
+
     free(work);
+cleanup1:
     free(S);
-    OK
+cleanup0:
+    return ret;
+
 }
 
 //////////////////// least squares complex linear system using SVD ////////////
@@ -952,14 +1083,20 @@ int zgelss_(integer *m, integer *n, integer *nhrs,
     integer *info);
 
 int linearSolveSVDC_l(double rcond, OCMAT(a),OCMAT(b)) {
-    integer m = ar;
-    integer n = ac;
+    integer ret  = 0;
+    integer m    = ar;
+    integer n    = ac;
     integer nrhs = bc;
-    integer ldb = bXc;
+    integer ldb  = bXc;
     REQUIRES(m>=1 && n>=1 && br==MAX(m,n), BAD_SIZE);
     DEBUGMSG("linearSolveSVDC_l");
+
     double*S = (double*)malloc(MIN(m,n)*sizeof(double));
+    UNWIND(!S,MEM,cleanup0);
+
     double*RWORK = (double*)malloc(5*MIN(m,n)*sizeof(double));
+    UNWIND(!S,MEM,cleanup1);
+
     integer res;
     integer lwork = -1;
     integer rank;
@@ -972,8 +1109,12 @@ int linearSolveSVDC_l(double rcond, OCMAT(a),OCMAT(b)) {
              &ans,&lwork,
              RWORK,
              &res);
+    UNWIND(res,res,cleanup2);
+
     lwork = ceil(ans.r);
     doublecomplex * work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
+    UNWIND(!work,MEM,cleanup2);
+
     zgelss_  (&m,&n,&nrhs,
              ap,&m,
              bp,&ldb,
@@ -982,14 +1123,16 @@ int linearSolveSVDC_l(double rcond, OCMAT(a),OCMAT(b)) {
              work,&lwork,
              RWORK,
              &res);
-    if(res>0) {
-        return NOCONVER;
-    }
-    CHECK(res,res);
+    CONVERGED(res,NOCONVER);
+
     free(work);
+cleanup2:
     free(RWORK);
+cleanup1:
     free(S);
-    OK
+cleanup0:
+    return ret;
+
 }
 
 //////////////////// Cholesky factorization /////////////////////////
@@ -1042,36 +1185,43 @@ int dgeqr2_(integer *m, integer *n, doublereal *a, integer *
 	lda, doublereal *tau, doublereal *work, integer *info);
 
 int qr_l_R(DVEC(tau), ODMAT(r)) {
-    integer m = rr;
-    integer n = rc;
-    integer mn = MIN(m,n);
+    integer ret = 0;
+    integer m   = rr;
+    integer n   = rc;
+    integer mn  = MIN(m,n);
     REQUIRES(m>=1 && n >=1 && taun == mn, BAD_SIZE);
     DEBUGMSG("qr_l_R");
     double *WORK = (double*)malloc(n*sizeof(double));
     CHECK(!WORK,MEM);
+
     integer res;
     dgeqr2_ (&m,&n,rp,&m,taup,WORK,&res);
-    CHECK(res,res);
+    MARK(res,res);
+
     free(WORK);
-    OK
+    return ret;
 }
 
 int zgeqr2_(integer *m, integer *n, doublecomplex *a,
 	integer *lda, doublecomplex *tau, doublecomplex *work, integer *info);
 
 int qr_l_C(CVEC(tau), OCMAT(r)) {
-    integer m = rr;
-    integer n = rc;
-    integer mn = MIN(m,n);
+    integer ret = 0;
+    integer m   = rr;
+    integer n   = rc;
+    integer mn  = MIN(m,n);
     REQUIRES(m>=1 && n >=1 && taun == mn, BAD_SIZE);
     DEBUGMSG("qr_l_C");
+
     doublecomplex *WORK = (doublecomplex*)malloc(n*sizeof(doublecomplex));
     CHECK(!WORK,MEM);
+
     integer res;
     zgeqr2_ (&m,&n,rp,&m,taup,WORK,&res);
-    CHECK(res,res);
+    MARK(res,res);
+
     free(WORK);
-    OK
+    return ret;
 }
 
 int dorgqr_(integer *m, integer *n, integer *k, doublereal *
@@ -1079,18 +1229,21 @@ int dorgqr_(integer *m, integer *n, integer *k, doublereal *
 	integer *info);
 
 int c_dorgqr(KDVEC(tau), ODMAT(r)) {
-    integer m = rr;
-    integer n = MIN(rc,rr);
-    integer k = taun;
+    integer ret = 0;
+    integer m   = rr;
+    integer n   = MIN(rc,rr);
+    integer k   = taun;
     DEBUGMSG("c_dorgqr");
     integer lwork = 8*n; // FIXME
     double *WORK = (double*)malloc(lwork*sizeof(double));
     CHECK(!WORK,MEM);
+
     integer res;
     dorgqr_ (&m,&n,&k,rp,&m,(double*)taup,WORK,&lwork,&res);
-    CHECK(res,res);
+    MARK(res,res);
+
     free(WORK);
-    OK
+    return ret;
 }
 
 int zungqr_(integer *m, integer *n, integer *k,
@@ -1098,18 +1251,21 @@ int zungqr_(integer *m, integer *n, integer *k,
 	work, integer *lwork, integer *info);
 
 int c_zungqr(KCVEC(tau), OCMAT(r)) {
-    integer m = rr;
-    integer n = MIN(rc,rr);
-    integer k = taun;
+    integer ret = 0;
+    integer m   = rr;
+    integer n   = MIN(rc,rr);
+    integer k   = taun;
     DEBUGMSG("z_ungqr");
     integer lwork = 8*n; // FIXME
     doublecomplex *WORK = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     CHECK(!WORK,MEM);
+
     integer res;
     zungqr_ (&m,&n,&k,rp,&m,(doublecomplex*)taup,WORK,&lwork,&res);
-    CHECK(res,res);
+    MARK(res,res);
+
     free(WORK);
-    OK
+    return ret;
 }
 
 
@@ -1120,20 +1276,23 @@ int dgehrd_(integer *n, integer *ilo, integer *ihi,
 	integer *lwork, integer *info);
 
 int hess_l_R(DVEC(tau), ODMAT(r)) {
-    integer m = rr;
-    integer n = rc;
-    integer mn = MIN(m,n);
+    integer ret = 0;
+    integer m   = rr;
+    integer n   = rc;
+    integer mn  = MIN(m,n);
     REQUIRES(m>=1 && n == m && taun == mn-1, BAD_SIZE);
     DEBUGMSG("hess_l_R");
     integer lwork = 5*n; // FIXME
     double *WORK = (double*)malloc(lwork*sizeof(double));
     CHECK(!WORK,MEM);
+
     integer res;
     integer one = 1;
     dgehrd_ (&n,&one,&n,rp,&n,taup,WORK,&lwork,&res);
-    CHECK(res,res);
+    MARK(res,res);
+
     free(WORK);
-    OK
+    return ret;
 }
 
 
@@ -1142,20 +1301,23 @@ int zgehrd_(integer *n, integer *ilo, integer *ihi,
 	work, integer *lwork, integer *info);
 
 int hess_l_C(CVEC(tau), OCMAT(r)) {
-    integer m = rr;
-    integer n = rc;
-    integer mn = MIN(m,n);
+    integer ret = 0;
+    integer m   = rr;
+    integer n   = rc;
+    integer mn  = MIN(m,n);
     REQUIRES(m>=1 && n == m && taun == mn-1, BAD_SIZE);
     DEBUGMSG("hess_l_C");
     integer lwork = 5*n; // FIXME
     doublecomplex *WORK = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
     CHECK(!WORK,MEM);
+
     integer res;
     integer one = 1;
     zgehrd_ (&n,&one,&n,rp,&n,taup,WORK,&lwork,&res);
-    CHECK(res,res);
+    MARK(res,res);
+
     free(WORK);
-    OK
+    return ret;
 }
 
 //////////////////// Schur factorization /////////////////////////
@@ -1166,28 +1328,35 @@ int dgees_(char *jobvs, char *sort, L_fp select, integer *n,
 	integer *lwork, logical *bwork, integer *info);
 
 int schur_l_R(ODMAT(u), ODMAT(s)) {
-    integer m = sr;
-    integer n = sc;
+    integer ret = 0;
+    integer m   = sr;
+    integer n   = sc;
     REQUIRES(m>=1 && n==m && ur==n && uc==n, BAD_SIZE);
     DEBUGMSG("schur_l_R");
     integer lwork = 6*n; // FIXME
     double *WORK = (double*)malloc(lwork*sizeof(double));
-    double *WR = (double*)malloc(n*sizeof(double));
-    double *WI = (double*)malloc(n*sizeof(double));
+    UNWIND(!WORK,MEM,cleanup0);
+    double *WR   = (double*)malloc(n*sizeof(double));
+    UNWIND(!WORK,MEM,cleanup1);
+    double *WI   = (double*)malloc(n*sizeof(double));
+    UNWIND(!WORK,MEM,cleanup2);
     // WR and WI not really required in this call
     logical *BWORK = (logical*)malloc(n*sizeof(logical));
+    UNWIND(!BWORK,MEM,cleanup3);
     integer res;
     integer sdim;
     dgees_ ("V","N",NULL,&n,sp,&n,&sdim,WR,WI,up,&n,WORK,&lwork,BWORK,&res);
-    if(res>0) {
-        return NOCONVER;
-    }
-    CHECK(res,res);
-    free(WR);
-    free(WI);
+    CONVERGED(res,NOCONVER);
+
     free(BWORK);
+cleanup3:
+    free(WI);
+cleanup2:
+    free(WR);
+cleanup1:
     free(WORK);
-    OK
+cleanup0:
+    return ret;
 }
 
 
@@ -1197,29 +1366,40 @@ int zgees_(char *jobvs, char *sort, L_fp select, integer *n,
 	doublereal *rwork, logical *bwork, integer *info);
 
 int schur_l_C(OCMAT(u), OCMAT(s)) {
-    integer m = sr;
-    integer n = sc;
+    integer ret = 0;
+    integer m   = sr;
+    integer n   = sc;
     REQUIRES(m>=1 && n==m && ur==n && uc==n, BAD_SIZE);
     DEBUGMSG("schur_l_C");
     integer lwork = 6*n; // FIXME
     doublecomplex *WORK = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
-    doublecomplex *W = (doublecomplex*)malloc(n*sizeof(doublecomplex));
+    UNWIND(!WORK,MEM,cleanup0);
+
+    doublecomplex *W    = (doublecomplex*)malloc(n*sizeof(doublecomplex));
+    UNWIND(!W,MEM,cleanup1);
+
     // W not really required in this call
     logical *BWORK = (logical*)malloc(n*sizeof(logical));
-    double *RWORK = (double*)malloc(n*sizeof(double));
+    UNWIND(!BWORK,MEM,cleanup2);
+
+    double  *RWORK = (double*)malloc(n*sizeof(double));
+    UNWIND(!RWORK,MEM,cleanup3);
     integer res;
     integer sdim;
     zgees_ ("V","N",NULL,&n,sp,&n,&sdim,W,
                             up,&n,
                             WORK,&lwork,RWORK,BWORK,&res);
-    if(res>0) {
-        return NOCONVER;
-    }
-    CHECK(res,res);
-    free(W);
+    CONVERGED(res,NOCONVER);
+
+    free(RWORK);
+cleanup3:
     free(BWORK);
+cleanup2:
+    free(W);
+cleanup1:
     free(WORK);
-    OK
+cleanup0:
+    return ret;
 }
 
 //////////////////// LU factorization /////////////////////////
@@ -1228,24 +1408,30 @@ int dgetrf_(integer *m, integer *n, doublereal *a, integer *
 	lda, integer *ipiv, integer *info);
 
 int lu_l_R(DVEC(ipiv), ODMAT(r)) {
-    integer m = rr;
-    integer n = rc;
-    integer mn = MIN(m,n);
+    integer ret = 0;
+    integer m   = rr;
+    integer n   = rc;
+    integer mn  = MIN(m,n);
     REQUIRES(m>=1 && n >=1 && ipivn == mn, BAD_SIZE);
     DEBUGMSG("lu_l_R");
     integer* auxipiv = (integer*)malloc(mn*sizeof(integer));
+    UNWIND(!auxipiv,MEM,cleanup0);
+
     integer res;
     dgetrf_ (&m,&n,rp,&m,auxipiv,&res);
     if(res>0) {
         res = 0; // FIXME
     }
-    CHECK(res,res);
-    int k;
-    for (k=0; k<mn; k++) {
+    UNWIND(res,res,cleanup1);
+
+    for (int k=0; k<mn; k++) {
         ipivp[k] = auxipiv[k];
     }
+
+cleanup1:
     free(auxipiv);
-    OK
+cleanup0:
+    return ret;
 }
 
 
@@ -1253,24 +1439,31 @@ int zgetrf_(integer *m, integer *n, doublecomplex *a,
 	integer *lda, integer *ipiv, integer *info);
 
 int lu_l_C(DVEC(ipiv), OCMAT(r)) {
-    integer m = rr;
-    integer n = rc;
-    integer mn = MIN(m,n);
+    integer ret = 0;
+    integer m   = rr;
+    integer n   = rc;
+    integer mn  = MIN(m,n);
+
     REQUIRES(m>=1 && n >=1 && ipivn == mn, BAD_SIZE);
     DEBUGMSG("lu_l_C");
     integer* auxipiv = (integer*)malloc(mn*sizeof(integer));
+    UNWIND(!auxipiv,MEM,cleanup0);
+
     integer res;
     zgetrf_ (&m,&n,rp,&m,auxipiv,&res);
     if(res>0) {
         res = 0; // FIXME
     }
-    CHECK(res,res);
-    int k;
-    for (k=0; k<mn; k++) {
+    UNWIND(res,res,cleanup1);
+
+    for (int k=0; k<mn; k++) {
         ipivp[k] = auxipiv[k];
     }
+
+cleanup1:
     free(auxipiv);
-    OK
+cleanup0:
+    return ret;
 }
 
 
@@ -1281,23 +1474,26 @@ int dgetrs_(char *trans, integer *n, integer *nrhs,
 	ldb, integer *info);
 
 int luS_l_R(KODMAT(a), KDVEC(ipiv), ODMAT(b)) {
-  integer m = ar;
-  integer n = ac;
-  integer lda = aXc;
-  integer mrhs = br;
-  integer nrhs = bc;
+    integer ret  = 0;
+    integer m    = ar;
+    integer n    = ac;
+    integer lda  = aXc;
+    integer mrhs = br;
+    integer nrhs = bc;
 
-  REQUIRES(m==n && m==mrhs && m==ipivn,BAD_SIZE);
-  integer* auxipiv = (integer*)malloc(n*sizeof(integer));
-  int k;
-  for (k=0; k<n; k++) {
-    auxipiv[k] = (integer)ipivp[k];
-  }
-  integer res;
-  dgetrs_ ("N",&n,&nrhs,(/*no const (!?)*/ double*)ap,&lda,auxipiv,bp,&mrhs,&res);
-  CHECK(res,res);
-  free(auxipiv);
-  OK
+    REQUIRES(m==n && m==mrhs && m==ipivn,BAD_SIZE);
+    integer* auxipiv = (integer*)malloc(n*sizeof(integer));
+    CHECK(!auxipiv,MEM);
+
+    for (int k=0; k<n; k++) {
+      auxipiv[k] = (integer)ipivp[k];
+    }
+    integer res;
+    dgetrs_ ("N",&n,&nrhs,(/*no const (!?)*/ double*)ap,&lda,auxipiv,bp,&mrhs,&res);
+    MARK(res,res);
+
+    free(auxipiv);
+    return ret;
 }
 
 
@@ -1306,23 +1502,26 @@ int zgetrs_(char *trans, integer *n, integer *nrhs,
 	integer *ldb, integer *info);
 
 int luS_l_C(KOCMAT(a), KDVEC(ipiv), OCMAT(b)) {
-    integer m = ar;
-    integer n = ac;
-    integer lda = aXc;
+    integer ret  = 0;
+    integer m    = ar;
+    integer n    = ac;
+    integer lda  = aXc;
     integer mrhs = br;
     integer nrhs = bc;
 
     REQUIRES(m==n && m==mrhs && m==ipivn,BAD_SIZE);
     integer* auxipiv = (integer*)malloc(n*sizeof(integer));
-    int k;
-    for (k=0; k<n; k++) {
+    CHECK(!auxipiv,MEM);
+
+    for (int k=0; k<n; k++) {
         auxipiv[k] = (integer)ipivp[k];
     }
     integer res;
     zgetrs_ ("N",&n,&nrhs,(doublecomplex*)ap,&lda,auxipiv,bp,&mrhs,&res);
-    CHECK(res,res);
+    MARK(res,res);
+
     free(auxipiv);
-    OK
+    return ret;
 }
 
 
@@ -1332,10 +1531,15 @@ int dsytrf_(char *uplo, integer *n, doublereal *a, integer *lda, integer *ipiv,
             doublereal *work, integer *lwork, integer *info);
 
 int ldl_R(DVEC(ipiv), ODMAT(r)) {
-    integer n = rr;
+    integer ret = 0;
+    integer n   = rr;
+
     REQUIRES(n>=1 && rc==n && ipivn == n, BAD_SIZE);
     DEBUGMSG("ldl_R");
+
     integer* auxipiv = (integer*)malloc(n*sizeof(integer));
+    UNWIND(!auxipiv,MEM,cleanup0);
+
     integer res;
     integer lda = rXc;
     integer lwork = -1;
@@ -1343,15 +1547,22 @@ int ldl_R(DVEC(ipiv), ODMAT(r)) {
     dsytrf_ ("L",&n,rp,&lda,auxipiv,&ans,&lwork,&res);
     lwork = ceil(ans);
     doublereal* work = (doublereal*)malloc(lwork*sizeof(doublereal));
+    UNWIND(!work,MEM,cleanup1);
+
     dsytrf_ ("L",&n,rp,&lda,auxipiv,work,&lwork,&res);
-    CHECK(res,res);
+    UNWIND(res,res,cleanup2);
+
     int k;
     for (k=0; k<n; k++) {
         ipivp[k] = auxipiv[k];
     }
-    free(auxipiv);
+
+cleanup2:
     free(work);
-    OK
+cleanup1:
+    free(auxipiv);
+cleanup0:
+    return ret;
 }
 
 
@@ -1359,10 +1570,14 @@ int zhetrf_(char *uplo, integer *n, doublecomplex *a, integer *lda, integer *ipi
             doublecomplex *work, integer *lwork, integer *info);
 
 int ldl_C(DVEC(ipiv), OCMAT(r)) {
-    integer n = rr;
+    integer ret = 0;
+    integer n   = rr;
+
     REQUIRES(n>=1 && rc==n && ipivn == n, BAD_SIZE);
     DEBUGMSG("ldl_R");
     integer* auxipiv = (integer*)malloc(n*sizeof(integer));
+    UNWIND(!auxipiv,MEM,cleanup0);
+
     integer res;
     integer lda = rXc;
     integer lwork = -1;
@@ -1370,15 +1585,21 @@ int ldl_C(DVEC(ipiv), OCMAT(r)) {
     zhetrf_ ("L",&n,rp,&lda,auxipiv,&ans,&lwork,&res);
     lwork = ceil(ans.r);
     doublecomplex* work = (doublecomplex*)malloc(lwork*sizeof(doublecomplex));
+    UNWIND(!work,MEM,cleanup1);
+
     zhetrf_ ("L",&n,rp,&lda,auxipiv,work,&lwork,&res);
-    CHECK(res,res);
+    UNWIND(res,res,cleanup2);
     int k;
     for (k=0; k<n; k++) {
         ipivp[k] = auxipiv[k];
     }
-    free(auxipiv);
+
+cleanup2:
     free(work);
-    OK
+cleanup1:
+    free(auxipiv);
+cleanup0:
+    return ret;
 
 }
 
@@ -1388,23 +1609,26 @@ int dsytrs_(char *uplo, integer *n, integer *nrhs, doublereal *a, integer *lda,
             integer *ipiv, doublereal *b, integer *ldb, integer *info);
 
 int ldl_S_R(KODMAT(a), KDVEC(ipiv), ODMAT(b)) {
-  integer m = ar;
-  integer n = ac;
-  integer lda = aXc;
-  integer mrhs = br;
-  integer nrhs = bc;
+    integer ret  = 0;
+    integer m    = ar;
+    integer n    = ac;
+    integer lda  = aXc;
+    integer mrhs = br;
+    integer nrhs = bc;
 
-  REQUIRES(m==n && m==mrhs && m==ipivn,BAD_SIZE);
-  integer* auxipiv = (integer*)malloc(n*sizeof(integer));
-  int k;
-  for (k=0; k<n; k++) {
-    auxipiv[k] = (integer)ipivp[k];
-  }
-  integer res;
-  dsytrs_ ("L",&n,&nrhs,(/*no const (!?)*/ double*)ap,&lda,auxipiv,bp,&mrhs,&res);
-  CHECK(res,res);
-  free(auxipiv);
-  OK
+    REQUIRES(m==n && m==mrhs && m==ipivn,BAD_SIZE);
+    integer* auxipiv = (integer*)malloc(n*sizeof(integer));
+    CHECK(!auxipiv,MEM);
+
+    for (int k=0; k<n; k++) {
+      auxipiv[k] = (integer)ipivp[k];
+    }
+    integer res;
+    dsytrs_ ("L",&n,&nrhs,(/*no const (!?)*/ double*)ap,&lda,auxipiv,bp,&mrhs,&res);
+    MARK(res,res);
+
+    free(auxipiv);
+    return ret;
 }
 
 
@@ -1412,23 +1636,26 @@ int zhetrs_(char *uplo, integer *n, integer *nrhs, doublecomplex *a, integer *ld
             integer *ipiv, doublecomplex *b, integer *ldb, integer *info);
 
 int ldl_S_C(KOCMAT(a), KDVEC(ipiv), OCMAT(b)) {
-    integer m = ar;
-    integer n = ac;
-    integer lda = aXc;
+    integer ret  = 0;
+    integer m    = ar;
+    integer n    = ac;
+    integer lda  = aXc;
     integer mrhs = br;
     integer nrhs = bc;
 
     REQUIRES(m==n && m==mrhs && m==ipivn,BAD_SIZE);
     integer* auxipiv = (integer*)malloc(n*sizeof(integer));
-    int k;
-    for (k=0; k<n; k++) {
+    CHECK(!auxipiv,MEM);
+
+    for (int k=0; k<n; k++) {
         auxipiv[k] = (integer)ipivp[k];
     }
     integer res;
     zhetrs_ ("L",&n,&nrhs,(doublecomplex*)ap,&lda,auxipiv,bp,&mrhs,&res);
-    CHECK(res,res);
+    MARK(res,res);
+
     free(auxipiv);
-    OK
+    return ret;
 }
 
 
