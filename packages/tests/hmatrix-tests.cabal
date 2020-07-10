@@ -25,11 +25,13 @@ flag gsl
   default: True
 
 library
-
-    Build-Depends:      base >= 4 && < 5, deepseq,
-                        QuickCheck >= 2, HUnit, random,
-                        hmatrix >= 0.18
+    Build-Depends:      base >= 4 && < 5
                       , binary
+                      , deepseq
+                      , hmatrix >= 0.18
+                      , HUnit
+                      , random
+                      , QuickCheck >= 2
     if flag(gsl)
       Build-Depends:    hmatrix-gsl >= 0.18
 
