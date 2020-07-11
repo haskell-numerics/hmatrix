@@ -81,12 +81,10 @@ impureCSR f = f next begin done
   where
     (?) = flip
     sfi = succ . fi
-    maxChunkSize = 8 * 1024 * 1024
-
     begin = do
-      mv <- M.unsafeNew 100
-      mr <- M.unsafeNew 100
-      mc <- M.unsafeNew 100
+      mv <- M.unsafeNew 64
+      mr <- M.unsafeNew 64
+      mc <- M.unsafeNew 64
       return (mv, mr, mc, 0, 0, 0, -1)
 
     next (!mv, !mr, !mc, !idxVC, !idxR, !maxC, !curRow) ((r,c),d) = do
@@ -98,14 +96,14 @@ impureCSR f = f next begin done
 
       (mv', mc') <- if idxVC >= lenVC
           then do
-            mv' <- M.unsafeGrow mv (min lenVC maxChunkSize)
-            mc' <- M.unsafeGrow mc (min lenVC maxChunkSize)
+            mv' <- M.unsafeGrow mv lenVC
+            mc' <- M.unsafeGrow mc lenVC
             return (mv', mc')
           else
             return (mv, mc)
 
       mr' <- if idxR >= lenR - 1
-          then M.unsafeGrow mr (min lenR maxChunkSize)
+          then M.unsafeGrow mr lenR
           else return mr
 
       M.unsafeWrite mc' idxVC (sfi c)
