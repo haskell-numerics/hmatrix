@@ -29,21 +29,21 @@ extra-source-files: src/Internal/C/lapack-aux.h
 flag openblas
     description:    Link with OpenBLAS (https://github.com/xianyi/OpenBLAS) optimized libraries.
     default:        False
-    manual: True
+    manual:         True
 
 flag disable-default-paths
     description:    When enabled, don't add default hardcoded include/link dirs by default. Needed for hermetic builds like in nix.
     default:        False
-    manual: True
+    manual:         True
 
 flag no-random_r
     description:    When enabled, don't depend on the random_r() C function.
     default:        False
-    manual: True
+    manual:         True
 
 library
 
-    Build-Depends:      base >= 4.9 && < 5,
+    Build-Depends:      base >= 4.8 && < 5,
                         binary,
                         array,
                         deepseq,

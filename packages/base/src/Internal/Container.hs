@@ -3,9 +3,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE UndecidableInstances #-}
-
-{-# OPTIONS_GHC -fno-warn-simplifiable-class-constraints #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -190,7 +187,7 @@ instance Container Vector e => Build Int (e -> e) Vector e
   where
     build = build'
 
-instance Container Matrix e => Build (Int,Int) (e -> e -> e) Matrix e
+instance (Num e, Container Vector e) => Build (Int,Int) (e -> e -> e) Matrix e
   where
     build = build'
 
