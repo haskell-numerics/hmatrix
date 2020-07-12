@@ -1,10 +1,8 @@
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes #-}
-
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Internal.Sparse(
     GMatrix(..), CSR(..), mkCSR, fromCSR, impureCSR,
@@ -32,6 +30,7 @@ import Foreign(Ptr)
 import Text.Printf(printf)
 
 infixl 0 ~!~
+(~!~) :: Applicative f => Bool -> [Char] -> f ()
 c ~!~ msg = when c (error msg)
 
 type AssocMatrix = [(IndexOf Matrix, Double)]
@@ -94,17 +93,19 @@ impureCSR f = f next begin done
           lenR  = M.length mr
           maxC' = max maxC c
 
-      (mv', mc') <- if idxVC >= lenVC
-          then do
-            mv' <- M.unsafeGrow mv lenVC
-            mc' <- M.unsafeGrow mc lenVC
-            return (mv', mc')
-          else
-            return (mv, mc)
+      (mv', mc') <-
+        if idxVC >= lenVC then do
+          mv' <- M.unsafeGrow mv lenVC
+          mc' <- M.unsafeGrow mc lenVC
+          return (mv', mc')
+        else
+          return (mv, mc)
 
-      mr' <- if idxR >= lenR - 1
-          then M.unsafeGrow mr lenR
-          else return mr
+      mr' <-
+        if idxR >= lenR - 1 then
+          M.unsafeGrow mr lenR
+        else
+          return mr
 
       M.unsafeWrite mc' idxVC (sfi c)
       M.unsafeWrite mv' idxVC d
@@ -186,6 +187,7 @@ fromCSR csr = SparseR {..}
     nCols = csrNCols
 
 
+mkDiagR :: Int -> Int -> Vector Double -> GMatrix
 mkDiagR r c v
     | dim v <= min r c = Diag{..}
     | otherwise = error $ printf "mkDiagR: incorrect sizes (%d,%d) [%d]" r c (dim v)
