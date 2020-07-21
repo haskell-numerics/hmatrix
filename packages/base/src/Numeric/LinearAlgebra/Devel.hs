@@ -14,7 +14,7 @@ The library can be easily extended using the tools in this module.
 module Numeric.LinearAlgebra.Devel(
     -- * FFI tools
     -- | See @examples/devel@ in the repository.
-    
+
     createVector, createMatrix,
     TransArray(..),
     MatrixOrder(..), orderOf, cmat, fmat,
@@ -27,7 +27,7 @@ module Numeric.LinearAlgebra.Devel(
     -- * ST
     -- | In-place manipulation inside the ST monad.
     -- See @examples/inplace.hs@ in the repository.
-    
+
     -- ** Mutable Vectors
     STVector, newVector, thawVector, freezeVector, runSTVector,
     readVector, writeVector, modifyVector, liftSTVector,
