@@ -140,7 +140,7 @@ library
 
     if os(windows)
         if flag(openblas)
-            extra-libraries:    libopenblas, libgcc_s_seh-1, libgfortran, libquadmath-0
+            extra-libraries:    openblas
         else
             extra-libraries:    blas lapack
 
@@ -159,4 +159,3 @@ library
 source-repository head
     type:     git
     location: https://github.com/albertoruiz/hmatrix
-

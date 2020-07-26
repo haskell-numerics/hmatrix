@@ -81,7 +81,7 @@ library
         extra-libraries: gsl
 
     if os(windows)
-        extra-libraries: gsl-0
+        extra-libraries: gsl
 
     if os(linux)
         if arch(x86_64)
@@ -98,4 +98,3 @@ library
 source-repository head
     type:     git
     location: https://github.com/albertoruiz/hmatrix
-

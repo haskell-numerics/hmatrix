@@ -19,3 +19,6 @@ title.md
 /base-reinstall.sh
 .cabal-sandbox
 cabal.sandbox.config
+
+# The Haskell Tool Stack-related
+.stack-work
