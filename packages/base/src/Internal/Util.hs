@@ -417,7 +417,7 @@ instance Indexable (Vector (Complex Float)) (Complex Float)
 
 instance Element t => Indexable (Matrix t) (Vector t)
   where
-    m!j = subVector (j*c) c (flatten m)
+    m ! j = subVector (j*c) c (flatten m)
       where
         c = cols m
 
@@ -912,4 +912,3 @@ test = (and ok, return ())
          , remap r (tr c) p == ep
          , tr p ?? (PosCyc (idxs[-5,13]), Pos (idxs[3,7,1])) == (2><3) [35,75,15,33,73,13]
          ]
-
