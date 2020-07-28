@@ -1,11 +1,11 @@
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}
-
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Internal.Sparse(
-    GMatrix(..), CSR(..), mkCSR, fromCSR,
+    GMatrix(..), CSR(..), mkCSR, fromCSR, impureCSR,
     mkSparse, mkDiagR, mkDense,
     AssocMatrix,
     toDense,
@@ -16,10 +16,12 @@ import Internal.Vector
 import Internal.Matrix
 import Internal.Numeric
 import qualified Data.Vector.Storable as V
-import Data.Function(on)
+import qualified Data.Vector.Storable.Mutable as M
 import Control.Arrow((***))
-import Control.Monad(when)
-import Data.List(groupBy, sort)
+import Control.Monad(when, foldM)
+import Control.Monad.ST (runST)
+import Control.Monad.Primitive (PrimMonad)
+import Data.List(sort)
 import Foreign.C.Types(CInt(..))
 
 import Internal.Devel
@@ -27,10 +29,7 @@ import System.IO.Unsafe(unsafePerformIO)
 import Foreign(Ptr)
 import Text.Printf(printf)
 
-infixl 0 ~!~
-c ~!~ msg = when c (error msg)
-
-type AssocMatrix = [((Int,Int),Double)]
+type AssocMatrix = [(IndexOf Matrix, Double)]
 
 data CSR = CSR
         { csrVals  :: Vector Double
@@ -49,22 +48,78 @@ data CSC = CSC
         } deriving Show
 
 
+-- | Produce a CSR sparse matrix from a association matrix.
 mkCSR :: AssocMatrix -> CSR
-mkCSR sm' = CSR{..}
+mkCSR ms =
+  runST $ impureCSR runFold $ sort ms
+    where
+  runFold next initialise xtract as0 = do
+    i0  <- initialise
+    acc <- foldM next i0 as0
+    xtract acc
+
+-- | Produce a CSR sparse matrix by applying a generic folding function.
+--
+--   This allows one to build a CSR from an effectful streaming source
+--   when combined with libraries like pipes, io-streams, or streaming.
+--
+--   For example
+--
+--   > impureCSR Pipes.Prelude.foldM :: PrimMonad m => Producer AssocEntry m () -> m CSR
+--   > impureCSR Streaming.Prelude.foldM :: PrimMonad m => Stream (Of AssocEntry) m r -> m (Of CSR r)
+--
+impureCSR
+    :: PrimMonad m
+    => (forall x . (x -> (IndexOf Matrix, Double) -> m x) -> m x -> (x -> m CSR) -> r)
+    -> r
+impureCSR f = f next begin done
   where
-    sm = sort sm'
-    rws = map ((fromList *** fromList)
-              . unzip
-              . map ((succ.fi.snd) *** id)
-              )
-        . groupBy ((==) `on` (fst.fst))
-        $ sm
-    rszs = map (fi . dim . fst) rws
-    csrRows = fromList (scanl (+) 1 rszs)
-    csrVals = vjoin (map snd rws)
-    csrCols = vjoin (map fst rws)
-    csrNRows = dim csrRows - 1
-    csrNCols = fromIntegral (V.maximum csrCols)
+    sfi = succ . fi
+    begin = do
+      mv <- M.unsafeNew 64
+      mr <- M.unsafeNew 64
+      mc <- M.unsafeNew 64
+      return (mv, mr, mc, 0, 0, 0, -1)
+
+    next (!mv, !mr, !mc, !idxVC, !idxR, !maxC, !curRow) ((r,c),d) = do
+      when (r < curRow) $
+        error (printf "impureCSR: row %i specified after %i" r curRow)
+
+      let lenVC = M.length mv
+          lenR  = M.length mr
+          maxC' = max maxC c
+
+      (mv', mc') <-
+        if idxVC >= lenVC then do
+          mv' <- M.unsafeGrow mv lenVC
+          mc' <- M.unsafeGrow mc lenVC
+          return (mv', mc')
+        else
+          return (mv, mc)
+
+      mr' <-
+        if idxR >= lenR - 1 then
+          M.unsafeGrow mr lenR
+        else
+          return mr
+
+      M.unsafeWrite mc' idxVC (sfi c)
+      M.unsafeWrite mv' idxVC d
+
+      idxR' <-
+        foldM
+          (\idxR' _ -> idxR' + 1 <$ M.unsafeWrite mr' idxR' (sfi idxVC))
+          idxR [1 .. (r-curRow)]
+
+      return (mv', mr', mc', idxVC + 1, idxR', maxC', r)
+
+    done (!mv, !mr, !mc, !idxVC, !idxR, !maxC, !curR) = do
+      M.unsafeWrite mr idxR (sfi idxVC)
+      vv <- V.unsafeFreeze (M.unsafeTake idxVC mv)
+      vc <- V.unsafeFreeze (M.unsafeTake idxVC mc)
+      vr <- V.unsafeFreeze (M.unsafeTake (idxR + 1)  mr)
+      return $ CSR vv vc vr (succ curR) (succ maxC)
+
 
 {- | General matrix with specialized internal representations for
      dense, sparse, diagonal, banded, and constant elements.
@@ -129,6 +184,7 @@ fromCSR csr = SparseR {..}
     nCols = csrNCols
 
 
+mkDiagR :: Int -> Int -> Vector Double -> GMatrix
 mkDiagR r c v
     | dim v <= min r c = Diag{..}
     | otherwise = error $ printf "mkDiagR: incorrect sizes (%d,%d) [%d]" r c (dim v)
@@ -144,13 +200,17 @@ type SMxV = V (IV (IV (V (V (IO CInt)))))
 
 gmXv :: GMatrix -> Vector Double -> Vector Double
 gmXv SparseR { gmCSR = CSR{..}, .. } v = unsafePerformIO $ do
-    dim v /= nCols ~!~ printf "gmXv (CSR): incorrect sizes: (%d,%d) x %d" nRows nCols (dim v)
+    when (dim v /= nCols) $
+      error (printf "gmXv (CSR): incorrect sizes: (%d,%d) x %d" nRows nCols (dim v))
+
     r <- createVector nRows
     (csrVals # csrCols # csrRows # v #! r) c_smXv #|"CSRXv"
     return r
 
 gmXv SparseC { gmCSC = CSC{..}, .. } v = unsafePerformIO $ do
-    dim v /= nCols ~!~ printf "gmXv (CSC): incorrect sizes: (%d,%d) x %d" nRows nCols (dim v)
+    when (dim v /= nCols) $
+      error (printf "gmXv (CSC): incorrect sizes: (%d,%d) x %d" nRows nCols (dim v))
+
     r <- createVector nRows
     (cscVals # cscRows # cscCols # v #! r) c_smTXv #|"CSCXv"
     return r

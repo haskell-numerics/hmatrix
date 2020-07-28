@@ -50,6 +50,7 @@ library
                         random,
                         split,
                         bytestring,
+                        primitive,
                         storable-complex,
                         semigroups,
                         vector >= 0.11
