@@ -678,7 +678,7 @@ int root(int method, double f(double),
     gsl_root_fsolver *s;
     // Starting point
     switch(method) {
-        case 0 : {T = gsl_root_fsolver_bisection; printf("7\n"); break; }
+        case 0 : {T = gsl_root_fsolver_bisection; break; }
         case 1 : {T = gsl_root_fsolver_falsepos; break; }
         case 2 : {T = gsl_root_fsolver_brent; break; }
         default: ERROR(BAD_CODE);
