@@ -59,13 +59,17 @@ data UniRootMethod = Bisection
                    | Brent
                    deriving (Enum, Eq, Show, Bounded)
 
+-- | Nonlinear one-dimensional root finding using algorithms that do not require 
+-- any derivative information to be supplied by the user. The function has to be
+-- positive at one bound and negative at the other bound. This assumption is
+-- not being tested in the function.
 uniRoot :: UniRootMethod
-        -> Double
-        -> Int
-        -> (Double -> Double)
-        -> Double
-        -> Double
-        -> (Double, Matrix Double)
+        -> Double                   -- ^ maximum relative error
+        -> Int                      -- ^ maximum number of iterations allowed
+        -> (Double -> Double)       -- ^ function to find the root
+        -> Double                   -- ^ lower bound
+        -> Double                   -- ^ upper bound
+        -> (Double, Matrix Double)  -- ^ solution and optimization path
 uniRoot method epsrel maxit fun xl xu = uniRootGen (fi (fromEnum method)) fun xl xu epsrel maxit
 
 uniRootGen m f xl xu epsrel maxit = unsafePerformIO $ do
@@ -88,13 +92,14 @@ data UniRootMethodJ = UNewton
                     | Steffenson
                     deriving (Enum, Eq, Show, Bounded)
 
+-- | Nonlinear one-dimensional root finding using both the function and its derivative.
 uniRootJ :: UniRootMethodJ
-        -> Double
-        -> Int
-        -> (Double -> Double)
-        -> (Double -> Double)
-        -> Double
-        -> (Double, Matrix Double)
+        -> Double                   -- ^ maximum relative error
+        -> Int                      -- ^ maximum number of iterations allowed
+        -> (Double -> Double)       -- ^ function to find the root
+        -> (Double -> Double)       -- ^ derivation of the function
+        -> Double                   -- ^ starting point
+        -> (Double, Matrix Double)  -- ^ solution and optimization path
 uniRootJ method epsrel maxit fun dfun x = uniRootJGen (fi (fromEnum method)) fun
     dfun x epsrel maxit
 
