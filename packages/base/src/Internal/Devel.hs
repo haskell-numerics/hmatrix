@@ -16,7 +16,8 @@ import Control.Monad ( when )
 import Foreign.C.Types ( CInt )
 --import Foreign.Storable.Complex ()
 import Foreign.Ptr(Ptr)
-import Control.Exception as E ( SomeException, catch )
+import           Control.Exception (SomeException, SomeAsyncException (..))
+import qualified Control.Exception as Exception
 import Internal.Vector(Vector,avec)
 import Foreign.Storable(Storable)
 
@@ -59,9 +60,21 @@ infixl 0 #|
 
 -- | Error capture and conversion to Maybe
 mbCatch :: IO x -> IO (Maybe x)
-mbCatch act = E.catch (Just `fmap` act) f
-    where f :: SomeException -> IO (Maybe x)
-          f _ = return Nothing
+mbCatch act =
+  hush <$>
+    Exception.tryJust
+      (\e -> if isSyncException e then Just e else Nothing)
+      act
+
+  where
+    hush :: Either a b -> Maybe b
+    hush = either (const Nothing) Just
+
+    isSyncException :: SomeException -> Bool
+    isSyncException e =
+      case Exception.fromException e of
+        Just (SomeAsyncException _) -> False
+        Nothing -> True
 
 --------------------------------------------------------------------------------
 
