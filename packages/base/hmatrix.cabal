@@ -18,7 +18,7 @@ Description:        Linear systems, matrix decompositions, and other numerical c
 Category:           Math
 tested-with:        GHC==8.2, GHC==8.4
 
-cabal-version:      >=1.8
+cabal-version:       >=1.18
 
 build-type:         Simple
 
@@ -42,6 +42,8 @@ flag no-random_r
     manual:         True
 
 library
+
+    default-language:   Haskell2010
 
     Build-Depends:      base >= 4.8 && < 5,
                         binary,
@@ -90,7 +92,7 @@ library
                         src/Internal/C/vector-aux.c
 
 
-    extensions:         ForeignFunctionInterface
+    other-extensions:   ForeignFunctionInterface
 
     ghc-options:        -Wall
                         -fno-warn-missing-signatures
