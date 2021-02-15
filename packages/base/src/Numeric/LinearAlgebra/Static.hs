@@ -415,7 +415,7 @@ split (extract -> v) = ( mkR (subVector 0 p' v) ,
 
 
 headTail :: (KnownNat n, 1<=n) => R n -> (ℝ, R (n-1))
-headTail = ((!0) . extract *** id) . split
+headTail = ((! 0) . extract *** id) . split
 
 
 splitRows :: forall p m n . (KnownNat p, KnownNat m, KnownNat n, p<=m) => L m n -> (L p n, L (m-p) n)

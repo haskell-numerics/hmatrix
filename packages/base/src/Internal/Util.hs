@@ -632,7 +632,7 @@ pivotDown t n xs
     y:ys = redu (pivot n xs)
 
     pivot k = (const k &&& id)
-            . sortBy (flip compare `on` (abs. (!k)))
+            . sortBy (flip compare `on` (abs. (! k)))
 
     redu :: (Int, [Vector t]) -> [Vector t]
     redu (k,x:zs)

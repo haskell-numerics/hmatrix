@@ -179,7 +179,7 @@ mkSparse = fromCSR . mkCSR
 fromCSR :: CSR -> GMatrix
 fromCSR csr = SparseR {..}
   where
-    gmCSR @ CSR {..} = csr
+    gmCSR@CSR {..} = csr
     nRows = csrNRows
     nCols = csrNCols
 
