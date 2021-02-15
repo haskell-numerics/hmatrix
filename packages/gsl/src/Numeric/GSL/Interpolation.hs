@@ -54,6 +54,7 @@ data InterpolationMethod = Linear
                          | CSplinePeriodic
                          | Akima
                          | AkimaPeriodic
+                         | Steffen
                          deriving (Eq, Show, Read)
 
 methodToInt :: Integral a => InterpolationMethod -> a
@@ -63,6 +64,7 @@ methodToInt CSpline = 2
 methodToInt CSplinePeriodic = 3
 methodToInt Akima = 4
 methodToInt AkimaPeriodic = 5
+methodToInt Steffen = 6
 
 dim :: Numeric t => Vector t -> Int
 dim = size

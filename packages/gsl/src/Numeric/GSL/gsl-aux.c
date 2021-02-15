@@ -154,6 +154,7 @@ int spline_eval(const double xa[], const double ya[], unsigned int size,
     case 3: { T = gsl_interp_cspline_periodic; break; }
     case 4: { T = gsl_interp_akima; break; }
     case 5: { T = gsl_interp_akima_periodic; break; }
+    case 6: { T = gsl_interp_steffen; break; }
     default: ERROR(BAD_CODE);
   }
 
