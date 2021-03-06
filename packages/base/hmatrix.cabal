@@ -3,7 +3,7 @@ Version:            0.20.2
 License:            BSD3
 License-file:       LICENSE
 Author:             Alberto Ruiz
-Maintainer:         Dominic Steinit
+Maintainer:         Dominic Steinitz
 Stability:          provisional
 Homepage:           https://github.com/haskell-numerics/hmatrix
 Synopsis:           Numeric Linear Algebra
