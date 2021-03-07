@@ -22,5 +22,5 @@ haskellPackages = pkgs.myHaskellPackages;
 
 in
 
-haskellPackages.callPackage ./default.nix {
+haskellPackages.callPackage ./packages/base/default.nix {
 }
