@@ -1,4 +1,4 @@
-{ mkDerivation, array, base, binary, bytestring, deepseq
+{ mkDerivation, array, base, binary, bytestring, darwin, deepseq
 , openblasCompat, primitive, random, semigroups, split, stdenv
 , storable-complex, vector
 }:
@@ -11,6 +11,7 @@ mkDerivation {
     array base binary bytestring deepseq primitive random semigroups
     split storable-complex vector
   ];
+  buildDepends = [ (if stdenv.isDarwin then [darwin.apple_sdk.frameworks.Accelerate] else []) ];
   librarySystemDepends = [ openblasCompat ];
   homepage = "https://github.com/haskell-numerics/hmatrix";
   description = "Numeric Linear Algebra";
