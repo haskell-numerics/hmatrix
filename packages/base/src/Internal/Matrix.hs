@@ -290,9 +290,9 @@ class (Storable a) => Element a where
     constantD  :: a -> Int -> Vector a
     extractR :: MatrixOrder -> Matrix a -> CInt -> Vector CInt -> CInt -> Vector CInt -> IO (Matrix a)
     setRect  :: Int -> Int -> Matrix a -> Matrix a -> IO ()
-    sortI    :: Ord a => Vector a -> Vector CInt
-    sortV    :: Ord a => Vector a -> Vector a
-    compareV :: Ord a => Vector a -> Vector a -> Vector CInt
+    sortI    :: Vector a -> Vector CInt
+    sortV    :: Vector a -> Vector a
+    compareV :: Vector a -> Vector a -> Vector CInt
     selectV  :: Vector CInt -> Vector a -> Vector a -> Vector a -> Vector a
     remapM   :: Matrix CInt -> Matrix CInt -> Matrix a -> Matrix a
     rowOp    :: Int -> a -> Int -> Int -> Int -> Int -> Matrix a -> IO ()
