@@ -56,11 +56,11 @@ Via MacPorts:
 
    1) `stack` comes with a version of MSYS2. It is located in a subfolder of the
       folder returned by the `stack path --programs` command. At the time of
-      writing (28 July 2020), that subfolder is `msys2-20180531`. Change
+      writing (9 September 2021), that subfolder is `msys2-20200903`. Change
       directory to that folder. In PowerShell:
 
           > stack path --programs | cd
-          > cd msys2-20180531
+          > cd msys2-20200903
 
    2) Open a MSYS2 terminal window, with the `msys2_shell.cmd` command. In
       PowerShell:
@@ -69,8 +69,9 @@ Via MacPorts:
 
    3) In principle, MSYS2 itself can be updated with the `pacman -Syu` command.
       At the time of writing, that may be complicated by keyring issues (see
-      [here](https://www.msys2.org/news/#2020-06-29-new-packagers) to overcome
-      such issues). In MSYS2:
+      [here](https://www.msys2.org/news/#2020-06-29-new-packagers) and
+      [here](https://github.com/msys2/MSYS2-packages/issues/2058#issuecomment-874582420)
+      to overcome such issues). In MSYS2:
 
           $ pacman -Syu
 
@@ -95,7 +96,7 @@ Via MacPorts:
       Again, MSYS2 will put the import libraries in subfolder `\ming64\lib`.
 
    6) In `hmatrix.cabal`, ensure that the `extra-libraries` specifies `openblas`
-      (only). (This is incorrect in `hmatrix-0.20.0.0`.) That is, the extract
+      (only). (This was corrected in `hmatrix-0.20.1`.) That is, the extract
       should read:
 
       ```
@@ -106,27 +107,36 @@ Via MacPorts:
               extra-libraries: blas lapack
       ```
    7) Similarly, in `hmatrix-gsl.cabal`, ensure that the `extra-libraries`
-      specifies `gsl` (only). (This is incorrect in `hmatrix-gsl-0.19.0.1`.)
-      That is, the extract should read:
+      specifies `gsl` (only). (This is incorrect in `hmatrix-gsl-0.19.0.1` on
+      Hackage, so a corrected local version of the package may be required.) That is, the extract should read:
 
       ```
       if os(windows)
           extra-libraries: gsl
       ```
 
-   8) `stack ghci` can be invoked in the repository root folder (`hmatrix`) with
-      an appropriate `resolver` and setting the flag `openblas` for package
-      `hmatrix`. At the time of writing, `resolver nightly-2020-07-28` works
-      with GHC 8.10.1. In PowerShell:
+   8) To test, change directory to the repository folder `packages\tests`, and
+      create a `stack.yaml` file there, with command `stack init`.
 
-          > stack --resolver nightly-2020-07-28 ghci --flag hmatrix:openblas
+      Edit the `stack.yaml` file to refer to the location of a correct
+      `hmatrix-gsl.cabal` (if the version on Hackage is still incorrect).
 
-      (At the time of writing, GHC 8.8.3 does not work with Windows 10 version
-      2004. To use GHC 8.10.1, the upper bound of `base` in `examples.cabal`
-      must be set to be at least 4.14.)
+      ```
+      packages:
+      - .
+      - ../gsl
+      ```
+
+      Then `stack ghci` can be invoked in that folder with an appropriate
+      `resolver`, and setting the flag `openblas` for package `hmatrix`, the
+      flag `onlygsl` for package `hmatrix-gsl` and the flag `gsl` for
+      `hmatrix-tests`. At the time of writing, `resolver lts-18.9` works with
+      GHC 8.10.7. In PowerShell:
+
+          > stack --resolver lts-18.9 ghci --flag hmatrix:openblas --flag hmatrix-gsl:onlygsl --flag hmatrix-tests:gsl
 
    9) In GHCi, test the `Numeric.LinearAlbebra` module with the following (the
-      successful output has many lines and so is shortened below):
+      almost successful output has many lines and so is shortened below):
 
       ```
       > Numeric.LinearAlgebra.Tests.runTests 20
@@ -137,8 +147,15 @@ Via MacPorts:
       ...
       +++ OK, passed 100 tests.
       ------ some unit tests
-      Cases: 52  Tried: 52  Errors: 0  Failures: 0
+      ### Failure in: 9
+      C:\\\\<path>\\\\hmatrix\\\\packages\\\\tests\\\\src\\Numeric\\LinearAlgebra\\Tests.hs:75
+      randomGaussian
+      Cases: 52  Tried: 52  Errors: 0  Failures: 1
+      *** Exception: ExitFailure 1
       ```
+
+      The failure of 'some unit tests' number 9 is discussed
+      [here](https://github.com/haskell-numerics/hmatrix/issues/333).
 
    #### 2(b) Build OpenBLAS library from source ################
 
