@@ -55,6 +55,7 @@ library
                         primitive,
                         storable-complex,
                         semigroups,
+                        finite-typelits,
                         vector >= 0.11
 
     hs-source-dirs:     src
@@ -64,6 +65,8 @@ library
                         Numeric.LinearAlgebra.Data
                         Numeric.LinearAlgebra.HMatrix
                         Numeric.LinearAlgebra.Static
+                        Numeric.LinearAlgebra.Static.Real
+                        Numeric.LinearAlgebra.Static.Complex
 
     other-modules:      Internal.Vector
                         Internal.Devel
