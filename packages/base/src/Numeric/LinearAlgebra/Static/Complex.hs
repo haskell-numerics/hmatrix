@@ -53,8 +53,6 @@ module Numeric.LinearAlgebra.Static.Complex(
     -- * Factorizations
     withCompactSVD,
     withNullspace, withOrth, qr,
-    -- * Norms
-    Normed(..),
     -- * Element accessing
     vAt, mAt,
     -- * Misc

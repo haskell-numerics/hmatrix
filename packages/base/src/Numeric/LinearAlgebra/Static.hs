@@ -438,6 +438,37 @@ instance KnownNat n => Eigen (Sq n) (C n) (M n n)
         (l,v) = LA.eig m
 
 
+--------------------------------------------------------------------------------
+
+instance KnownNat n => Normed (R n)
+  where
+    norm_0 v = norm_0 (extract v)
+    norm_1 v = norm_1 (extract v)
+    norm_2 v = norm_2 (extract v)
+    norm_Inf v = norm_Inf (extract v)
+
+instance KnownNat n => Normed (C n)
+  where
+    norm_0 v = norm_0 (extract v)
+    norm_1 v = norm_1 (extract v)
+    norm_2 v = norm_2 (extract v)
+    norm_Inf v = norm_Inf (extract v)
+
+instance (KnownNat m, KnownNat n) => Normed (L m n)
+  where
+    norm_0 m = norm_0 (extract m)
+    norm_1 m = norm_1 (extract m)
+    norm_2 m = norm_2 (extract m)
+    norm_Inf m = norm_Inf (extract m)
+
+instance (KnownNat m, KnownNat n) => Normed (M m n)
+  where
+    norm_0 m = norm_0 (extract m)
+    norm_1 m = norm_1 (extract m)
+    norm_2 m = norm_2 (extract m)
+    norm_Inf m = norm_Inf (extract m)
+
+--------------------------------------------------------------------------------
 
 
 sym :: KnownNat n => Sq n -> Sym n

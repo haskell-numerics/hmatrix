@@ -48,8 +48,6 @@ module Numeric.LinearAlgebra.Static.Real(
     (<>),(#>),(<.>),(<·>),
     -- * Linear Systems
     linSolve, (<\>),
-    -- * Norms
-    Normed(..),
     -- * Random arrays
     Seed, RandDist(..),
     -- * Element accessing
