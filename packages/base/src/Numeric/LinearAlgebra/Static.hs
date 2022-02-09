@@ -330,26 +330,38 @@ instance KnownNat n => Diag (M n n) (C n)
 --------------------------------------------------------------------------------
 
 
-toComplex :: KnownNat n => (R n, R n) -> C n
-toComplex (r,i) = mkC $ LA.toComplex (extract r, extract i)
+class FromComplex r c | r -> c, c -> r where
+  fromComplex :: c -> (r, r)
+  real :: c -> r
+  imag :: c -> r
+  sqMagnitude :: c -> r
+  magnitude :: c -> r
 
-fromComplex :: KnownNat n => C n -> (R n, R n)
-fromComplex (C (Dim v)) = let (r,i) = LA.fromComplex v in (mkR r, mkR i)
+class ToComplex r c | r -> c, c -> r where
+  toComplex :: (r, r) -> c
+  complex :: r -> c
 
-complex :: KnownNat n => R n -> C n
-complex r = mkC $ LA.toComplex (extract r, LA.konst 0 (size r))
+instance KnownNat n => FromComplex (R n) (C n) where
+  fromComplex (C (Dim v)) = let (r,i) = LA.fromComplex v in (mkR r, mkR i)
+  real = fst . fromComplex
+  imag = snd . fromComplex
+  sqMagnitude c = let (r,i) = fromComplex c in r**2 + i**2
+  magnitude = sqrt . sqMagnitude
 
-real :: KnownNat n => C n -> R n
-real = fst . fromComplex
+instance KnownNat n => ToComplex (R n) (C n) where
+  toComplex (r,i) = mkC $ LA.toComplex (extract r, extract i)
+  complex r = mkC $ LA.toComplex (extract r, LA.konst 0 (size r))
 
-imag :: KnownNat n => C n -> R n
-imag = snd . fromComplex
+instance (KnownNat m, KnownNat n) => FromComplex (L m n) (M m n) where
+  fromComplex m = let (r,i) = LA.fromComplex (extract m) in (mkL r, mkL i)
+  real = fst . fromComplex
+  imag = snd . fromComplex
+  sqMagnitude c = let (r,i) = fromComplex c in r**2 + i**2
+  magnitude = sqrt . sqMagnitude
 
-sqMagnitude :: KnownNat n => C n -> R n
-sqMagnitude c = let (r,i) = fromComplex c in r**2 + i**2
-
-magnitude :: KnownNat n => C n -> R n
-magnitude = sqrt . sqMagnitude
+instance (KnownNat m, KnownNat n) => ToComplex (L m n) (M m n) where
+  toComplex (r,i) = mkM $ LA.toComplex (extract r, extract i)
+  complex r = mkM $ LA.toComplex (extract r, LA.konst 0 (size r))
 
 
 --------------------------------------------------------------------------------
