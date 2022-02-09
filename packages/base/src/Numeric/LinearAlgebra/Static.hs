@@ -449,6 +449,12 @@ instance KnownNat n => Eigen (Sq n) (C n) (M n n)
       where
         (l,v) = LA.eig m
 
+instance KnownNat n => Eigen (M n n) (C n) (M n n)
+  where
+    eigenvalues (extract -> m) = mkC . LA.eigenvalues $ m
+    eigensystem (extract -> m) = (mkC l, mkM v)
+      where
+        (l,v) = LA.eig m
 
 --------------------------------------------------------------------------------
 
