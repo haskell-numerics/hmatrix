@@ -51,7 +51,7 @@ module Numeric.LinearAlgebra.Static.Real(
     -- * Random arrays
     Seed, RandDist(..),
     -- * Element accessing
-    vAt, mAt,
+    -- vAt, mAt,
     -- * Misc
     mean,
     Disp(..),
@@ -82,12 +82,10 @@ import qualified Numeric.LinearAlgebra as LA
 import qualified Numeric.LinearAlgebra.Devel as LA
 import Data.Proxy(Proxy(..))
 import Internal.Static
-import Control.Arrow((***))
+import Control.Arrow(first, (***))
 import Data.Type.Equality ((:~:)(Refl))
 import qualified Data.Bifunctor as BF (first)
-
 import Prelude hiding (zipWith, (<>))
-import Data.Finite (Finite, getFinite)
 
 
 ud1 :: R n -> Vector ℝ
@@ -289,7 +287,7 @@ split (extract -> v) = ( mkR (subVector 0 p' v) ,
 
 
 headTail :: (KnownNat n, 1<=n) => R n -> (ℝ, R (n-1))
-headTail = ((! 0) . extract *** id) . split
+headTail = first ((LA.! 0) . extract) . split
 
 
 splitRows :: forall p m n . (KnownNat p, KnownNat m, KnownNat n, p<=m) => L m n -> (L p n, L (m-p) n)
@@ -415,9 +413,9 @@ dot (extract -> u) (extract -> v) = LA.dot u v
 cross :: R 3 -> R 3 -> R 3
 cross (extract -> x) (extract -> y) = vec3 z1 z2 z3
   where
-    z1 = x!1*y!2-x!2*y!1
-    z2 = x!2*y!0-x!0*y!2
-    z3 = x!0*y!1-x!1*y!0
+    z1 = x LA.! 1 * y LA.! 2 - x LA.! 2 * y LA.! 1
+    z2 = x LA.! 2 * y LA.! 0 - x LA.! 0 * y LA.! 2
+    z3 = x LA.! 0 * y LA.! 1 - x LA.! 1 * y LA.! 0
 
 outer :: (KnownNat m, KnownNat n) => R n -> R m -> L n m
 outer (extract -> x) (extract -> y) = mkL (LA.outer x y)
@@ -472,13 +470,19 @@ mean :: (KnownNat n, 1<=n) => R n -> ℝ
 mean v = v <·> (1/dim)
 
 
---------------------------------------------------------------------------------
--- Element access using the Finite type
 
-vAt :: KnownNat n => R n -> Finite n -> ℝ
-vAt v i = extract v LA.! fromIntegral (getFinite i)
+-- instance KnownNat n => At (R n) Double where
+--   type IndexAt (R n) = Finite n
+--   v ! i =  extract v LA.! fromIntegral (getFinite i)
 
-mAt :: (KnownNat m, KnownNat n) => L m n -> Finite m -> Finite n -> ℝ
-mAt m i' j' = extract m `LA.atIndex` (i, j)
-  where i = fromIntegral (getFinite i')
-        j = fromIntegral (getFinite j')
+-- instance (KnownNat m, KnownNat n) => At (L m n) Double where
+--   type IndexAt (R n) = (Finite n, Finite n)
+--   v ! i =  extract v LA.! fromIntegral (getFinite i)
+
+-- vAt :: KnownNat n => R n -> Finite n -> ℝ
+-- vAt v i = extract v LA.! fromIntegral (getFinite i)
+
+-- mAt :: (KnownNat m, KnownNat n) => L m n -> Finite m -> Finite n -> ℝ
+-- mAt m i' j' = extract m `LA.atIndex` (i, j)
+--   where i = fromIntegral (getFinite i')
+--         j = fromIntegral (getFinite j')

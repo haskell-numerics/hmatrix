@@ -54,6 +54,8 @@ module Numeric.LinearAlgebra.Static(
     -- * Misc
     Disp(..), Domain(..),
     Sized(..), Diag(..), Sym, sym, mTm, unSym,
+    -- * Element access
+    Coord(..), ElementAccess(..)
 ) where
 
 
@@ -75,7 +77,7 @@ import Internal.Static
 import Text.Printf
 #if MIN_VERSION_base(4,11,0)
 import Prelude hiding ((<>))
-import Data.Finite (Finite)
+-- import Data.Finite (Finite)
 #endif
 
 
@@ -157,9 +159,6 @@ class Domain field vec mat | mat -> vec field, vec -> mat field, field -> mat ve
 
     blockAt :: forall m n . (KnownNat m, KnownNat n) => field -> Int -> Int -> Matrix field -> mat m n
 
-    vAt :: forall n. KnownNat n => vec n -> Finite n -> field
-    mAt :: forall m n. (KnownNat m, KnownNat n) => mat m n -> Finite m -> Finite n -> field
-
 --------------------------------------------------------------------------------
 
 instance Domain ℝ R L
@@ -231,9 +230,6 @@ instance Domain ℝ R L
 
     blockAt = R.blockAt
 
-    vAt = R.vAt
-    mAt = R.mAt
-
 instance Domain ℂ C M
   where
     mul = C.mul
@@ -302,10 +298,6 @@ instance Domain ℂ C M
     exactDims = C.exactDims
 
     blockAt = C.blockAt
-
-    vAt = C.vAt
-    mAt = C.mAt
-
 
 --------------------------------------------------------------------------------
 
@@ -622,7 +614,39 @@ instance (KnownNat n) => Disp (Her n)
         let su = LA.dispcf n a
         printf "Her %d" (cols a) >> putStr (dropWhile (/='\n') $ su)
 
+
 --------------------------------------------------------------------------------
+
+class ElementAccess c i e where
+  (!) :: c -> i -> e
+
+data Coord (n :: Nat) = Coord
+
+instance (KnownNat n, KnownNat i, i+1<=n) => ElementAccess (R n) (Coord i) Double where
+  v ! _ =  extract v LA.! pos
+    where pos = fromIntegral . natVal $ (undefined :: Proxy i)
+
+instance (KnownNat m, KnownNat n, KnownNat i, KnownNat j, i+1<=m, j+1<=n)
+  => ElementAccess (L m n) (Coord i, Coord j) Double where
+  m ! _ =  extract m `LA.atIndex` pos
+    where pos = ( fromIntegral . natVal $ (undefined :: Proxy i)
+                , fromIntegral . natVal $ (undefined :: Proxy j))
+
+instance (KnownNat n, KnownNat i, i+1<=n) => ElementAccess (C n) (Coord i) (Complex Double) where
+  v ! _ =  extract v LA.! pos
+    where pos = fromIntegral . natVal $ (undefined :: Proxy i)
+
+instance (KnownNat m, KnownNat n, KnownNat i, KnownNat j, i+1<=m, j+1<=n)
+  => ElementAccess (M m n) (Coord i, Coord j) (Complex Double) where
+  m ! _ =  extract m `LA.atIndex` pos
+    where pos = ( fromIntegral . natVal $ (undefined :: Proxy i)
+                , fromIntegral . natVal $ (undefined :: Proxy j))
+
+--------------------------------------------------------------------------------
+
+
+
+
 -- type GL = forall n m . (KnownNat n, KnownNat m) => L m n
 -- type GSq = forall n . KnownNat n => Sq n
 

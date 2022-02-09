@@ -53,8 +53,6 @@ module Numeric.LinearAlgebra.Static.Complex(
     -- * Factorizations
     withCompactSVD,
     withNullspace, withOrth, qr,
-    -- * Element accessing
-    vAt, mAt,
     -- * Misc
     mean,
     Disp(..),
@@ -89,7 +87,6 @@ import Data.Type.Equality ((:~:)(Refl))
 import qualified Data.Bifunctor as BF (first)
 
 import Prelude hiding (zipWith, mapM, (<>))
-import Data.Finite (Finite, getFinite)
 
 
 infixl 4 &
@@ -452,21 +449,9 @@ diagR x v
   where
     r = mkM (asRow (vjoin [scalar x, ev, zeros]))
     ev = extract v
-    zeros = LA.konst x (max 0 ((min m' n') - LA.size ev))
+    zeros = LA.konst x (max 0 (min m' n' - LA.size ev))
     (m',n') = size r
 
 
 mean :: (KnownNat n, 1<=n) => C n -> ℂ
 mean v = v <·> (1/dim)
-
-
---------------------------------------------------------------------------------
--- Element access using the Finite type
-
-vAt :: KnownNat n => C n -> Finite n -> ℂ
-vAt v i = extract v LA.! fromIntegral (getFinite i)
-
-mAt :: (KnownNat m, KnownNat n) => M m n -> Finite m -> Finite n -> ℂ
-mAt m i' j' = extract m `LA.atIndex` (i, j)
-  where i = fromIntegral (getFinite i')
-        j = fromIntegral (getFinite j')
