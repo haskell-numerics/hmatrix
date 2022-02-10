@@ -65,8 +65,6 @@ library
                         Numeric.LinearAlgebra.Data
                         Numeric.LinearAlgebra.HMatrix
                         Numeric.LinearAlgebra.Static
-                        Numeric.LinearAlgebra.Static.Real
-                        Numeric.LinearAlgebra.Static.Complex
 
     other-modules:      Internal.Vector
                         Internal.Devel
@@ -90,6 +88,8 @@ library
                         Internal.Util
                         Internal.Modular
                         Internal.Static
+                        Internal.Static.Real
+                        Internal.Static.Complex
 
     C-sources:          src/Internal/C/lapack-aux.c
                         src/Internal/C/vector-aux.c

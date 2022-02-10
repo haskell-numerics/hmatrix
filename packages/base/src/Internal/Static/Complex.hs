@@ -28,42 +28,7 @@ See code examples at http://dis.um.es/~alberto/hmatrix/static.html.
 
 -}
 
-module Numeric.LinearAlgebra.Static.Complex(
-    -- * Vector
-       ℝ, R,
-    vec2, vec3, vec4, (&), (#), split, headTail,
-    vector,
-    linspace, range, dim,
-    -- * Matrix
-    L, Sq, build,
-    row, col, (|||),(===), splitRows, splitCols,
-    unrow, uncol,
-    tr,
-    eye,
-    diag, diagR,
-    blockAt,
-    matrix,
-    -- * Complex
-    ℂ, C, M,
-    -- * Products
-    (<>),(#>),(<.>),(<·>),
-    mul, app, dot,
-    -- * Linear Systems
-    linSolve, (<\>),
-    -- * Factorizations
-    withCompactSVD,
-    withNullspace, withOrth, qr,
-    -- * Misc
-    mean,
-    Disp(..),
-    cross, outer, mapC, mapM, det, zipWith,
-    invlndet, expm, sqrtm, inv,
-    isKonst, isKonstV,
-    withVector, withMatrix, exactLength, exactDims,
-    toRows, toColumns, withRows, withColumns,
-    flatten, reshape,
-    Sized(..),
-) where
+module Internal.Static.Complex where
 
 
 import GHC.TypeLits

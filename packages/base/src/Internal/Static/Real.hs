@@ -28,42 +28,7 @@ See code examples at http://dis.um.es/~alberto/hmatrix/static.html.
 
 -}
 
-module Numeric.LinearAlgebra.Static.Real(
-    -- * Vector
-       ℝ, R,
-    vec2, vec3, vec4, (&), (#), split, headTail,
-    vector,
-    linspace, range, dim,
-    -- * Matrix
-    L, Sq, build,
-    row, col, (|||),(===), splitRows, splitCols,
-    unrow, uncol,
-    tr,
-    eye,
-    diag, diagR,
-    blockAt,
-    matrix,
-    -- * Products
-    mul, app, dot,
-    (<>),(#>),(<.>),(<·>),
-    -- * Linear Systems
-    linSolve, (<\>),
-    -- * Random arrays
-    Seed, RandDist(..),
-    -- * Element accessing
-    -- vAt, mAt,
-    -- * Misc
-    mean,
-    Disp(..),
-    cross, outer, mapR, mapL, det, zipWith,
-    invlndet, expm, sqrtm, inv,
-    isKonst, isKonstV,
-    withVector, withMatrix, exactLength, exactDims,
-    toRows, toColumns, withRows, withColumns,
-    flatten, reshape,
-    Sized(..), Diag(..),
-
-) where
+module Internal.Static.Real where
 
 
 import GHC.TypeLits
@@ -231,46 +196,6 @@ infixr 8 <.>
 
 --------------------------------------------------------------------------------
 
-class Diag m d | m -> d
-  where
-    takeDiag :: m -> d
-
-
-instance KnownNat n => Diag (L n n) (R n)
-  where
-    takeDiag x = mkR (LA.takeDiag (extract x))
-
-
-instance KnownNat n => Diag (M n n) (C n)
-  where
-    takeDiag x = mkC (LA.takeDiag (extract x))
-
---------------------------------------------------------------------------------
-
-
--- toComplex :: KnownNat n => (R n, R n) -> C n
--- toComplex (r,i) = mkC $ LA.toComplex (ud1 r, ud1 i)
-
--- fromComplex :: KnownNat n => C n -> (R n, R n)
--- fromComplex (C (Dim v)) = let (r,i) = LA.fromComplex v in (mkR r, mkR i)
-
--- complex :: KnownNat n => R n -> C n
--- complex r = mkC $ LA.toComplex (ud1 r, LA.konst 0 (size r))
-
--- real :: KnownNat n => C n -> R n
--- real = fst . fromComplex
-
--- imag :: KnownNat n => C n -> R n
--- imag = snd . fromComplex
-
--- sqMagnitude :: KnownNat n => C n -> R n
--- sqMagnitude c = let (r,i) = fromComplex c in r**2 + i**2
-
--- magnitude :: KnownNat n => C n -> R n
--- magnitude = sqrt . sqMagnitude
-
---------------------------------------------------------------------------------
-
 linSolve :: (KnownNat m, KnownNat n) => L m m -> L m n -> Maybe (L m n)
 linSolve (extract -> a) (extract -> b) = fmap mkL (LA.linearSolve a b)
 
@@ -413,9 +338,9 @@ dot (extract -> u) (extract -> v) = LA.dot u v
 cross :: R 3 -> R 3 -> R 3
 cross (extract -> x) (extract -> y) = vec3 z1 z2 z3
   where
-    z1 = x LA.! 1 * y LA.! 2 - x LA.! 2 * y LA.! 1
-    z2 = x LA.! 2 * y LA.! 0 - x LA.! 0 * y LA.! 2
-    z3 = x LA.! 0 * y LA.! 1 - x LA.! 1 * y LA.! 0
+    z1 = x!1*y!2-x!2*y!1
+    z2 = x!2*y!0-x!0*y!2
+    z3 = x!0*y!1-x!1*y!0
 
 outer :: (KnownNat m, KnownNat n) => R n -> R m -> L n m
 outer (extract -> x) (extract -> y) = mkL (LA.outer x y)
@@ -461,28 +386,10 @@ diagR x v
   where
     r = mkL (asRow (vjoin [scalar x, ev, zeros]))
     ev = extract v
-    zeros = LA.konst x (max 0 ((min m' n') - LA.size ev))
+    zeros = LA.konst x (max 0 (min m' n' - LA.size ev))
     (m',n') = size r
 
 
 
 mean :: (KnownNat n, 1<=n) => R n -> ℝ
 mean v = v <·> (1/dim)
-
-
-
--- instance KnownNat n => At (R n) Double where
---   type IndexAt (R n) = Finite n
---   v ! i =  extract v LA.! fromIntegral (getFinite i)
-
--- instance (KnownNat m, KnownNat n) => At (L m n) Double where
---   type IndexAt (R n) = (Finite n, Finite n)
---   v ! i =  extract v LA.! fromIntegral (getFinite i)
-
--- vAt :: KnownNat n => R n -> Finite n -> ℝ
--- vAt v i = extract v LA.! fromIntegral (getFinite i)
-
--- mAt :: (KnownNat m, KnownNat n) => L m n -> Finite m -> Finite n -> ℝ
--- mAt m i' j' = extract m `LA.atIndex` (i, j)
---   where i = fromIntegral (getFinite i')
---         j = fromIntegral (getFinite j')

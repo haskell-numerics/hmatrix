@@ -70,14 +70,13 @@ import Numeric.LinearAlgebra hiding (
     toComplex, fromComplex, complex, real, magnitude, diag
     )
 import qualified Numeric.LinearAlgebra as LA
-import qualified Numeric.LinearAlgebra.Static.Real as R
-import qualified Numeric.LinearAlgebra.Static.Complex as C
+import qualified Internal.Static.Real as R
+import qualified Internal.Static.Complex as C
 import Data.Proxy(Proxy(..))
 import Internal.Static
 import Text.Printf
 #if MIN_VERSION_base(4,11,0)
 import Prelude hiding ((<>))
--- import Data.Finite (Finite)
 #endif
 
 
