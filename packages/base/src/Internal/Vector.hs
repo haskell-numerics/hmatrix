@@ -21,7 +21,7 @@ module Internal.Vector(
     buildVector,
     asReal, asComplex,
     toByteString,fromByteString,
-    zipVector, unzipVector, zipVectorWith, unzipVectorWith,
+    zipVector, unzipVector, zipVectorWith, zipVectorWith3, unzipVectorWith,
     foldVector, foldVectorG, foldVectorWithIndex, foldLoop,
     mapVector, mapVectorM, mapVectorM_,
     mapVectorWithIndex, mapVectorWithIndexM, mapVectorWithIndexM_
@@ -250,6 +250,25 @@ zipVectorWith f u v = unsafePerformIO $ do
                 go (n -1)
     return w
 {-# INLINE zipVectorWith #-}
+
+-- | zipWith for Vectors
+zipVectorWith3 :: (Storable a, Storable b, Storable c, Storable d) => (a-> b -> c -> d) -> Vector a -> Vector b -> Vector c -> Vector d
+zipVectorWith3 f u v z = unsafePerformIO $ do
+    let n = min (min (dim u) (dim v)) (dim z)
+    w <- createVector n
+    unsafeWith u $ \pu ->
+        unsafeWith v $ \pv ->
+            unsafeWith z $ \pz ->
+                unsafeWith w $ \pw -> do
+                    let go (-1) = return ()
+                        go !k = do x <- peekElemOff pu k
+                                   y <- peekElemOff pv k
+                                   t <- peekElemOff pz k
+                                   pokeElemOff      pw k (f x y t)
+                                   go (k-1)
+                    go (n -1)
+    return w
+{-# INLINE zipVectorWith3 #-}
 
 -- | unzipWith for Vectors
 unzipVectorWith :: (Storable (a,b), Storable c, Storable d)

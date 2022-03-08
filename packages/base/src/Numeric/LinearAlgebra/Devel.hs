@@ -44,7 +44,7 @@ module Numeric.LinearAlgebra.Devel(
     unsafeThawMatrix, unsafeFreezeMatrix,
 
     -- * Special maps and zips
-    mapVectorWithIndex, zipVector, zipVectorWith, unzipVector, unzipVectorWith,
+    mapVectorWithIndex, zipVector, zipVectorWith, zipVectorWith3, unzipVector, unzipVectorWith,
     mapVectorM, mapVectorM_, mapVectorWithIndexM, mapVectorWithIndexM_,
     foldLoop, foldVector, foldVectorG, foldVectorWithIndex,
     mapMatrixWithIndex, mapMatrixWithIndexM, mapMatrixWithIndexM_,
@@ -65,4 +65,3 @@ import Internal.Vector
 import Internal.Matrix
 import Internal.Element
 import Internal.Sparse
-

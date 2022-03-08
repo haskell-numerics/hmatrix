@@ -103,6 +103,7 @@ class Domain field vec mat | mat -> vec field, vec -> mat field, field -> mat ve
     dmmap :: forall n m. (KnownNat m, KnownNat n) => (field -> field) -> mat n m -> mat n m
     outer :: forall n m. (KnownNat m, KnownNat n) => vec n -> vec m -> mat n m
     zipWithVector :: forall n. KnownNat n => (field -> field -> field) -> vec n -> vec n -> vec n
+    zipWith3Vector :: forall n. KnownNat n => (field -> field -> field -> field) -> vec n -> vec n -> vec n -> vec n
 
     isKonst :: forall m n . (KnownNat m, KnownNat n) => mat m n -> Maybe (field,(Int,Int))
     isKonstV :: forall n . KnownNat n => vec n -> Maybe (field,Int)
@@ -178,6 +179,7 @@ instance Domain ℝ R L
     dmmap = R.mapL
     outer = R.outer
     zipWithVector = R.zipWith
+    zipWith3Vector = R.zipWith3
 
     isKonst = R.isKonst
     isKonstV = R.isKonstV
@@ -247,6 +249,7 @@ instance Domain ℂ C M
     dmmap = C.mapM
     outer = C.outer
     zipWithVector = C.zipWith
+    zipWith3Vector = C.zipWith3
 
     isKonst = C.isKonst
     isKonstV = C.isKonstV
