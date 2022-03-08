@@ -351,6 +351,9 @@ mapR f (unwrap -> v) = mkR (LA.cmap f v)
 zipWith :: KnownNat n => (ℝ -> ℝ -> ℝ) -> R n -> R n -> R n
 zipWith f (extract -> x) (extract -> y) = mkR (LA.zipVectorWith f x y)
 
+zipWith3 :: KnownNat n => (ℝ -> ℝ -> ℝ -> ℝ) -> R n -> R n -> R n -> R n
+zipWith3 f (extract -> x) (extract -> y) (extract -> z) = mkR (LA.zipVectorWith3 f x y z)
+
 mapL :: (KnownNat n, KnownNat m) => (ℝ -> ℝ) -> L n m -> L n m
 mapL f = overMatL' (LA.cmap f)
 

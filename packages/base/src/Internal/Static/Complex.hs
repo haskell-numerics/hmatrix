@@ -377,6 +377,9 @@ mapC f (unwrap -> v) = mkC (LA.cmap f v)
 zipWith :: KnownNat n => (ℂ -> ℂ -> ℂ) -> C n -> C n -> C n
 zipWith f (extract -> x) (extract -> y) = mkC (LA.zipVectorWith f x y)
 
+zipWith3 :: KnownNat n => (ℂ -> ℂ -> ℂ -> ℂ) -> C n -> C n -> C n -> C n
+zipWith3 f (extract -> x) (extract -> y) (extract -> z) = mkC (LA.zipVectorWith3 f x y z)
+
 mapM :: (KnownNat n, KnownNat m) => (ℂ -> ℂ) -> M n m -> M n m
 mapM f = overMatM' (LA.cmap f)
 
