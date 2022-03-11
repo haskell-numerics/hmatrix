@@ -56,7 +56,8 @@ library
                         storable-complex,
                         semigroups,
                         finite-typelits,
-                        vector >= 0.11
+                        vector >= 0.11,
+                        mtl
 
     hs-source-dirs:     src
 

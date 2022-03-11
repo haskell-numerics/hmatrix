@@ -55,7 +55,10 @@ module Numeric.LinearAlgebra.Static(
     Disp(..), Domain(..),
     Sized(..), Diag(..), Sym, sym, mTm, unSym,
     -- * Element access
-    Coord(..), ElementAccess(..)
+    Coord(..), ElementAccess(..),
+    -- * Existential Wrappers
+    toSomeR, toSomeL, toSomeC, toSomeM,
+    toContR, toContL, toContC, toContM
 ) where
 
 
@@ -75,6 +78,7 @@ import qualified Internal.Static.Complex as C
 import Data.Proxy(Proxy(..))
 import Internal.Static
 import Text.Printf
+import Control.Monad.Cont (Cont)
 #if MIN_VERSION_base(4,11,0)
 import Prelude hiding ((<>))
 #endif
@@ -643,6 +647,58 @@ instance (KnownNat m, KnownNat n, KnownNat i, KnownNat j, i+1<=m, j+1<=n)
   m ! _ =  extract m `LA.atIndex` pos
     where pos = ( fromIntegral . natVal $ (undefined :: Proxy i)
                 , fromIntegral . natVal $ (undefined :: Proxy j))
+
+
+--------------------------------------------------------------------------------
+-- Existential Wrappers
+
+
+data SomeR = forall n. KnownNat n => SomeR (R n)
+
+toSomeR :: Vector ℝ -> SomeR
+toSomeR v = case someNatVal $ fromIntegral $ LA.size v of
+       Nothing -> error "static/dynamic mismatch"
+       Just (SomeNat (_ :: Proxy m)) -> SomeR (mkR v :: R m)
+
+toContR :: forall z. Vector ℝ -> Cont z SomeR
+toContR v = return $ toSomeR v
+
+
+data SomeC = forall n. KnownNat n => SomeC (C n)
+
+toSomeC :: Vector ℂ -> SomeC
+toSomeC v = case someNatVal $ fromIntegral $ LA.size v of
+       Nothing -> error "static/dynamic mismatch"
+       Just (SomeNat (_ :: Proxy m)) -> SomeC (mkC v :: C m)
+
+toContC :: forall z. Vector ℂ -> Cont z SomeC
+toContC v = return $ toSomeC v
+
+
+data SomeL = forall m n. (KnownNat m, KnownNat n)  => SomeL (L m n)
+
+toSomeL :: Matrix ℝ -> SomeL
+toSomeL a = case (dr, dc) of
+  (Just (SomeNat (_ :: Proxy m)), Just (SomeNat (_ :: Proxy n))) -> SomeL (mkL a :: L m n)
+  _ -> error "static/dynamic mismatch"
+  where dr = someNatVal $ fromIntegral $ rows a
+        dc = someNatVal $ fromIntegral $ cols a
+
+toContL :: forall z . Matrix ℝ -> Cont z SomeL
+toContL a = return $ toSomeL a
+
+
+data SomeM = forall m n. (KnownNat m, KnownNat n)  => SomeM (M m n)
+
+toSomeM :: Matrix ℂ -> SomeM
+toSomeM a = case (dr, dc) of
+  (Just (SomeNat (_ :: Proxy m)), Just (SomeNat (_ :: Proxy n))) -> SomeM (mkM a :: M m n)
+  _ -> error "static/dynamic mismatch"
+  where dr = someNatVal $ fromIntegral $ rows a
+        dc = someNatVal $ fromIntegral $ cols a
+
+toContM :: forall z . Matrix ℂ -> Cont z SomeM
+toContM a = return $ toSomeM a
 
 --------------------------------------------------------------------------------
 
