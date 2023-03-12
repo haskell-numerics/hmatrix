@@ -50,7 +50,7 @@ library
                         array,
                         deepseq,
                         random,
-                        split,
+                        split >= 0.2,
                         bytestring,
                         primitive,
                         storable-complex,
