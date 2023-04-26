@@ -20,7 +20,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Numeric.Vector () where
+module Numeric.Vector (adaptScalar) where
 
 import Internal.Vectorized
 import Internal.Vector
