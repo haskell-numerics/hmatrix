@@ -52,11 +52,13 @@ instance (Container Matrix a, Num a, Num (Vector a)) => Num (Matrix a) where
     (*) = liftMatrix2Auto (*)
     signum = liftMatrix signum
     abs = liftMatrix abs
+    {-# INLINABLE fromInteger #-}
     fromInteger = (1><1) . return . fromInteger
 
 ---------------------------------------------------
 
 instance (Container Vector a, Fractional a, Fractional (Vector a), Num (Matrix a)) => Fractional (Matrix a) where
+    {-# INLINABLE fromRational #-}
     fromRational n = (1><1) [fromRational n]
     (/) = liftMatrix2Auto (/)
 
@@ -79,6 +81,7 @@ instance (Floating a, Container Vector a, Floating (Vector a), Fractional (Matri
     log   = liftMatrix log
     (**)  = liftMatrix2Auto (**)
     sqrt  = liftMatrix sqrt
+    {-# INLINABLE pi #-}
     pi    = (1><1) [pi]
 
 --------------------------------------------------------------------------------
