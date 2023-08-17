@@ -50,6 +50,7 @@ instance Num (Vector I) where
     (*) = adaptScalar scale mul (flip scale)
     signum = vectorMapI Sign
     abs = vectorMapI Abs
+    {-# INLINABLE fromInteger #-}
     fromInteger = fromList . return . fromInteger
 
 instance Num (Vector Z) where
@@ -58,6 +59,7 @@ instance Num (Vector Z) where
     (*) = adaptScalar scale mul (flip scale)
     signum = vectorMapL Sign
     abs = vectorMapL Abs
+    {-# INLINABLE fromInteger #-}
     fromInteger = fromList . return . fromInteger
 
 instance Num (Vector Float) where
@@ -74,6 +76,7 @@ instance Num (Vector Double) where
     (*) = adaptScalar scale mul (flip scale)
     signum = vectorMapR Sign
     abs = vectorMapR Abs
+    {-# INLINABLE fromInteger #-}
     fromInteger = fromList . return . fromInteger
 
 instance Num (Vector (Complex Double)) where
@@ -82,6 +85,7 @@ instance Num (Vector (Complex Double)) where
     (*) = adaptScalar scale mul (flip scale)
     signum = vectorMapC Sign
     abs = vectorMapC Abs
+    {-# INLINABLE fromInteger #-}
     fromInteger = fromList . return . fromInteger
 
 instance Num (Vector (Complex Float)) where
@@ -90,11 +94,13 @@ instance Num (Vector (Complex Float)) where
     (*) = adaptScalar scale mul (flip scale)
     signum = vectorMapQ Sign
     abs = vectorMapQ Abs
+    {-# INLINABLE fromInteger #-}
     fromInteger = fromList . return . fromInteger
 
 ---------------------------------------------------
 
 instance (Container Vector a, Num (Vector a), Fractional a) => Fractional (Vector a) where
+    {-# INLINABLE fromRational #-}
     fromRational n = fromList [fromRational n]
     (/) = adaptScalar f divide g where
         r `f` v = scaleRecip r v
@@ -119,6 +125,7 @@ instance Floating (Vector Float) where
     log   = vectorMapF Log
     sqrt  = vectorMapF Sqrt
     (**)  = adaptScalar (vectorMapValF PowSV) (vectorZipF Pow) (flip (vectorMapValF PowVS))
+    {-# INLINABLE pi #-}
     pi    = fromList [pi]
 
 -------------------------------------------------------------
@@ -140,6 +147,7 @@ instance Floating (Vector Double) where
     log   = vectorMapR Log
     sqrt  = vectorMapR Sqrt
     (**)  = adaptScalar (vectorMapValR PowSV) (vectorZipR Pow) (flip (vectorMapValR PowVS))
+    {-# INLINABLE pi #-}
     pi    = fromList [pi]
 
 -------------------------------------------------------------
@@ -161,6 +169,7 @@ instance Floating (Vector (Complex Double)) where
     log   = vectorMapC Log
     sqrt  = vectorMapC Sqrt
     (**)  = adaptScalar (vectorMapValC PowSV) (vectorZipC Pow) (flip (vectorMapValC PowVS))
+    {-# INLINABLE pi #-}
     pi    = fromList [pi]
 
 -----------------------------------------------------------
@@ -182,4 +191,5 @@ instance Floating (Vector (Complex Float)) where
     log   = vectorMapQ Log
     sqrt  = vectorMapQ Sqrt
     (**)  = adaptScalar (vectorMapValQ PowSV) (vectorZipQ Pow) (flip (vectorMapValQ PowVS))
+    {-# INLINABLE pi #-}
     pi    = fromList [pi]
