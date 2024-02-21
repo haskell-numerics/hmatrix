@@ -466,6 +466,25 @@ build f = r
   where
     r = mkL $ LA.build (size r) f
 
+-- | Create a matrix where every element is the same.
+constMatrix
+  :: forall m n . (KnownNat n, KnownNat m)
+    => ℝ
+    -> L m n
+constMatrix x = build (\_ _ -> x)
+
+-- | Create a matrix where every element is zero.
+zeros
+  :: forall m n . (KnownNat n, KnownNat m)
+    => L m n
+zeros = constMatrix 0
+
+-- | Create a matrix where every element is one.
+ones
+  :: forall m n . (KnownNat n, KnownNat m)
+    => L m n
+ones = constMatrix 1
+
 --------------------------------------------------------------------------------
 
 withVector
