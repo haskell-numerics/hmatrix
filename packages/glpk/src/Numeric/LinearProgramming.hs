@@ -76,6 +76,8 @@ Multiple bounds for a variable are not allowed, instead of
 module Numeric.LinearProgramming(
     simplex,
     exact,
+    intoptExact,
+    intoptSimplex,
     sparseOfGeneral,
     Optimization(..),
     Constraints(..),
@@ -177,6 +179,47 @@ exact opt (Sparse constr) bnds = extract sg sol where
     (sz, sg, objfun) = adapt opt
 
 exact opt constr@(General _) bnds = exact opt (sparseOfGeneral constr) bnds
+
+-- | Method to use MIP solutions. See MIP routines section of glpk documentation for more information.
+intoptExact :: Optimization -> Constraints -> Bounds -> Solution
+
+intoptExact opt (Dense   []) bnds = intoptExact opt (Sparse []) bnds
+intoptExact opt (Sparse  []) bnds = intoptExact opt (Sparse [Free [0#1]]) bnds
+intoptExact opt (General []) bnds = intoptExact opt (Sparse [Free [0#1]]) bnds
+
+intoptExact opt (Dense constr) bnds = extract sg sol where
+    sol = intoptExactSparse m n (mkConstrD sz objfun constr) (mkBounds sz constr bnds)
+    n = length objfun
+    m = length constr
+    (sz, sg, objfun) = adapt opt
+
+intoptExact opt (Sparse constr) bnds = extract sg sol where
+    sol = intoptExactSparse m n (mkConstrS sz objfun constr) (mkBounds sz constr bnds)
+    n = length objfun
+    m = length constr
+    (sz, sg, objfun) = adapt opt
+
+intoptExact opt constr@(General _) bnds = intoptExact opt (sparseOfGeneral constr) bnds
+
+intoptSimplex :: Optimization -> Constraints -> Bounds -> Solution
+
+intoptSimplex opt (Dense   []) bnds = intoptSimplex opt (Sparse []) bnds
+intoptSimplex opt (Sparse  []) bnds = intoptSimplex opt (Sparse [Free [0#1]]) bnds
+intoptSimplex opt (General []) bnds = intoptSimplex opt (Sparse [Free [0#1]]) bnds
+
+intoptSimplex opt (Dense constr) bnds = extract sg sol where
+    sol = intoptSimplexSparse m n (mkConstrD sz objfun constr) (mkBounds sz constr bnds)
+    n = length objfun
+    m = length constr
+    (sz, sg, objfun) = adapt opt
+
+intoptSimplex opt (Sparse constr) bnds = extract sg sol where
+    sol = intoptSimplexSparse m n (mkConstrS sz objfun constr) (mkBounds sz constr bnds)
+    n = length objfun
+    m = length constr
+    (sz, sg, objfun) = adapt opt
+
+intoptSimplex opt constr@(General _) bnds = intoptSimplex opt (sparseOfGeneral constr) bnds
 
 adapt :: Optimization -> (Int, Double, [Double])
 adapt opt = case opt of
@@ -304,6 +347,34 @@ exactSparse :: Int -> Int -> Matrix Double -> Matrix Double -> Vector Double
 exactSparse m n c b = unsafePerformIO $ do
     s <- createVector (2+n)
     ((cmat c) `applyRaw` ((cmat b) `applyRaw` (s `applyRaw` id))) (c_exact_sparse (fi m) (fi n)) #|"c_exact_sparse"
+    return s
+
+
+
+foreign import ccall unsafe "c_intopt_exact" c_intopt_exact
+    :: CInt -> CInt                  -- rows and cols
+    -> CInt -> CInt -> Ptr Double    -- coeffs
+    -> CInt -> CInt -> Ptr Double    -- bounds
+    -> CInt -> Ptr Double            -- result
+    -> IO CInt                       -- exit code
+
+intoptExactSparse :: Int -> Int -> Matrix Double -> Matrix Double -> Vector Double
+intoptExactSparse m n c b = unsafePerformIO $ do
+    s <- createVector (2+n)
+    ((cmat c) `applyRaw` ((cmat b) `applyRaw` (s `applyRaw` id))) (c_intopt_exact (fi m) (fi n)) #|"c_intopt_exact"
+    return s
+
+foreign import ccall unsafe "c_intopt_simplex" c_intopt_simplex
+    :: CInt -> CInt                  -- rows and cols
+    -> CInt -> CInt -> Ptr Double    -- coeffs
+    -> CInt -> CInt -> Ptr Double    -- bounds
+    -> CInt -> Ptr Double            -- result
+    -> IO CInt                       -- exit code
+
+intoptSimplexSparse :: Int -> Int -> Matrix Double -> Matrix Double -> Vector Double
+intoptSimplexSparse m n c b = unsafePerformIO $ do
+    s <- createVector (2+n)
+    ((cmat c) `applyRaw` ((cmat b) `applyRaw` (s `applyRaw` id))) (c_intopt_simplex (fi m) (fi n)) #|"c_intopt_simplex"
     return s
 
 glpFR, glpLO, glpUP, glpDB, glpFX :: Double
