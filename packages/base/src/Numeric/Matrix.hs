@@ -103,13 +103,12 @@ adaptScalarM f1 f2 f3 x y
 
 instance (Container Vector t, Eq t, Num (Vector t), Product t) => S.Semigroup (Matrix t)
   where
-    (<>) = mappend
+    (<>) = adaptScalarM scale mXm (flip scale)
     sconcat = mconcat . F.toList
 
 instance (Container Vector t, Eq t, Num (Vector t), Product t) => M.Monoid (Matrix t)
   where
     mempty = 1
-    mappend = adaptScalarM scale mXm (flip scale)
 
     mconcat xs = work (partition isScalar xs)
       where
