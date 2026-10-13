@@ -827,7 +827,19 @@ runTests n = do
     test (\m -> toRows (m::ZM) == read (show (toRows m)))
     putStrLn "------ some unit tests"
     c <- runTestTT $ TestList
-        [ utest "1E5 rots" rotTest
+        [ utest "matrix equality: same empty shape" $
+            ((0><0) [] :: Matrix Double) == ((0><0) [] :: Matrix Double)
+        , utest "matrix equality: different rows for empty matrices" $
+            ((0><0) [] :: Matrix Double) /= ((1><0) [] :: Matrix Double)
+        , utest "matrix equality: different columns for empty matrices" $
+            ((0><0) [] :: Matrix Double) /= ((0><1) [] :: Matrix Double)
+        , utest "matrix equality: equal non-empty matrices" $
+            ((2><2) [1,2,3,4] :: Matrix Double)
+                == ((2><2) [1,2,3,4] :: Matrix Double)
+        , utest "matrix equality: different elements" $
+            ((2><2) [1,2,3,4] :: Matrix Double)
+                /= ((2><2) [1,2,3,5] :: Matrix Double)
+        , utest "1E5 rots" rotTest
         , utest "det1" detTest1
         , utest "invlndet" detTest2
         , utest "expm1" (expmTest1)

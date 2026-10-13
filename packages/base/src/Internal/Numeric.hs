@@ -332,7 +332,7 @@ instance (Num a, Element a, Container Vector a) => Container Matrix a
     add' = liftMatrix2 add'
     sub = liftMatrix2 sub
     mul = liftMatrix2 mul
-    equal a b = cols a == cols b && flatten a `equal` flatten b
+    equal a b = size a == size b && flatten a `equal` flatten b
     scalar' x = (1><1) [x]
     konst' v (r,c) = matrixFromVector RowMajor r c (konst' v (r*c))
     build' = buildM
